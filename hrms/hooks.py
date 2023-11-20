@@ -8,7 +8,6 @@ required_apps = ["frappe/erpnext"]
 source_link = "https://github.com/bvisible/hrms"
 #app_logo_url = "/assets/hrms/images/frappe-hr-logo.svg"
 
-
 # Includes in <head>
 # ------------------
 
