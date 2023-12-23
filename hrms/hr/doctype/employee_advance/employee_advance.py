@@ -11,6 +11,7 @@ from frappe.utils import flt, nowdate
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_default_bank_cash_account
 
+import hrms
 from hrms.hr.utils import validate_active_employee
 
 
@@ -40,12 +41,7 @@ class EmployeeAdvance(Document):
 
 	def publish_update(self):
 		employee_user = frappe.db.get_value("Employee", self.employee, "user_id", cache=True)
-		frappe.publish_realtime(
-			event="hrms:update_employee_advances",
-			message={"employee": self.employee},
-			user=employee_user,
-			after_commit=True,
-		)
+		hrms.refetch_resource("hrms:employee_advance_balance", employee_user)
 
 	def set_status(self, update=False):
 		precision = self.precision("paid_amount")
@@ -253,6 +249,7 @@ def create_return_through_additional_salary(doc):
 	additional_salary = frappe.new_doc("Additional Salary")
 	additional_salary.employee = doc.employee
 	additional_salary.currency = doc.currency
+	additional_salary.overwrite_salary_structure_amount = 0
 	additional_salary.amount = doc.paid_amount - doc.claimed_amount
 	additional_salary.company = doc.company
 	additional_salary.ref_doctype = doc.doctype
