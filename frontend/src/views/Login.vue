@@ -3,9 +3,9 @@
 		<ion-content class="ion-padding">
 			<div class="flex h-screen w-screen flex-col justify-center bg-white">
 				<div class="flex flex-col mx-auto gap-3 items-center">
-					<FrappeHRLogo class="h-8 w-8" />
+					<!-- //// change information page <FrappeHRLogo class="h-8 w-8" />-->
 					<div class="text-3xl font-semibold text-gray-900 text-center">
-						Login to Frappe HR
+						Neoffice
 					</div>
 				</div>
 
@@ -29,7 +29,7 @@
 							variant="solid"
 							class="disabled:bg-gray-700 disabled:text-white !mt-6"
 						>
-							Login
+							Connexion
 						</Button>
 					</form>
 				</div>
@@ -43,7 +43,9 @@ import { IonPage, IonContent } from "@ionic/vue"
 import { inject, ref } from "vue"
 import { Input, Button, ErrorMessage } from "frappe-ui"
 
-import FrappeHRLogo from "@/components/icons/FrappeHRLogo.vue"
+////import FrappeHRLogo from "@/components/icons/FrappeHRLogo.vue"
+////
+window.location.replace('/login');
 
 const email = ref(null)
 const password = ref(null)
