@@ -1,6 +1,11 @@
 <template>
 	<BaseLayout>
 		<template #body>
+			<ion-header collapse="condense">
+				<ion-toolbar style=" margin-top: 10px; ">
+					<ion-title size="large">HR</ion-title>
+				</ion-toolbar>
+			</ion-header>
 			<div class="flex flex-col items-center my-7 p-4 gap-7">
 				<CheckInPanel />
 				<QuickLinks :items="quickLinks" title="Quick Links" />
