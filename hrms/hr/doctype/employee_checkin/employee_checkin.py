@@ -18,6 +18,7 @@ class EmployeeCheckin(Document):
 		validate_active_employee(self.employee)
 		self.validate_duplicate_log()
 		self.fetch_shift()
+		self.set_geolocation_from_coordinates()
 
 	def validate_duplicate_log(self):
 		doc = frappe.db.exists(
@@ -35,30 +36,55 @@ class EmployeeCheckin(Document):
 				_("This employee already has a log with the same timestamp.{0}").format("<Br>" + doc_link)
 			)
 
+	@frappe.whitelist()
 	def fetch_shift(self):
-		shift_actual_timings = get_actual_start_end_datetime_of_shift(
-			self.employee, get_datetime(self.time), True
-		)
-		if shift_actual_timings:
-			if (
-				shift_actual_timings.shift_type.determine_check_in_and_check_out
-				== "Strictly based on Log Type in Employee Checkin"
-				and not self.log_type
-				and not self.skip_auto_attendance
-			):
-				frappe.throw(
-					_("Log Type is required for check-ins falling in the shift: {0}.").format(
-						shift_actual_timings.shift_type.name
-					)
-				)
-			if not self.attendance:
-				self.shift = shift_actual_timings.shift_type.name
-				self.shift_actual_start = shift_actual_timings.actual_start
-				self.shift_actual_end = shift_actual_timings.actual_end
-				self.shift_start = shift_actual_timings.start_datetime
-				self.shift_end = shift_actual_timings.end_datetime
-		else:
+		if not (
+			shift_actual_timings := get_actual_start_end_datetime_of_shift(
+				self.employee, get_datetime(self.time), True
+			)
+		):
 			self.shift = None
+			return
+
+		if (
+			shift_actual_timings.shift_type.determine_check_in_and_check_out
+			== "Strictly based on Log Type in Employee Checkin"
+			and not self.log_type
+			and not self.skip_auto_attendance
+		):
+			frappe.throw(
+				_("Log Type is required for check-ins falling in the shift: {0}.").format(
+					shift_actual_timings.shift_type.name
+				)
+			)
+		if not self.attendance:
+			self.shift = shift_actual_timings.shift_type.name
+			self.shift_actual_start = shift_actual_timings.actual_start
+			self.shift_actual_end = shift_actual_timings.actual_end
+			self.shift_start = shift_actual_timings.start_datetime
+			self.shift_end = shift_actual_timings.end_datetime
+
+	@frappe.whitelist()
+	def set_geolocation_from_coordinates(self):
+		if not frappe.db.get_single_value("HR Settings", "allow_geolocation_tracking"):
+			return
+
+		if not (self.latitude and self.longitude):
+			return
+
+		self.geolocation = frappe.json.dumps(
+			{
+				"type": "FeatureCollection",
+				"features": [
+					{
+						"type": "Feature",
+						"properties": {},
+						# geojson needs coordinates in reverse order: long, lat instead of lat, long
+						"geometry": {"type": "Point", "coordinates": [self.longitude, self.latitude]},
+					}
+				],
+			}
+		)
 
 
 @frappe.whitelist()
@@ -109,6 +135,17 @@ def add_log_based_on_employee_field(
 	doc.insert()
 
 	return doc
+
+
+@frappe.whitelist()
+def bulk_fetch_shift(checkins: list[str] | str) -> None:
+	if isinstance(checkins, str):
+		checkins = frappe.json.loads(checkins)
+	for d in checkins:
+		doc = frappe.get_doc("Employee Checkin", d)
+		doc.fetch_shift()
+		doc.flags.ignore_validate = True
+		doc.save()
 
 
 def mark_attendance_and_link_log(
@@ -197,9 +234,7 @@ def calculate_working_hours(logs, check_in_out_type, working_hours_calc_type):
 	elif check_in_out_type == "Strictly based on Log Type in Employee Checkin":
 		if working_hours_calc_type == "First Check-in and Last Check-out":
 			first_in_log_index = find_index_in_dict(logs, "log_type", "IN")
-			first_in_log = (
-				logs[first_in_log_index] if first_in_log_index or first_in_log_index == 0 else None
-			)
+			first_in_log = logs[first_in_log_index] if first_in_log_index or first_in_log_index == 0 else None
 			last_out_log_index = find_index_in_dict(reversed(logs), "log_type", "OUT")
 			last_out_log = (
 				logs[len(logs) - 1 - last_out_log_index]
@@ -248,7 +283,9 @@ def handle_attendance_exception(log_names: list, error_message: str):
 
 
 def add_comment_in_checkins(log_names: list, error_message: str):
-	text = "{0}<br>{1}".format(frappe.bold(_("Reason for skipping auto attendance:")), error_message)
+	text = "{prefix}<br>{error_message}".format(
+		prefix=frappe.bold(_("Reason for skipping auto attendance:")), error_message=error_message
+	)
 
 	for name in log_names:
 		frappe.get_doc(

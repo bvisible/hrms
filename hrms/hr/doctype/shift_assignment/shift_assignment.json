@@ -11,6 +11,7 @@
   "employee_name",
   "shift_type",
   "status",
+  "schedule",
   "column_break_3",
   "company",
   "start_date",
@@ -23,6 +24,7 @@
   {
    "fieldname": "employee",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Employee",
    "options": "Employee",
    "reqd": 1,
@@ -47,6 +49,7 @@
    "fieldname": "shift_type",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Shift Type",
    "options": "Shift Type",
    "reqd": 1,
@@ -99,11 +102,18 @@
    "fieldtype": "Select",
    "label": "Status",
    "options": "Active\nInactive"
+  },
+  {
+   "fieldname": "schedule",
+   "fieldtype": "Link",
+   "label": "Schedule",
+   "options": "Shift Assignment Schedule",
+   "read_only": 1
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2023-06-23 12:08:23.247882",
+ "modified": "2024-05-31 16:41:32.869130",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "Shift Assignment",
