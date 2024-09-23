@@ -62,6 +62,7 @@
    "description": "Employee records are created using the selected option",
    "fieldname": "emp_created_by",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Employee Naming By",
    "options": "Naming Series\nEmployee Number\nFull Name"
   },
