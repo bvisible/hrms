@@ -50,18 +50,7 @@ class Attendance(Document):
 	def validate_attendance_date(self):
 		date_of_joining = frappe.db.get_value("Employee", self.employee, "date_of_joining")
 
-		# leaves can be marked for future dates
-		if (
-			self.status != "On Leave"
-			and not self.leave_application
-			and getdate(self.attendance_date) > getdate(nowdate())
-		):
-			frappe.throw(
-				_("Attendance can not be marked for future dates: {0}").format(
-					frappe.bold(format_date(self.attendance_date)),
-				)
-			)
-		elif date_of_joining and getdate(self.attendance_date) < getdate(date_of_joining):
+		if date_of_joining and getdate(self.attendance_date) < getdate(date_of_joining):
 			frappe.throw(
 				_("Attendance date {0} can not be less than employee {1}'s joining date: {2}").format(
 					frappe.bold(format_date(self.attendance_date)),
@@ -239,42 +228,38 @@ class Attendance(Document):
 
 @frappe.whitelist()
 def get_events(start, end, filters=None):
-	from frappe.desk.reportview import get_filters_cond
-
-	events = []
-
 	employee = frappe.db.get_value("Employee", {"user_id": frappe.session.user})
-
 	if not employee:
-		return events
+		return []
+	if isinstance(filters, str):
+		import json
 
-	conditions = get_filters_cond("Attendance", filters, [])
-	add_attendance(events, start, end, conditions=conditions)
-	add_holidays(events, start, end, employee)
-	return events
+		filters = json.loads(filters)
+	if not filters:
+		filters = []
+	filters.append(["attendance_date", "between", [get_datetime(start).date(), get_datetime(end).date()]])
+	attendance_records = add_attendance(filters)
+	add_holidays(attendance_records, start, end, employee)
+	return attendance_records
 
 
-def add_attendance(events, start, end, conditions=None):
-	query = """select name, attendance_date, status, employee_name
-		from `tabAttendance` where
-		attendance_date between %(from_date)s and %(to_date)s
-		and docstatus < 2"""
-
-	if conditions:
-		query += conditions
-
-	for d in frappe.db.sql(query, {"from_date": start, "to_date": end}, as_dict=True):
-		e = {
-			"name": d.name,
-			"doctype": "Attendance",
-			"start": d.attendance_date,
-			"end": d.attendance_date,
-			"title": f"{d.employee_name}: {cstr(d.status)}",
-			"status": d.status,
-			"docstatus": d.docstatus,
-		}
-		if e not in events:
-			events.append(e)
+def add_attendance(filters):
+	attendance = frappe.get_list(
+		"Attendance",
+		fields=[
+			"name",
+			"'Attendance' as doctype",
+			"attendance_date as start",
+			"attendance_date as end",
+			"employee_name",
+			"status",
+			"docstatus",
+		],
+		filters=filters,
+	)
+	for record in attendance:
+		record["title"] = f"{record.employee_name} : {record.status}"
+	return attendance
 
 
 def add_holidays(events, start, end, employee=None):

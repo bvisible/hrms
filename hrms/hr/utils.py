@@ -174,13 +174,13 @@ def get_employee_field_property(employee, fieldname):
 	}
 
 
-def validate_dates(doc, from_date, to_date):
+def validate_dates(doc, from_date, to_date, restrict_future_dates=True):
 	date_of_joining, relieving_date = frappe.db.get_value(
 		"Employee", doc.employee, ["date_of_joining", "relieving_date"]
 	)
 	if getdate(from_date) > getdate(to_date):
 		frappe.throw(_("To date can not be less than from date"))
-	elif getdate(from_date) > getdate(nowdate()):
+	elif getdate(from_date) > getdate(nowdate()) and restrict_future_dates:
 		frappe.throw(_("Future dates not allowed"))
 	elif date_of_joining and getdate(from_date) < getdate(date_of_joining):
 		frappe.throw(_("From date can not be less than employee's joining date"))
@@ -345,7 +345,6 @@ def allocate_earned_leaves():
 
 	for e_leave_type in e_leave_types:
 		leave_allocations = get_leave_allocations(today, e_leave_type.name)
-
 		for allocation in leave_allocations:
 			if not allocation.leave_policy_assignment and not allocation.leave_policy:
 				continue
@@ -461,15 +460,29 @@ def round_earned_leaves(earned_leaves, rounding):
 
 
 def get_leave_allocations(date, leave_type):
-	return frappe.db.sql(
-		"""select name, employee, from_date, to_date, leave_policy_assignment, leave_policy
-		from `tabLeave Allocation`
-		where
-			%s between from_date and to_date and docstatus=1
-			and leave_type=%s""",
-		(date, leave_type),
-		as_dict=1,
+	employee = frappe.qb.DocType("Employee")
+	leave_allocation = frappe.qb.DocType("Leave Allocation")
+	query = (
+		frappe.qb.from_(leave_allocation)
+		.join(employee)
+		.on(leave_allocation.employee == employee.name)
+		.select(
+			leave_allocation.name,
+			leave_allocation.employee,
+			leave_allocation.from_date,
+			leave_allocation.to_date,
+			leave_allocation.leave_policy_assignment,
+			leave_allocation.leave_policy,
+		)
+		.where(
+			(date >= leave_allocation.from_date)
+			& (date <= leave_allocation.to_date)
+			& (leave_allocation.docstatus == 1)
+			& (leave_allocation.leave_type == leave_type)
+			& (employee.status != "Left")
+		)
 	)
+	return query.run(as_dict=1) or []
 
 
 def get_earned_leaves():
@@ -529,16 +542,20 @@ def get_salary_assignments(employee, payroll_period):
 		order_by="from_date",
 	)
 
-	if not assignments:
+	if not assignments or getdate(assignments[0].from_date) > getdate(start_date):
 		# if no assignments found for the given period
-		# get the last one assigned before the period that is still active
-		assignments = frappe.get_all(
+		# or the latest assignment hast started in the middle of the period
+		# get the last one assigned before the period start date
+		past_assignment = frappe.get_all(
 			"Salary Structure Assignment",
-			filters={"employee": employee, "docstatus": 1, "from_date": ["<=", start_date]},
+			filters={"employee": employee, "docstatus": 1, "from_date": ["<", start_date]},
 			fields=["*"],
 			order_by="from_date desc",
 			limit=1,
 		)
+
+		if past_assignment:
+			assignments = past_assignment + assignments
 
 	return assignments
 
@@ -770,9 +787,9 @@ def get_ec_matching_query(
 		ref_rank = frappe.qb.terms.Case().when(ec.employee == common_filters.party, 1).else_(0) + 1
 
 		if exact_match:
-			filters.append(ec.total_sanctioned_amount == common_filters.amount)
+			filters.append(ec.total_amount_reimbursed == common_filters.amount)
 		else:
-			filters.append(ec.total_sanctioned_amount.gt(common_filters.amount))
+			filters.append(ec.total_amount_reimbursed.gt(common_filters.amount))
 	else:
 		ref_rank = ConstantColumn(1)
 
@@ -783,6 +800,7 @@ def get_ec_matching_query(
 		qb.from_(ec)
 		.select(
 			ref_rank.as_("rank"),
+			ConstantColumn("Expense Claim").as_("doctype"),
 			ec.name,
 			ec.total_sanctioned_amount.as_("paid_amount"),
 			ConstantColumn("").as_("reference_no"),
@@ -853,6 +871,39 @@ def notify_bulk_action_status(doctype: str, failure: list, success: list) -> Non
 		title=title,
 		is_minimizable=True,
 	)
+
+
+@frappe.whitelist()
+def set_geolocation_from_coordinates(doc):
+	if not frappe.db.get_single_value("HR Settings", "allow_geolocation_tracking"):
+		return
+
+	if not (doc.latitude and doc.longitude):
+		return
+
+	doc.geolocation = frappe.json.dumps(
+		{
+			"type": "FeatureCollection",
+			"features": [
+				{
+					"type": "Feature",
+					"properties": {},
+					# geojson needs coordinates in reverse order: long, lat instead of lat, long
+					"geometry": {"type": "Point", "coordinates": [doc.longitude, doc.latitude]},
+				}
+			],
+		}
+	)
+
+
+def get_distance_between_coordinates(lat1, long1, lat2, long2):
+	from math import asin, cos, pi, sqrt
+
+	r = 6371
+	p = pi / 180
+
+	a = 0.5 - cos((lat2 - lat1) * p) / 2 + cos(lat1 * p) * cos(lat2 * p) * (1 - cos((long2 - long1) * p)) / 2
+	return 2 * r * asin(sqrt(a)) * 1000
 
 
 def check_app_permission():

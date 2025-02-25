@@ -10,14 +10,14 @@
 				<div class="mx-auto mt-10 w-full px-8 sm:w-96">
 					<form class="flex flex-col space-y-4" @submit.prevent="submit">
 						<Input
-							label="Email"
+							:label="__('Email')"
 							placeholder="johndoe@mail.com"
 							v-model="email"
 							type="text"
 							autocomplete="username"
 						/>
 						<Input
-							label="Password"
+							:label="__('Password')"
 							type="password"
 							placeholder="••••••"
 							v-model="password"
@@ -29,18 +29,35 @@
 							variant="solid"
 							class="disabled:bg-gray-700 disabled:text-white !mt-6"
 						>
-							Connexion
+							{{ __("Login") }}
 						</Button>
 					</form>
+
+					<template v-if="authProviders.data?.length">
+						<div class="text-center text-sm text-gray-600 my-4">or</div>
+						<div class="space-y-4">
+							<a
+								v-for="provider in authProviders.data"
+								:key="provider.name"
+								class="flex items-center justify-center gap-2 transition-colors focus:outline-none text-gray-800 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 focus-visible:ring focus-visible:ring-gray-400 h-7 text-base p-2 rounded"
+								:href="provider.auth_url"
+							>
+								<img class="h-4 w-4" :src="provider.icon" :alt="provider.provider_name" />
+								<span>Login with {{ provider.provider_name }}</span>
+							</a>
+						</div>
+					</template>
 				</div>
 			</div>
 
 			<Dialog v-model="resetPassword.showDialog">
 				<template #body-title>
-					<h2 class="text-lg font-bold">Reset Password</h2>
+					<h2 class="text-lg font-bold">{{ __("Reset Password") }} </h2>
 				</template>
 				<template #body-content>
-					<p>Your password has expired. Please reset your password to continue</p>
+					<p>
+						{{ __("Your password has expired. Please reset your password to continue") }}
+					</p>
 				</template>
 				<template #actions>
 					<a
@@ -48,7 +65,7 @@
 						:href="resetPassword.link"
 						target="_blank"
 					>
-						Go to Reset Password page
+						{{ __("Go to Reset Password page") }}
 					</a>
 				</template>
 			</Dialog>
@@ -88,11 +105,9 @@
 <script setup>
 import { IonPage, IonContent } from "@ionic/vue"
 import { inject, reactive, ref } from "vue"
-import { Input, Button, ErrorMessage, Dialog } from "frappe-ui"
+import { Input, Button, ErrorMessage, Dialog, createResource } from "frappe-ui"
 
-////import FrappeHRLogo from "@/components/icons/FrappeHRLogo.vue"
-////
-window.location.replace('/login');
+import FrappeHRLogo from "@/components/icons/FrappeHRLogo.vue"
 
 const email = ref(null)
 const password = ref(null)
@@ -143,4 +158,9 @@ async function submit(e) {
 		errorMessage.value = error.messages.join("\n")
 	}
 }
+
+const authProviders = createResource({
+	url: "hrms.api.oauth.oauth_providers",
+	auto: true,
+})
 </script>

@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.tests.utils import FrappeTestCase, change_settings
-from frappe.utils import add_days, add_months, cstr
+from frappe.utils import add_days, add_months, cstr, flt
 
 import erpnext
 from erpnext.accounts.utils import get_fiscal_year, getdate, nowdate
@@ -46,6 +46,7 @@ class TestPayrollEntry(FrappeTestCase):
 	def setUp(self):
 		for dt in [
 			"Salary Slip",
+			"Salary Detail",
 			"Salary Component",
 			"Salary Component Account",
 			"Payroll Entry",
@@ -716,6 +717,74 @@ class TestPayrollEntry(FrappeTestCase):
 
 		employees = payroll_entry.get_employees_with_unmarked_attendance()
 		self.assertFalse(employees)
+
+	@if_lending_app_installed
+	@change_settings("Payroll Settings", {"process_payroll_accounting_entry_based_on_employee": 0})
+	def test_loan_repayment_from_salary(self):
+		self.run_test_for_loan_repayment_from_salary()
+
+	@if_lending_app_installed
+	@change_settings("Payroll Settings", {"process_payroll_accounting_entry_based_on_employee": 1})
+	def test_loan_repayment_from_salary_with_employee_tagging(self):
+		self.run_test_for_loan_repayment_from_salary()
+
+	def run_test_for_loan_repayment_from_salary(self):
+		from lending.loan_management.doctype.loan.test_loan import make_loan_disbursement_entry
+		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
+			process_loan_interest_accrual_for_term_loans,
+		)
+
+		frappe.db.delete("Loan")
+		applicant, branch, currency, payroll_payable_account = setup_lending()
+
+		loan = create_loan_for_employee(applicant)
+		loan_doc = frappe.get_doc("Loan", loan.name)
+		loan_doc.repay_from_salary = 1
+		loan_doc.save()
+
+		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=add_months(nowdate(), -1))
+		process_loan_interest_accrual_for_term_loans(posting_date=nowdate())
+
+		dates = get_start_end_dates("Monthly", nowdate())
+		payroll_entry = make_payroll_entry(
+			company="_Test Company",
+			start_date=dates.start_date,
+			payable_account=payroll_payable_account,
+			currency=currency,
+			end_date=dates.end_date,
+			branch=branch,
+			cost_center="Main - _TC",
+			payment_account="Cash - _TC",
+			total_loan_repayment=loan.monthly_repayment_amount,
+		)
+
+		salary_slip_name = frappe.db.get_value("Salary Slip", {"payroll_entry": payroll_entry.name}, "name")
+		salary_slip = frappe.get_doc("Salary Slip", salary_slip_name)
+		payroll_entry.reload()
+
+		initial_gross_pay = flt(salary_slip.gross_pay) - flt(salary_slip.total_deduction)
+		loan_repayment_amount = flt(salary_slip.total_loan_repayment)
+		expected_bank_entry_amount = initial_gross_pay - loan_repayment_amount
+
+		payroll_entry.make_bank_entry()
+		submit_bank_entry(payroll_entry.name)
+
+		bank_entry = frappe.db.sql(
+			"""
+			SELECT je.total_debit, je.total_credit
+			FROM `tabJournal Entry` je
+			INNER JOIN `tabJournal Entry Account` jea ON je.name = jea.parent
+			WHERE je.voucher_type = 'Bank Entry' AND jea.reference_type = 'Payroll Entry' AND jea.reference_name = %s
+			LIMIT 1
+			""",
+			payroll_entry.name,
+			as_dict=True,
+		)
+
+		total_debit = bank_entry[0].get("total_debit", 0)
+		total_credit = bank_entry[0].get("total_credit", 0)
+		self.assertEqual(total_debit, expected_bank_entry_amount)
+		self.assertEqual(total_credit, expected_bank_entry_amount)
 
 
 def get_payroll_entry(**args):
