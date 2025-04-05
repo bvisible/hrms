@@ -36,6 +36,7 @@ class IncomeTaxComputationReport:
 		self.get_employee_details()
 		self.get_future_salary_slips()
 		self.get_ctc()
+		self.get_income_from_other_sources()
 		self.get_tax_exempted_earnings_and_deductions()
 		self.get_employee_tax_exemptions()
 		self.get_hra()
@@ -91,7 +92,13 @@ class IncomeTaxComputationReport:
 				"salary_structure": ["is", "set"],
 				"income_tax_slab": ["is", "set"],
 			},
-			fields=["employee", "income_tax_slab", "salary_structure"],
+			fields=[
+				"employee",
+				"income_tax_slab",
+				"salary_structure",
+				"taxable_earnings_till_date",
+				"tax_deducted_till_date",
+			],
 			order_by="from_date desc",
 		)
 
@@ -109,6 +116,8 @@ class IncomeTaxComputationReport:
 							"salary_structure": d.salary_structure,
 							"income_tax_slab": d.income_tax_slab,
 							"allow_tax_exemption": tax_slab.allow_tax_exemption,
+							"taxable_earnings_till_date": d.taxable_earnings_till_date or 0.0,
+							"tax_deducted_till_date": d.tax_deducted_till_date or 0.0,
 						},
 					)
 		return employee_ss_assignments
@@ -182,9 +191,10 @@ class IncomeTaxComputationReport:
 			).run()
 		)
 
-		for employee in list(self.employees.keys()):
+		for employee, employee_details in self.employees.items():
+			opening_taxable_earnings = employee_details["taxable_earnings_till_date"]
 			future_ss_earnings = self.get_future_earnings(employee)
-			ctc = flt(existing_ss.get(employee)) + future_ss_earnings
+			ctc = flt(opening_taxable_earnings) + flt(existing_ss.get(employee)) + future_ss_earnings
 
 			self.employees[employee].setdefault("ctc", ctc)
 
@@ -212,6 +222,7 @@ class IncomeTaxComputationReport:
 			.select(ss.name, ss.employee, ss_comps.salary_component, Sum(ss_comps.amount).as_("amount"))
 			.where(ss.docstatus == 1)
 			.where(ss.employee.isin(list(self.employees.keys())))
+			.where(ss_comps.do_not_include_in_total == 0)
 			.where(ss_comps.salary_component.isin(tax_exempted_components))
 			.where(ss.start_date >= self.payroll_period_start_date)
 			.where(ss.end_date <= self.payroll_period_end_date)
@@ -397,15 +408,39 @@ class IncomeTaxComputationReport:
 
 		self.add_column("Total Exemption")
 
+	def get_income_from_other_sources(self):
+		self.add_column("Other Income")
+
+		for employee in list(self.employees.keys()):
+			other_income = (
+				frappe.get_all(
+					"Employee Other Income",
+					filters={
+						"employee": employee,
+						"payroll_period": self.filters.payroll_period,
+						"company": self.filters.company,
+						"docstatus": 1,
+					},
+					fields="SUM(amount) as total_amount",
+				)[0].total_amount
+				or 0.0
+			)
+
+			self.employees[employee].setdefault("other_income", other_income)
+
 	def get_total_taxable_amount(self):
 		self.add_column("Total Taxable Amount")
 		for __, emp_details in self.employees.items():
-			emp_details["total_taxable_amount"] = flt(emp_details.get("ctc")) - flt(
-				emp_details.get("total_exemption")
+			emp_details["total_taxable_amount"] = (
+				flt(emp_details.get("ctc"))
+				+ flt(emp_details.get("other_income"))
+				- flt(emp_details.get("total_exemption"))
 			)
 
 	def get_applicable_tax(self):
-		self.add_column("Applicable Tax")
+		self.add_column("Income Tax (Slab Based)", "income_tax_slab_based")
+		self.add_column("Other Taxes and Charges")
+		self.add_column("Total Applicable Tax", "applicable_tax")
 
 		is_tax_rounded = frappe.db.get_value(
 			"Salary Component",
@@ -418,7 +453,7 @@ class IncomeTaxComputationReport:
 			if tax_slab:
 				tax_slab = frappe.get_cached_doc("Income Tax Slab", tax_slab)
 				eval_globals, eval_locals = self.get_data_for_eval(emp, emp_details)
-				tax_amount = calculate_tax_by_tax_slab(
+				tax_amount, other_taxes_and_charges = calculate_tax_by_tax_slab(
 					emp_details["total_taxable_amount"],
 					tax_slab,
 					eval_globals=eval_globals,
@@ -426,9 +461,14 @@ class IncomeTaxComputationReport:
 				)
 			else:
 				tax_amount = 0.0
+				other_taxes_and_charges = 0.0
 
 			if is_tax_rounded:
 				tax_amount = rounded(tax_amount)
+				other_taxes_and_charges = rounded(other_taxes_and_charges)
+
+			emp_details["income_tax_slab_based"] = tax_amount - other_taxes_and_charges
+			emp_details["other_taxes_and_charges"] = other_taxes_and_charges
 			emp_details["applicable_tax"] = tax_amount
 
 	def get_data_for_eval(self, emp: str, emp_details: dict) -> tuple:
@@ -488,7 +528,8 @@ class IncomeTaxComputationReport:
 		).run(as_dict=True)
 
 		for d in records:
-			self.employees[d.employee].setdefault("total_tax_deducted", d.amount)
+			total_tax_deducted = flt(self.employees[d.employee].get("tax_deducted_till_date", 0)) + d.amount
+			self.employees[d.employee].setdefault("total_tax_deducted", total_tax_deducted)
 
 	def get_payable_tax(self):
 		self.add_column("Payable Tax")
