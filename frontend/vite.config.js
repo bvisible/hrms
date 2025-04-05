@@ -69,8 +69,9 @@ export default defineConfig({
 		commonjsOptions: {
 			include: [/tailwind.config.js/, /node_modules/],
 		},
-		sourcemap: true,
+		sourcemap: false,
 		rollupOptions: {
+			maxParallelFileOps: 2,
 			output: {
 				manualChunks: {
 					"frappe-ui": ["frappe-ui"],
