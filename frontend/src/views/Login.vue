@@ -11,7 +11,7 @@
 					<form class="flex flex-col space-y-4" @submit.prevent="submit">
 						<Input
 							:label="__('Email')"
-							placeholder="johndoe@mail.com"
+							:placeholder="__('johndoe@mail.com')"
 							v-model="email"
 							type="text"
 							autocomplete="username"
@@ -72,7 +72,7 @@
 
 			<Dialog v-model="otp.showDialog">
 				<template #body-title>
-					<h2 class="text-lg font-bold">OTP Verification</h2>
+					<h2 class="text-lg font-bold">{{ __("OTP Verification") }}</h2>
 				</template>
 				<template #body-content>
 					<p class="mb-4" v-if="otp.verification.prompt">
@@ -81,7 +81,7 @@
 
 					<form class="flex flex-col space-y-4" @submit.prevent="submit">
 						<Input
-							label="OTP Code"
+							:label="__('OTP Code')"
 							type="text"
 							placeholder="000000"
 							v-model="otp.code"
@@ -93,7 +93,7 @@
 							variant="solid"
 							class="disabled:bg-gray-700 disabled:text-white !mt-6"
 						>
-							Verify
+							{{ __("Verify") }}
 						</Button>
 					</form>
 				</template>
@@ -125,6 +125,7 @@ const otp = reactive({
 })
 
 const session = inject("$session")
+const __ = inject("$translate")
 
 async function submit(e) {
 	try {
