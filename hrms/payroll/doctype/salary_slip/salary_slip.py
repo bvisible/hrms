@@ -50,7 +50,7 @@ from hrms.payroll.doctype.payroll_period.payroll_period import (
 from hrms.payroll.doctype.salary_slip.salary_slip_loan_utils import (
 	cancel_loan_repayment_entry,
 	make_loan_repayment_entry,
-	process_loan_interest_accruals,
+	process_loan_interest_accrual_and_demand,
 	set_loan_repayment,
 )
 from hrms.payroll.utils import sanitize_expression
@@ -347,7 +347,7 @@ class SalarySlip(TransactionBase):
 				self.set_time_sheet()
 				self.pull_sal_struct()
 
-			process_loan_interest_accruals(self)
+			process_loan_interest_accrual_and_demand(self)
 
 	def set_time_sheet(self):
 		if self.salary_slip_based_on_timesheet:
@@ -502,8 +502,15 @@ class SalarySlip(TransactionBase):
 				unmarked_days = self.get_unmarked_days(
 					payroll_settings.include_holidays_in_total_working_days, holidays
 				)
-				self.absent_days += unmarked_days  # will be treated as absent
-				self.payment_days -= unmarked_days
+				half_absent_days = self.get_half_absent_days(
+					payroll_settings.include_holidays_in_total_working_days,
+					consider_marked_attendance_on_holidays,
+					holidays,
+				)
+				self.absent_days += (
+					unmarked_days + half_absent_days * daily_wages_fraction_for_half_day
+				)  # will be treated as absent
+				self.payment_days -= unmarked_days + half_absent_days * daily_wages_fraction_for_half_day
 		else:
 			self.payment_days = 0
 
@@ -521,6 +528,30 @@ class SalarySlip(TransactionBase):
 			unmarked_days -= self._get_number_of_holidays(holidays)
 
 		return unmarked_days
+
+	def get_half_absent_days(
+		self, include_holidays_in_total_working_days, consider_marked_attendance_on_holidays, holidays
+	):
+		"""Calculates the number of half absent days for an employee within a date range"""
+		Attendance = frappe.qb.DocType("Attendance")
+		query = (
+			frappe.qb.from_(Attendance)
+			.select(Count("*"))
+			.where(
+				(Attendance.attendance_date.between(self.actual_start_date, self.actual_end_date))
+				& (Attendance.employee == self.employee)
+				& (Attendance.docstatus == 1)
+				& (Attendance.status == "Half Day")
+				& (Attendance.half_day_status == "Absent")
+			)
+		)
+		if (
+			(not include_holidays_in_total_working_days)
+			and (not consider_marked_attendance_on_holidays)
+			and holidays
+		):
+			query = query.where(Attendance.attendance_date.notin(holidays))
+		return query.run()[0][0]
 
 	def _get_days_outside_period(
 		self, include_holidays_in_total_working_days: bool, holidays: list | None = None
@@ -622,7 +653,7 @@ class SalarySlip(TransactionBase):
 
 		for d in working_days_list:
 			if self.relieving_date and d > self.relieving_date:
-				continue
+				break
 
 			leave = leaves.get(d)
 
@@ -643,7 +674,7 @@ class SalarySlip(TransactionBase):
 
 			if cint(leave.is_ppl):
 				equivalent_lwp_count *= (
-					fraction_of_daily_salary_per_leave if fraction_of_daily_salary_per_leave else 1
+					(1 - fraction_of_daily_salary_per_leave) if fraction_of_daily_salary_per_leave else 1
 				)
 
 			lwp += equivalent_lwp_count
@@ -668,7 +699,12 @@ class SalarySlip(TransactionBase):
 
 		attendance_details = (
 			frappe.qb.from_(attendance)
-			.select(attendance.attendance_date, attendance.status, attendance.leave_type)
+			.select(
+				attendance.attendance_date,
+				attendance.status,
+				attendance.leave_type,
+				attendance.half_day_status,
+			)
 			.where(
 				(attendance.status.isin(["Absent", "Half Day", "On Leave"]))
 				& (attendance.employee == self.employee)
@@ -712,10 +748,10 @@ class SalarySlip(TransactionBase):
 					"fraction_of_daily_salary_per_leave"
 				]
 
-			if d.status == "Half Day":
+			if d.status == "Half Day" and d.leave_type and d.leave_type in leave_type_map.keys():
 				equivalent_lwp = 1 - daily_wages_fraction_for_half_day
 
-				if d.leave_type in leave_type_map.keys() and leave_type_map[d.leave_type]["is_ppl"]:
+				if leave_type_map[d.leave_type]["is_ppl"]:
 					equivalent_lwp *= (
 						fraction_of_daily_salary_per_leave if fraction_of_daily_salary_per_leave else 1
 					)
@@ -1734,6 +1770,9 @@ class SalarySlip(TransactionBase):
 
 		future_recurring_period = ((to_date.year - from_date.year) * 12) + (to_date.month - from_date.month)
 
+		if future_recurring_period > 0 and to_date.month == from_date.month:
+			future_recurring_period -= 1
+
 		return future_recurring_period
 
 	def get_future_recurring_additional_amount(self, additional_salary, monthly_additional_amount):
@@ -2152,34 +2191,44 @@ def get_payroll_payable_account(company, payroll_entry):
 
 
 def calculate_tax_by_tax_slab(annual_taxable_earning, tax_slab, eval_globals=None, eval_locals=None):
-	eval_locals.update({"annual_taxable_earning": annual_taxable_earning})
+	from hrms.hr.utils import calculate_tax_with_marginal_relief
+
 	tax_amount = 0
-	other_taxes_and_charges = 0
+	total_other_taxes_and_charges = 0
 
-	for slab in tax_slab.slabs:
-		cond = cstr(slab.condition).strip()
-		if cond and not eval_tax_slab_condition(cond, eval_globals, eval_locals):
-			continue
-		if not slab.to_amount and annual_taxable_earning >= slab.from_amount:
-			tax_amount += (annual_taxable_earning - slab.from_amount + 1) * slab.percent_deduction * 0.01
-			continue
+	if annual_taxable_earning > tax_slab.tax_relief_limit:
+		eval_locals.update({"annual_taxable_earning": annual_taxable_earning})
 
-		if annual_taxable_earning >= slab.from_amount and annual_taxable_earning < slab.to_amount:
-			tax_amount += (annual_taxable_earning - slab.from_amount + 1) * slab.percent_deduction * 0.01
-		elif annual_taxable_earning >= slab.from_amount and annual_taxable_earning >= slab.to_amount:
-			tax_amount += (slab.to_amount - slab.from_amount + 1) * slab.percent_deduction * 0.01
+		for slab in tax_slab.slabs:
+			cond = cstr(slab.condition).strip()
+			if cond and not eval_tax_slab_condition(cond, eval_globals, eval_locals):
+				continue
+			if not slab.to_amount and annual_taxable_earning >= slab.from_amount:
+				tax_amount += (annual_taxable_earning - slab.from_amount + 1) * slab.percent_deduction * 0.01
+				continue
 
-	for d in tax_slab.other_taxes_and_charges:
-		if flt(d.min_taxable_income) and flt(d.min_taxable_income) > annual_taxable_earning:
-			continue
+			if annual_taxable_earning >= slab.from_amount and annual_taxable_earning < slab.to_amount:
+				tax_amount += (annual_taxable_earning - slab.from_amount + 1) * slab.percent_deduction * 0.01
+			elif annual_taxable_earning >= slab.from_amount and annual_taxable_earning >= slab.to_amount:
+				tax_amount += (slab.to_amount - slab.from_amount + 1) * slab.percent_deduction * 0.01
 
-		if flt(d.max_taxable_income) and flt(d.max_taxable_income) < annual_taxable_earning:
-			continue
+		tax_with_marginal_relief = calculate_tax_with_marginal_relief(
+			tax_slab, tax_amount, annual_taxable_earning
+		)
+		if tax_with_marginal_relief is not None:
+			tax_amount = tax_with_marginal_relief
 
-		other_taxes_and_charges += tax_amount * flt(d.percent) / 100
-		tax_amount += other_taxes_and_charges
+		for d in tax_slab.other_taxes_and_charges:
+			if flt(d.min_taxable_income) and flt(d.min_taxable_income) > annual_taxable_earning:
+				continue
 
-	return tax_amount, other_taxes_and_charges
+			if flt(d.max_taxable_income) and flt(d.max_taxable_income) < annual_taxable_earning:
+				continue
+			other_taxes_and_charges = tax_amount * flt(d.percent) / 100
+			tax_amount += other_taxes_and_charges
+			total_other_taxes_and_charges += other_taxes_and_charges
+
+	return tax_amount, total_other_taxes_and_charges
 
 
 def eval_tax_slab_condition(condition, eval_globals=None, eval_locals=None):

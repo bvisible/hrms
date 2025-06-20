@@ -4,7 +4,7 @@
 		size="sm"
 		v-model="value"
 		:placeholder="__('Select {0}', [__(doctype)])"
-		:options="options.data"
+		:options="options.data || []"
 		:class="disabled ? 'pointer-events-none' : ''"
 		:disabled="disabled"
 		@update:query="handleQueryUpdate"
@@ -43,7 +43,8 @@ const searchText = ref("")
 const value = computed({
 	get: () => props.modelValue,
 	set: (val) => {
-		emit("update:modelValue", val?.value || "")
+		const newVal = (val && typeof val === "object" && val.value !== undefined) ? val.value : val
+		emit("update:modelValue", newVal || "")
 	},
 })
 
@@ -77,10 +78,13 @@ const reloadOptions = (searchTextVal) => {
 }
 
 const handleQueryUpdate = debounce((newQuery) => {
-	const val = newQuery || ""
-	if (searchText.value === val) return
-	searchText.value = val
-	reloadOptions(val)
+    const val = newQuery || ""
+
+    if (val === "" && props.modelValue) return
+
+    if (searchText.value === val) return
+    searchText.value = val
+    reloadOptions(val)
 }, 300)
 
 watch(

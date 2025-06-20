@@ -248,9 +248,6 @@ class TestPayrollEntry(FrappeTestCase):
 	@change_settings("Payroll Settings", {"process_payroll_accounting_entry_based_on_employee": 1})
 	def test_loan_with_settings_enabled(self):
 		from lending.loan_management.doctype.loan.test_loan import make_loan_disbursement_entry
-		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-			process_loan_interest_accrual_for_term_loans,
-		)
 
 		frappe.db.delete("Loan")
 
@@ -258,8 +255,6 @@ class TestPayrollEntry(FrappeTestCase):
 		loan = create_loan_for_employee(applicant)
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=add_months(nowdate(), -1))
-		process_loan_interest_accrual_for_term_loans(posting_date=nowdate())
-
 		dates = get_start_end_dates("Monthly", nowdate())
 		make_payroll_entry(
 			company="_Test Company",
@@ -292,9 +287,6 @@ class TestPayrollEntry(FrappeTestCase):
 	@change_settings("Payroll Settings", {"process_payroll_accounting_entry_based_on_employee": 0})
 	def test_loan_with_settings_disabled(self):
 		from lending.loan_management.doctype.loan.test_loan import make_loan_disbursement_entry
-		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-			process_loan_interest_accrual_for_term_loans,
-		)
 
 		frappe.db.delete("Loan")
 
@@ -302,9 +294,8 @@ class TestPayrollEntry(FrappeTestCase):
 		loan = create_loan_for_employee(applicant)
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=add_months(nowdate(), -1))
-		process_loan_interest_accrual_for_term_loans(posting_date=nowdate())
-
 		dates = get_start_end_dates("Monthly", nowdate())
+
 		make_payroll_entry(
 			company="_Test Company",
 			start_date=dates.start_date,
@@ -766,9 +757,6 @@ class TestPayrollEntry(FrappeTestCase):
 
 	def run_test_for_loan_repayment_from_salary(self):
 		from lending.loan_management.doctype.loan.test_loan import make_loan_disbursement_entry
-		from lending.loan_management.doctype.process_loan_interest_accrual.process_loan_interest_accrual import (
-			process_loan_interest_accrual_for_term_loans,
-		)
 
 		frappe.db.delete("Loan")
 		applicant, branch, currency, payroll_payable_account = setup_lending()
@@ -779,7 +767,6 @@ class TestPayrollEntry(FrappeTestCase):
 		loan_doc.save()
 
 		make_loan_disbursement_entry(loan.name, loan.loan_amount, disbursement_date=add_months(nowdate(), -1))
-		process_loan_interest_accrual_for_term_loans(posting_date=nowdate())
 
 		dates = get_start_end_dates("Monthly", nowdate())
 		payroll_entry = make_payroll_entry(

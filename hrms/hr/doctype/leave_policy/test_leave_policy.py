@@ -32,6 +32,9 @@ def create_leave_policy(**args):
 				{
 					"leave_type": args.leave_type or "_Test Leave Type",
 					"annual_allocation": args.annual_allocation or 10,
+					"parent": "Test Leave Policy",
+					"parentfield": "leave_policy_details",
+					"parenttype": "Leave Policy",
 				}
 			],
 		}

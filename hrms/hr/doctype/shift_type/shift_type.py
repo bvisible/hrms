@@ -146,6 +146,7 @@ class ShiftType(Document):
 		for batch in create_batch(assigned_employees, EMPLOYEE_CHUNK_SIZE):
 			for employee in batch:
 				self.mark_absent_for_dates_with_no_attendance(employee)
+				self.mark_absent_for_half_day_dates(employee)
 
 			frappe.db.commit()  # nosemgrep
 
@@ -344,6 +345,34 @@ class ShiftType(Document):
 			return False
 		return True
 
+	def mark_absent_for_half_day_dates(self, employee):
+		half_day_attendances = frappe.get_all(
+			"Attendance",
+			filters={"employee": employee, "status": "Half Day", "modify_half_day_status": 1},
+			fields=["name", "attendance_date"],
+		)
+		start_time = get_time(self.start_time)
+		for attendance in half_day_attendances:
+			timestamp = datetime.combine(attendance.attendance_date, start_time)
+			shift_details = get_employee_shift(employee, timestamp, True)
+			if shift_details and shift_details.shift_type.name == self.name:
+				frappe.db.set_value(
+					"Attendance",
+					attendance.name,
+					{"shift": self.name, "half_day_status": "Absent", "modify_half_day_status": 0},
+				)
+				frappe.get_doc(
+					{
+						"doctype": "Comment",
+						"comment_type": "Comment",
+						"reference_doctype": "Attendance",
+						"reference_name": attendance.name,
+						"content": frappe._(
+							"Employee was marked Absent for other half due to missing Employee Checkins."
+						),
+					}
+				).insert(ignore_permissions=True)
+
 
 def update_last_sync_of_checkin():
 	"""Called from hooks"""
@@ -368,16 +397,15 @@ def update_last_sync_of_checkin():
 
 
 def get_actual_shift_end(shift, current_datetime):
-	start = get_time(shift.start_time)
-	end = get_time(shift.end_time)
-	if start < end:
-		time_within_shift = datetime.combine(current_datetime.date(), get_time(shift.start_time))
-	else:
-		time_within_shift = datetime.combine(
-			add_days(current_datetime.date(), -1), get_time(shift.start_time)
-		)
-	shift_end = get_shift_details(shift.name, time_within_shift)["actual_end"]
-	return shift_end
+	time_within_shift = datetime.combine(current_datetime.date(), get_time(shift.start_time))
+	shift_details = get_shift_details(shift.name, time_within_shift)
+	actual_shift_start = shift_details["actual_start"]
+	actual_shift_end = shift_details["actual_end"]
+
+	if (actual_shift_start.date() < actual_shift_end.date()) or (current_datetime < actual_shift_start):
+		# shift start and end are on different days
+		actual_shift_end = add_days(actual_shift_end, -1)
+	return actual_shift_end
 
 
 def process_auto_attendance_for_all_shifts():

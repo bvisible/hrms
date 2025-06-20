@@ -1340,13 +1340,56 @@ class TestLeaveApplication(FrappeTestCase):
 		attendance = frappe.get_value(
 			"Attendance",
 			attendance_name,
-			["status", "half_day_status", "leave_type", "leave_application"],
+			["status", "half_day_status", "leave_type", "leave_application", "modify_half_day_status"],
 			as_dict=True,
 		)
 		self.assertEqual(attendance.status, "Half Day")
-		self.assertEqual(attendance.half_day_status, "Absent")
+		self.assertEqual(attendance.half_day_status, "Present")
 		self.assertEqual(attendance.leave_type, leave_type.name)
 		self.assertEqual(attendance.leave_application, leave_application.name)
+		self.assertEqual(attendance.modify_half_day_status, 1)
+
+	def test_half_day_status_for_two_half_leaves(self):
+		employee = get_employee()
+		leave_type = create_leave_type(
+			leave_type_name="_Test_CF_leave_expiry",
+			is_carry_forward=1,
+			expire_carry_forwarded_leaves_after_days=90,
+		)
+		create_carry_forwarded_allocation(employee, leave_type)
+		# attendance from one half leave
+		first_leave_application = make_leave_application(
+			employee.name,
+			nowdate(),
+			nowdate(),
+			leave_type.name,
+			submit=True,
+			half_day=1,
+			half_day_date=nowdate(),
+		)
+		half_day_status_after_first_application = frappe.get_value(
+			"Attendance",
+			filters={"attendance_date": nowdate(), "leave_application": first_leave_application.name},
+			fieldname="half_day_status",
+		)
+		# default is present
+		self.assertEqual(half_day_status_after_first_application, "Present")
+		second_leave_application = make_leave_application(
+			employee.name,
+			nowdate(),
+			nowdate(),
+			leave_type.name,
+			submit=True,
+			half_day=1,
+			half_day_date=nowdate(),
+		)
+		half_day_status_after_second_application = frappe.get_value(
+			"Attendance",
+			filters={"attendance_date": nowdate(), "leave_application": second_leave_application.name},
+			fieldname="half_day_status",
+		)
+		# the status should remain unchanged after creating second half day leave application
+		self.assertEqual(half_day_status_after_second_application, "Present")
 
 
 def create_carry_forwarded_allocation(employee, leave_type, date=None):

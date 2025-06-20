@@ -138,7 +138,7 @@ class TestLeaveControlPanel(FrappeTestCase):
 			"dates_based_on": "Leave Period",
 			"leave_period": self.leave_period.name,
 			"allocate_based_on_leave_policy": 1,
-			"leave_policy": self.leave_policy,
+			"leave_policy": self.leave_policy.name,
 		}
 		advanced_filters = [["Employee", "date_of_joining", "<", date(2030, 1, 5)]]
 		lcp = LeaveControlPanel(args)
