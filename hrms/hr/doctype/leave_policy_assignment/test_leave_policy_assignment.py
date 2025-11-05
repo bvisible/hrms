@@ -142,7 +142,7 @@ class TestLeavePolicyAssignment(FrappeTestCase):
 		self.employee.date_of_joining = add_months(first_day, -5)
 		self.employee.save()
 		assignment = create_assignment(self.employee.name, frappe._dict(data))
-		new_leaves_allocated = assignment.get_leaves_for_passed_months(
+		new_leaves_allocated = assignment.get_leaves_for_passed_period(
 			annual_allocation, leave_type, self.employee.date_of_joining
 		)
 		self.assertEqual(new_leaves_allocated, 5)
@@ -150,7 +150,7 @@ class TestLeavePolicyAssignment(FrappeTestCase):
 		self.employee.date_of_joining = add_months(first_day, -35)
 		self.employee.save()
 		assignment = create_assignment(self.employee.name, frappe._dict(data))
-		new_leaves_allocated = assignment.get_leaves_for_passed_months(
+		new_leaves_allocated = assignment.get_leaves_for_passed_period(
 			annual_allocation, leave_type, self.employee.date_of_joining
 		)
 		self.assertEqual(new_leaves_allocated, 30)
@@ -162,7 +162,7 @@ class TestLeavePolicyAssignment(FrappeTestCase):
 			"leave_period": leave_period.name,
 		}
 		assignment = create_assignment(self.employee.name, frappe._dict(data))
-		new_leaves_allocated = assignment.get_leaves_for_passed_months(
+		new_leaves_allocated = assignment.get_leaves_for_passed_period(
 			annual_allocation, leave_type, self.employee.date_of_joining
 		)
 		self.assertEqual(new_leaves_allocated, 20)

@@ -1459,7 +1459,7 @@ Leave(s) Expired,Abgelaufene Abwesenheit(en),
 Leave(s) Taken,Genommene Abwesenheit(en),
 Leaves for the Leave Type {0} won't be carry-forwarded since carry-forwarding is disabled.,"Abwesenheiten für die Abwesenheitsart {0} werden nicht übertragen, da die Übertragbarkeit deaktiviert ist.",
 Left,Links,
-Left,Links,Employee
+Left,Entlassen,Employee
 Let's Set Up the Human Resource Module. ,Lassen Sie uns das Personalmodul einrichten. ,
 Let's Set Up the Payroll Module. ,Lassen Sie uns das Gehaltsabrechnungsmodul einrichten. ,
 Letter Head,Briefkopf,

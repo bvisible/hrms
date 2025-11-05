@@ -36,7 +36,7 @@ class ShiftRequest(Document, PWANotificationsMixin):
 	def publish_update(self):
 		employee_user = frappe.db.get_value("Employee", self.employee, "user_id", cache=True)
 		hrms.refetch_resource("hrms:my_shift_requests", employee_user)
-		hrms.refetch_resource("hrms:team_shift_requests", employee_user)
+		hrms.refetch_resource("hrms:team_shift_requests")
 
 	def after_insert(self):
 		self.notify_approver()

@@ -72,11 +72,11 @@ class ShiftType(Document):
 
 	def get_max_shift_buffer_label(self) -> str:
 		labels = {
-			self.meta.get_label(
-				"allow_check_out_after_shift_end_time"
+			_(
+				self.meta.get_label("allow_check_out_after_shift_end_time")
 			): self.allow_check_out_after_shift_end_time,
-			self.meta.get_label(
-				"begin_check_in_before_shift_start_time"
+			_(
+				self.meta.get_label("begin_check_in_before_shift_start_time")
 			): self.begin_check_in_before_shift_start_time,
 		}
 		return max(labels, key=labels.get)

@@ -131,7 +131,7 @@ class LeaveApplication(Document, PWANotificationsMixin):
 	def publish_update(self):
 		employee_user = frappe.db.get_value("Employee", self.employee, "user_id", cache=True)
 		hrms.refetch_resource("hrms:my_leaves", employee_user)
-		hrms.refetch_resource("hrms:team_leaves", employee_user)
+		hrms.refetch_resource("hrms:team_leaves")
 
 	def validate_applicable_after(self):
 		if self.leave_type:
@@ -975,7 +975,13 @@ def get_leave_balance_on(
 
 	leaves_taken = get_leaves_for_period(employee, leave_type, allocation.from_date, end_date)
 
-	remaining_leaves = get_remaining_leaves(allocation, leaves_taken, date, cf_expiry)
+	manually_expired_leaves = get_manually_expired_leaves(
+		employee, leave_type, allocation.from_date, end_date
+	)
+
+	remaining_leaves = get_remaining_leaves(
+		allocation, leaves_taken, date, cf_expiry, manually_expired_leaves
+	)
 
 	if for_consumption:
 		return remaining_leaves
@@ -1071,7 +1077,7 @@ def get_leaves_pending_approval_for_period(
 
 
 def get_remaining_leaves(
-	allocation: dict, leaves_taken: float, date: str, cf_expiry: str
+	allocation: dict, leaves_taken: float, date: str, cf_expiry: str, manually_expired_leaves: float
 ) -> dict[str, float]:
 	"""Returns a dict of leave_balance and leave_balance_for_consumption
 	leave_balance returns the available leave balance
@@ -1099,18 +1105,45 @@ def get_remaining_leaves(
 
 		# new leaves allocated - new leaves taken + cf leave balance
 		# Note: `new_leaves_taken` is added here because its already a -ve number in the ledger
-		leave_balance = (flt(allocation.new_leaves_allocated) + flt(new_leaves_taken)) + flt(cf_leaves)
-		leave_balance_for_consumption = (flt(allocation.new_leaves_allocated) + flt(new_leaves_taken)) + flt(
-			remaining_cf_leaves
+		leave_balance = (
+			(flt(allocation.new_leaves_allocated) + flt(new_leaves_taken))
+			+ flt(cf_leaves)
+			+ flt(manually_expired_leaves)
+		)
+		leave_balance_for_consumption = (
+			(flt(allocation.new_leaves_allocated) + flt(new_leaves_taken))
+			+ flt(remaining_cf_leaves)
+			+ flt(manually_expired_leaves)
 		)
 	else:
 		# allocation only contains newly allocated leaves
-		leave_balance = leave_balance_for_consumption = flt(allocation.total_leaves_allocated) + flt(
-			leaves_taken
+		leave_balance = leave_balance_for_consumption = (
+			flt(allocation.total_leaves_allocated) + flt(leaves_taken) + flt(manually_expired_leaves)
 		)
 
 	remaining_leaves = _get_remaining_leaves(leave_balance_for_consumption, allocation.to_date)
 	return frappe._dict(leave_balance=leave_balance, leave_balance_for_consumption=remaining_leaves)
+
+
+def get_manually_expired_leaves(
+	employee: str, leave_type: str, from_date: datetime.date, end_date: datetime.date
+):
+	ledger = frappe.qb.DocType("Leave Ledger Entry")
+
+	leaves = (
+		frappe.qb.from_(ledger)
+		.select(ledger.leaves)
+		.where(
+			(ledger.docstatus == 1)
+			& (ledger.employee == employee)
+			& (ledger.leave_type == leave_type)
+			& (ledger.from_date >= from_date)
+			& (ledger.to_date <= end_date)
+			& (ledger.transaction_type == "Leave Allocation")
+			& ((ledger.is_expired == 1) & (ledger.is_carry_forward == 0))
+		)
+	).run()
+	return leaves[0][0] if leaves else 0.0
 
 
 def get_new_and_cf_leaves_taken(allocation: dict, cf_expiry: str) -> tuple[float, float]:
