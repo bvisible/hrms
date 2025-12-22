@@ -72,6 +72,8 @@ export default defineConfig({
 		sourcemap: false,
 		rollupOptions: {
 			maxParallelFileOps: 2,
+			// Ignore Frappe bench-specific imports that don't exist in standalone builds
+			external: [/common_site_config\.json/],
 			output: {
 				manualChunks: {
 					"frappe-ui": ["frappe-ui"],
