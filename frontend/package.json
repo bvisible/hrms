@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "vite",
 		"serve": "vite preview",
-		"build": "[ -f ../hrms/public/frontend/index.html ] && echo 'Assets already built - skipping (use build:force to rebuild)' || (NODE_OPTIONS=--max-old-space-size=4096 vite build --base=/assets/hrms/frontend/ && yarn copy-html-entry)",
+		"build": "NODE_OPTIONS=--max-old-space-size=4096 vite build --base=/assets/hrms/frontend/ && yarn copy-html-entry",
 		"build:force": "NODE_OPTIONS=--max-old-space-size=4096 vite build --base=/assets/hrms/frontend/ && yarn copy-html-entry",
 		"ionic:build": "npm run build",
 		"ionic:serve": "vite dev --host",
