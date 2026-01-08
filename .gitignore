@@ -3,6 +3,8 @@
 *.egg-info
 *.swp
 tags
+hrms/public/dist
+hrms/public/node_modules
 hrms/docs/current
 node_modules/
 dist/
@@ -14,9 +16,7 @@ __pycache__/
 node_modules
 *debug.log
 hrms/docs/current
-
-# Ignore public folder EXCEPT frontend (pre-built assets)
-hrms/public/*
-!hrms/public/frontend/
-!hrms/public/js/
-!hrms/public/.gitkeep
+hrms/public/frontend
+hrms/www/hrms.html
+hrms/public/roster
+hrms/www/roster.html
