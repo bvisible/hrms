@@ -96,7 +96,6 @@ class TestExpenseClaim(FrappeTestCase):
 		self.assertEqual(len(gl_entry), 0)
 
 	def test_expense_claim_status_as_payment_from_payment_entry(self):
-		# Via Payment Entry
 		payable_account = get_payable_account(company_name)
 
 		expense_claim = make_expense_claim(payable_account, 300, 200, company_name, "Travel Expenses - _TC3")
@@ -709,6 +708,49 @@ class TestExpenseClaim(FrappeTestCase):
 		expense_claim.submit()
 
 		self.assertEqual(1, expense_claim.docstatus)
+
+	def test_expense_claim_status_as_payment_after_unreconciliation(self):
+		from hrms.hr.doctype.employee_advance.test_employee_advance import make_payment_entry
+
+		payable_account = get_payable_account(company_name)
+
+		employee = frappe.db.get_value(
+			"Employee",
+			{"status": "Active", "company": company_name, "first_name": "test_employee1@expenseclaim.com"},
+			"name",
+		)
+		if not employee:
+			employee = make_employee("test_employee1@expenseclaim.com", company=company_name)
+
+		expense_claim = make_expense_claim(payable_account, 300, 200, company_name, "Travel Expenses - _TC3")
+		self.assertEqual(expense_claim.docstatus, 1)
+		self.assertEqual(expense_claim.status, "Unpaid")
+
+		pe = make_payment_entry(expense_claim, 200)
+		expense_claim.reload()
+		self.assertEqual(expense_claim.status, "Paid")
+
+		unreconcile_doc = frappe.new_doc("Unreconcile Payment")
+		unreconcile_doc.company = company_name
+		unreconcile_doc.voucher_type = "Payment Entry"
+		unreconcile_doc.voucher_no = pe.name
+		unreconcile_doc.append(
+			"allocations",
+			{
+				"account": "Travel Expenses - _TC3",
+				"party_type": "Employee",
+				"party": employee,
+				"reference_doctype": "Expense Claim",
+				"reference_name": expense_claim.name,
+				"allocated_amount": 200,
+				"unlinked": 1,
+			},
+		)
+		unreconcile_doc.insert()
+		unreconcile_doc.submit()
+
+		expense_claim.reload()
+		self.assertEqual(expense_claim.status, "Unpaid")
 
 
 def get_payable_account(company):

@@ -419,6 +419,33 @@ class TestLeaveEncashment(FrappeTestCase):
 		args.update(kwargs)
 		return create_leave_encashment(**args)
 
+	def test_leave_encashment_based_on_salary_structure_assignment(self):
+		from hrms.payroll.doctype.salary_structure.test_salary_structure import (
+			create_salary_structure_assignment,
+		)
+
+		salary_structure = make_salary_structure(
+			"Salary Structure for Encashment Amount",
+			"Monthly",
+			self.employee,
+		)
+
+		create_salary_structure_assignment(
+			employee=self.employee,
+			salary_structure=salary_structure.name,
+			company="_Test Company",
+			currency="INR",
+			leave_encashment_amount_per_day=50,
+		)
+
+		leave_encashment = self.create_test_leave_encashment(encashment_date=getdate())
+		leave_encashment.submit()
+
+		self.assertEqual(leave_encashment.leave_balance, 10)
+		self.assertTrue(leave_encashment.actual_encashable_days, 5)
+		self.assertTrue(leave_encashment.encashment_days, 5)
+		self.assertEqual(leave_encashment.encashment_amount, 250)
+
 
 def create_leave_encashment(**args):
 	if args:
