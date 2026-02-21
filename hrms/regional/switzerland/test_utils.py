@@ -145,8 +145,8 @@ class TestLPPContribution(unittest.TestCase):
 		# 50% split → 4'819.50/year → 401.63/month
 		self.assertEqual(result["coordinated_salary"], LPP_MAXIMUM_COORDINATED_SALARY)
 		self.assertEqual(result["total_rate"], 0.15)
-		self.assertAlmostEqual(result["employee_monthly"], 401.62, places=2)
-		self.assertAlmostEqual(result["employer_monthly"], 401.62, places=2)
+		self.assertAlmostEqual(result["employee_monthly"], 401.63, places=2)
+		self.assertAlmostEqual(result["employer_monthly"], 401.63, places=2)
 
 	def test_custom_employer_share(self):
 		"""Custom employer share (60% employer, 40% employee)."""
