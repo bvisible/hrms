@@ -43,7 +43,14 @@
 		"section_family",
 		"family_allowance_rate",
 		"column_break_family",
-		"family_allowance_account"
+		"family_allowance_account",
+		"section_thirteenth_month",
+		"thirteenth_month_mode",
+		"section_lohnausweis",
+		"lohnausweis_mapping",
+		"column_break_lohnausweis",
+		"lohnausweis_employer_name",
+		"lohnausweis_employer_address"
 	],
 	"fields": [
 		{
@@ -273,6 +280,47 @@
 			"fieldtype": "Link",
 			"label": "Family Allowance GL Account",
 			"options": "Account"
+		},
+		{
+			"fieldname": "section_thirteenth_month",
+			"fieldtype": "Section Break",
+			"label": "13th Month Salary"
+		},
+		{
+			"default": "Disabled",
+			"description": "Disabled: no 13th month. Annual: paid as lump sum in December (or on departure). Monthly: 1/12 added to each salary slip.",
+			"fieldname": "thirteenth_month_mode",
+			"fieldtype": "Select",
+			"label": "13th Month Mode",
+			"options": "Disabled\nAnnual\nMonthly"
+		},
+		{
+			"fieldname": "section_lohnausweis",
+			"fieldtype": "Section Break",
+			"label": "Lohnausweis (Annual Salary Certificate)"
+		},
+		{
+			"description": "Map salary components to Lohnausweis Form 11 positions. Run setup to populate defaults.",
+			"fieldname": "lohnausweis_mapping",
+			"fieldtype": "Table",
+			"label": "Lohnausweis Mapping",
+			"options": "Swiss Lohnausweis Mapping"
+		},
+		{
+			"fieldname": "column_break_lohnausweis",
+			"fieldtype": "Column Break"
+		},
+		{
+			"description": "Employer name as it should appear on the Lohnausweis certificate.",
+			"fieldname": "lohnausweis_employer_name",
+			"fieldtype": "Data",
+			"label": "Employer Name (Certificate)"
+		},
+		{
+			"description": "Employer address for the Lohnausweis certificate header.",
+			"fieldname": "lohnausweis_employer_address",
+			"fieldtype": "Small Text",
+			"label": "Employer Address (Certificate)"
 		}
 	],
 	"links": [],

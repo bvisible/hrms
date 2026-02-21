@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
-from hrms.regional.switzerland.constants import PERMIT_TYPES, SWISS_CANTONS
+from hrms.regional.switzerland.constants import DEFAULT_LOHNAUSWEIS_MAPPING, PERMIT_TYPES, SWISS_CANTONS
 from hrms.setup import delete_custom_fields
 
 
@@ -13,6 +13,7 @@ def setup():
 	make_custom_fields()
 	create_swiss_salary_components()
 	create_swiss_salary_structure()
+	populate_default_lohnausweis_mapping()
 
 
 def uninstall():
@@ -305,6 +306,18 @@ def get_swiss_salary_component_definitions():
 			"do_not_include_in_total": 1,
 			"_is_employer": True,
 		},
+		# --- 13th Month Salary (Earning) ---
+		{
+			"name": "13th Month Salary",
+			"salary_component": "13th Month Salary",
+			"salary_component_abbr": "13M",
+			"type": "Earning",
+			"description": "13th month salary (Treizième salaire) — calculated automatically by the Swiss payroll hook",
+			"depends_on_payment_days": 0,
+			"amount_based_on_formula": 0,
+			"amount": 0,
+			"do_not_include_in_total": 0,
+		},
 	]
 
 
@@ -350,6 +363,8 @@ def create_swiss_salary_structure():
 	component_defs = get_swiss_salary_component_definitions()
 	deductions = []
 	for comp_def in component_defs:
+		if comp_def.get("type") != "Deduction":
+			continue
 		deductions.append(
 			{
 				"salary_component": comp_def["name"],
@@ -381,4 +396,32 @@ def create_swiss_salary_structure():
 		doc.append("deductions", ded)
 
 	doc.insert(ignore_permissions=True)
+	frappe.db.commit()
+
+
+def populate_default_lohnausweis_mapping():
+	"""Populate Lohnausweis mapping on all existing Swiss Social Insurance Config records.
+
+	Skips configs that already have mapping rows.
+	"""
+	configs = frappe.get_all("Swiss Social Insurance Config", pluck="name")
+	for config_name in configs:
+		config = frappe.get_doc("Swiss Social Insurance Config", config_name)
+		if config.get("lohnausweis_mapping"):
+			continue
+
+		for mapping in DEFAULT_LOHNAUSWEIS_MAPPING:
+			if frappe.db.exists("Salary Component", mapping["salary_component"]):
+				config.append(
+					"lohnausweis_mapping",
+					{
+						"salary_component": mapping["salary_component"],
+						"lohnausweis_position": mapping["lohnausweis_position"],
+						"include_in_certificate": 1,
+					},
+				)
+
+		if config.get("lohnausweis_mapping"):
+			config.save(ignore_permissions=True)
+
 	frappe.db.commit()
