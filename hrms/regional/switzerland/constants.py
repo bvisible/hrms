@@ -65,6 +65,51 @@ SWISS_CANTONS = [
 	"ZH",
 ]
 
+# Map of component names to config rate fields
+# (component_name: (config_field, is_employer_component))
+RATE_BASED_COMPONENTS = {
+	"AVS/AI/APG Employee": ("avs_rate_employee", False),
+	"AVS/AI/APG Employer": ("avs_rate_employer", True),
+	"LAA Professional Employer": ("laa_professional_rate", True),
+	"LAA Non-Professional Employee": ("laa_nonprofessional_rate", False),
+	"IJM/KTG Employee": ("ijm_rate_employee", False),
+	"IJM/KTG Employer": ("ijm_rate_employer", True),
+	"Family Allowances Employer": ("family_allowance_rate", True),
+}
+
+# Lohnausweis Form 11 — position to DocType field mapping
+POSITION_FIELD_MAP = {
+	"1": "position_1_salary",
+	"2.1": "position_2_1_other_benefits",
+	"2.2": "position_2_2_board_lodging",
+	"2.3": "position_2_3_other_fringe",
+	"3": "position_3_irregular_benefits",
+	"4": "position_4_capital_benefits",
+	"5": "position_5_ownership_rights",
+	"6": "position_6_board_of_directors",
+	"7": "position_7_other_income",
+	"9": "position_9_avs_ac_aanp",
+	"10.1": "position_10_1_bvg_regular",
+	"10.2": "position_10_2_bvg_buyback",
+	"12": "position_12_withholding_tax",
+	"13.1": "position_13_1_actual_expenses",
+	"13.2": "position_13_2_flat_rate_car",
+	"13.3": "position_13_3_other_flat_expenses",
+	"14": "position_14_employer_contributions",
+}
+
+# Default mapping of Swiss salary components to Lohnausweis positions
+DEFAULT_LOHNAUSWEIS_MAPPING = [
+	{"salary_component": "Basic", "lohnausweis_position": "1"},
+	{"salary_component": "13th Month Salary", "lohnausweis_position": "1"},
+	{"salary_component": "AVS/AI/APG Employee", "lohnausweis_position": "9"},
+	{"salary_component": "AC/ALV Employee", "lohnausweis_position": "9"},
+	{"salary_component": "AC Solidarity Employee", "lohnausweis_position": "9"},
+	{"salary_component": "LAA Non-Professional Employee", "lohnausweis_position": "9"},
+	{"salary_component": "IJM/KTG Employee", "lohnausweis_position": "9"},
+	{"salary_component": "LPP/BVG Employee", "lohnausweis_position": "10.1"},
+]
+
 # Employee permit types
 PERMIT_TYPES = [
 	"",

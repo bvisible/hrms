@@ -4,24 +4,15 @@
 import frappe
 from frappe.utils import cint, flt
 
+from hrms.regional.switzerland.constants import RATE_BASED_COMPONENTS
 from hrms.regional.switzerland.utils import (
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
+	calculate_thirteenth_month,
 	get_employee_age,
 	get_swiss_social_insurance_config,
 	get_ytd_gross_for_employee,
 )
-
-# Map of component names to config rate fields
-RATE_BASED_COMPONENTS = {
-	"AVS/AI/APG Employee": ("avs_rate_employee", False),
-	"AVS/AI/APG Employer": ("avs_rate_employer", True),
-	"LAA Professional Employer": ("laa_professional_rate", True),
-	"LAA Non-Professional Employee": ("laa_nonprofessional_rate", False),
-	"IJM/KTG Employee": ("ijm_rate_employee", False),
-	"IJM/KTG Employer": ("ijm_rate_employer", True),
-	"Family Allowances Employer": ("family_allowance_rate", True),
-}
 
 
 def update_swiss_social_contributions(doc, method):
@@ -42,20 +33,31 @@ def update_swiss_social_contributions(doc, method):
 	if not config:
 		return
 
-	base_salary = flt(doc.base) or _get_base_from_earnings(doc)
-	if not base_salary:
+	# Add 13th month earning if applicable (before computing gross)
+	updated = _add_thirteenth_month_earning(doc, config)
+
+	# Base monthly salary from "Basic" component (used for LPP annualization)
+	base_monthly = _get_base_from_earnings(doc)
+	if not base_monthly:
 		return
 
-	updated = False
+	# Gross pay = sum of all earnings (including 13th month if added).
+	# Swiss law requires ALL salary earnings to be subject to social charges.
+	# NOTE: Expense reimbursements (Spesen) are NOT subject to social charges
+	# if covered by an approved expense regulation (Spesenreglement). They must
+	# be processed via the Expense Claim module, not as salary earning components.
+	gross_pay = sum(flt(row.default_amount) for row in doc.get("earnings"))
 
-	# Update rate-based components (AVS, LAA, IJM, Family)
-	updated = _update_rate_based_components(doc, config, base_salary) or updated
+	# Update rate-based components (AVS, LAA, IJM, Family) on gross_pay
+	updated = _update_rate_based_components(doc, config, gross_pay) or updated
 
-	# Update AC/ALV with ceiling tracking
-	updated = _update_ac_components(doc, config, base_salary) or updated
+	# Update AC/ALV with ceiling tracking on gross_pay
+	updated = _update_ac_components(doc, config, gross_pay) or updated
 
-	# Update LPP/BVG with age-based calculation
-	updated = _update_lpp_components(doc, config, base_salary, employee) or updated
+	# Update LPP/BVG: annualize using base_monthly * multiplier (13 if 13th enabled)
+	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
+	lpp_multiplier = 13 if thirteenth_mode != "Disabled" else 12
+	updated = _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee) or updated
 
 	if updated:
 		_recalculate_totals(doc)
@@ -65,12 +67,12 @@ def _get_base_from_earnings(doc):
 	"""Get the base salary from earnings if doc.base is not set."""
 	for row in doc.get("earnings"):
 		if row.salary_component == "Basic" or row.abbr == "B":
-			return flt(row.amount)
+			return flt(row.default_amount)
 	return 0
 
 
-def _update_rate_based_components(doc, config, base_salary):
-	"""Update components that are calculated as a simple percentage of base salary."""
+def _update_rate_based_components(doc, config, gross_pay):
+	"""Update components that are calculated as a simple percentage of gross pay."""
 	updated = False
 
 	for row in doc.get("deductions"):
@@ -78,7 +80,7 @@ def _update_rate_based_components(doc, config, base_salary):
 			rate_field, _is_employer = RATE_BASED_COMPONENTS[row.salary_component]
 			rate = flt(config.get(rate_field))
 			if rate:
-				full_amount = flt(base_salary * rate / 100, row.precision("amount"))
+				full_amount = flt(gross_pay * rate / 100, row.precision("amount"))
 				prorated = _prorate_amount(doc, row, full_amount)
 				if prorated != flt(row.amount, row.precision("amount")):
 					row.default_amount = full_amount
@@ -88,13 +90,13 @@ def _update_rate_based_components(doc, config, base_salary):
 	return updated
 
 
-def _update_ac_components(doc, config, base_salary):
+def _update_ac_components(doc, config, gross_pay):
 	"""Update AC/ALV components with annual ceiling tracking."""
 	updated = False
 
 	ytd_gross = get_ytd_gross_for_employee(doc.employee, doc.company, doc.start_date, doc.end_date)
 
-	ac_result = calculate_ac_contribution(base_salary, ytd_gross, config)
+	ac_result = calculate_ac_contribution(gross_pay, ytd_gross, config)
 
 	ac_mapping = {
 		"AC/ALV Employee": ac_result["ac_employee"],
@@ -122,12 +124,12 @@ def _update_ac_components(doc, config, base_salary):
 	return updated
 
 
-def _update_lpp_components(doc, config, base_salary, employee):
+def _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee):
 	"""Update LPP/BVG components based on employee age."""
 	updated = False
 
 	age = get_employee_age(doc.employee, doc.end_date)
-	annual_salary = base_salary * 12  # annualize monthly base
+	annual_salary = base_monthly * lpp_multiplier  # 13 if 13th month enabled, 12 otherwise
 
 	lpp_result = calculate_lpp_contribution(annual_salary, age, config)
 
@@ -183,6 +185,50 @@ def _add_deduction_row(doc, component_name, amount):
 	row.depends_on_payment_days = comp.depends_on_payment_days
 	row.default_amount = flt(amount, row.precision("amount"))
 	row.amount = _prorate_amount(doc, row, row.default_amount)
+
+
+def _add_thirteenth_month_earning(doc, config):
+	"""Add 13th month salary earning to the slip if applicable.
+
+	Returns True if an earning row was added, False otherwise.
+	Skips if the component already exists (manual override via Additional Salary).
+	"""
+	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
+	if thirteenth_mode == "Disabled":
+		return False
+
+	# Skip if already present (manual override)
+	for row in doc.get("earnings"):
+		if row.salary_component == "13th Month Salary":
+			return False
+
+	if not frappe.db.exists("Salary Component", "13th Month Salary"):
+		return False
+
+	base_monthly = _get_base_from_earnings(doc)
+	if not base_monthly:
+		return False
+
+	amount = calculate_thirteenth_month(base_monthly, doc.employee, doc.start_date, doc.end_date, config)
+
+	if not amount:
+		return False
+
+	_add_earning_row(doc, "13th Month Salary", amount)
+	return True
+
+
+def _add_earning_row(doc, component_name, amount):
+	"""Add a new earning row to the salary slip."""
+	comp = frappe.get_cached_doc("Salary Component", component_name)
+
+	row = doc.append("earnings", {})
+	row.salary_component = component_name
+	row.abbr = comp.salary_component_abbr
+	row.do_not_include_in_total = comp.do_not_include_in_total
+	row.depends_on_payment_days = comp.depends_on_payment_days
+	row.default_amount = flt(amount, row.precision("amount"))
+	row.amount = flt(amount, row.precision("amount"))
 
 
 def _recalculate_totals(doc):
