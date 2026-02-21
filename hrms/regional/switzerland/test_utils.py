@@ -11,9 +11,11 @@ from hrms.regional.switzerland.constants import (
 	LPP_MINIMUM_INSURED_SALARY,
 )
 from hrms.regional.switzerland.utils import (
+	_build_rate_dict,
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
 	calculate_lpp_coordinated_salary,
+	calculate_thirteenth_month,
 	get_lpp_rate_for_age,
 )
 
@@ -220,6 +222,230 @@ class TestACContribution(unittest.TestCase):
 		result = calculate_ac_contribution(0, 80000)
 		self.assertEqual(result["ac_employee"], 0)
 		self.assertEqual(result["solidarity_employee"], 0)
+
+
+class TestThirteenthMonth(unittest.TestCase):
+	"""Tests for 13th month salary calculation."""
+
+	def test_disabled_mode(self):
+		"""Mode Disabled: returns 0."""
+		config = {"thirteenth_month_mode": "Disabled"}
+		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
+		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", config)
+		self.assertEqual(result, 0)
+
+	def test_monthly_mode(self):
+		"""Monthly mode: returns base/12 regardless of month."""
+		config = {"thirteenth_month_mode": "Monthly"}
+		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
+		result = calculate_thirteenth_month(6000, employee, "2025-06-01", "2025-06-30", config)
+		self.assertAlmostEqual(result, 500.0, places=2)  # 6000 / 12
+
+	def test_monthly_mode_any_month(self):
+		"""Monthly mode: same amount in January and July."""
+		config = {"thirteenth_month_mode": "Monthly"}
+		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
+		jan = calculate_thirteenth_month(8000, employee, "2025-01-01", "2025-01-31", config)
+		jul = calculate_thirteenth_month(8000, employee, "2025-07-01", "2025-07-31", config)
+		self.assertAlmostEqual(jan, 666.67, places=2)  # 8000 / 12
+		self.assertEqual(jan, jul)
+
+	def test_annual_mode_december_full_year(self):
+		"""Annual mode, December: full year employee gets full base."""
+		config = {"thirteenth_month_mode": "Annual"}
+		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
+		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", config)
+		self.assertAlmostEqual(result, 8000.0, places=2)
+
+	def test_annual_mode_not_december(self):
+		"""Annual mode, not December and not leaving: returns 0."""
+		config = {"thirteenth_month_mode": "Annual"}
+		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
+		result = calculate_thirteenth_month(8000, employee, "2025-06-01", "2025-06-30", config)
+		self.assertEqual(result, 0)
+
+	def test_annual_mode_prorata_hire(self):
+		"""Annual mode, employee hired April 1: pro-rata based on days worked."""
+		config = {"thirteenth_month_mode": "Annual"}
+		employee = {"date_of_joining": "2025-04-01", "relieving_date": None}
+		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", config)
+		# April 1 to Dec 31 = 275 days out of 365
+		expected = round(8000 * 275 / 365, 2)
+		self.assertAlmostEqual(result, expected, places=2)
+
+	def test_annual_mode_prorata_departure(self):
+		"""Annual mode, employee leaving September 30: pro-rata on final slip."""
+		config = {"thirteenth_month_mode": "Annual"}
+		employee = {"date_of_joining": "2020-01-01", "relieving_date": "2025-09-30"}
+		result = calculate_thirteenth_month(8000, employee, "2025-09-01", "2025-09-30", config)
+		# Jan 1 to Sep 30 = 273 days out of 365
+		expected = round(8000 * 273 / 365, 2)
+		self.assertAlmostEqual(result, expected, places=2)
+
+	def test_annual_mode_hired_december_15(self):
+		"""Employee hired December 15: tiny pro-rata."""
+		config = {"thirteenth_month_mode": "Annual"}
+		employee = {"date_of_joining": "2025-12-15", "relieving_date": None}
+		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", config)
+		# Dec 15 to Dec 31 = 17 days out of 365
+		expected = round(8000 * 17 / 365, 2)
+		self.assertAlmostEqual(result, expected, places=2)
+
+	def test_zero_base(self):
+		"""Zero base salary: returns 0."""
+		config = {"thirteenth_month_mode": "Monthly"}
+		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
+		result = calculate_thirteenth_month(0, employee, "2025-06-01", "2025-06-30", config)
+		self.assertEqual(result, 0)
+
+	def test_no_config(self):
+		"""No config: returns 0."""
+		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
+		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", None)
+		self.assertEqual(result, 0)
+
+
+class TestThirteenthMonthIntegration(unittest.TestCase):
+	"""Integration tests: 13th month interaction with LPP and AC."""
+
+	def test_lpp_threshold_crossing_with_thirteenth(self):
+		"""LPP entry threshold crossed only when annualizing with x13.
+
+		Base CHF 1'800/month: 1'800x12 = 21'600 < 22'680 (below threshold).
+		With 13th month: 1'800x13 = 23'400 > 22'680 (above threshold, LPP applies).
+		"""
+		annual_without_13 = 1800 * 12  # 21'600
+		annual_with_13 = 1800 * 13  # 23'400
+
+		result_without = calculate_lpp_contribution(annual_without_13, 30)
+		result_with = calculate_lpp_contribution(annual_with_13, 30)
+
+		# Without 13th month: below threshold, no LPP
+		self.assertEqual(result_without["coordinated_salary"], 0)
+		self.assertEqual(result_without["employee_monthly"], 0)
+
+		# With 13th month: above threshold, LPP applies
+		self.assertGreater(result_with["coordinated_salary"], 0)
+		self.assertGreater(result_with["employee_monthly"], 0)
+		# Coordinated salary = min(23'400 - 26'460, min_insured) = min(-3060, 3780) → 3'780
+		self.assertEqual(result_with["coordinated_salary"], LPP_MINIMUM_INSURED_SALARY)
+
+	def test_ac_ceiling_reached_before_december_thirteenth(self):
+		"""AC ceiling already exceeded in November: December 13th month all at solidarity.
+
+		Employee CHF 14'000/month. By November end: YTD = 14'000x11 = 154'000 > 148'200.
+		December gross = 14'000 (regular) + 14'000 (13th month) = 28'000.
+		Entire December should be at solidarity rate (0.5%), no standard AC (1.1%).
+		"""
+		december_gross = 28000  # regular + 13th month
+		ytd_after_november = 14000 * 11  # 154'000
+
+		result = calculate_ac_contribution(december_gross, ytd_after_november)
+
+		# Already above ceiling: no standard AC
+		self.assertEqual(result["subject_to_ac"], 0)
+		self.assertEqual(result["ac_employee"], 0)
+		self.assertEqual(result["ac_employer"], 0)
+
+		# Entire December at solidarity rate
+		self.assertEqual(result["subject_to_solidarity"], 28000)
+		self.assertAlmostEqual(result["solidarity_employee"], 140.0, places=2)  # 28000 * 0.005
+		self.assertAlmostEqual(result["solidarity_employer"], 140.0, places=2)
+
+
+class TestComponentRates(unittest.TestCase):
+	"""Tests for _build_rate_dict (pure function, no frappe needed)."""
+
+	def _make_config(self, **overrides):
+		"""Build a minimal config dict with defaults."""
+		config = {
+			"avs_rate_employee": 5.3,
+			"avs_rate_employer": 5.3,
+			"laa_professional_rate": 0.8,
+			"laa_nonprofessional_rate": 1.2,
+			"ijm_rate_employee": 0.5,
+			"ijm_rate_employer": 0.5,
+			"family_allowance_rate": 2.0,
+			"ac_rate_employee": 1.1,
+			"ac_rate_employer": 1.1,
+			"ac_solidarity_rate_employee": 0.5,
+			"ac_solidarity_rate_employer": 0.5,
+			"lpp_employer_share_pct": 50,
+		}
+		config.update(overrides)
+		return config
+
+	def test_rate_based_components_have_rates(self):
+		"""All rate-based components return their config rate."""
+		config = self._make_config()
+		rates = _build_rate_dict(config, 30)
+
+		self.assertEqual(rates["AVS/AI/APG Employee"], "5.3")
+		self.assertEqual(rates["AVS/AI/APG Employer"], "5.3")
+		self.assertEqual(rates["LAA Professional Employer"], "0.8")
+		self.assertEqual(rates["LAA Non-Professional Employee"], "1.2")
+		self.assertEqual(rates["IJM/KTG Employee"], "0.5")
+		self.assertEqual(rates["IJM/KTG Employer"], "0.5")
+		self.assertEqual(rates["Family Allowances Employer"], "2.0")
+
+	def test_ac_rates_included(self):
+		"""AC standard and solidarity rates are included."""
+		config = self._make_config()
+		rates = _build_rate_dict(config, 30)
+
+		self.assertEqual(rates["AC/ALV Employee"], "1.1")
+		self.assertEqual(rates["AC/ALV Employer"], "1.1")
+		self.assertEqual(rates["AC Solidarity Employee"], "0.5")
+		self.assertEqual(rates["AC Solidarity Employer"], "0.5")
+
+	def test_lpp_rate_age_30(self):
+		"""LPP rate for age 30: 7% total, 50/50 split → 3.5% each."""
+		config = self._make_config()
+		rates = _build_rate_dict(config, 30)
+
+		self.assertEqual(rates["LPP/BVG Employee"], "3.5")
+		self.assertEqual(rates["LPP/BVG Employer"], "3.5")
+
+	def test_lpp_rate_age_50(self):
+		"""LPP rate for age 50: 15% total, 50/50 split → 7.5% each."""
+		config = self._make_config()
+		rates = _build_rate_dict(config, 50)
+
+		self.assertEqual(rates["LPP/BVG Employee"], "7.5")
+		self.assertEqual(rates["LPP/BVG Employer"], "7.5")
+
+	def test_lpp_rate_custom_employer_share(self):
+		"""LPP rate with 60% employer share: 7% total → EE 2.8%, ER 4.2%."""
+		config = self._make_config(lpp_employer_share_pct=60)
+		rates = _build_rate_dict(config, 30)
+
+		self.assertEqual(rates["LPP/BVG Employee"], "2.8")
+		self.assertEqual(rates["LPP/BVG Employer"], "4.2")
+
+	def test_lpp_below_25_no_rate(self):
+		"""Employee below 25: no LPP rate."""
+		config = self._make_config()
+		rates = _build_rate_dict(config, 24)
+
+		self.assertNotIn("LPP/BVG Employee", rates)
+		self.assertNotIn("LPP/BVG Employer", rates)
+
+	def test_zero_rate_excluded(self):
+		"""Components with 0% rate are excluded from the dict."""
+		config = self._make_config(ijm_rate_employee=0, ijm_rate_employer=0)
+		rates = _build_rate_dict(config, 30)
+
+		self.assertNotIn("IJM/KTG Employee", rates)
+		self.assertNotIn("IJM/KTG Employer", rates)
+
+	def test_empty_config_returns_empty(self):
+		"""Empty config returns empty dict (except LPP which uses constants)."""
+		config = {}
+		rates = _build_rate_dict(config, 30)
+
+		# No rate-based components should appear
+		self.assertNotIn("AVS/AI/APG Employee", rates)
+		self.assertNotIn("AC/ALV Employee", rates)
 
 
 if __name__ == "__main__":
