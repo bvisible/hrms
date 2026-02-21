@@ -18,6 +18,7 @@ from hrms.regional.switzerland.constants import (
 	LPP_ENTRY_THRESHOLD,
 	LPP_MAXIMUM_COORDINATED_SALARY,
 	LPP_MINIMUM_INSURED_SALARY,
+	RATE_BASED_COMPONENTS,
 )
 
 
@@ -256,3 +257,141 @@ def get_ytd_gross_for_employee(employee, company, start_date, end_date):
 	)
 
 	return flt(result[0].ytd_gross) if result else 0
+
+
+def calculate_thirteenth_month(base_monthly, employee, slip_start, slip_end, config):
+	"""Calculate 13th month salary amount for a salary slip.
+
+	Args:
+		base_monthly: Base monthly salary (Basic component amount)
+		employee: Employee name (string) or dict/doc with date_of_joining, relieving_date
+		slip_start: Salary slip start date
+		slip_end: Salary slip end date
+		config: Swiss Social Insurance Config dict
+
+	Returns:
+		13th month amount for this salary slip (float)
+	"""
+	mode = (config.get("thirteenth_month_mode") or "Disabled") if config else "Disabled"
+	base_monthly = flt(base_monthly)
+
+	if mode == "Disabled" or not base_monthly:
+		return 0
+
+	if mode == "Monthly":
+		return flt(base_monthly / 12, 2)
+
+	# Annual mode: pay only in December or on the relieving month
+	slip_end_date = getdate(slip_end)
+	is_december = slip_end_date.month == 12
+
+	# Get employee data
+	if isinstance(employee, str):
+		emp_doc = frappe.get_cached_doc("Employee", employee)
+	else:
+		emp_doc = employee
+
+	relieving_date = emp_doc.get("relieving_date")
+	is_relieving_month = (
+		relieving_date
+		and getdate(relieving_date).month == slip_end_date.month
+		and getdate(relieving_date).year == slip_end_date.year
+	)
+
+	if not is_december and not is_relieving_month:
+		return 0
+
+	# Calculate pro-rata based on days worked in the year
+	year_start = slip_end_date.replace(month=1, day=1)
+	year_end = slip_end_date.replace(month=12, day=31)
+
+	date_of_joining = getdate(emp_doc.get("date_of_joining"))
+	period_start = max(date_of_joining, year_start)
+
+	if relieving_date:
+		period_end = min(getdate(relieving_date), year_end)
+	else:
+		period_end = year_end
+
+	if period_start > period_end:
+		return 0
+
+	total_days_in_year = (year_end - year_start).days + 1
+	days_worked = (period_end - period_start).days + 1
+	pro_rata = days_worked / total_days_in_year
+
+	return flt(base_monthly * pro_rata, 2)
+
+
+def get_component_rates_for_salary_slip(doc):
+	"""Return a dict of {component_name: rate_display_string} for a salary slip.
+
+	Used by the Swiss pay slip print format to display contribution rates
+	next to each deduction component.
+
+	Args:
+		doc: Salary Slip document
+
+	Returns:
+		dict mapping component names to rate strings (e.g., "5.3", "7.0")
+	"""
+	employee = frappe.get_cached_doc("Employee", doc.employee)
+	canton = employee.get("ch_fiscal_canton") or ""
+	config = get_swiss_social_insurance_config(doc.company, canton)
+
+	if not config:
+		return {}
+
+	age = get_employee_age(doc.employee, doc.end_date)
+	return _build_rate_dict(config, age)
+
+
+def _build_rate_dict(config, age):
+	"""Build a dict of component rates from config and employee age.
+
+	Pure function (no frappe dependency) for testability.
+
+	Args:
+		config: Swiss Social Insurance Config dict
+		age: Employee age in years
+
+	Returns:
+		dict mapping component names to rate strings
+	"""
+	rates = {}
+
+	# Rate-based components: direct rate from config
+	for comp_name, (rate_field, _is_employer) in RATE_BASED_COMPONENTS.items():
+		rate = flt(config.get(rate_field))
+		if rate:
+			rates[comp_name] = str(rate)
+
+	# AC/ALV: standard rate from config
+	ac_rate_ee = flt(config.get("ac_rate_employee"))
+	ac_rate_er = flt(config.get("ac_rate_employer"))
+	if ac_rate_ee:
+		rates["AC/ALV Employee"] = str(ac_rate_ee)
+	if ac_rate_er:
+		rates["AC/ALV Employer"] = str(ac_rate_er)
+
+	# AC Solidarity
+	sol_rate_ee = flt(config.get("ac_solidarity_rate_employee"))
+	sol_rate_er = flt(config.get("ac_solidarity_rate_employer"))
+	if sol_rate_ee:
+		rates["AC Solidarity Employee"] = str(sol_rate_ee)
+	if sol_rate_er:
+		rates["AC Solidarity Employer"] = str(sol_rate_er)
+
+	# LPP/BVG: age-based rate (total rate, then split)
+	lpp_total_rate = get_lpp_rate_for_age(age)
+	if lpp_total_rate:
+		raw_share = float(config.get("lpp_employer_share_pct") or 0) / 100 or 0.5
+		employer_share = max(raw_share, 0.5)
+		employee_rate = round(lpp_total_rate * (1 - employer_share) * 100, 2)
+		employer_rate = round(lpp_total_rate * employer_share * 100, 2)
+		if employee_rate:
+			rates["LPP/BVG Employee"] = str(employee_rate)
+		if employer_rate:
+			rates["LPP/BVG Employer"] = str(employer_rate)
+
+	return rates
