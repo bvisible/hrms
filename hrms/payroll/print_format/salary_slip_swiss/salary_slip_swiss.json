@@ -1,0 +1,23 @@
+{
+	"align_labels_right": 0,
+	"creation": "2026-02-21 00:00:00.000000",
+	"custom_format": 0,
+	"default_print_language": "fr",
+	"disabled": 0,
+	"doc_type": "Salary Slip",
+	"docstatus": 0,
+	"doctype": "Print Format",
+	"font": "Default",
+	"idx": 0,
+	"line_breaks": 0,
+	"modified": "2026-02-21 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Salary Slip Swiss",
+	"owner": "Administrator",
+	"print_format_builder": 0,
+	"print_format_type": "Jinja",
+	"raw_printing": 0,
+	"show_section_headings": 0,
+	"standard": "Yes"
+}

@@ -1,0 +1,306 @@
+{
+	"actions": [],
+	"autoname": "format:CH-SIC-{company}-{canton}",
+	"creation": "2026-02-21 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"company",
+		"canton",
+		"is_default",
+		"section_avs",
+		"avs_rate_employee",
+		"avs_rate_employer",
+		"column_break_avs",
+		"avs_employer_account",
+		"section_ac",
+		"ac_rate_employee",
+		"ac_rate_employer",
+		"ac_annual_ceiling",
+		"column_break_ac",
+		"ac_solidarity_rate_employee",
+		"ac_solidarity_rate_employer",
+		"ac_employer_account",
+		"section_laa",
+		"laa_professional_rate",
+		"laa_nonprofessional_rate",
+		"column_break_laa",
+		"laa_insurable_salary_cap",
+		"laa_employer_account",
+		"section_lpp",
+		"lpp_employer_share_pct",
+		"lpp_entry_threshold",
+		"lpp_coordination_deduction",
+		"column_break_lpp",
+		"lpp_minimum_insured_salary",
+		"lpp_maximum_coordinated_salary",
+		"lpp_employer_account",
+		"section_ijm",
+		"ijm_rate_employee",
+		"ijm_rate_employer",
+		"column_break_ijm",
+		"ijm_employer_account",
+		"section_family",
+		"family_allowance_rate",
+		"column_break_family",
+		"family_allowance_account"
+	],
+	"fields": [
+		{
+			"fieldname": "company",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Company",
+			"options": "Company",
+			"reqd": 1
+		},
+		{
+			"fieldname": "canton",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Canton",
+			"options": "\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH",
+			"reqd": 1
+		},
+		{
+			"default": "0",
+			"fieldname": "is_default",
+			"fieldtype": "Check",
+			"label": "Is Default Configuration"
+		},
+		{
+			"fieldname": "section_avs",
+			"fieldtype": "Section Break",
+			"label": "AVS/AI/APG"
+		},
+		{
+			"default": "5.3",
+			"description": "Employee rate in %",
+			"fieldname": "avs_rate_employee",
+			"fieldtype": "Percent",
+			"label": "AVS Employee Rate (%)"
+		},
+		{
+			"default": "5.3",
+			"description": "Employer rate in %",
+			"fieldname": "avs_rate_employer",
+			"fieldtype": "Percent",
+			"label": "AVS Employer Rate (%)"
+		},
+		{
+			"fieldname": "column_break_avs",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "avs_employer_account",
+			"fieldtype": "Link",
+			"label": "AVS Employer GL Account",
+			"options": "Account"
+		},
+		{
+			"fieldname": "section_ac",
+			"fieldtype": "Section Break",
+			"label": "AC/ALV (Unemployment)"
+		},
+		{
+			"default": "1.1",
+			"fieldname": "ac_rate_employee",
+			"fieldtype": "Percent",
+			"label": "AC Employee Rate (%)"
+		},
+		{
+			"default": "1.1",
+			"fieldname": "ac_rate_employer",
+			"fieldtype": "Percent",
+			"label": "AC Employer Rate (%)"
+		},
+		{
+			"default": "148200",
+			"fieldname": "ac_annual_ceiling",
+			"fieldtype": "Currency",
+			"label": "AC Annual Ceiling (CHF)"
+		},
+		{
+			"fieldname": "column_break_ac",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "0.5",
+			"fieldname": "ac_solidarity_rate_employee",
+			"fieldtype": "Percent",
+			"label": "AC Solidarity Employee Rate (%)"
+		},
+		{
+			"default": "0.5",
+			"fieldname": "ac_solidarity_rate_employer",
+			"fieldtype": "Percent",
+			"label": "AC Solidarity Employer Rate (%)"
+		},
+		{
+			"fieldname": "ac_employer_account",
+			"fieldtype": "Link",
+			"label": "AC Employer GL Account",
+			"options": "Account"
+		},
+		{
+			"fieldname": "section_laa",
+			"fieldtype": "Section Break",
+			"label": "LAA/UVG (Accident Insurance)"
+		},
+		{
+			"default": "0",
+			"description": "Employer-paid professional accident insurance rate in %. Set by your insurer.",
+			"fieldname": "laa_professional_rate",
+			"fieldtype": "Percent",
+			"label": "LAA Professional Rate - Employer (%)"
+		},
+		{
+			"default": "0",
+			"description": "Employee-paid non-professional accident insurance rate in %. Set by your insurer.",
+			"fieldname": "laa_nonprofessional_rate",
+			"fieldtype": "Percent",
+			"label": "LAA Non-Professional Rate - Employee (%)"
+		},
+		{
+			"fieldname": "column_break_laa",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "148200",
+			"fieldname": "laa_insurable_salary_cap",
+			"fieldtype": "Currency",
+			"label": "LAA Insurable Salary Cap (CHF)"
+		},
+		{
+			"fieldname": "laa_employer_account",
+			"fieldtype": "Link",
+			"label": "LAA Employer GL Account",
+			"options": "Account"
+		},
+		{
+			"fieldname": "section_lpp",
+			"fieldtype": "Section Break",
+			"label": "LPP/BVG (Occupational Pension)"
+		},
+		{
+			"default": "50",
+			"description": "Employer share of LPP contribution in %. Minimum 50% by law.",
+			"fieldname": "lpp_employer_share_pct",
+			"fieldtype": "Percent",
+			"label": "LPP Employer Share (%)"
+		},
+		{
+			"default": "22680",
+			"fieldname": "lpp_entry_threshold",
+			"fieldtype": "Currency",
+			"label": "LPP Entry Threshold (CHF/year)"
+		},
+		{
+			"default": "26460",
+			"fieldname": "lpp_coordination_deduction",
+			"fieldtype": "Currency",
+			"label": "LPP Coordination Deduction (CHF/year)"
+		},
+		{
+			"fieldname": "column_break_lpp",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "3780",
+			"fieldname": "lpp_minimum_insured_salary",
+			"fieldtype": "Currency",
+			"label": "LPP Minimum Insured Salary (CHF/year)"
+		},
+		{
+			"default": "64260",
+			"fieldname": "lpp_maximum_coordinated_salary",
+			"fieldtype": "Currency",
+			"label": "LPP Maximum Coordinated Salary (CHF/year)"
+		},
+		{
+			"fieldname": "lpp_employer_account",
+			"fieldtype": "Link",
+			"label": "LPP Employer GL Account",
+			"options": "Account"
+		},
+		{
+			"fieldname": "section_ijm",
+			"fieldtype": "Section Break",
+			"label": "IJM/KTG (Daily Sickness Allowance)"
+		},
+		{
+			"default": "0",
+			"description": "Employee rate in %. Set by your insurer.",
+			"fieldname": "ijm_rate_employee",
+			"fieldtype": "Percent",
+			"label": "IJM Employee Rate (%)"
+		},
+		{
+			"default": "0",
+			"description": "Employer rate in %. Set by your insurer.",
+			"fieldname": "ijm_rate_employer",
+			"fieldtype": "Percent",
+			"label": "IJM Employer Rate (%)"
+		},
+		{
+			"fieldname": "column_break_ijm",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "ijm_employer_account",
+			"fieldtype": "Link",
+			"label": "IJM Employer GL Account",
+			"options": "Account"
+		},
+		{
+			"fieldname": "section_family",
+			"fieldtype": "Section Break",
+			"label": "Family Allowances"
+		},
+		{
+			"default": "0",
+			"description": "Employer-only rate in %. Varies by canton.",
+			"fieldname": "family_allowance_rate",
+			"fieldtype": "Percent",
+			"label": "Family Allowance Rate - Employer (%)"
+		},
+		{
+			"fieldname": "column_break_family",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "family_allowance_account",
+			"fieldtype": "Link",
+			"label": "Family Allowance GL Account",
+			"options": "Account"
+		}
+	],
+	"links": [],
+	"modified": "2026-02-21 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Swiss Social Insurance Config",
+	"naming_rule": "Expression",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "HR Manager",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"read": 1,
+			"role": "HR User"
+		}
+	],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"track_changes": 1
+}

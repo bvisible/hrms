@@ -213,6 +213,9 @@ doc_events = {
 	},
 	"Project": {"validate": "hrms.controllers.employee_boarding_controller.update_employee_boarding_status"},
 	"Task": {"on_update": "hrms.controllers.employee_boarding_controller.update_task"},
+	"Salary Slip": {
+		"validate": "hrms.regional.switzerland.payroll_hooks.update_swiss_social_contributions",
+	},
 }
 
 # Scheduled Tasks
@@ -278,6 +281,10 @@ regional_overrides = {
 		"hrms.hr.utils.calculate_annual_eligible_hra_exemption": "hrms.regional.india.utils.calculate_annual_eligible_hra_exemption",
 		"hrms.hr.utils.calculate_hra_exemption_for_period": "hrms.regional.india.utils.calculate_hra_exemption_for_period",
 		"hrms.hr.utils.calculate_tax_with_marginal_relief": "hrms.regional.india.utils.calculate_tax_with_marginal_relief",
+	},
+	"Switzerland": {
+		"hrms.regional.switzerland.utils.get_lpp_contribution": "hrms.regional.switzerland.utils.calculate_lpp_contribution",
+		"hrms.regional.switzerland.utils.get_ac_contribution": "hrms.regional.switzerland.utils.calculate_ac_contribution",
 	},
 }
 
