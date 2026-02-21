@@ -1,0 +1,337 @@
+{
+	"actions": [],
+	"autoname": "format:CH-CERT-{fiscal_year}-{employee}",
+	"creation": "2026-02-21 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"is_submittable": 1,
+	"field_order": [
+		"employee",
+		"employee_name",
+		"fiscal_year",
+		"company",
+		"column_break_header",
+		"avs_number",
+		"date_of_birth",
+		"posting_date",
+		"date_of_joining",
+		"relieving_date",
+		"section_income",
+		"position_1_salary",
+		"position_2_1_other_benefits",
+		"position_2_2_board_lodging",
+		"position_2_3_other_fringe",
+		"column_break_income",
+		"position_3_irregular_benefits",
+		"position_4_capital_benefits",
+		"position_5_ownership_rights",
+		"position_6_board_of_directors",
+		"position_7_other_income",
+		"section_totals",
+		"position_8_gross_income",
+		"section_deductions",
+		"position_9_avs_ac_aanp",
+		"position_10_1_bvg_regular",
+		"position_10_2_bvg_buyback",
+		"column_break_deductions",
+		"position_11_net_salary",
+		"position_12_withholding_tax",
+		"section_expenses",
+		"position_13_1_actual_expenses",
+		"position_13_2_flat_rate_car",
+		"position_13_3_other_flat_expenses",
+		"column_break_expenses",
+		"position_14_employer_contributions",
+		"section_remarks",
+		"position_15_remarks",
+		"amended_from"
+	],
+	"fields": [
+		{
+			"fieldname": "employee",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Employee",
+			"options": "Employee",
+			"reqd": 1
+		},
+		{
+			"fetch_from": "employee.employee_name",
+			"fieldname": "employee_name",
+			"fieldtype": "Data",
+			"label": "Employee Name",
+			"read_only": 1
+		},
+		{
+			"fieldname": "fiscal_year",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Fiscal Year",
+			"options": "Fiscal Year",
+			"reqd": 1
+		},
+		{
+			"fieldname": "company",
+			"fieldtype": "Link",
+			"label": "Company",
+			"options": "Company",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_header",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fetch_from": "employee.ch_avs_number",
+			"fieldname": "avs_number",
+			"fieldtype": "Data",
+			"label": "AVS Number",
+			"read_only": 1
+		},
+		{
+			"fetch_from": "employee.date_of_birth",
+			"fieldname": "date_of_birth",
+			"fieldtype": "Date",
+			"label": "Date of Birth",
+			"read_only": 1
+		},
+		{
+			"default": "Today",
+			"fieldname": "posting_date",
+			"fieldtype": "Date",
+			"label": "Posting Date"
+		},
+		{
+			"fetch_from": "employee.date_of_joining",
+			"fieldname": "date_of_joining",
+			"fieldtype": "Date",
+			"label": "Date of Joining",
+			"read_only": 1
+		},
+		{
+			"fetch_from": "employee.relieving_date",
+			"fieldname": "relieving_date",
+			"fieldtype": "Date",
+			"label": "Relieving Date",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_income",
+			"fieldtype": "Section Break",
+			"label": "Income (Positions 1-7)"
+		},
+		{
+			"default": "0",
+			"description": "Salary, wages, overtime, fees (Lohn)",
+			"fieldname": "position_1_salary",
+			"fieldtype": "Currency",
+			"label": "1. Salary / Lohn"
+		},
+		{
+			"default": "0",
+			"description": "Other benefits (Andere Leistungen)",
+			"fieldname": "position_2_1_other_benefits",
+			"fieldtype": "Currency",
+			"label": "2.1 Other Benefits"
+		},
+		{
+			"default": "0",
+			"description": "Board and lodging (Verpflegung / Unterkunft)",
+			"fieldname": "position_2_2_board_lodging",
+			"fieldtype": "Currency",
+			"label": "2.2 Board and Lodging"
+		},
+		{
+			"default": "0",
+			"description": "Other fringe benefits (Andere Naturalleistungen)",
+			"fieldname": "position_2_3_other_fringe",
+			"fieldtype": "Currency",
+			"label": "2.3 Other Fringe Benefits"
+		},
+		{
+			"fieldname": "column_break_income",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "0",
+			"description": "Irregular benefits, capital payments (Unregelm\u00e4ssige Leistungen)",
+			"fieldname": "position_3_irregular_benefits",
+			"fieldtype": "Currency",
+			"label": "3. Irregular Benefits"
+		},
+		{
+			"default": "0",
+			"description": "Capital benefits (Kapitalleistungen)",
+			"fieldname": "position_4_capital_benefits",
+			"fieldtype": "Currency",
+			"label": "4. Capital Benefits"
+		},
+		{
+			"default": "0",
+			"description": "Ownership rights pursuant to ESOP (Beteiligungsrechte)",
+			"fieldname": "position_5_ownership_rights",
+			"fieldtype": "Currency",
+			"label": "5. Ownership Rights"
+		},
+		{
+			"default": "0",
+			"description": "Board of directors fees (Verwaltungsratsentsch\u00e4digungen)",
+			"fieldname": "position_6_board_of_directors",
+			"fieldtype": "Currency",
+			"label": "6. Board of Directors Fees"
+		},
+		{
+			"default": "0",
+			"description": "Other income (Andere Einkommen)",
+			"fieldname": "position_7_other_income",
+			"fieldtype": "Currency",
+			"label": "7. Other Income"
+		},
+		{
+			"fieldname": "section_totals",
+			"fieldtype": "Section Break",
+			"label": "Total"
+		},
+		{
+			"default": "0",
+			"description": "Gross income = sum of positions 1-7 (Bruttolohn)",
+			"fieldname": "position_8_gross_income",
+			"fieldtype": "Currency",
+			"label": "8. Gross Income (Total)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_deductions",
+			"fieldtype": "Section Break",
+			"label": "Deductions (Positions 9-12)"
+		},
+		{
+			"default": "0",
+			"description": "AVS/AI/APG + AC/ALV + AANP contributions (AHV/IV/EO, ALV, NBUV-Beitr\u00e4ge)",
+			"fieldname": "position_9_avs_ac_aanp",
+			"fieldtype": "Currency",
+			"label": "9. AVS/AC/AANP Contributions"
+		},
+		{
+			"default": "0",
+			"description": "Regular BVG/LPP contributions (Ordentliche BVG-Beitr\u00e4ge)",
+			"fieldname": "position_10_1_bvg_regular",
+			"fieldtype": "Currency",
+			"label": "10.1 BVG Regular Contributions"
+		},
+		{
+			"default": "0",
+			"description": "BVG/LPP buy-back contributions (BVG-Einkauf)",
+			"fieldname": "position_10_2_bvg_buyback",
+			"fieldtype": "Currency",
+			"label": "10.2 BVG Buy-back"
+		},
+		{
+			"fieldname": "column_break_deductions",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "0",
+			"description": "Net salary = position 8 - 9 - 10.1 - 10.2 (Nettolohn)",
+			"fieldname": "position_11_net_salary",
+			"fieldtype": "Currency",
+			"label": "11. Net Salary",
+			"read_only": 1
+		},
+		{
+			"default": "0",
+			"description": "Withholding tax deducted (Quellensteuerabzug)",
+			"fieldname": "position_12_withholding_tax",
+			"fieldtype": "Currency",
+			"label": "12. Withholding Tax"
+		},
+		{
+			"fieldname": "section_expenses",
+			"fieldtype": "Section Break",
+			"label": "Expense Allowances (Positions 13-14)"
+		},
+		{
+			"default": "0",
+			"description": "Effective expenses (Effektive Spesen)",
+			"fieldname": "position_13_1_actual_expenses",
+			"fieldtype": "Currency",
+			"label": "13.1 Actual Expenses"
+		},
+		{
+			"default": "0",
+			"description": "Flat-rate car allowance (Pauschalspesen Fahrzeug)",
+			"fieldname": "position_13_2_flat_rate_car",
+			"fieldtype": "Currency",
+			"label": "13.2 Flat-rate Car Allowance"
+		},
+		{
+			"default": "0",
+			"description": "Other flat-rate expenses (Andere Pauschalspesen)",
+			"fieldname": "position_13_3_other_flat_expenses",
+			"fieldtype": "Currency",
+			"label": "13.3 Other Flat-rate Expenses"
+		},
+		{
+			"fieldname": "column_break_expenses",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "0",
+			"description": "Contributions/payments from employer for further training etc. (Beitr\u00e4ge Arbeitgeber)",
+			"fieldname": "position_14_employer_contributions",
+			"fieldtype": "Currency",
+			"label": "14. Employer Contributions"
+		},
+		{
+			"fieldname": "section_remarks",
+			"fieldtype": "Section Break",
+			"label": "Remarks"
+		},
+		{
+			"description": "Position 15: additional remarks, codes, and cross-references.",
+			"fieldname": "position_15_remarks",
+			"fieldtype": "Small Text",
+			"label": "15. Remarks / Bemerkungen"
+		},
+		{
+			"fieldname": "amended_from",
+			"fieldtype": "Link",
+			"label": "Amended From",
+			"no_copy": 1,
+			"options": "Swiss Salary Certificate",
+			"print_hide": 1,
+			"read_only": 1
+		}
+	],
+	"links": [],
+	"modified": "2026-02-21 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Swiss Salary Certificate",
+	"naming_rule": "Expression",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"amend": 1,
+			"cancel": 1,
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "HR Manager",
+			"share": 1,
+			"submit": 1,
+			"write": 1
+		},
+		{
+			"read": 1,
+			"role": "HR User"
+		}
+	],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"track_changes": 1
+}
