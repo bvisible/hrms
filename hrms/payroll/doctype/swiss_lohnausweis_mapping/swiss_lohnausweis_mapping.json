@@ -1,0 +1,48 @@
+{
+	"actions": [],
+	"creation": "2026-02-21 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"salary_component",
+		"lohnausweis_position",
+		"include_in_certificate"
+	],
+	"fields": [
+		{
+			"fieldname": "salary_component",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Salary Component",
+			"options": "Salary Component",
+			"reqd": 1
+		},
+		{
+			"fieldname": "lohnausweis_position",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Lohnausweis Position",
+			"options": "\n1\n2.1\n2.2\n2.3\n3\n4\n5\n6\n7\n9\n10.1\n10.2\n12\n13.1\n13.2\n13.3\n14",
+			"reqd": 1
+		},
+		{
+			"default": "1",
+			"fieldname": "include_in_certificate",
+			"fieldtype": "Check",
+			"in_list_view": 1,
+			"label": "Include in Certificate"
+		}
+	],
+	"istable": 1,
+	"links": [],
+	"modified": "2026-02-21 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Swiss Lohnausweis Mapping",
+	"naming_rule": "Random",
+	"owner": "Administrator",
+	"permissions": [],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"track_changes": 1
+}
