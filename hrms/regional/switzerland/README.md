@@ -94,12 +94,12 @@ hrms/regional/switzerland/
 ├── utils.py                  # Calculation engine (LPP, AC, config lookup)
 ├── payroll_hooks.py          # Salary Slip validate hook
 ├── test_utils.py             # 25 unit tests
-├── README.md
-└── doctype/
-    └── swiss_social_insurance_config/
-        ├── __init__.py
-        ├── swiss_social_insurance_config.json
-        └── swiss_social_insurance_config.py
+└── README.md
+
+hrms/payroll/doctype/swiss_social_insurance_config/
+├── __init__.py
+├── swiss_social_insurance_config.json
+└── swiss_social_insurance_config.py
 ```
 
 ## Not In Scope
