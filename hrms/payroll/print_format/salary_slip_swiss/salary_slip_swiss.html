@@ -1,128 +1,273 @@
-{%- from "templates/print_formats/standard_macros.html" import add_header -%}
+{%- set employee = frappe.get_cached_doc("Employee", doc.employee) -%}
 {%- set employer_components = frappe.get_all(
 	"Salary Component",
 	filters={"is_employer_contribution": 1},
 	pluck="name"
 ) -%}
+{%- set rates = frappe.get_attr("hrms.regional.switzerland.utils.get_component_rates_for_salary_slip")(doc) -%}
 
-<div class="salary-slip-swiss">
+<style>
+	.swiss-slip {
+		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+		font-size: 9pt;
+		color: #333;
+		line-height: 1.4;
+	}
+	.swiss-slip h3 {
+		font-size: 13pt;
+		font-weight: 600;
+		margin: 0 0 4px 0;
+	}
+	.swiss-slip .subtitle {
+		font-size: 9pt;
+		color: #666;
+		margin-bottom: 16px;
+	}
+	.swiss-slip table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-bottom: 12px;
+	}
+	.swiss-slip .info-table td {
+		padding: 2px 8px 2px 0;
+		border: none;
+		vertical-align: top;
+	}
+	.swiss-slip .info-table td.label {
+		color: #666;
+		width: 140px;
+		white-space: nowrap;
+	}
+	.swiss-slip .data-table th {
+		background: #f5f5f5;
+		border-bottom: 2px solid #ccc;
+		padding: 5px 8px;
+		text-align: left;
+		font-weight: 600;
+		font-size: 8.5pt;
+		text-transform: uppercase;
+		color: #555;
+	}
+	.swiss-slip .data-table td {
+		padding: 4px 8px;
+		border-bottom: 1px solid #eee;
+	}
+	.swiss-slip .data-table .text-right {
+		text-align: right;
+	}
+	.swiss-slip .data-table .text-center {
+		text-align: center;
+	}
+	.swiss-slip .total-row td {
+		font-weight: 700;
+		border-top: 2px solid #999;
+		border-bottom: none;
+		padding-top: 6px;
+	}
+	.swiss-slip .net-row td {
+		font-size: 11pt;
+		font-weight: 700;
+		border-top: 2px solid #333;
+		padding-top: 8px;
+	}
+	.swiss-slip .employer-section {
+		color: #888;
+		font-style: italic;
+	}
+	.swiss-slip .employer-section th {
+		background: #fafafa;
+		color: #888;
+	}
+	.swiss-slip .divider {
+		border: none;
+		border-top: 1px solid #ddd;
+		margin: 12px 0;
+	}
+	.swiss-slip .two-col {
+		display: table;
+		width: 100%;
+	}
+	.swiss-slip .two-col > div {
+		display: table-cell;
+		width: 50%;
+		vertical-align: top;
+		padding-right: 16px;
+	}
+	.swiss-slip .two-col > div:last-child {
+		padding-right: 0;
+		padding-left: 16px;
+	}
+</style>
+
+<div class="swiss-slip">
 	<!-- Header -->
-	<div class="text-center" style="margin-bottom: 20px;">
-		<h3>{{ _("Pay Slip") }}</h3>
-		<p>{{ doc.name }}</p>
+	<div style="text-align: center; margin-bottom: 16px;">
+		<h3>{{ doc.company }}</h3>
+		<div class="subtitle">
+			{{ _("Pay Slip") }} / Lohnabrechnung &mdash;
+			{{ frappe.format(doc.start_date, {"fieldtype": "Date"}) }} - {{ frappe.format(doc.end_date, {"fieldtype": "Date"}) }}
+		</div>
 	</div>
 
 	<!-- Employee Info -->
-	<div class="row" style="margin-bottom: 20px;">
-		<div class="col-sm-6">
-			<table class="table table-condensed" style="border: none;">
-				<tr><td><b>{{ _("Employee") }}</b></td><td>{{ doc.employee }}</td></tr>
-				<tr><td><b>{{ _("Employee Name") }}</b></td><td>{{ doc.employee_name }}</td></tr>
-				<tr><td><b>{{ _("Company") }}</b></td><td>{{ doc.company }}</td></tr>
-				<tr><td><b>{{ _("Department") }}</b></td><td>{{ doc.department or "" }}</td></tr>
-				<tr><td><b>{{ _("Designation") }}</b></td><td>{{ doc.designation or "" }}</td></tr>
+	<div class="two-col">
+		<div>
+			<table class="info-table">
+				<tr>
+					<td class="label">{{ _("Employee") }}</td>
+					<td><b>{{ doc.employee_name }}</b> ({{ doc.employee }})</td>
+				</tr>
+				{% if employee.get("ch_avs_number") %}
+				<tr>
+					<td class="label">{{ _("AVS Number") }}</td>
+					<td>{{ employee.ch_avs_number }}</td>
+				</tr>
+				{% endif %}
+				{% if employee.get("ch_permit_type") %}
+				<tr>
+					<td class="label">{{ _("Permit Type") }}</td>
+					<td>{{ employee.ch_permit_type }}</td>
+				</tr>
+				{% endif %}
+				{% if employee.get("ch_fiscal_canton") %}
+				<tr>
+					<td class="label">{{ _("Fiscal Canton") }}</td>
+					<td>{{ employee.ch_fiscal_canton }}</td>
+				</tr>
+				{% endif %}
+				<tr>
+					<td class="label">{{ _("Department") }}</td>
+					<td>{{ doc.department or "-" }}</td>
+				</tr>
+				<tr>
+					<td class="label">{{ _("Designation") }}</td>
+					<td>{{ doc.designation or "-" }}</td>
+				</tr>
 			</table>
 		</div>
-		<div class="col-sm-6">
-			<table class="table table-condensed" style="border: none;">
-				<tr><td><b>{{ _("Period") }}</b></td><td>{{ frappe.format(doc.start_date, {"fieldtype": "Date"}) }} - {{ frappe.format(doc.end_date, {"fieldtype": "Date"}) }}</td></tr>
-				<tr><td><b>{{ _("Working Days") }}</b></td><td>{{ doc.total_working_days }}</td></tr>
-				<tr><td><b>{{ _("Payment Days") }}</b></td><td>{{ doc.payment_days }}</td></tr>
+		<div>
+			<table class="info-table">
+				<tr>
+					<td class="label">{{ _("Period") }}</td>
+					<td>{{ frappe.format(doc.start_date, {"fieldtype": "Date"}) }} &ndash; {{ frappe.format(doc.end_date, {"fieldtype": "Date"}) }}</td>
+				</tr>
+				<tr>
+					<td class="label">{{ _("Working Days") }}</td>
+					<td>{{ doc.total_working_days }}</td>
+				</tr>
+				<tr>
+					<td class="label">{{ _("Payment Days") }}</td>
+					<td>{{ doc.payment_days }}</td>
+				</tr>
 				{% if doc.leave_without_pay %}
-				<tr><td><b>{{ _("Leave Without Pay") }}</b></td><td>{{ doc.leave_without_pay }}</td></tr>
+				<tr>
+					<td class="label">{{ _("Leave Without Pay") }}</td>
+					<td>{{ doc.leave_without_pay }}</td>
+				</tr>
+				{% endif %}
+				{% if doc.bank_name %}
+				<tr>
+					<td class="label">{{ _("Bank") }}</td>
+					<td>{{ doc.bank_name }}</td>
+				</tr>
+				{% endif %}
+				{% if doc.bank_account_no %}
+				<tr>
+					<td class="label">{{ _("Account No.") }}</td>
+					<td>{{ doc.bank_account_no }}</td>
+				</tr>
 				{% endif %}
 			</table>
 		</div>
 	</div>
 
-	<hr>
+	<hr class="divider">
 
-	<!-- Earnings & Deductions -->
-	<div class="row">
-		<!-- Earnings -->
-		<div class="col-sm-6">
-			<h5><b>{{ _("Earnings") }}</b></h5>
-			<table class="table table-condensed table-bordered">
-				<thead>
-					<tr>
-						<th>{{ _("Component") }}</th>
-						<th class="text-right">{{ _("Amount") }}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for row in doc.earnings %}
-					<tr>
-						<td>{{ _(row.salary_component) }}</td>
-						<td class="text-right">{{ frappe.format(row.amount, {"fieldtype": "Currency"}) }}</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-				<tfoot>
-					<tr style="font-weight: bold;">
-						<td>{{ _("Gross Pay") }}</td>
-						<td class="text-right">{{ frappe.format(doc.gross_pay, {"fieldtype": "Currency"}) }}</td>
-					</tr>
-				</tfoot>
-			</table>
-		</div>
+	<!-- Earnings -->
+	<table class="data-table">
+		<thead>
+			<tr>
+				<th style="width: 50%;">{{ _("Earnings") }}</th>
+				<th class="text-right" style="width: 25%;">{{ _("Amount") }}</th>
+				<th class="text-right" style="width: 25%;">{{ _("YTD") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in doc.earnings %}
+			<tr>
+				<td>{{ _(row.salary_component) }}</td>
+				<td class="text-right">{{ frappe.format(row.amount, {"fieldtype": "Currency"}) }}</td>
+				<td class="text-right">{{ frappe.format(row.year_to_date, {"fieldtype": "Currency"}) if row.year_to_date else "-" }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+		<tfoot>
+			<tr class="total-row">
+				<td>{{ _("Gross Pay") }}</td>
+				<td class="text-right">{{ frappe.format(doc.gross_pay, {"fieldtype": "Currency"}) }}</td>
+				<td class="text-right"></td>
+			</tr>
+		</tfoot>
+	</table>
 
-		<!-- Deductions (filtered: employee only) -->
-		<div class="col-sm-6">
-			<h5><b>{{ _("Deductions") }}</b></h5>
-			<table class="table table-condensed table-bordered">
-				<thead>
-					<tr>
-						<th>{{ _("Component") }}</th>
-						<th class="text-right">{{ _("Amount") }}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{%- set employee_deduction_total = namespace(value=0) -%}
-					{% for row in doc.deductions %}
-						{% if row.salary_component not in employer_components %}
-						<tr>
-							<td>{{ _(row.salary_component) }}</td>
-							<td class="text-right">{{ frappe.format(row.amount, {"fieldtype": "Currency"}) }}</td>
-						</tr>
-						{%- set employee_deduction_total.value = employee_deduction_total.value + row.amount -%}
-						{% endif %}
-					{% endfor %}
-				</tbody>
-				<tfoot>
-					<tr style="font-weight: bold;">
-						<td>{{ _("Total Deductions") }}</td>
-						<td class="text-right">{{ frappe.format(employee_deduction_total.value, {"fieldtype": "Currency"}) }}</td>
-					</tr>
-				</tfoot>
-			</table>
-		</div>
-	</div>
+	<!-- Employee Deductions -->
+	<table class="data-table">
+		<thead>
+			<tr>
+				<th style="width: 40%;">{{ _("Deductions") }}</th>
+				<th class="text-center" style="width: 10%;">{{ _("Rate") }}</th>
+				<th class="text-right" style="width: 25%;">{{ _("Amount") }}</th>
+				<th class="text-right" style="width: 25%;">{{ _("YTD") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- set ee_deduction_total = namespace(value=0) -%}
+			{% for row in doc.deductions %}
+				{% if row.salary_component not in employer_components %}
+				<tr>
+					<td>{{ _(row.salary_component) }}</td>
+					<td class="text-center">{{ rates.get(row.salary_component, "") }}{% if rates.get(row.salary_component) %}%{% endif %}</td>
+					<td class="text-right">{{ frappe.format(row.amount, {"fieldtype": "Currency"}) }}</td>
+					<td class="text-right">{{ frappe.format(row.year_to_date, {"fieldtype": "Currency"}) if row.year_to_date else "-" }}</td>
+				</tr>
+				{%- set ee_deduction_total.value = ee_deduction_total.value + row.amount -%}
+				{% endif %}
+			{% endfor %}
+		</tbody>
+		<tfoot>
+			<tr class="total-row">
+				<td>{{ _("Total Deductions") }}</td>
+				<td></td>
+				<td class="text-right">{{ frappe.format(ee_deduction_total.value, {"fieldtype": "Currency"}) }}</td>
+				<td class="text-right"></td>
+			</tr>
+		</tfoot>
+	</table>
 
-	<hr>
+	<hr class="divider">
 
 	<!-- Net Pay -->
-	<div class="row" style="margin-top: 10px;">
-		<div class="col-sm-6"></div>
-		<div class="col-sm-6">
-			<table class="table table-condensed">
-				<tr style="font-weight: bold; font-size: 1.1em;">
-					<td>{{ _("Net Pay") }}</td>
-					<td class="text-right">{{ frappe.format(doc.net_pay, {"fieldtype": "Currency"}) }}</td>
-				</tr>
-				<tr>
-					<td>{{ _("Rounded Total") }}</td>
-					<td class="text-right">{{ frappe.format(doc.rounded_total, {"fieldtype": "Currency"}) }}</td>
-				</tr>
-				{% if doc.total_in_words %}
-				<tr>
-					<td colspan="2"><em>{{ doc.total_in_words }}</em></td>
-				</tr>
-				{% endif %}
-			</table>
-		</div>
-	</div>
+	<table class="data-table">
+		<tr class="net-row">
+			<td style="width: 50%;">{{ _("Net Pay") }}</td>
+			<td class="text-right">{{ frappe.format(doc.net_pay, {"fieldtype": "Currency"}) }}</td>
+			<td class="text-right">{{ frappe.format(doc.year_to_date, {"fieldtype": "Currency"}) if doc.year_to_date else "" }}</td>
+		</tr>
+		{% if doc.rounded_total %}
+		<tr>
+			<td>{{ _("Rounded Total") }}</td>
+			<td class="text-right">{{ frappe.format(doc.rounded_total, {"fieldtype": "Currency"}) }}</td>
+			<td></td>
+		</tr>
+		{% endif %}
+		{% if doc.total_in_words %}
+		<tr>
+			<td colspan="3"><em>{{ doc.total_in_words }}</em></td>
+		</tr>
+		{% endif %}
+	</table>
 
-	<!-- Employer Contributions Summary (informational) -->
+	<!-- Employer Contributions (informational) -->
 	{%- set has_employer = [] -%}
 	{% for row in doc.deductions %}
 		{% if row.salary_component in employer_components and row.amount %}
@@ -131,32 +276,43 @@
 	{% endfor %}
 
 	{% if has_employer %}
-	<hr>
-	<div style="margin-top: 10px;">
-		<h5><b>{{ _("Employer Contributions (informational)") }}</b></h5>
-		<table class="table table-condensed table-bordered" style="width: 50%;">
+	<hr class="divider">
+	<div class="employer-section">
+		<table class="data-table">
 			<thead>
 				<tr>
-					<th>{{ _("Component") }}</th>
-					<th class="text-right">{{ _("Amount") }}</th>
+					<th style="width: 40%;">{{ _("Employer Contributions (informational)") }}</th>
+					<th class="text-center" style="width: 10%;">{{ _("Rate") }}</th>
+					<th class="text-right" style="width: 25%;">{{ _("Amount") }}</th>
+					<th class="text-right" style="width: 25%;">{{ _("YTD") }}</th>
 				</tr>
 			</thead>
 			<tbody>
 				{%- set employer_total = namespace(value=0) -%}
 				{% for row in doc.deductions %}
 					{% if row.salary_component in employer_components and row.amount %}
-					<tr style="color: #888;">
+					<tr>
 						<td>{{ _(row.salary_component) }}</td>
+						<td class="text-center">{{ rates.get(row.salary_component, "") }}{% if rates.get(row.salary_component) %}%{% endif %}</td>
 						<td class="text-right">{{ frappe.format(row.amount, {"fieldtype": "Currency"}) }}</td>
+						<td class="text-right">{{ frappe.format(row.year_to_date, {"fieldtype": "Currency"}) if row.year_to_date else "-" }}</td>
 					</tr>
 					{%- set employer_total.value = employer_total.value + row.amount -%}
 					{% endif %}
 				{% endfor %}
 			</tbody>
 			<tfoot>
-				<tr style="color: #888; font-weight: bold;">
+				<tr class="total-row">
 					<td>{{ _("Total Employer Contributions") }}</td>
+					<td></td>
 					<td class="text-right">{{ frappe.format(employer_total.value, {"fieldtype": "Currency"}) }}</td>
+					<td class="text-right"></td>
+				</tr>
+				<tr class="total-row">
+					<td>{{ _("Total Employer Cost") }}</td>
+					<td></td>
+					<td class="text-right">{{ frappe.format(doc.gross_pay + employer_total.value, {"fieldtype": "Currency"}) }}</td>
+					<td class="text-right"></td>
 				</tr>
 			</tfoot>
 		</table>
