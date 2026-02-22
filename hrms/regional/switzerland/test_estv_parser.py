@@ -75,7 +75,7 @@ class TestParseLine(unittest.TestCase):
 	def test_tax_amount_rappen_conversion(self):
 		"""Tax amount is correctly converted from Rappen to CHF."""
 		# Construct a line with a non-zero tax amount: 0000012345 Rappen = 123.45 CHF
-		line = "0601ZHA0N       20260101000000100000080000 0000001234500025   "
+		line = "0601ZHA0N       20260101000000100000080000 0000000123450025   "
 		result = parse_line(line)
 		self.assertAlmostEqual(result["tax_amount"], 123.45, places=2)
 
