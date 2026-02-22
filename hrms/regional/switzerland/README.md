@@ -212,13 +212,14 @@ env/bin/python -m pytest apps/hrms/hrms/regional/switzerland/test_utils.py -v
 env/bin/python -m pytest apps/hrms/hrms/regional/switzerland/test_lohnausweis.py -v
 env/bin/python -m pytest apps/hrms/hrms/regional/switzerland/test_estv_parser.py -v
 env/bin/python -m pytest apps/hrms/hrms/regional/switzerland/test_source_tax.py -v
+env/bin/python -m pytest apps/hrms/hrms/regional/switzerland/test_swissdec.py -v
 
 # Or via bench
 bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland.test_utils
 bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland.test_source_tax
 ```
 
-~90 unit tests covering:
+~140 unit tests covering:
 - LPP coordinated salary (8 tests)
 - LPP age brackets (6 tests)
 - LPP full contribution (5 tests)
@@ -240,6 +241,15 @@ bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland
 - Italian rate factor (7 tests: 80% factor, custom factor, clamping, rounding)
 - Tariff letter suggestion (7 tests: per-country suggestions, non-cross-border)
 - Cross-border integration (7 tests: main entry point, all treatments, all French exempt cantons)
+- AVS number validation (10 tests: format, check digit, edge cases)
+- UID-BFS validation (6 tests: format variants, edge cases)
+- Employee ELM validation (10 tests: required fields, QST, cross-border)
+- Salary data validation (6 tests: completeness, consistency)
+- Company validation (4 tests: UID-BFS, required fields)
+- Validation summary (4 tests: aggregation, text output)
+- Full declaration validation (3 tests: multi-employee, mixed errors)
+- XML generation (16 tests: namespace, structure, all institution elements, UTF-8)
+- Date formatting (2 tests: ISO format, edge cases)
 
 ## File Structure
 
@@ -258,6 +268,10 @@ hrms/regional/switzerland/
 ├── test_source_tax.py        # 18 unit tests (models + calculations)
 ├── cross_border.py           # Cross-border worker tax engine (DE/FR/IT)
 ├── test_cross_border.py      # ~44 unit tests (classification + calculations)
+├── swissdec_xml.py           # Swissdec ELM 5.0 XML builder engine
+├── swissdec_validation.py    # Pre-export validation engine
+├── swissdec_data.py          # Salary data aggregation for ELM declarations
+├── test_swissdec.py          # ~50 unit tests (XML + validation + data)
 └── README.md
 
 hrms/payroll/doctype/swiss_social_insurance_config/
@@ -291,6 +305,16 @@ hrms/payroll/doctype/cross_border_telework_log/
 ├── __init__.py
 ├── cross_border_telework_log.json   # Monthly telework tracking for cross-border workers
 └── cross_border_telework_log.py     # YTD calculation + threshold warnings
+
+hrms/payroll/doctype/swissdec_declaration/
+├── __init__.py
+├── swissdec_declaration.json        # Salary declaration per company/year
+└── swissdec_declaration.py          # Business logic (populate, validate, export)
+
+hrms/payroll/doctype/swissdec_declaration_employee/
+├── __init__.py
+├── swissdec_declaration_employee.json # Child table for declaration employees
+└── swissdec_declaration_employee.py
 
 hrms/payroll/print_format/salary_slip_swiss/
 ├── salary_slip_swiss.json
@@ -351,6 +375,102 @@ Monthly tracking DocType for telework days (French 40% threshold) and non-return
    - **Italian old**: sets tax to 0
    - **Italian new**: multiplies standard tax by 80%
 
-## Not In Scope
+## Swissdec ELM 5.0 Export
 
-- Swissdec certification / ELM 5.0
+### Overview
+
+Swiss employers must declare salary data electronically to institutions (AVS, AC, LPP, LAA, IJM, QST, Family Allowances) using the Swissdec ELM (Einheitliches Lohnmeldeverfahren) standard. ELM 5.0 became mandatory January 1, 2026.
+
+This module generates **ELM 5.0-compliant XML** files that can be imported into certified transmitters (SwissDecTX, etc.).
+
+### Swissdec Declaration DocType
+
+One declaration per company per fiscal year. Supports Year-End, Monthly, and Correction declaration types.
+
+**Workflow:**
+1. Create a **Swissdec Declaration** record (select company + fiscal year)
+2. Click **Populate Employees** to fetch all employees with submitted salary slips
+3. Review the employee list, toggle inclusion per employee
+4. Click **Run Validation** to check data completeness
+5. Fix any errors flagged in the validation log
+6. Click **Export XML** to generate the ELM file
+7. Download the attached XML and import into a certified Swissdec transmitter
+
+**Institution toggles:** AVS, AC, LPP, LAA, IJM, QST, Family Allowances (FAK), OFS/BFS statistics. Enable/disable per declaration.
+
+### Company Fields for ELM
+
+Configure on the Company form in the "Swissdec / ELM" section:
+
+| Field | Description |
+|-------|-------------|
+| UID-BFS Number | Company identification (CHE-XXX.XXX.XXX) |
+| Swissdec Contact Person | Contact name for declarations |
+| Contact Phone | Phone for declarations |
+| Contact Email | Email for declarations |
+
+### Employee Fields for ELM
+
+Additional fields on the Employee form:
+
+| Field | Description |
+|-------|-------------|
+| Nationality | Country link for ELM Person data |
+| Work Percentage | Part-time percentage (default 100%) |
+| Entry Date (Swiss) | Entry date for ELM declaration |
+| Exit Date (Swiss) | Exit date for ELM declaration |
+
+### Config Fields (Swiss Social Insurance Config)
+
+In the "Swissdec / ELM" section:
+
+| Field | Description |
+|-------|-------------|
+| Enable Swissdec Export | Master toggle |
+| ELM Version | "5.0" (default) |
+| AVS Branch Number | For multi-branch companies |
+| LAA Insurer ID | LAA insurer identification |
+| IJM Insurer ID | IJM insurer identification |
+| LPP Institution ID | Pension fund identification |
+| FAK Canton | Canton for family allowances |
+
+### XML Structure
+
+The generated XML follows the Swissdec SalaryDeclaration schema:
+
+```xml
+<SalaryDeclaration xmlns="http://www.swissdec.ch/schema/sd/20050902/SalaryDeclaration" schemaVersion="5.0">
+  <Company>
+    <UID-BFS>...</UID-BFS>
+    <Name>...</Name>
+    <Address>...</Address>
+    <Staff>
+      <Person>
+        <Particulars>...</Particulars>     <!-- AVS number, name, DOB, gender -->
+        <Activity>...</Activity>           <!-- canton, permit, work%, dates -->
+        <AHV-AVS-Salaries>...</AHV-AVS-Salaries>
+        <ALV-AC-Salaries>...</ALV-AC-Salaries>
+        <BVG-LPP-Salaries>...</BVG-LPP-Salaries>
+        <UVG-LAA-Salaries>...</UVG-LAA-Salaries>
+        <KTG-IJM-Salaries>...</KTG-IJM-Salaries>
+        <QST-Salaries>...</QST-Salaries>
+        <FAK-CAF-Salaries>...</FAK-CAF-Salaries>
+      </Person>
+    </Staff>
+  </Company>
+</SalaryDeclaration>
+```
+
+### Validation
+
+Pre-export validation checks:
+- **Company**: UID-BFS presence and format, company name
+- **Employee**: AVS number (EAN-13 check digit), date of birth, fiscal canton, nationality, permit type for non-Swiss, QST tariff for source-taxed employees, residence country for cross-border workers
+- **Salary data**: salary slips exist for period, gross > 0, AVS contributions present, source tax for QST-subject employees
+
+### Not In Scope (Future Phases)
+
+- SOAP transmission to Swissdec distributors
+- PKI encryption (RSA-OAEP + AES-256-CBC)
+- Swissdec certification process
+- OFS/BFS statistics module

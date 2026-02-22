@@ -1,0 +1,240 @@
+# Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
+# License: GNU General Public License v3. See license.txt
+
+import frappe
+from frappe import _
+from frappe.model.document import Document
+from frappe.utils import flt, now_datetime
+
+
+class SwissdecDeclaration(Document):
+	def validate(self):
+		self._validate_month()
+		self._update_totals()
+
+	def _validate_month(self):
+		"""Ensure month is set for Monthly declarations."""
+		if self.declaration_type == "Monthly":
+			if not self.declaration_month or not (1 <= int(self.declaration_month) <= 12):
+				frappe.throw(_("Declaration month (1-12) is required for monthly declarations."))
+
+	def _update_totals(self):
+		"""Recalculate summary totals from employee rows."""
+		self.employee_count = len([r for r in self.get("employees") or [] if r.included])
+		self.total_avs_salary = sum(
+			flt(r.avs_salary) for r in self.get("employees") or [] if r.included
+		)
+		self.total_ac_salary = sum(
+			flt(r.ac_salary) for r in self.get("employees") or [] if r.included
+		)
+		self.total_lpp_salary = sum(
+			flt(r.lpp_salary) for r in self.get("employees") or [] if r.included
+		)
+
+	@frappe.whitelist()
+	def populate_employees(self):
+		"""Fetch all employees with salary slips for the fiscal year."""
+		from hrms.regional.switzerland.swissdec_data import (
+			get_annual_salary_summary,
+			get_employees_for_declaration,
+		)
+		from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
+
+		if not self.company or not self.fiscal_year:
+			frappe.throw(_("Company and Fiscal Year are required."))
+
+		fy = frappe.get_doc("Fiscal Year", self.fiscal_year)
+		config = get_swiss_social_insurance_config(self.company)
+
+		employees = get_employees_for_declaration(self.company, self.fiscal_year)
+
+		if not employees:
+			frappe.msgprint(_("No employees with submitted salary slips found."))
+			return
+
+		# Clear existing rows
+		self.set("employees", [])
+
+		for emp in employees:
+			salary_data = get_annual_salary_summary(
+				emp.employee, self.company, fy.year_start_date, fy.year_end_date, config
+			)
+
+			self.append(
+				"employees",
+				{
+					"employee": emp.employee,
+					"employee_name": emp.employee_name,
+					"avs_number": emp.ch_avs_number,
+					"included": 1,
+					"avs_salary": flt(salary_data.get("avs_salary"), 2),
+					"ac_salary": flt(salary_data.get("ac_salary"), 2),
+					"lpp_salary": flt(salary_data.get("lpp_coordinated"), 2),
+					"source_tax": flt(salary_data.get("source_tax_total"), 2),
+					"validation_status": "OK",
+				},
+			)
+
+		self._update_totals()
+		self.save()
+
+		frappe.msgprint(
+			_("Populated {0} employees from salary slips.").format(len(employees)),
+			indicator="green",
+		)
+
+	@frappe.whitelist()
+	def run_validation(self):
+		"""Run pre-export validation on all included employees."""
+		from hrms.regional.switzerland.swissdec_data import get_annual_salary_summary
+		from hrms.regional.switzerland.swissdec_validation import (
+			get_validation_summary,
+			validate_declaration,
+		)
+		from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
+
+		fy = frappe.get_doc("Fiscal Year", self.fiscal_year)
+		config = get_swiss_social_insurance_config(self.company)
+		company_doc = frappe.get_cached_doc("Company", self.company)
+		company_data = company_doc.as_dict()
+
+		employees_data = []
+		for row in self.get("employees") or []:
+			if not row.included:
+				continue
+
+			emp_doc = frappe.get_cached_doc("Employee", row.employee)
+			salary_data = get_annual_salary_summary(
+				row.employee, self.company, fy.year_start_date, fy.year_end_date, config
+			)
+
+			employees_data.append({
+				"employee_doc": emp_doc.as_dict(),
+				"salary_data": salary_data,
+				"row": row,
+			})
+
+		results = validate_declaration(
+			[{"employee_doc": d["employee_doc"], "salary_data": d["salary_data"]} for d in employees_data],
+			company_data,
+			config,
+		)
+
+		# Update per-employee validation status
+		for emp_entry in employees_data:
+			row = emp_entry["row"]
+			emp_name = emp_entry["employee_doc"].get("name")
+			emp_results = [r for r in results if r.employee == emp_name]
+
+			if any(r.level == "error" for r in emp_results):
+				row.validation_status = "Error"
+				row.validation_notes = "\n".join(r.message for r in emp_results if r.level == "error")
+			elif any(r.level == "warning" for r in emp_results):
+				row.validation_status = "Warning"
+				row.validation_notes = "\n".join(r.message for r in emp_results if r.level == "warning")
+			else:
+				row.validation_status = "OK"
+				row.validation_notes = ""
+
+		summary = get_validation_summary(results)
+		self.validation_log = summary["text_summary"]
+
+		if summary["has_errors"]:
+			self.status = "Draft"
+		else:
+			self.status = "Validated"
+
+		self.save()
+
+		frappe.msgprint(
+			_("Validation complete: {0} errors, {1} warnings.").format(
+				summary["error_count"], summary["warning_count"]
+			),
+			indicator="red" if summary["has_errors"] else "green",
+		)
+
+	@frappe.whitelist()
+	def export_xml(self):
+		"""Generate and attach the ELM XML file."""
+		from hrms.regional.switzerland.swissdec_data import get_annual_salary_summary
+		from hrms.regional.switzerland.swissdec_xml import generate_salary_declaration
+		from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
+
+		if self.status not in ("Validated", "Exported"):
+			frappe.throw(_("Declaration must be validated before export. Current status: {0}").format(self.status))
+
+		fy = frappe.get_doc("Fiscal Year", self.fiscal_year)
+		config = get_swiss_social_insurance_config(self.company)
+		company_doc = frappe.get_cached_doc("Company", self.company)
+		company_data = company_doc.as_dict()
+
+		# Gather employee data
+		employees_data = []
+		for row in self.get("employees") or []:
+			if not row.included:
+				continue
+
+			emp_doc = frappe.get_cached_doc("Employee", row.employee)
+			salary_data = get_annual_salary_summary(
+				row.employee, self.company, fy.year_start_date, fy.year_end_date, config
+			)
+
+			employees_data.append({
+				"employee_doc": emp_doc.as_dict(),
+				"salary_data": salary_data,
+			})
+
+		# Institution flags from the declaration
+		institutions = {
+			"include_avs": self.include_avs,
+			"include_ac": self.include_ac,
+			"include_lpp": self.include_lpp,
+			"include_laa": self.include_laa,
+			"include_ijm": self.include_ijm,
+			"include_qst": self.include_qst,
+			"include_fak": self.include_fak,
+			"include_ofs": self.include_ofs,
+		}
+
+		xml_bytes = generate_salary_declaration(
+			company_data=company_data,
+			employees_data=employees_data,
+			config=config,
+			fiscal_year=self.fiscal_year,
+			declaration_type=self.declaration_type,
+			institutions=institutions,
+		)
+
+		# Save as attached file
+		filename = f"ELM_{self.company_abbr}_{self.fiscal_year}_{self.declaration_type}.xml"
+
+		# Remove old file if exists
+		if self.xml_file:
+			old_files = frappe.get_all(
+				"File", filters={"file_url": self.xml_file, "attached_to_name": self.name}
+			)
+			for f in old_files:
+				frappe.delete_doc("File", f.name, ignore_permissions=True)
+
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": filename,
+				"content": xml_bytes,
+				"attached_to_doctype": self.doctype,
+				"attached_to_name": self.name,
+				"is_private": 1,
+			}
+		)
+		file_doc.save(ignore_permissions=True)
+
+		self.xml_file = file_doc.file_url
+		self.exported_on = now_datetime()
+		self.elm_version = "5.0"
+		self.status = "Exported"
+		self.save()
+
+		frappe.msgprint(
+			_("XML exported successfully: {0}").format(filename),
+			indicator="green",
+		)

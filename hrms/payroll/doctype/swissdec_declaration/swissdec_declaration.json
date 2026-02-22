@@ -1,0 +1,243 @@
+{
+	"actions": [],
+	"autoname": "format:SDD-{company_abbr}-{fiscal_year}-{declaration_type}",
+	"creation": "2026-02-22 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"company",
+		"company_abbr",
+		"fiscal_year",
+		"declaration_type",
+		"declaration_month",
+		"section_status",
+		"status",
+		"validation_log",
+		"section_institutions",
+		"include_avs",
+		"include_ac",
+		"include_lpp",
+		"include_laa",
+		"include_ijm",
+		"include_qst",
+		"include_fak",
+		"include_ofs",
+		"column_break_inst",
+		"employee_count",
+		"total_avs_salary",
+		"total_ac_salary",
+		"total_lpp_salary",
+		"section_export",
+		"xml_file",
+		"exported_on",
+		"elm_version",
+		"section_employees",
+		"employees"
+	],
+	"fields": [
+		{
+			"fieldname": "company",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Company",
+			"options": "Company",
+			"reqd": 1
+		},
+		{
+			"fetch_from": "company.abbr",
+			"fieldname": "company_abbr",
+			"fieldtype": "Data",
+			"hidden": 1,
+			"label": "Company Abbr",
+			"read_only": 1
+		},
+		{
+			"fieldname": "fiscal_year",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Fiscal Year",
+			"options": "Fiscal Year",
+			"reqd": 1
+		},
+		{
+			"default": "Year-End",
+			"fieldname": "declaration_type",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Declaration Type",
+			"options": "Year-End\nMonthly\nCorrection",
+			"reqd": 1
+		},
+		{
+			"depends_on": "eval:doc.declaration_type == 'Monthly'",
+			"fieldname": "declaration_month",
+			"fieldtype": "Int",
+			"label": "Declaration Month",
+			"description": "Month number (1-12) for monthly declarations."
+		},
+		{
+			"fieldname": "section_status",
+			"fieldtype": "Section Break",
+			"label": "Status"
+		},
+		{
+			"default": "Draft",
+			"fieldname": "status",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Status",
+			"options": "Draft\nValidated\nExported\nTransmitted\nAccepted\nRejected",
+			"read_only": 1
+		},
+		{
+			"fieldname": "validation_log",
+			"fieldtype": "Long Text",
+			"label": "Validation Log",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_institutions",
+			"fieldtype": "Section Break",
+			"label": "Institutions"
+		},
+		{
+			"default": "1",
+			"fieldname": "include_avs",
+			"fieldtype": "Check",
+			"label": "AVS/AHV"
+		},
+		{
+			"default": "1",
+			"fieldname": "include_ac",
+			"fieldtype": "Check",
+			"label": "AC/ALV"
+		},
+		{
+			"default": "1",
+			"fieldname": "include_lpp",
+			"fieldtype": "Check",
+			"label": "LPP/BVG"
+		},
+		{
+			"default": "1",
+			"fieldname": "include_laa",
+			"fieldtype": "Check",
+			"label": "LAA/UVG"
+		},
+		{
+			"default": "1",
+			"fieldname": "include_ijm",
+			"fieldtype": "Check",
+			"label": "IJM/KTG"
+		},
+		{
+			"default": "1",
+			"fieldname": "include_qst",
+			"fieldtype": "Check",
+			"label": "Source Tax (QST)"
+		},
+		{
+			"default": "1",
+			"fieldname": "include_fak",
+			"fieldtype": "Check",
+			"label": "Family Allowances (FAK)"
+		},
+		{
+			"default": "0",
+			"fieldname": "include_ofs",
+			"fieldtype": "Check",
+			"label": "OFS/BFS Statistics"
+		},
+		{
+			"fieldname": "column_break_inst",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "employee_count",
+			"fieldtype": "Int",
+			"label": "Employee Count",
+			"read_only": 1
+		},
+		{
+			"fieldname": "total_avs_salary",
+			"fieldtype": "Currency",
+			"label": "Total AVS Salary",
+			"read_only": 1
+		},
+		{
+			"fieldname": "total_ac_salary",
+			"fieldtype": "Currency",
+			"label": "Total AC Salary",
+			"read_only": 1
+		},
+		{
+			"fieldname": "total_lpp_salary",
+			"fieldtype": "Currency",
+			"label": "Total LPP Salary",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_export",
+			"fieldtype": "Section Break",
+			"label": "Export"
+		},
+		{
+			"fieldname": "xml_file",
+			"fieldtype": "Attach",
+			"label": "XML File",
+			"read_only": 1
+		},
+		{
+			"fieldname": "exported_on",
+			"fieldtype": "Datetime",
+			"label": "Exported On",
+			"read_only": 1
+		},
+		{
+			"default": "5.0",
+			"fieldname": "elm_version",
+			"fieldtype": "Data",
+			"label": "ELM Version",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_employees",
+			"fieldtype": "Section Break",
+			"label": "Employees"
+		},
+		{
+			"fieldname": "employees",
+			"fieldtype": "Table",
+			"label": "Employees",
+			"options": "Swissdec Declaration Employee"
+		}
+	],
+	"links": [],
+	"modified": "2026-02-22 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Swissdec Declaration",
+	"naming_rule": "Expression",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "HR Manager",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"read": 1,
+			"role": "HR User"
+		}
+	],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"track_changes": 1
+}

@@ -58,6 +58,15 @@
 		"column_break_cb",
 		"cb_italian_new_rate_factor",
 		"cb_french_telework_threshold",
+		"section_swissdec",
+		"swissdec_enabled",
+		"elm_version",
+		"column_break_sd",
+		"avs_branch_number",
+		"laa_insurer_id",
+		"ijm_insurer_id",
+		"lpp_institution_id",
+		"fak_canton",
 		"section_lohnausweis",
 		"lohnausweis_mapping",
 		"column_break_lohnausweis",
@@ -384,6 +393,66 @@
 			"fieldname": "cb_french_telework_threshold",
 			"fieldtype": "Percent",
 			"label": "French Telework Threshold (%)"
+		},
+		{
+			"fieldname": "section_swissdec",
+			"fieldtype": "Section Break",
+			"label": "Swissdec / ELM"
+		},
+		{
+			"default": "0",
+			"description": "Enable Swissdec ELM XML export for salary declarations.",
+			"fieldname": "swissdec_enabled",
+			"fieldtype": "Check",
+			"label": "Enable Swissdec Export"
+		},
+		{
+			"default": "5.0",
+			"depends_on": "eval:doc.swissdec_enabled",
+			"fieldname": "elm_version",
+			"fieldtype": "Select",
+			"label": "ELM Version",
+			"options": "5.0"
+		},
+		{
+			"fieldname": "column_break_sd",
+			"fieldtype": "Column Break"
+		},
+		{
+			"depends_on": "eval:doc.swissdec_enabled",
+			"description": "AVS branch number for multi-branch companies.",
+			"fieldname": "avs_branch_number",
+			"fieldtype": "Data",
+			"label": "AVS Branch Number"
+		},
+		{
+			"depends_on": "eval:doc.swissdec_enabled",
+			"description": "LAA insurer identification number.",
+			"fieldname": "laa_insurer_id",
+			"fieldtype": "Data",
+			"label": "LAA Insurer ID"
+		},
+		{
+			"depends_on": "eval:doc.swissdec_enabled",
+			"description": "IJM/KTG insurer identification number.",
+			"fieldname": "ijm_insurer_id",
+			"fieldtype": "Data",
+			"label": "IJM Insurer ID"
+		},
+		{
+			"depends_on": "eval:doc.swissdec_enabled",
+			"description": "LPP/BVG pension fund identification number.",
+			"fieldname": "lpp_institution_id",
+			"fieldtype": "Data",
+			"label": "LPP Institution ID"
+		},
+		{
+			"depends_on": "eval:doc.swissdec_enabled",
+			"description": "Canton for Family Allowances (FAK/CAF) reporting.",
+			"fieldname": "fak_canton",
+			"fieldtype": "Select",
+			"label": "FAK Canton",
+			"options": "\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH"
 		},
 		{
 			"fieldname": "section_lohnausweis",
