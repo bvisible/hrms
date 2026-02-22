@@ -1,0 +1,194 @@
+{
+	"actions": [],
+	"autoname": "format:CBTL-{employee}-{year}-{month}",
+	"creation": "2026-02-22 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"employee",
+		"employee_name",
+		"company",
+		"year",
+		"month",
+		"residence_country",
+		"section_days",
+		"total_work_days",
+		"telework_days",
+		"assignment_days",
+		"non_return_days",
+		"column_break_days",
+		"telework_pct",
+		"ytd_telework_pct",
+		"ytd_assignment_days",
+		"ytd_non_return_days",
+		"section_status",
+		"threshold_warning",
+		"notes"
+	],
+	"fields": [
+		{
+			"fieldname": "employee",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Employee",
+			"options": "Employee",
+			"reqd": 1
+		},
+		{
+			"fetch_from": "employee.employee_name",
+			"fieldname": "employee_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Employee Name",
+			"read_only": 1
+		},
+		{
+			"fieldname": "company",
+			"fieldtype": "Link",
+			"label": "Company",
+			"options": "Company",
+			"reqd": 1
+		},
+		{
+			"fieldname": "year",
+			"fieldtype": "Int",
+			"in_list_view": 1,
+			"label": "Year",
+			"reqd": 1
+		},
+		{
+			"fieldname": "month",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Month",
+			"options": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12",
+			"reqd": 1
+		},
+		{
+			"fetch_from": "employee.ch_residence_country",
+			"fieldname": "residence_country",
+			"fieldtype": "Data",
+			"label": "Country of Residence",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_days",
+			"fieldtype": "Section Break",
+			"label": "Work Days"
+		},
+		{
+			"default": "0",
+			"description": "Total contractual work days in this month.",
+			"fieldname": "total_work_days",
+			"fieldtype": "Int",
+			"label": "Total Work Days"
+		},
+		{
+			"default": "0",
+			"description": "Days worked remotely from the country of residence.",
+			"fieldname": "telework_days",
+			"fieldtype": "Int",
+			"label": "Telework Days"
+		},
+		{
+			"default": "0",
+			"description": "Business days spent on assignment in the country of residence.",
+			"fieldname": "assignment_days",
+			"fieldtype": "Int",
+			"label": "Assignment Days"
+		},
+		{
+			"default": "0",
+			"description": "For German workers: days not returning to country of residence (limit: 45/year).",
+			"fieldname": "non_return_days",
+			"fieldtype": "Int",
+			"label": "Non-Return Days"
+		},
+		{
+			"fieldname": "column_break_days",
+			"fieldtype": "Column Break"
+		},
+		{
+			"description": "Telework days / total work days × 100.",
+			"fieldname": "telework_pct",
+			"fieldtype": "Percent",
+			"label": "Telework %",
+			"read_only": 1
+		},
+		{
+			"description": "Cumulative telework percentage for the year.",
+			"fieldname": "ytd_telework_pct",
+			"fieldtype": "Percent",
+			"label": "YTD Telework %",
+			"read_only": 1
+		},
+		{
+			"default": "0",
+			"description": "Cumulative assignment days for the year.",
+			"fieldname": "ytd_assignment_days",
+			"fieldtype": "Int",
+			"label": "YTD Assignment Days",
+			"read_only": 1
+		},
+		{
+			"default": "0",
+			"description": "Cumulative non-return days for the year (German workers, limit: 45).",
+			"fieldname": "ytd_non_return_days",
+			"fieldtype": "Int",
+			"label": "YTD Non-Return Days",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_status",
+			"fieldtype": "Section Break",
+			"label": "Status"
+		},
+		{
+			"default": "0",
+			"description": "Set automatically when YTD telework percentage exceeds the configured threshold.",
+			"fieldname": "threshold_warning",
+			"fieldtype": "Check",
+			"label": "Threshold Warning",
+			"read_only": 1
+		},
+		{
+			"fieldname": "notes",
+			"fieldtype": "Small Text",
+			"label": "Notes"
+		}
+	],
+	"is_submittable": 1,
+	"links": [],
+	"modified": "2026-02-22 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Cross-Border Telework Log",
+	"naming_rule": "Expression",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"amend": 0,
+			"cancel": 1,
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "HR Manager",
+			"share": 1,
+			"submit": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"read": 1,
+			"role": "HR User",
+			"write": 1
+		}
+	],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"track_changes": 1
+}

@@ -128,6 +128,11 @@ QST_TARIFF_LETTERS = [
 	"N",  # Border commuter with spouse earning abroad
 	"P",  # Church tax exempt — some cantons
 	"Q",  # Border commuter with children
+	"R",  # Italian new frontalier — single
+	"S",  # Italian new frontalier — married, sole income
+	"T",  # Italian new frontalier — supplementary income
+	"U",  # Italian new frontalier — single parent
+	"V",  # Italian new frontalier — married, dual income
 ]
 
 # Employee permit types
@@ -139,3 +144,23 @@ PERMIT_TYPES = [
 	"Permit G (Cross-border)",
 	"Permit L (Short-term)",
 ]
+
+# Cross-border worker constants
+CROSS_BORDER_COUNTRIES = ["DE", "FR", "IT", "AT", "LI"]
+
+# German DTA CH-DE: flat withholding rate
+GERMAN_FLAT_TAX_RATE = 0.045  # 4.5%
+GERMAN_NON_RETURN_DAY_LIMIT = 45  # days/year
+GERMAN_SWISS_WORK_THRESHOLD = 0.20  # 20% minimum work in CH
+
+# French CDI CH-FR: cantons where France taxes at residence (no CH withholding)
+FRENCH_EXEMPTED_CANTONS = frozenset({"BE", "BS", "BL", "JU", "NE", "SO", "VD", "VS"})
+# Exception: GE withholds at source for French frontaliers using G/M/N/Q tariff codes
+FRENCH_TELEWORK_THRESHOLD = 0.40  # 40% max remote work from France
+FRENCH_ASSIGNMENT_DAY_LIMIT = 10  # days/year in France for business
+
+# Italian CDI CH-IT: old/new regime cutoff
+ITALIAN_NEW_FRONTALIER_CUTOFF = "2023-07-17"
+ITALIAN_FRONTALIER_CANTONS = frozenset({"TI", "GR", "VS"})
+ITALIAN_NEW_RATE_FACTOR = 0.80  # 80% of standard rate for new frontaliers
+ITALIAN_TARIFF_LETTERS = ["R", "S", "T", "U", "V"]

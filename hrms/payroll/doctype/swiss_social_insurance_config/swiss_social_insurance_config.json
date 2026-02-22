@@ -52,6 +52,12 @@
 		"column_break_qst",
 		"qst_ordinary_threshold",
 		"qst_gl_account",
+		"section_cb",
+		"cb_enabled",
+		"cb_german_flat_rate",
+		"column_break_cb",
+		"cb_italian_new_rate_factor",
+		"cb_french_telework_threshold",
 		"section_lohnausweis",
 		"lohnausweis_mapping",
 		"column_break_lohnausweis",
@@ -338,6 +344,46 @@
 			"fieldtype": "Link",
 			"label": "Source Tax GL Account",
 			"options": "Account"
+		},
+		{
+			"fieldname": "section_cb",
+			"fieldtype": "Section Break",
+			"label": "Cross-Border Workers"
+		},
+		{
+			"default": "0",
+			"description": "Enable cross-border worker tax rules (German flat rate, Italian 80%, French exemptions).",
+			"fieldname": "cb_enabled",
+			"fieldtype": "Check",
+			"label": "Enable Cross-Border Rules"
+		},
+		{
+			"default": "4.5",
+			"depends_on": "eval:doc.cb_enabled",
+			"description": "German DTA flat withholding tax rate in %.",
+			"fieldname": "cb_german_flat_rate",
+			"fieldtype": "Percent",
+			"label": "German Flat Tax Rate (%)"
+		},
+		{
+			"fieldname": "column_break_cb",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "80",
+			"depends_on": "eval:doc.cb_enabled",
+			"description": "Italian new frontalier rate factor in %. Standard rate is multiplied by this factor (e.g., 80 = 80% of standard rate).",
+			"fieldname": "cb_italian_new_rate_factor",
+			"fieldtype": "Percent",
+			"label": "Italian New Frontalier Rate Factor (%)"
+		},
+		{
+			"default": "40",
+			"depends_on": "eval:doc.cb_enabled",
+			"description": "Maximum telework percentage from France before source tax rules change.",
+			"fieldname": "cb_french_telework_threshold",
+			"fieldtype": "Percent",
+			"label": "French Telework Threshold (%)"
 		},
 		{
 			"fieldname": "section_lohnausweis",

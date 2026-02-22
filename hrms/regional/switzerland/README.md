@@ -235,6 +235,11 @@ bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland
 - Monthly source tax (6 tests: basic calc, zero/negative gross, rounding, no rate)
 - Annual source tax (6 tests: first month, mid-year, December correction, salary increase)
 - Edge cases (2 tests: very low income, fractional amounts)
+- Cross-border classification (17 tests: DE/FR/IT routing, old/new Italian, GE exception, canton precedence)
+- German flat tax (6 tests: basic calc, custom rate, rounding, edge cases)
+- Italian rate factor (7 tests: 80% factor, custom factor, clamping, rounding)
+- Tariff letter suggestion (7 tests: per-country suggestions, non-cross-border)
+- Cross-border integration (7 tests: main entry point, all treatments, all French exempt cantons)
 
 ## File Structure
 
@@ -251,6 +256,8 @@ hrms/regional/switzerland/
 ├── test_lohnausweis.py       # 14 unit tests (mapping + aggregation + computed fields)
 ├── test_estv_parser.py       # 13 unit tests (parser + format conversion)
 ├── test_source_tax.py        # 18 unit tests (models + calculations)
+├── cross_border.py           # Cross-border worker tax engine (DE/FR/IT)
+├── test_cross_border.py      # ~44 unit tests (classification + calculations)
 └── README.md
 
 hrms/payroll/doctype/swiss_social_insurance_config/
@@ -280,6 +287,11 @@ hrms/payroll/doctype/swiss_salary_certificate/
 ├── swiss_salary_certificate.py      # Business logic + populate from slips
 └── swiss_salary_certificate.js      # Client-side button
 
+hrms/payroll/doctype/cross_border_telework_log/
+├── __init__.py
+├── cross_border_telework_log.json   # Monthly telework tracking for cross-border workers
+└── cross_border_telework_log.py     # YTD calculation + threshold warnings
+
 hrms/payroll/print_format/salary_slip_swiss/
 ├── salary_slip_swiss.json
 └── salary_slip_swiss.html           # Monthly pay slip with rates + YTD
@@ -289,7 +301,56 @@ hrms/payroll/print_format/salary_certificate_swiss/
 └── salary_certificate_swiss.html    # Lohnausweis Form 11 bilingual layout
 ```
 
+## Cross-Border Workers (Travailleurs frontaliers)
+
+### Overview
+
+Employees residing in Germany, France, or Italy who commute to work in Switzerland are subject to country-specific tax rules governed by bilateral double taxation agreements.
+
+### Three Bilateral Agreements
+
+| Country | Agreement | Tax Treatment |
+|---------|-----------|---------------|
+| **Germany** | DTA CH-DE | Flat 4.5% withholding tax. Employee must commute daily and not exceed 45 non-return days/year. |
+| **France** | CDI CH-FR | Most border cantons (BE, BS, BL, JU, NE, SO, VD, VS): taxed in France, no CH withholding. **Exception**: Geneva (GE) withholds at source using ESTV tariff codes G/M/N/Q. |
+| **Italy** | CDI CH-IT | *Old frontaliers* (started before July 17, 2023) in TI/GR/VS: taxed only in Italy, no Swiss withholding. *New frontaliers* (from July 17, 2023): Switzerland withholds 80% of standard source tax using tariff codes R/S/T/U/V. |
+
+### Employee Configuration
+
+On the Employee form, in the "Cross-Border Worker" section:
+
+| Field | Description |
+|-------|-------------|
+| Cross-Border Worker | Main toggle |
+| Country of Residence | DE, FR, IT, AT, LI |
+| Cross-Border Start Date | For Italian old/new frontalier determination |
+| New Frontalier (post-2023) | Auto-set for Italian workers starting on or after July 17, 2023 |
+| German Flat Tax (4.5%) | Auto-set for German workers |
+| Permit Expiry Date | Optional tracking for Permit G |
+
+### Config (Swiss Social Insurance Config)
+
+| Field | Description | Default |
+|-------|-------------|---------|
+| Enable Cross-Border Rules | Master toggle | Disabled |
+| German Flat Tax Rate (%) | DTA flat rate | 4.5 |
+| Italian New Frontalier Rate Factor (%) | Multiplier for new frontalier rate | 80 |
+| French Telework Threshold (%) | Max remote work from France | 40 |
+
+### Cross-Border Telework Log
+
+Monthly tracking DocType for telework days (French 40% threshold) and non-return days (German 45-day limit). One record per employee per month with YTD cumulative calculation and automatic threshold warnings.
+
+### Tax Calculation Flow
+
+1. Standard source tax is calculated via ESTV tariff brackets (Phase 3)
+2. If `cb_enabled` and employee is cross-border, the cross-border engine overrides:
+   - **German**: replaces with flat 4.5% tax
+   - **French exempt** (non-GE border cantons): sets tax to 0
+   - **French GE**: keeps standard ESTV result (tariff G/M/N/Q)
+   - **Italian old**: sets tax to 0
+   - **Italian new**: multiplies standard tax by 80%
+
 ## Not In Scope
 
 - Swissdec certification / ELM 5.0
-- Cross-border worker special rules (beyond standard QST tariffs)

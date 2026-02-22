@@ -232,6 +232,12 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 			ref_date,
 		)
 
+	# Apply cross-border rules if enabled
+	if config.get("cb_enabled") and employee_doc.get("ch_is_cross_border"):
+		from hrms.regional.switzerland.cross_border import get_cross_border_tax
+
+		result = get_cross_border_tax(employee_doc, salary_slip_doc, config, result)
+
 	# Check 120k threshold
 	check_120k_threshold(
 		salary_slip_doc.employee,

@@ -6,6 +6,7 @@ from frappe import _
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 from hrms.regional.switzerland.constants import (
+	CROSS_BORDER_COUNTRIES,
 	DEFAULT_LOHNAUSWEIS_MAPPING,
 	PERMIT_TYPES,
 	QST_TARIFF_LETTERS,
@@ -172,6 +173,69 @@ def get_custom_fields():
 				"read_only": 1,
 				"depends_on": "eval:doc.ch_qst_subject",
 				"description": "Set automatically when projected annual income exceeds the ordinary taxation threshold.",
+			},
+			# --- Cross-Border Worker fields ---
+			{
+				"fieldname": "ch_cb_section",
+				"label": "Cross-Border Worker",
+				"fieldtype": "Section Break",
+				"insert_after": "ch_qst_120k_flag",
+				"collapsible": 1,
+			},
+			{
+				"fieldname": "ch_is_cross_border",
+				"label": "Cross-Border Worker",
+				"fieldtype": "Check",
+				"insert_after": "ch_cb_section",
+				"default": "0",
+				"description": "Check if this employee is a cross-border commuter (Grenzgänger/frontalier).",
+			},
+			{
+				"fieldname": "ch_residence_country",
+				"label": "Country of Residence",
+				"fieldtype": "Select",
+				"options": "\n" + "\n".join(CROSS_BORDER_COUNTRIES),
+				"insert_after": "ch_is_cross_border",
+				"depends_on": "eval:doc.ch_is_cross_border",
+				"translatable": 0,
+			},
+			{
+				"fieldname": "ch_cross_border_start_date",
+				"label": "Cross-Border Start Date",
+				"fieldtype": "Date",
+				"insert_after": "ch_residence_country",
+				"depends_on": "eval:doc.ch_is_cross_border",
+				"description": "Date when cross-border status began. Used for Italian old/new frontalier determination.",
+			},
+			{
+				"fieldname": "ch_cb_column_break",
+				"fieldtype": "Column Break",
+				"insert_after": "ch_cross_border_start_date",
+			},
+			{
+				"fieldname": "ch_is_italian_new_frontalier",
+				"label": "New Frontalier (post-2023)",
+				"fieldtype": "Check",
+				"insert_after": "ch_cb_column_break",
+				"read_only": 1,
+				"depends_on": "eval:doc.ch_is_cross_border && doc.ch_residence_country == 'IT'",
+				"description": "Auto-set: Italian frontalier who started on or after July 17, 2023. Subject to 80% rate.",
+			},
+			{
+				"fieldname": "ch_german_flat_tax",
+				"label": "German Flat Tax (4.5%)",
+				"fieldtype": "Check",
+				"insert_after": "ch_is_italian_new_frontalier",
+				"read_only": 1,
+				"depends_on": "eval:doc.ch_is_cross_border && doc.ch_residence_country == 'DE'",
+				"description": "Auto-set: German cross-border worker subject to 4.5% flat withholding tax.",
+			},
+			{
+				"fieldname": "ch_permit_expiry_date",
+				"label": "Permit Expiry Date",
+				"fieldtype": "Date",
+				"insert_after": "ch_german_flat_tax",
+				"depends_on": "eval:doc.ch_is_cross_border",
 			},
 		],
 		"Company": [
