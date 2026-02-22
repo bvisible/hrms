@@ -5,6 +5,7 @@ import frappe
 from frappe.utils import cint, flt
 
 from hrms.regional.switzerland.constants import RATE_BASED_COMPONENTS
+from hrms.regional.switzerland.source_tax import calculate_source_tax
 from hrms.regional.switzerland.utils import (
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
@@ -58,6 +59,10 @@ def update_swiss_social_contributions(doc, method):
 	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
 	lpp_multiplier = 13 if thirteenth_mode != "Disabled" else 12
 	updated = _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee) or updated
+
+	# Update Source Tax (Quellensteuer) if enabled
+	if config.get("qst_enabled") and employee.get("ch_qst_subject"):
+		updated = _update_source_tax(doc, config, employee, gross_pay) or updated
 
 	if updated:
 		_recalculate_totals(doc)
@@ -229,6 +234,37 @@ def _add_earning_row(doc, component_name, amount):
 	row.depends_on_payment_days = comp.depends_on_payment_days
 	row.default_amount = flt(amount, row.precision("amount"))
 	row.amount = flt(amount, row.precision("amount"))
+
+
+def _update_source_tax(doc, config, employee, gross_pay):
+	"""Update the Source Tax Employee deduction based on ESTV tariff brackets."""
+	updated = False
+
+	result = calculate_source_tax(employee, doc, config)
+	tax_amount = flt(result.get("tax_amount", 0), 2)
+
+	# Find or add the Source Tax component
+	found = False
+	for row in doc.get("deductions"):
+		if row.salary_component == "Source Tax Employee":
+			found = True
+			if flt(row.amount, 2) != tax_amount:
+				row.default_amount = tax_amount
+				row.amount = tax_amount
+				updated = True
+			break
+
+	if not found and tax_amount:
+		_add_deduction_row(doc, "Source Tax Employee", tax_amount)
+		# Source tax is not prorated — override the default proration
+		for row in doc.get("deductions"):
+			if row.salary_component == "Source Tax Employee":
+				row.default_amount = tax_amount
+				row.amount = tax_amount
+				break
+		updated = True
+
+	return updated
 
 
 def _recalculate_totals(doc):
