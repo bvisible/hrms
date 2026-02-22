@@ -97,7 +97,7 @@ def calculate_source_tax_monthly(gross, canton, tariff_code, ref_date, tariff_ty
 		return {"tax_amount": 0, "tax_rate": 0, "model": "monthly"}
 
 	rate = lookup_qst_rate(canton, tariff_code, gross, ref_date, tariff_type)
-	tax = flt(gross * rate, 2)
+	tax = round(gross * rate, 2)
 
 	return {
 		"tax_amount": tax,
@@ -144,18 +144,18 @@ def calculate_source_tax_annual(
 
 	# Project annual income based on average so far
 	total_gross = ytd_gross + gross
-	projected_annual = flt(total_gross / month_num * 12, 2)
+	projected_annual = round(total_gross / month_num * 12, 2)
 
 	# Look up rate based on projected monthly (annual / 12)
-	projected_monthly = flt(projected_annual / 12, 2)
+	projected_monthly = round(projected_annual / 12, 2)
 	rate = lookup_qst_rate(canton, tariff_code, projected_monthly, ref_date, tariff_type)
 
 	# Calculate cumulative tax due through this month
-	annual_tax = flt(projected_annual * rate, 2)
-	cumulative_due = flt(annual_tax * month_num / 12, 2)
+	annual_tax = round(projected_annual * rate, 2)
+	cumulative_due = round(annual_tax * month_num / 12, 2)
 
 	# This month's tax = cumulative due - already deducted
-	this_month_tax = flt(cumulative_due - ytd_tax, 2)
+	this_month_tax = round(cumulative_due - ytd_tax, 2)
 
 	# Never negative (in case of overpayment, it will correct in subsequent months)
 	# Exception: December can be negative for annual correction
