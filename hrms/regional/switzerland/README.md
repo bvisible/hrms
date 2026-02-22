@@ -89,7 +89,64 @@ Employer components use `do_not_include_in_total=1` so they appear in journal en
 | IJM/KTG Employee | Deduction | IJM_EE | Insurer rate |
 | IJM/KTG Employer | Deduction | IJM_ER | Insurer rate |
 | Family Allowances Employer | Deduction | FALLOC_ER | Cantonal rate |
+| Source Tax Employee | Deduction | QST | ESTV tariff brackets |
 | 13th Month Salary | Earning | 13M | Auto-calculated by hook |
+
+## Source Tax (Quellensteuer / Impôt à la source)
+
+### Overview
+
+Employees subject to source taxation (primarily Permit B/G/L holders) have income tax withheld directly from their salary. Tax rates are published annually by the ESTV (Federal Tax Administration) as fixed-width tariff files, one per canton.
+
+### Two Calculation Models
+
+| Model | Cantons | Logic |
+|-------|---------|-------|
+| **Monthly** | AG, AI, AR, BE, BL, BS, GL, GR, JU, LU, NE, NW, OW, SG, SH, SO, SZ, TG, UR, ZG, ZH | rate = lookup(monthly_gross) → tax = gross × rate |
+| **Annual** | FR, GE, TI, VD, VS | Projects annual income, looks up rate, calculates cumulative due minus YTD. December auto-corrects. |
+
+### Setup
+
+1. Run `setup()` to create the "Source Tax Employee" salary component
+2. Import ESTV tariffs: open **Swiss QST Tariff** list view → click **Fetch All Cantons**
+3. Select year and tariff type (Salaires / Autres revenus), confirm
+4. Wait for background job to complete (~800k brackets across 26 cantons)
+5. Tariffs are auto-activated after import
+
+### Employee Configuration
+
+On the Employee form, in the "Source Tax" section:
+
+| Field | Description |
+|-------|-------------|
+| Subject to Source Tax | Main toggle — check for Permit B/G/L holders |
+| Tariff Category | Letter code: A (single), B (married sole income), C (supplementary), etc. |
+| Children (Tax) | Number of children for tax purposes (0-9) |
+| Church Tax Member | Y/N — affects tariff bracket |
+| Tariff Code | Auto-composed from above fields (e.g., B2Y) |
+| Canton of Taxation | Canton for tax lookup (overrides fiscal canton) |
+| Exceeds CHF 120k | Auto-set flag when projected annual > threshold |
+
+### Config (Swiss Social Insurance Config)
+
+| Field | Description | Default |
+|-------|-------------|---------|
+| Enable Source Tax | Master toggle for source tax calculation | Disabled |
+| Default Taxation Canton | Fallback if employee has no canton set | — |
+| Ordinary Taxation Threshold | CHF threshold for 120k flag | 120,000 |
+| Source Tax GL Account | GL account for journal entries | — |
+
+### Auto-Update
+
+ESTV publishes next year's tariffs in early December. A daily scheduled task checks for missing tariffs (Dec 1 – Jan 15) and auto-imports them via background job.
+
+### Key Rules
+
+- Source tax is **NOT prorated** by payment days — the tariff bracket already accounts for actual income
+- 13th month salary naturally increases gross → moves to higher bracket
+- Annual model: December auto-corrects cumulative over/under deduction
+- CHF 120k flag is informational only — employer continues withholding
+- The "Source Tax Employee" component maps to Lohnausweis position 12
 
 ## Pay Slip (Art. 323b CO)
 
@@ -153,12 +210,15 @@ The mapping between salary components and Form 11 positions is configured on the
 cd /path/to/frappe-bench
 env/bin/python -m pytest apps/hrms/hrms/regional/switzerland/test_utils.py -v
 env/bin/python -m pytest apps/hrms/hrms/regional/switzerland/test_lohnausweis.py -v
+env/bin/python -m pytest apps/hrms/hrms/regional/switzerland/test_estv_parser.py -v
+env/bin/python -m pytest apps/hrms/hrms/regional/switzerland/test_source_tax.py -v
 
 # Or via bench
 bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland.test_utils
+bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland.test_source_tax
 ```
 
-59 unit tests covering:
+~90 unit tests covering:
 - LPP coordinated salary (8 tests)
 - LPP age brackets (6 tests)
 - LPP full contribution (5 tests)
@@ -169,6 +229,12 @@ bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland
 - Lohnausweis mapping (4 tests: default mapping, position map completeness, uniqueness)
 - Lohnausweis computation (8 tests: aggregation, full year, partial year, unmapped exclusion)
 - Certificate calculated fields (2 tests: position 8 gross, position 11 net)
+- ESTV parser (13 tests: line parsing, Rappen conversion, rate conversion, file parsing, canton filter)
+- Source tax calculation model (4 tests: monthly/annual canton mapping, edge cases)
+- Tariff code builder (6 tests: composition, capping, defaults)
+- Monthly source tax (6 tests: basic calc, zero/negative gross, rounding, no rate)
+- Annual source tax (6 tests: first month, mid-year, December correction, salary increase)
+- Edge cases (2 tests: very low income, fractional amounts)
 
 ## File Structure
 
@@ -178,15 +244,30 @@ hrms/regional/switzerland/
 ├── constants.py              # 2025 rates, thresholds, component maps, Lohnausweis positions
 ├── setup.py                  # Custom fields, components, salary structure, Lohnausweis defaults
 ├── utils.py                  # Calculation engine (LPP, AC, 13th month, rates, config lookup)
+├── source_tax.py             # Source tax engine (monthly + annual models, ESTV lookup)
+├── estv_parser.py            # ESTV tariff file parser + downloader
 ├── payroll_hooks.py          # Salary Slip validate hook
 ├── test_utils.py             # 45 unit tests (calculations + rate display)
 ├── test_lohnausweis.py       # 14 unit tests (mapping + aggregation + computed fields)
+├── test_estv_parser.py       # 13 unit tests (parser + format conversion)
+├── test_source_tax.py        # 18 unit tests (models + calculations)
 └── README.md
 
 hrms/payroll/doctype/swiss_social_insurance_config/
 ├── __init__.py
 ├── swiss_social_insurance_config.json
 └── swiss_social_insurance_config.py
+
+hrms/payroll/doctype/swiss_qst_tariff/
+├── __init__.py
+├── swiss_qst_tariff.json           # One record per canton+year+type
+├── swiss_qst_tariff.py             # Import, fetch, activate logic
+└── swiss_qst_tariff.js             # Buttons + list view actions
+
+hrms/payroll/doctype/swiss_qst_tariff_bracket/
+├── __init__.py
+├── swiss_qst_tariff_bracket.json   # ~800k rows (lookup table, autoincrement)
+└── swiss_qst_tariff_bracket.py
 
 hrms/payroll/doctype/swiss_lohnausweis_mapping/
 ├── __init__.py
@@ -210,6 +291,5 @@ hrms/payroll/print_format/salary_certificate_swiss/
 
 ## Not In Scope
 
-- Source tax (impot a la source)
 - Swissdec certification / ELM 5.0
-- Cross-border worker special rules
+- Cross-border worker special rules (beyond standard QST tariffs)
