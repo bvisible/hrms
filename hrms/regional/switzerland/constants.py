@@ -108,6 +108,26 @@ DEFAULT_LOHNAUSWEIS_MAPPING = [
 	{"salary_component": "LAA Non-Professional Employee", "lohnausweis_position": "9"},
 	{"salary_component": "IJM/KTG Employee", "lohnausweis_position": "9"},
 	{"salary_component": "LPP/BVG Employee", "lohnausweis_position": "10.1"},
+	{"salary_component": "Source Tax Employee", "lohnausweis_position": "12"},
+]
+
+# Source Tax (Quellensteuer) — cantons using the annual calculation model
+# All other cantons use the monthly model
+ANNUAL_MODEL_CANTONS = frozenset({"FR", "GE", "TI", "VD", "VS"})
+
+# Source tax tariff letter categories
+QST_TARIFF_LETTERS = [
+	"A",  # Single / married with 2 incomes
+	"B",  # Married, sole income
+	"C",  # Supplementary income / secondary employment
+	"E",  # Single parent (monoparental)
+	"G",  # Border commuter (Grenzgänger)
+	"H",  # Single parent (with children) — some cantons
+	"L",  # Cross-border (Quasi-Resident)
+	"M",  # Border commuter with spouse earning in CH
+	"N",  # Border commuter with spouse earning abroad
+	"P",  # Church tax exempt — some cantons
+	"Q",  # Border commuter with children
 ]
 
 # Employee permit types

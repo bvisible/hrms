@@ -5,7 +5,12 @@ import frappe
 from frappe import _
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
-from hrms.regional.switzerland.constants import DEFAULT_LOHNAUSWEIS_MAPPING, PERMIT_TYPES, SWISS_CANTONS
+from hrms.regional.switzerland.constants import (
+	DEFAULT_LOHNAUSWEIS_MAPPING,
+	PERMIT_TYPES,
+	QST_TARIFF_LETTERS,
+	SWISS_CANTONS,
+)
 from hrms.setup import delete_custom_fields
 
 
@@ -93,6 +98,80 @@ def get_custom_fields():
 				"insert_after": "ch_column_break",
 				"description": "Swiss social security number (756.XXXX.XXXX.XX)",
 				"translatable": 0,
+			},
+			# --- Source Tax (Quellensteuer) fields ---
+			{
+				"fieldname": "ch_qst_section",
+				"label": "Source Tax (Quellensteuer)",
+				"fieldtype": "Section Break",
+				"insert_after": "ch_avs_number",
+				"collapsible": 1,
+			},
+			{
+				"fieldname": "ch_qst_subject",
+				"label": "Subject to Source Tax",
+				"fieldtype": "Check",
+				"insert_after": "ch_qst_section",
+				"default": "0",
+				"description": "Check if this employee is subject to withholding tax (impôt à la source).",
+			},
+			{
+				"fieldname": "ch_qst_tariff_letter",
+				"label": "Tariff Category",
+				"fieldtype": "Select",
+				"options": "\n" + "\n".join(QST_TARIFF_LETTERS),
+				"insert_after": "ch_qst_subject",
+				"depends_on": "eval:doc.ch_qst_subject",
+				"translatable": 0,
+			},
+			{
+				"fieldname": "ch_qst_num_children",
+				"label": "Children (Tax)",
+				"fieldtype": "Int",
+				"insert_after": "ch_qst_tariff_letter",
+				"depends_on": "eval:doc.ch_qst_subject",
+				"default": "0",
+			},
+			{
+				"fieldname": "ch_qst_church_tax",
+				"label": "Church Tax Member",
+				"fieldtype": "Check",
+				"insert_after": "ch_qst_num_children",
+				"depends_on": "eval:doc.ch_qst_subject",
+				"default": "0",
+			},
+			{
+				"fieldname": "ch_qst_column_break",
+				"fieldtype": "Column Break",
+				"insert_after": "ch_qst_church_tax",
+			},
+			{
+				"fieldname": "ch_qst_tariff_code",
+				"label": "Tariff Code",
+				"fieldtype": "Data",
+				"insert_after": "ch_qst_column_break",
+				"read_only": 1,
+				"depends_on": "eval:doc.ch_qst_subject",
+				"description": "Auto-composed: letter + children + church (e.g., B2Y).",
+				"translatable": 0,
+			},
+			{
+				"fieldname": "ch_qst_taxation_canton",
+				"label": "Canton of Taxation",
+				"fieldtype": "Select",
+				"options": "\n" + "\n".join(SWISS_CANTONS),
+				"insert_after": "ch_qst_tariff_code",
+				"depends_on": "eval:doc.ch_qst_subject",
+				"translatable": 0,
+			},
+			{
+				"fieldname": "ch_qst_120k_flag",
+				"label": "Exceeds CHF 120k",
+				"fieldtype": "Check",
+				"insert_after": "ch_qst_taxation_canton",
+				"read_only": 1,
+				"depends_on": "eval:doc.ch_qst_subject",
+				"description": "Set automatically when projected annual income exceeds the ordinary taxation threshold.",
 			},
 		],
 		"Company": [
@@ -313,6 +392,18 @@ def get_swiss_salary_component_definitions():
 			"salary_component_abbr": "13M",
 			"type": "Earning",
 			"description": "13th month salary (Treizième salaire) — calculated automatically by the Swiss payroll hook",
+			"depends_on_payment_days": 0,
+			"amount_based_on_formula": 0,
+			"amount": 0,
+			"do_not_include_in_total": 0,
+		},
+		# --- Source Tax (Quellensteuer) ---
+		{
+			"name": "Source Tax Employee",
+			"salary_component": "Source Tax Employee",
+			"salary_component_abbr": "QST",
+			"type": "Deduction",
+			"description": "Source tax (Quellensteuer / Impôt à la source) — calculated automatically from ESTV tariff brackets",
 			"depends_on_payment_days": 0,
 			"amount_based_on_formula": 0,
 			"amount": 0,

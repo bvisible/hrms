@@ -46,6 +46,12 @@
 		"family_allowance_account",
 		"section_thirteenth_month",
 		"thirteenth_month_mode",
+		"section_qst",
+		"qst_enabled",
+		"qst_default_canton",
+		"column_break_qst",
+		"qst_ordinary_threshold",
+		"qst_gl_account",
 		"section_lohnausweis",
 		"lohnausweis_mapping",
 		"column_break_lohnausweis",
@@ -293,6 +299,45 @@
 			"fieldtype": "Select",
 			"label": "13th Month Mode",
 			"options": "Disabled\nAnnual\nMonthly"
+		},
+		{
+			"fieldname": "section_qst",
+			"fieldtype": "Section Break",
+			"label": "Source Tax (Quellensteuer)"
+		},
+		{
+			"default": "0",
+			"description": "Enable automatic source tax calculation for employees subject to withholding tax.",
+			"fieldname": "qst_enabled",
+			"fieldtype": "Check",
+			"label": "Enable Source Tax"
+		},
+		{
+			"depends_on": "eval:doc.qst_enabled",
+			"description": "Default taxation canton. Can be overridden per employee.",
+			"fieldname": "qst_default_canton",
+			"fieldtype": "Select",
+			"label": "Default Taxation Canton",
+			"options": "\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH"
+		},
+		{
+			"fieldname": "column_break_qst",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "120000",
+			"depends_on": "eval:doc.qst_enabled",
+			"description": "Employees with projected annual income above this threshold must file an ordinary tax declaration. Informational flag only.",
+			"fieldname": "qst_ordinary_threshold",
+			"fieldtype": "Currency",
+			"label": "Ordinary Taxation Threshold (CHF)"
+		},
+		{
+			"depends_on": "eval:doc.qst_enabled",
+			"fieldname": "qst_gl_account",
+			"fieldtype": "Link",
+			"label": "Source Tax GL Account",
+			"options": "Account"
 		},
 		{
 			"fieldname": "section_lohnausweis",
