@@ -139,8 +139,8 @@ def calculate_lpp_contribution(annual_salary, age, config=None):
 		"coordinated_salary": coordinated_salary,
 		"total_rate": total_rate,
 		"total_annual": total_annual,
-		"employee_monthly": flt(employee_annual / 12, 2),
-		"employer_monthly": flt(employer_annual / 12, 2),
+		"employee_monthly": round(employee_annual / 12, 2),
+		"employer_monthly": round(employer_annual / 12, 2),
 	}
 
 
@@ -188,10 +188,10 @@ def calculate_ac_contribution(monthly_gross, ytd_gross, config=None):
 		subject_to_solidarity = monthly_gross - subject_to_ac
 
 	return {
-		"ac_employee": flt(subject_to_ac * ac_rate_ee, 2),
-		"ac_employer": flt(subject_to_ac * ac_rate_er, 2),
-		"solidarity_employee": flt(subject_to_solidarity * sol_rate_ee, 2),
-		"solidarity_employer": flt(subject_to_solidarity * sol_rate_er, 2),
+		"ac_employee": round(subject_to_ac * ac_rate_ee, 2),
+		"ac_employer": round(subject_to_ac * ac_rate_er, 2),
+		"solidarity_employee": round(subject_to_solidarity * sol_rate_ee, 2),
+		"solidarity_employer": round(subject_to_solidarity * sol_rate_er, 2),
 		"subject_to_ac": subject_to_ac,
 		"subject_to_solidarity": subject_to_solidarity,
 	}
@@ -279,7 +279,7 @@ def calculate_thirteenth_month(base_monthly, employee, slip_start, slip_end, con
 		return 0
 
 	if mode == "Monthly":
-		return flt(base_monthly / 12, 2)
+		return round(base_monthly / 12, 2)
 
 	# Annual mode: pay only in December or on the relieving month
 	slip_end_date = getdate(slip_end)
@@ -320,7 +320,7 @@ def calculate_thirteenth_month(base_monthly, employee, slip_start, slip_end, con
 	days_worked = (period_end - period_start).days + 1
 	pro_rata = days_worked / total_days_in_year
 
-	return flt(base_monthly * pro_rata, 2)
+	return round(base_monthly * pro_rata, 2)
 
 
 def get_component_rates_for_salary_slip(doc):
