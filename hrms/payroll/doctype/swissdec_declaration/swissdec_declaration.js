@@ -1,0 +1,95 @@
+// Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
+// License: GNU General Public License v3. See license.txt
+
+frappe.ui.form.on("Swissdec Declaration", {
+	refresh(frm) {
+		// Populate Employees button
+		if (frm.doc.company && frm.doc.fiscal_year && frm.doc.status === "Draft") {
+			frm.add_custom_button(
+				__("Populate Employees"),
+				() => {
+					frm.call("populate_employees").then(() => frm.refresh_fields());
+				},
+				__("Actions")
+			);
+		}
+
+		// Validate button
+		if (frm.doc.employees && frm.doc.employees.length > 0 && frm.doc.status === "Draft") {
+			frm.add_custom_button(
+				__("Validate"),
+				() => {
+					frm.call("run_validation").then(() => frm.refresh_fields());
+				},
+				__("Actions")
+			);
+		}
+
+		// Export XML button
+		if (frm.doc.status === "Validated" || frm.doc.status === "Exported") {
+			frm.add_custom_button(
+				__("Export XML"),
+				() => {
+					frm.call("export_xml").then(() => frm.refresh_fields());
+				},
+				__("Actions")
+			);
+		}
+
+		// Transmit button
+		if (frm.doc.status === "Exported") {
+			frm.add_custom_button(
+				__("Transmit"),
+				() => {
+					frappe.confirm(
+						__("Are you sure you want to transmit this declaration to Swissdec?"),
+						() => {
+							frm.call("transmit").then(() => frm.refresh_fields());
+						}
+					);
+				},
+				__("Actions")
+			);
+		}
+
+		// Check Status button
+		if (frm.doc.status === "Transmitted") {
+			frm.add_custom_button(
+				__("Check Status"),
+				() => {
+					frm.call("check_status").then(() => frm.refresh_fields());
+				},
+				__("Actions")
+			);
+		}
+
+		// Re-transmit button
+		if (frm.doc.status === "Rejected") {
+			frm.add_custom_button(
+				__("Re-transmit"),
+				() => {
+					frappe.confirm(
+						__("Are you sure you want to re-transmit this rejected declaration?"),
+						() => {
+							frm.call("retransmit").then(() => frm.refresh_fields());
+						}
+					);
+				},
+				__("Actions")
+			);
+		}
+
+		// Status indicator
+		if (frm.doc.status) {
+			const indicator_map = {
+				Draft: "red",
+				Validated: "blue",
+				Exported: "orange",
+				Transmitted: "yellow",
+				Accepted: "green",
+				Rejected: "red",
+			};
+			frm.page.set_indicator(__(frm.doc.status), indicator_map[frm.doc.status] || "grey");
+		}
+	},
+});

@@ -468,9 +468,37 @@ Pre-export validation checks:
 - **Employee**: AVS number (EAN-13 check digit), date of birth, fiscal canton, nationality, permit type for non-Swiss, QST tariff for source-taxed employees, residence country for cross-border workers
 - **Salary data**: salary slips exist for period, gross > 0, AVS contributions present, source tax for QST-subject employees
 
+### Swissdec Transmission (Phase 5B)
+
+Automated transmission of ELM XML files via SwissDecTX 5.09 through a gateway service.
+
+**Architecture:**
+```
+HRMS Instance(s) ── HTTP ──> Swissdec Gateway (Synology) ── SSH/SCP ──> SwissDecTX VM (Win11)
+```
+
+**Extended Workflow** (steps 7-9 replace manual import):
+7. Click **Transmit** to send the XML via the Swissdec Gateway
+8. Status updates to "Transmitted" (or directly "Accepted"/"Rejected")
+9. For async results, click **Check Status** or wait for the hourly polling job
+
+**Setup:**
+1. Deploy the Swissdec Gateway on a host with SSH access to the SwissDecTX VM (see `gateway/README.md`)
+2. Configure **Swissdec Transmitter Settings** in HRMS: Gateway URL, API key, Instance ID
+3. Click **Test Connection** to verify connectivity
+
+**Multi-Instance Support:** Multiple HRMS instances share a single SwissDecTX installation via the gateway. Each instance has its own API key and instance ID. TX commands are serialized to prevent conflicts.
+
+**DocType: Swissdec Transmitter Settings** — Single-record settings for gateway connection (URL, API key, instance ID).
+
+**Transmission Fields on Swissdec Declaration:**
+- Transmission ID, Transmitted On, Declaration ID (from Swissdec)
+- Response Status, Response Message
+- Result XML, Answer XML (attached files)
+- Transmission Log
+
 ### Not In Scope (Future Phases)
 
-- SOAP transmission to Swissdec distributors
 - PKI encryption (RSA-OAEP + AES-256-CBC)
 - Swissdec certification process
 - OFS/BFS statistics module

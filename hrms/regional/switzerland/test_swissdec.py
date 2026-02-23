@@ -844,5 +844,155 @@ class TestDateFormatting(unittest.TestCase):
 		self.assertEqual(_format_date(None), "")
 
 
+# === TRANSMISSION — RESULT PARSING ===
+
+
+class TestParseTxResult(unittest.TestCase):
+	"""Tests for parse_tx_result() — SwissDecTX result.xml parsing."""
+
+	def setUp(self):
+		from hrms.regional.switzerland.swissdec_transmitter import parse_tx_result
+
+		self.parse = parse_tx_result
+
+	def test_empty_result(self):
+		"""Empty content returns unsuccessful result."""
+		r = self.parse(None)
+		self.assertFalse(r["success"])
+		self.assertIsNone(r["declaration_id"])
+
+	def test_empty_string(self):
+		"""Empty string returns unsuccessful result."""
+		r = self.parse("")
+		self.assertFalse(r["success"])
+
+	def test_declaration_id_extracted(self):
+		"""DeclarationID is extracted from XML."""
+		xml = '<Result><DeclarationID>abc123</DeclarationID></Result>'
+		r = self.parse(xml)
+		self.assertEqual(r["declaration_id"], "abc123")
+		self.assertTrue(r["success"])
+
+	def test_response_id_extracted(self):
+		"""ResponseID is extracted from XML."""
+		xml = '<Result><ResponseID>resp-456</ResponseID></Result>'
+		r = self.parse(xml)
+		self.assertEqual(r["response_id"], "resp-456")
+
+	def test_request_id_as_fallback(self):
+		"""RequestID is used as response_id fallback when ResponseID is absent."""
+		xml = '<Result><RequestID>req-789</RequestID></Result>'
+		r = self.parse(xml)
+		self.assertEqual(r["response_id"], "req-789")
+
+	def test_success_element(self):
+		"""<Success> element marks result as successful."""
+		xml = '<Result><Success/><DeclarationID>x</DeclarationID></Result>'
+		r = self.parse(xml)
+		self.assertTrue(r["success"])
+		self.assertIn("accepted", r["status_message"].lower())
+
+	def test_accepted_element(self):
+		"""<Accepted> element marks result as successful."""
+		xml = '<Result><Accepted/></Result>'
+		r = self.parse(xml)
+		self.assertTrue(r["success"])
+
+	def test_pending_element(self):
+		"""<Pending> element marks result as async."""
+		xml = '<Result><Pending/></Result>'
+		r = self.parse(xml)
+		self.assertFalse(r["success"])
+		self.assertTrue(r["is_async"])
+		self.assertIn("pending", r["status_message"].lower())
+
+	def test_working_element(self):
+		"""<Working> element marks result as async."""
+		xml = '<Result><Working/></Result>'
+		r = self.parse(xml)
+		self.assertTrue(r["is_async"])
+
+	def test_error_element(self):
+		"""<Error> element marks result as failed."""
+		xml = '<Result><Error>Invalid certificate</Error></Result>'
+		r = self.parse(xml)
+		self.assertFalse(r["success"])
+		self.assertFalse(r["is_async"])
+		self.assertIn("Invalid certificate", r["status_message"])
+
+	def test_rejected_element(self):
+		"""<Rejected> element marks result as failed."""
+		xml = '<Result><Rejected/></Result>'
+		r = self.parse(xml)
+		self.assertFalse(r["success"])
+
+	def test_fault_element(self):
+		"""<Fault> element marks result as failed."""
+		xml = '<Result><Fault>Server error</Fault></Result>'
+		r = self.parse(xml)
+		self.assertFalse(r["success"])
+
+	def test_non_xml_text_successful(self):
+		"""Non-XML text with 'Successful' is parsed as success."""
+		r = self.parse("Transmission Successful - ID: 12345")
+		self.assertTrue(r["success"])
+		self.assertIn("Successful", r["status_message"])
+
+	def test_non_xml_text_error(self):
+		"""Non-XML text with 'Error' is parsed as failure."""
+		r = self.parse("Error: Connection refused")
+		self.assertFalse(r["success"])
+
+	def test_declaration_id_with_namespace(self):
+		"""DeclarationID with namespace prefix is extracted."""
+		xml = '<ns:Result xmlns:ns="http://example.com"><ns:DeclarationID>ns-id-1</ns:DeclarationID></ns:Result>'
+		r = self.parse(xml)
+		self.assertEqual(r["declaration_id"], "ns-id-1")
+
+	def test_raw_content_preserved(self):
+		"""Raw content is preserved in result."""
+		content = "<Result>something</Result>"
+		r = self.parse(content)
+		self.assertEqual(r["raw"], content)
+
+	def test_complex_real_world_result(self):
+		"""A realistic SwissDecTX result is parsed correctly."""
+		xml = """<?xml version="1.0"?>
+<TransmissionResult>
+  <DeclarationID>1896f02084d0f1ce1</DeclarationID>
+  <ResponseID>resp-2026-001</ResponseID>
+  <RequestID>req-2026-001</RequestID>
+  <Success>true</Success>
+</TransmissionResult>"""
+		r = self.parse(xml)
+		self.assertTrue(r["success"])
+		self.assertEqual(r["declaration_id"], "1896f02084d0f1ce1")
+		self.assertEqual(r["response_id"], "resp-2026-001")
+
+
+class TestExtractStatusFromText(unittest.TestCase):
+	"""Tests for _extract_status_from_text() utility."""
+
+	def setUp(self):
+		from hrms.regional.switzerland.swissdec_transmitter import _extract_status_from_text
+
+		self.extract = _extract_status_from_text
+
+	def test_empty_text(self):
+		self.assertEqual(self.extract(""), "Empty response")
+		self.assertEqual(self.extract(None), "Empty response")
+
+	def test_successful_text(self):
+		self.assertEqual(self.extract("Successful"), "Successful")
+
+	def test_error_line_extracted(self):
+		result = self.extract("Processing...\nError: cert expired\nDone")
+		self.assertIn("Error", result)
+
+	def test_first_line_fallback(self):
+		result = self.extract("Some unknown output\nMore data")
+		self.assertEqual(result, "Some unknown output")
+
+
 if __name__ == "__main__":
 	unittest.main()

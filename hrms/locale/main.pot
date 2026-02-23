@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe HR VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-02-12 10:56+0034\n"
-"PO-Revision-Date: 2026-02-12 10:56+0034\n"
+"POT-Creation-Date: 2026-02-23 18:45+0034\n"
+"PO-Revision-Date: 2026-02-23 18:45+0034\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -116,9 +116,42 @@ msgstr ""
 msgid "09:00"
 msgstr ""
 
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "1. Salary / Lohn"
+msgstr ""
+
 #. Option for the 'Rounding' (Select) field in DocType 'Leave Type'
 #: hrms/hr/doctype/leave_type/leave_type.json
 msgid "1.0"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss
+#. Lohnausweis Mapping'
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "10.1"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "10.1 BVG Regular Contributions"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss
+#. Lohnausweis Mapping'
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "10.2"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "10.2 BVG Buy-back"
 msgstr ""
 
 #. Option for the 'Send Emails At' (Select) field in DocType 'Daily Work
@@ -127,10 +160,20 @@ msgstr ""
 msgid "10:00"
 msgstr ""
 
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "11. Net Salary"
+msgstr ""
+
 #. Option for the 'Send Emails At' (Select) field in DocType 'Daily Work
 #. Summary Group'
 #: hrms/hr/doctype/daily_work_summary_group/daily_work_summary_group.json
 msgid "11:00"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "12. Withholding Tax"
 msgstr ""
 
 #. Option for the 'Send Emails At' (Select) field in DocType 'Daily Work
@@ -139,16 +182,99 @@ msgstr ""
 msgid "12:00"
 msgstr ""
 
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss
+#. Lohnausweis Mapping'
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+msgid "13.1"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.1 Actual Expenses"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "13.1.1"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "13.1.2"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss
+#. Lohnausweis Mapping'
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+msgid "13.2"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.2 Flat-rate Car Allowance"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "13.2.1"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "13.2.2"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "13.2.3"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss
+#. Lohnausweis Mapping'
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+msgid "13.3"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.3 Other Flat-rate Expenses"
+msgstr ""
+
 #. Option for the 'Send Emails At' (Select) field in DocType 'Daily Work
 #. Summary Group'
 #: hrms/hr/doctype/daily_work_summary_group/daily_work_summary_group.json
 msgid "13:00"
 msgstr ""
 
+#. Label of a Select field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "13th Month Mode"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "13th Month Salary"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "14. Employer Contributions"
+msgstr ""
+
 #. Option for the 'Send Emails At' (Select) field in DocType 'Daily Work
 #. Summary Group'
 #: hrms/hr/doctype/daily_work_summary_group/daily_work_summary_group.json
 msgid "14:00"
+msgstr ""
+
+#. Label of a Small Text field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "15. Remarks / Bemerkungen"
 msgstr ""
 
 #. Option for the 'Send Emails At' (Select) field in DocType 'Daily Work
@@ -181,6 +307,48 @@ msgstr ""
 msgid "19:00"
 msgstr ""
 
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss
+#. Lohnausweis Mapping'
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "2.1"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "2.1 Other Benefits"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss
+#. Lohnausweis Mapping'
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "2.2"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "2.2 Board and Lodging"
+msgstr ""
+
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss
+#. Lohnausweis Mapping'
+#. Option for the 'Lohnausweis Position' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "2.3"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "2.3 Other Fringe Benefits"
+msgstr ""
+
 #. Option for the 'Send Emails At' (Select) field in DocType 'Daily Work
 #. Summary Group'
 #: hrms/hr/doctype/daily_work_summary_group/daily_work_summary_group.json
@@ -203,6 +371,47 @@ msgstr ""
 #. Summary Group'
 #: hrms/hr/doctype/daily_work_summary_group/daily_work_summary_group.json
 msgid "23:00"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "3. Irregular Benefits"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "4. Capital Benefits"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "5. Ownership Rights"
+msgstr ""
+
+#. Option for the 'ELM Version' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "5.0"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "6. Board of Directors Fees"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "7. Other Income"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "8. Gross Income (Total)"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "9. AVS/AC/AANP Contributions"
 msgstr ""
 
 #: hrms/payroll/doctype/bulk_salary_structure_assignment/bulk_salary_structure_assignment.js:272
@@ -423,6 +632,155 @@ msgstr ""
 msgid "A {0} exists between {1} and {2} ("
 msgstr ""
 
+#. Label of a Currency field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AC Annual Ceiling (CHF)"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AC Employee Rate (%)"
+msgstr ""
+
+#. Label of a Link field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AC Employer GL Account"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AC Employer Rate (%)"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swissdec Declaration Employee'
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "AC Salary"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AC Solidarity Employee Rate (%)"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AC Solidarity Employer Rate (%)"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "AC/ALV"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AC/ALV (Unemployment)"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AG"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AI"
+msgstr ""
+
+#. Label of a Password field in DocType 'Swissdec Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "API Key"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AR"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AVS Branch Number"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AVS Employee Rate (%)"
+msgstr ""
+
+#. Label of a Link field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AVS Employer GL Account"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AVS Employer Rate (%)"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:106
+msgid "AVS No."
+msgstr ""
+
+#. Label of a Data field in DocType 'Swiss Salary Certificate'
+#. Label of a Data field in DocType 'Swissdec Declaration Employee'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:122
+msgid "AVS Number"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swissdec Declaration Employee'
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "AVS Salary"
+msgstr ""
+
+#. Description of the 'AVS Branch Number' (Data) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AVS branch number for multi-branch companies."
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:182
+msgid "AVS/AC/AANP contributions"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "AVS/AHV"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AVS/AI/APG"
+msgstr ""
+
+#. Description of the '9. AVS/AC/AANP Contributions' (Currency) field in
+#. DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "AVS/AI/APG + AC/ALV + AANP contributions (AHV/IV/EO, ALV, NBUV-Beiträge)"
+msgstr ""
+
 #. Label of a Data field in DocType 'Salary Component'
 #. Label of a Data field in DocType 'Salary Detail'
 #: hrms/payroll/doctype/salary_component/salary_component.json
@@ -467,11 +825,13 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Employee Referral'
 #. Option for the 'Status' (Select) field in DocType 'Job Applicant'
 #. Option for the 'Status' (Select) field in DocType 'Job Offer'
+#. Option for the 'Status' (Select) field in DocType 'Swissdec Declaration'
 #: hrms/hr/doctype/employee_referral/employee_referral.json
 #: hrms/hr/doctype/job_applicant/job_applicant.json
 #: hrms/hr/doctype/job_offer/job_offer.json
 #: hrms/overrides/employee_master.py:64 hrms/overrides/employee_master.py:80
 #: hrms/payroll/doctype/additional_salary/additional_salary.py:151
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 msgid "Accepted"
 msgstr ""
 
@@ -493,6 +853,10 @@ msgstr ""
 
 #: hrms/payroll/report/salary_payments_via_ecs/salary_payments_via_ecs.py:56
 msgid "Account No"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:176
+msgid "Account No."
 msgstr ""
 
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.py:102
@@ -614,19 +978,34 @@ msgstr ""
 #: hrms/hr/doctype/leave_allocation/leave_allocation.js:114
 #: hrms/payroll/doctype/salary_structure/salary_structure.js:159
 #: hrms/payroll/doctype/salary_structure_assignment/salary_structure_assignment.js:77
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:22
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:39
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:13
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:24
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:35
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:51
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:62
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:78
 msgid "Actions"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:42
+msgid "Activate"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Shift Assignment'
 #. Option for the 'Status' (Select) field in DocType 'Shift Assignment Tool'
 #. Option for the 'Shift Status' (Select) field in DocType 'Shift Schedule
 #. Assignment'
+#. Option for the 'Status' (Select) field in DocType 'Swiss QST Tariff'
 #: hrms/hr/doctype/shift_assignment/shift_assignment.json
 #: hrms/hr/doctype/shift_assignment_tool/shift_assignment_tool.json
 #: hrms/hr/doctype/shift_schedule_assignment/shift_schedule_assignment.json
 #: hrms/hr/report/employee_leave_balance/employee_leave_balance.js:44
 #: hrms/hr/report/employee_leave_balance_summary/employee_leave_balance_summary.js:40
 #: hrms/hr/report/leave_ledger/leave_ledger.js:38
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:100
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
 msgid "Active"
 msgstr ""
 
@@ -672,6 +1051,10 @@ msgstr ""
 
 #: hrms/hr/doctype/leave_application/leave_application.py:448
 msgid "Actual balances aren't available because the leave application spans over different leave allocations. You can still apply for leaves which would be compensated during the next allocation."
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:213
+msgid "Actual expenses"
 msgstr ""
 
 #. Label of a Button field in DocType 'Leave Block List'
@@ -1019,6 +1402,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Salary Structure'
 #. Label of a Link field in DocType 'Salary Structure Assignment'
 #. Label of a Link field in DocType 'Salary Withholding'
+#. Label of a Link field in DocType 'Swiss Salary Certificate'
 #: hrms/hr/doctype/appraisal/appraisal.json
 #: hrms/hr/doctype/attendance/attendance.json
 #: hrms/hr/doctype/attendance_request/attendance_request.json
@@ -1068,6 +1452,7 @@ msgstr ""
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
 #: hrms/payroll/doctype/salary_structure_assignment/salary_structure_assignment.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
 msgid "Amended From"
 msgstr ""
 
@@ -1087,6 +1472,9 @@ msgstr ""
 #: hrms/payroll/doctype/employee_other_income/employee_other_income.json
 #: hrms/payroll/doctype/salary_component/salary_component.json
 #: hrms/payroll/doctype/salary_detail/salary_detail.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:191
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:219
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:286
 #: hrms/payroll/report/professional_tax_deductions/professional_tax_deductions.py:32
 msgid "Amount"
 msgstr ""
@@ -1145,6 +1533,12 @@ msgstr ""
 msgid "An attendance record is linked to this checkin. Please cancel the attendance before modifying time."
 msgstr ""
 
+#. Option for the '13th Month Mode' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Annual"
+msgstr ""
+
 #. Label of a Float field in DocType 'Leave Policy Detail'
 #: hrms/hr/doctype/leave_policy_detail/leave_policy_detail.json
 msgid "Annual Allocation"
@@ -1161,6 +1555,11 @@ msgstr ""
 #. Label of a Currency field in DocType 'Salary Slip'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 msgid "Annual Taxable Amount"
+msgstr ""
+
+#. Label of a Attach field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Answer XML"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Travel Request'
@@ -1446,7 +1845,10 @@ msgid "Archive"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Goal'
+#. Option for the 'Status' (Select) field in DocType 'Swiss QST Tariff'
 #: hrms/hr/doctype/goal/goal.json
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:102
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
 msgid "Archived"
 msgstr ""
 
@@ -1468,8 +1870,16 @@ msgstr ""
 msgid "Are you sure you want to proceed?"
 msgstr ""
 
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:72
+msgid "Are you sure you want to re-transmit this rejected declaration?"
+msgstr ""
+
 #: hrms/hr/doctype/employee_referral/employee_referral.js:9
 msgid "Are you sure you want to reject the Employee Referral?"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:45
+msgid "Are you sure you want to transmit this declaration to Swissdec?"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Travel Itinerary'
@@ -1534,6 +1944,11 @@ msgstr ""
 #. Label of a Card Break in the Salary Payout Workspace
 #: hrms/payroll/workspace/salary_payout/salary_payout.json
 msgid "Assignment"
+msgstr ""
+
+#. Label of a Int field in DocType 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Assignment Days"
 msgstr ""
 
 #. Label of a Select field in DocType 'Leave Policy Assignment'
@@ -1762,6 +2177,11 @@ msgstr ""
 msgid "Automatically update Last Sync of Checkin"
 msgstr ""
 
+#. Option for the 'Tariff Type' (Select) field in DocType 'Swiss QST Tariff'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Autres revenus"
+msgstr ""
+
 #. Label of a Float field in DocType 'Salary Slip Leave'
 #: hrms/payroll/doctype/salary_slip_leave/salary_slip_leave.json
 msgid "Available Leave(s)"
@@ -1809,10 +2229,68 @@ msgstr ""
 msgid "Awaiting Response"
 msgstr ""
 
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "BE"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "BL"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "BS"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:192
+msgid "BVG buy-back"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:187
+msgid "BVG regular contributions"
+msgstr ""
+
+#. Description of the '10.2 BVG Buy-back' (Currency) field in DocType 'Swiss
+#. Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "BVG/LPP buy-back contributions (BVG-Einkauf)"
+msgstr ""
+
 #: hrms/hr/doctype/leave_application/leave_application.py:180
 msgid "Backdated Leave Application is restricted. Please set the {} in {}"
 msgstr ""
 
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:184
+msgid "Background job started: importing all cantons for {0} {1}."
+msgstr ""
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:170
 #: hrms/payroll/report/salary_payments_via_ecs/salary_payments_via_ecs.py:55
 msgid "Bank"
 msgstr ""
@@ -1950,6 +2428,26 @@ msgstr ""
 msgid "Blue"
 msgstr ""
 
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:136
+msgid "Board and lodging"
+msgstr ""
+
+#. Description of the '2.2 Board and Lodging' (Currency) field in DocType
+#. 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Board and lodging (Verpflegung / Unterkunft)"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:161
+msgid "Board of directors fees"
+msgstr ""
+
+#. Description of the '6. Board of Directors Fees' (Currency) field in DocType
+#. 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Board of directors fees (Verwaltungsratsentschädigungen)"
+msgstr ""
+
 #. Label of a Section Break field in DocType 'Appointment Letter'
 #: hrms/hr/doctype/appointment_letter/appointment_letter.json
 msgid "Body"
@@ -1972,6 +2470,11 @@ msgstr ""
 
 #: hrms/payroll/doctype/retention_bonus/retention_bonus.py:17
 msgid "Bonus Payment Date cannot be a past date"
+msgstr ""
+
+#. Label of a Int field in DocType 'Swiss QST Tariff'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Bracket Records"
 msgstr ""
 
 #. Label of a Link field in DocType 'Appraisal Cycle'
@@ -2023,10 +2526,36 @@ msgstr ""
 msgid "Bulk Salary Structure Assignment"
 msgstr ""
 
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:246
+msgid "Bulk import: {0} brackets, {1} codes."
+msgstr ""
+
+#. Description of the 'Assignment Days' (Int) field in DocType 'Cross-Border
+#. Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Business days spent on assignment in the country of residence."
+msgstr ""
+
 #. Description of the 'Calculate Final Score based on Formula' (Check) field in
 #. DocType 'Appraisal Cycle'
 #: hrms/hr/doctype/appraisal_cycle/appraisal_cycle.json
 msgid "By default, the Final Score is calculated as the average of Goal Score, Feedback Score, and Self Appraisal Score. Enable this to set a different formula"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:120
+msgid "CHF"
+msgstr ""
+
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "CMO"
+msgstr ""
+
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "CS"
 msgstr ""
 
 #. Label of a Currency field in DocType 'Salary Slip'
@@ -2061,6 +2590,11 @@ msgstr ""
 
 #: hrms/setup.py:394
 msgid "Campaign"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:296
+#: hrms/regional/switzerland/swissdec_transmitter.py:314
+msgid "Can only check status for 'Transmitted' declarations. Current status: {0}"
 msgstr ""
 
 #: frontend/src/components/FileUploaderView.vue:65
@@ -2161,6 +2695,31 @@ msgstr ""
 msgid "Cannot update status of Goal groups"
 msgstr ""
 
+#. Label of a Select field in DocType 'Swiss QST Tariff'
+#. Label of a Data field in DocType 'Swiss QST Tariff Bracket'
+#. Label of a Select field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Canton"
+msgstr ""
+
+#. Description of the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Canton for Family Allowances (FAK/CAF) reporting."
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:151
+msgid "Capital benefits"
+msgstr ""
+
+#. Description of the '4. Capital Benefits' (Currency) field in DocType 'Swiss
+#. Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Capital benefits (Kapitalleistungen)"
+msgstr ""
+
 #. Label of a Check field in DocType 'Leave Control Panel'
 #. Label of a Section Break field in DocType 'Leave Type'
 #: hrms/hr/doctype/leave_control_panel/leave_control_panel.json
@@ -2180,6 +2739,10 @@ msgstr ""
 #. Label of a Text field in DocType 'Employee Grievance'
 #: hrms/hr/doctype/employee_grievance/employee_grievance.json
 msgid "Cause of Grievance"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py:113
+msgid "Certificate populated from {0} salary slips."
 msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Vehicle Service'
@@ -2227,6 +2790,10 @@ msgstr ""
 
 #: frontend/src/components/CheckInPanel.vue:122
 msgid "Check Out"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:58
+msgid "Check Status"
 msgstr ""
 
 #. Label of a Check field in DocType 'HR Settings'
@@ -2360,6 +2927,15 @@ msgstr ""
 msgid "Closing Notes"
 msgstr ""
 
+#. Label of a Data field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Code"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.py:16
+msgid "Code must be a numeric value (e.g., 1000, 5010)"
+msgstr ""
+
 #: hrms/public/js/hierarchy_chart/hierarchy_chart_desktop.js:125
 #: hrms/public/js/hierarchy_chart/hierarchy_chart_desktop.js:130
 msgid "Collapse All"
@@ -2379,6 +2955,11 @@ msgstr ""
 
 #: hrms/setup.py:386
 msgid "Commission"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Commonly Used"
 msgstr ""
 
 #. Label of a Link field in DocType 'Appointment Letter'
@@ -2422,6 +3003,7 @@ msgstr ""
 #. Label of a Link in the HR Workspace
 #. Label of a Link field in DocType 'Additional Salary'
 #. Label of a Link field in DocType 'Bulk Salary Structure Assignment'
+#. Label of a Link field in DocType 'Cross-Border Telework Log'
 #. Label of a Link field in DocType 'Employee Benefit Application'
 #. Label of a Link field in DocType 'Employee Benefit Claim'
 #. Label of a Link field in DocType 'Employee Incentive'
@@ -2438,6 +3020,9 @@ msgstr ""
 #. Label of a Link field in DocType 'Salary Structure'
 #. Label of a Link field in DocType 'Salary Structure Assignment'
 #. Label of a Link field in DocType 'Salary Withholding'
+#. Label of a Link field in DocType 'Swiss Salary Certificate'
+#. Label of a Link field in DocType 'Swiss Social Insurance Config'
+#. Label of a Link field in DocType 'Swissdec Declaration'
 #: hrms/hr/dashboard_chart_source/employees_by_age/employees_by_age.js:8
 #: hrms/hr/dashboard_chart_source/hiring_vs_attrition_count/hiring_vs_attrition_count.js:8
 #: hrms/hr/doctype/appointment_letter/appointment_letter.json
@@ -2503,6 +3088,7 @@ msgstr ""
 #: hrms/hr/workspace/hr/hr.json
 #: hrms/payroll/doctype/additional_salary/additional_salary.json
 #: hrms/payroll/doctype/bulk_salary_structure_assignment/bulk_salary_structure_assignment.json
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
 #: hrms/payroll/doctype/employee_benefit_application/employee_benefit_application.json
 #: hrms/payroll/doctype/employee_benefit_claim/employee_benefit_claim.json
 #: hrms/payroll/doctype/employee_incentive/employee_incentive.json
@@ -2519,12 +3105,20 @@ msgstr ""
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
 #: hrms/payroll/doctype/salary_structure_assignment/salary_structure_assignment.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 #: hrms/payroll/report/bank_remittance/bank_remittance.js:9
 #: hrms/payroll/report/income_tax_computation/income_tax_computation.js:9
 #: hrms/payroll/report/salary_register/salary_register.js:39
 #: hrms/payroll/report/salary_register/salary_register.py:160
 #: hrms/public/js/salary_slip_deductions_report_filters.js:7
 msgid "Company"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Company Abbr"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Job Opening'
@@ -2534,6 +3128,10 @@ msgstr ""
 
 #: frontend/src/views/Profile.vue:177
 msgid "Company Information"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:44
+msgid "Company and Fiscal Year are required."
 msgstr ""
 
 #. Name of a DocType
@@ -2638,6 +3236,20 @@ msgstr ""
 msgid "Confirm {0}"
 msgstr ""
 
+#. Label of a Section Break field in DocType 'Swissdec Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Connection Status"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.py:44
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.py:54
+msgid "Connection failed: {0}"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.py:39
+msgid "Connection successful: SwissDecTX PING returned OK."
+msgstr ""
+
 #. Label of a Tab Break field in DocType 'Job Requisition'
 #. Label of a Tab Break field in DocType 'Payroll Entry'
 #: hrms/hr/doctype/job_requisition/job_requisition.json
@@ -2700,9 +3312,21 @@ msgstr ""
 msgid "Contract"
 msgstr ""
 
+#. Description of the '14. Employer Contributions' (Currency) field in DocType
+#. 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Contributions/payments from employer for further training etc. (Beiträge Arbeitgeber)"
+msgstr ""
+
 #. Label of a Attach field in DocType 'Travel Request'
 #: hrms/hr/doctype/travel_request/travel_request.json
 msgid "Copy of Invitation/Announcement"
+msgstr ""
+
+#. Option for the 'Declaration Type' (Select) field in DocType 'Swissdec
+#. Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Correction"
 msgstr ""
 
 #. Label of a Currency field in DocType 'Full and Final Asset'
@@ -2776,7 +3400,9 @@ msgid "Country Setup failed"
 msgstr ""
 
 #. Label of a field in the job-application Web Form
+#. Label of a Data field in DocType 'Cross-Border Telework Log'
 #: hrms/hr/web_form/job_application/job_application.json
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
 msgid "Country of Residence"
 msgstr ""
 
@@ -2906,6 +3532,7 @@ msgid "Create Payroll Period"
 msgstr ""
 
 #. Title of an Onboarding Step
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.js:7
 #: hrms/payroll/onboarding_step/create_salary_component/create_salary_component.json
 msgid "Create Salary Component"
 msgstr ""
@@ -2937,6 +3564,10 @@ msgstr ""
 
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.js:432
 msgid "Creating Payment Entries......"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.js:12
+msgid "Creating Salary Component..."
 msgstr ""
 
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.py:1476
@@ -2974,6 +3605,34 @@ msgstr ""
 #. Template'
 #: hrms/hr/doctype/appraisal_template/appraisal_template.json
 msgid "Criteria based on which employee should be rated in Performance Feedback and Self Appraisal"
+msgstr ""
+
+#. Name of a DocType
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Cross-Border Telework Log"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Cross-Border Workers"
+msgstr ""
+
+#. Description of the 'YTD Assignment Days' (Int) field in DocType
+#. 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Cumulative assignment days for the year."
+msgstr ""
+
+#. Description of the 'YTD Non-Return Days' (Int) field in DocType
+#. 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Cumulative non-return days for the year (German workers, limit: 45)."
+msgstr ""
+
+#. Description of the 'YTD Telework %' (Percent) field in DocType 'Cross-Border
+#. Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Cumulative telework percentage for the year."
 msgstr ""
 
 #. Label of a Link field in DocType 'Employee Advance'
@@ -3199,6 +3858,7 @@ msgstr ""
 #: hrms/hr/report/employees_working_on_a_holiday/employees_working_on_a_holiday.py:36
 #: hrms/hr/report/vehicle_expenses/vehicle_expenses.py:42
 #: hrms/payroll/doctype/employee_benefit_application/employee_benefit_application.json
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:250
 msgid "Date"
 msgstr ""
 
@@ -3221,9 +3881,12 @@ msgid "Date is repeated"
 msgstr ""
 
 #. Label of a Date field in DocType 'Travel Request'
+#. Label of a Date field in DocType 'Swiss Salary Certificate'
 #: hrms/hr/doctype/travel_request/travel_request.json
 #: hrms/hr/report/employee_analytics/employee_analytics.py:32
 #: hrms/hr/report/employee_birthday/employee_birthday.py:28
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:107
 msgid "Date of Birth"
 msgstr ""
 
@@ -3233,6 +3896,7 @@ msgstr ""
 #. Option for the 'Allocate on Day' (Select) field in DocType 'Leave Type'
 #. Label of a Data field in DocType 'Retention Bonus'
 #. Label of a Date field in DocType 'Salary Withholding'
+#. Label of a Date field in DocType 'Swiss Salary Certificate'
 #: hrms/hr/doctype/employee_onboarding/employee_onboarding.json
 #: hrms/hr/doctype/exit_interview/exit_interview.json
 #: hrms/hr/doctype/full_and_final_statement/full_and_final_statement.json
@@ -3240,6 +3904,7 @@ msgstr ""
 #: hrms/hr/report/employee_exits/employee_exits.py:32
 #: hrms/payroll/doctype/retention_bonus/retention_bonus.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
 #: hrms/payroll/report/income_tax_computation/income_tax_computation.py:621
 #: hrms/payroll/report/salary_register/salary_register.py:133 hrms/setup.py:396
 msgid "Date of Joining"
@@ -3259,6 +3924,12 @@ msgstr ""
 msgid "Days for which Holidays are blocked for this department."
 msgstr ""
 
+#. Description of the 'Telework Days' (Int) field in DocType 'Cross-Border
+#. Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Days worked remotely from the country of residence."
+msgstr ""
+
 #: hrms/payroll/report/bank_remittance/bank_remittance.py:19
 msgid "Debit A/C Number"
 msgstr ""
@@ -3270,6 +3941,34 @@ msgstr ""
 
 #: hrms/hr/report/employee_exits/employee_exits.py:193
 msgid "Decision Pending"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Declaration ID (Swissdec)"
+msgstr ""
+
+#. Label of a Int field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Declaration Month"
+msgstr ""
+
+#. Label of a Select field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Declaration Type"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:19
+msgid "Declaration month (1-12) is required for monthly declarations."
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:249
+#: hrms/regional/switzerland/swissdec_transmitter.py:228
+msgid "Declaration must be in 'Exported' status to transmit. Current status: {0}"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:164
+msgid "Declaration must be validated before export. Current status: {0}"
 msgstr ""
 
 #. Label of a Table field in DocType 'Employee Tax Exemption Declaration'
@@ -3307,7 +4006,9 @@ msgid "Deduct Tax For Unsubmitted Tax Exemption Proof"
 msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Salary Component'
+#. Option for the 'Type' (Select) field in DocType 'Swiss Wage Type'
 #: hrms/payroll/doctype/salary_component/salary_component.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
 #: hrms/payroll/report/salary_register/salary_register.py:90
 #: hrms/payroll/report/salary_register/salary_register.py:96
 msgid "Deduction"
@@ -3326,7 +4027,13 @@ msgstr ""
 #. Label of a Table field in DocType 'Salary Structure'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:217
 msgid "Deductions"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Deductions (Positions 9-12)"
 msgstr ""
 
 #. Label of a Currency field in DocType 'Salary Slip'
@@ -3377,6 +4084,17 @@ msgstr ""
 #: hrms/hr/doctype/shift_assignment_tool/shift_assignment_tool.js:204
 #: hrms/setup.py:207
 msgid "Default Shift"
+msgstr ""
+
+#. Label of a Select field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Default Taxation Canton"
+msgstr ""
+
+#. Description of the 'Default Taxation Canton' (Select) field in DocType
+#. 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Default taxation canton. Can be overridden per employee."
 msgstr ""
 
 #. Label of a Check field in DocType 'Expense Claim Type'
@@ -3519,6 +4237,7 @@ msgstr ""
 #: hrms/payroll/doctype/retention_bonus/retention_bonus.json
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_structure_assignment/salary_structure_assignment.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:139
 #: hrms/payroll/report/income_tax_computation/income_tax_computation.js:33
 #: hrms/payroll/report/income_tax_computation/income_tax_computation.py:608
 #: hrms/payroll/report/salary_register/salary_register.js:56
@@ -3603,6 +4322,7 @@ msgstr ""
 #: hrms/hr/doctype/travel_request/travel_request.json
 #: hrms/payroll/doctype/income_tax_slab_other_charges/income_tax_slab_other_charges.json
 #: hrms/payroll/doctype/salary_component/salary_component.json
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:119
 msgid "Description"
 msgstr ""
 
@@ -3678,6 +4398,7 @@ msgstr ""
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_structure_assignment/salary_structure_assignment.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:143
 #: hrms/payroll/report/income_tax_computation/income_tax_computation.py:615
 #: hrms/payroll/report/salary_register/salary_register.js:70
 #: hrms/payroll/report/salary_register/salary_register.py:153
@@ -3742,11 +4463,20 @@ msgstr ""
 #. Label of a Check field in DocType 'Additional Salary'
 #. Label of a Check field in DocType 'Income Tax Slab'
 #. Label of a Check field in DocType 'Salary Component'
+#. Option for the '13th Month Mode' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
 #: hrms/payroll/doctype/additional_salary/additional_salary.json
 #: hrms/payroll/doctype/income_tax_slab/income_tax_slab.json
 #: hrms/payroll/doctype/salary_component/salary_component.json
 #: hrms/payroll/doctype/salary_slip/salary_slip.js:286
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
 msgid "Disabled"
+msgstr ""
+
+#. Description of the '13th Month Mode' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Disabled: no 13th month. Annual: paid as lump sum in December (or on departure). Monthly: 1/12 added to each salary slip."
 msgstr ""
 
 #: frontend/src/views/AppSettings.vue:40
@@ -3760,6 +4490,11 @@ msgstr ""
 #. Label of a Currency field in DocType 'Employee Benefit Application'
 #: hrms/payroll/doctype/employee_benefit_application/employee_benefit_application.json
 msgid "Dispensed Amount (Pro-rated)"
+msgstr ""
+
+#. Label of a Int field in DocType 'Swiss QST Tariff'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Distinct Tariff Codes"
 msgstr ""
 
 #. Label of a Check field in DocType 'Salary Component'
@@ -3809,6 +4544,14 @@ msgstr ""
 msgid "Download Template"
 msgstr ""
 
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:32
+msgid "Downloading from ESTV..."
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:91
+msgid "Downloading tariff data from ESTV for {0} {1}..."
+msgstr ""
+
 #. Option for the 'Status' (Select) field in DocType 'Employee Advance'
 #. Option for the 'Approval Status' (Select) field in DocType 'Expense Claim'
 #. Option for the 'Status' (Select) field in DocType 'Expense Claim'
@@ -3818,6 +4561,8 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Payroll Entry'
 #. Option for the 'Status' (Select) field in DocType 'Salary Slip'
 #. Option for the 'Status' (Select) field in DocType 'Salary Withholding'
+#. Option for the 'Status' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Status' (Select) field in DocType 'Swissdec Declaration'
 #: frontend/src/views/employee_advance/List.vue:42
 #: hrms/hr/doctype/employee_advance/employee_advance.json
 #: hrms/hr/doctype/expense_claim/expense_claim.json
@@ -3827,6 +4572,9 @@ msgstr ""
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:104
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 msgid "Draft"
 msgstr ""
 
@@ -3859,6 +4607,13 @@ msgstr ""
 #. Label of a Int field in DocType 'Employee Boarding Activity'
 #: hrms/hr/doctype/employee_boarding_activity/employee_boarding_activity.json
 msgid "Duration (Days)"
+msgstr ""
+
+#. Label of a Select field in DocType 'Swiss Social Insurance Config'
+#. Label of a Data field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "ELM Version"
 msgstr ""
 
 #: hrms/public/js/utils/index.js:210
@@ -3913,7 +4668,9 @@ msgid "Earned Leaves are leaves earned by an Employee after working with the com
 msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Salary Component'
+#. Option for the 'Type' (Select) field in DocType 'Swiss Wage Type'
 #: hrms/payroll/doctype/salary_component/salary_component.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
 #: hrms/payroll/report/salary_register/salary_register.py:90
 #: hrms/payroll/report/salary_register/salary_register.py:96
 msgid "Earning"
@@ -3934,6 +4691,7 @@ msgstr ""
 #. Label of a Table field in DocType 'Salary Structure'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:190
 msgid "Earnings"
 msgstr ""
 
@@ -3964,6 +4722,12 @@ msgstr ""
 #. Label of a Date field in DocType 'Leave Policy Assignment'
 #: hrms/hr/doctype/leave_policy_assignment/leave_policy_assignment.json
 msgid "Effective To"
+msgstr ""
+
+#. Description of the '13.1 Actual Expenses' (Currency) field in DocType 'Swiss
+#. Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Effective expenses (Effektive Spesen)"
 msgstr ""
 
 #. Label of a Date field in DocType 'Income Tax Slab'
@@ -4052,6 +4816,7 @@ msgstr ""
 #. Label of a Card Break in the HR Workspace
 #. Label of a Link in the HR Workspace
 #. Label of a Link field in DocType 'Additional Salary'
+#. Label of a Link field in DocType 'Cross-Border Telework Log'
 #. Label of a Link field in DocType 'Employee Benefit Application'
 #. Label of a Link field in DocType 'Employee Benefit Claim'
 #. Label of a Link field in DocType 'Employee Incentive'
@@ -4068,6 +4833,8 @@ msgstr ""
 #. Label of a Link field in DocType 'Salary Slip'
 #. Label of a Link field in DocType 'Salary Structure Assignment'
 #. Label of a Link field in DocType 'Salary Withholding'
+#. Label of a Link field in DocType 'Swiss Salary Certificate'
+#. Label of a Link field in DocType 'Swissdec Declaration Employee'
 #: frontend/src/views/attendance/ShiftRequestList.vue:48
 #: frontend/src/views/employee_advance/List.vue:53
 #: frontend/src/views/leave/List.vue:47
@@ -4153,6 +4920,7 @@ msgstr ""
 #: hrms/hr/workspace/hr/hr.json
 #: hrms/payroll/doctype/additional_salary/additional_salary.json
 #: hrms/payroll/doctype/bulk_salary_structure_assignment/bulk_salary_structure_assignment.js:159
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
 #: hrms/payroll/doctype/employee_benefit_application/employee_benefit_application.json
 #: hrms/payroll/doctype/employee_benefit_claim/employee_benefit_claim.json
 #: hrms/payroll/doctype/employee_incentive/employee_incentive.json
@@ -4168,6 +4936,10 @@ msgstr ""
 #: hrms/payroll/doctype/salary_structure/salary_structure.js:196
 #: hrms/payroll/doctype/salary_structure_assignment/salary_structure_assignment.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:97
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:117
 #: hrms/payroll/report/income_tax_computation/income_tax_computation.js:26
 #: hrms/payroll/report/income_tax_computation/income_tax_computation.py:595
 #: hrms/payroll/report/income_tax_deductions/income_tax_deductions.py:25
@@ -4284,6 +5056,11 @@ msgstr ""
 #. Name of a DocType
 #: hrms/payroll/doctype/employee_cost_center/employee_cost_center.json
 msgid "Employee Cost Center"
+msgstr ""
+
+#. Label of a Int field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Employee Count"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Employee Onboarding'
@@ -4478,6 +5255,7 @@ msgstr ""
 #. Label of a Read Only field in DocType 'Training Result Employee'
 #. Label of a Data field in DocType 'Travel Request'
 #. Label of a Data field in DocType 'Additional Salary'
+#. Label of a Data field in DocType 'Cross-Border Telework Log'
 #. Label of a Data field in DocType 'Employee Benefit Application'
 #. Label of a Data field in DocType 'Employee Benefit Claim'
 #. Label of a Data field in DocType 'Employee Incentive'
@@ -4490,6 +5268,8 @@ msgstr ""
 #. Label of a Read Only field in DocType 'Salary Slip'
 #. Label of a Data field in DocType 'Salary Structure Assignment'
 #. Label of a Data field in DocType 'Salary Withholding'
+#. Label of a Data field in DocType 'Swiss Salary Certificate'
+#. Label of a Data field in DocType 'Swissdec Declaration Employee'
 #: hrms/hr/doctype/appraisal/appraisal.json
 #: hrms/hr/doctype/appraisee/appraisee.json
 #: hrms/hr/doctype/attendance/attendance.json
@@ -4531,6 +5311,7 @@ msgstr ""
 #: hrms/hr/report/shift_attendance/shift_attendance.py:31
 #: hrms/hr/report/unpaid_expense_claim/unpaid_expense_claim.py:20
 #: hrms/payroll/doctype/additional_salary/additional_salary.json
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
 #: hrms/payroll/doctype/employee_benefit_application/employee_benefit_application.json
 #: hrms/payroll/doctype/employee_benefit_claim/employee_benefit_claim.json
 #: hrms/payroll/doctype/employee_incentive/employee_incentive.json
@@ -4543,6 +5324,8 @@ msgstr ""
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_structure_assignment/salary_structure_assignment.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
 #: hrms/payroll/report/bank_remittance/bank_remittance.py:32
 #: hrms/payroll/report/income_tax_computation/income_tax_computation.py:602
 #: hrms/payroll/report/income_tax_deductions/income_tax_deductions.py:32
@@ -4767,6 +5550,10 @@ msgstr ""
 msgid "Employee advance account {0} should be of type {1}."
 msgstr ""
 
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py:51
+msgid "Employee and Fiscal Year are required."
+msgstr ""
+
 #: hrms/hr/doctype/hr_settings/hr_settings.js:27
 msgid "Employee can be named by Employee ID if you assign one, or via Naming Series. Select your preference here."
 msgstr ""
@@ -4774,6 +5561,18 @@ msgstr ""
 #. Label of a Data field in DocType 'Leave Policy Assignment'
 #: hrms/hr/doctype/leave_policy_assignment/leave_policy_assignment.json
 msgid "Employee name"
+msgstr ""
+
+#. Description of the 'AVS Employee Rate (%)' (Percent) field in DocType 'Swiss
+#. Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employee rate in %"
+msgstr ""
+
+#. Description of the 'IJM Employee Rate (%)' (Percent) field in DocType 'Swiss
+#. Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employee rate in %. Set by your insurer."
 msgstr ""
 
 #. Description of the 'Employee Naming By' (Select) field in DocType 'HR
@@ -4843,6 +5642,12 @@ msgstr ""
 msgid "Employee, Leaves, and more."
 msgstr ""
 
+#. Description of the 'LAA Non-Professional Rate - Employee (%)' (Percent)
+#. field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employee-paid non-professional accident insurance rate in %. Set by your insurer."
+msgstr ""
+
 #: hrms/payroll/doctype/gratuity/gratuity.py:161
 msgid "Employee: {0} have to complete minimum {1} years for gratuity"
 msgstr ""
@@ -4851,11 +5656,14 @@ msgstr ""
 #. Label of a Table field in DocType 'Training Event'
 #. Label of a Table field in DocType 'Training Result'
 #. Label of a Tab Break field in DocType 'Payroll Entry'
+#. Label of a Section Break field in DocType 'Swissdec Declaration'
+#. Label of a Table field in DocType 'Swissdec Declaration'
 #: hrms/hr/dashboard_chart_source/employees_by_age/employees_by_age.py:42
 #: hrms/hr/doctype/appraisal_cycle/appraisal_cycle.json
 #: hrms/hr/doctype/training_event/training_event.json
 #: hrms/hr/doctype/training_result/training_result.json
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 msgid "Employees"
 msgstr ""
 
@@ -4886,6 +5694,12 @@ msgstr ""
 msgid "Employees will miss holiday reminders from {} until {}. <br> Do you want to proceed with this change?"
 msgstr ""
 
+#. Description of the 'Ordinary Taxation Threshold (CHF)' (Currency) field in
+#. DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employees with projected annual income above this threshold must file an ordinary tax declaration. Informational flag only."
+msgstr ""
+
 #: hrms/hr/doctype/appraisal_cycle/appraisal_cycle.js:167
 msgid "Employees without Feedback: {0}"
 msgstr ""
@@ -4899,6 +5713,70 @@ msgstr ""
 #: hrms/hr/report/employees_working_on_a_holiday/employees_working_on_a_holiday.json
 #: hrms/hr/workspace/shift_&_attendance/shift_&_attendance.json
 msgid "Employees working on a holiday"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:96
+msgid "Employer"
+msgstr ""
+
+#. Label of a Small Text field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employer Address (Certificate)"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:284
+msgid "Employer Contributions (informational)"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employer Name (Certificate)"
+msgstr ""
+
+#. Description of the 'Employer Address (Certificate)' (Small Text) field in
+#. DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employer address for the Lohnausweis certificate header."
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:228
+msgid "Employer contributions"
+msgstr ""
+
+#. Description of the 'Employer Name (Certificate)' (Data) field in DocType
+#. 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employer name as it should appear on the Lohnausweis certificate."
+msgstr ""
+
+#. Description of the 'AVS Employer Rate (%)' (Percent) field in DocType 'Swiss
+#. Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employer rate in %"
+msgstr ""
+
+#. Description of the 'IJM Employer Rate (%)' (Percent) field in DocType 'Swiss
+#. Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employer rate in %. Set by your insurer."
+msgstr ""
+
+#. Description of the 'LPP Employer Share (%)' (Percent) field in DocType
+#. 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employer share of LPP contribution in %. Minimum 50% by law."
+msgstr ""
+
+#. Description of the 'Family Allowance Rate - Employer (%)' (Percent) field in
+#. DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employer-only rate in %. Varies by canton."
+msgstr ""
+
+#. Description of the 'LAA Professional Rate - Employer (%)' (Percent) field in
+#. DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employer-paid professional accident insurance rate in %. Set by your insurer."
 msgstr ""
 
 #. Label of a Link field in DocType 'Employee Attendance Tool'
@@ -4925,6 +5803,11 @@ msgstr ""
 msgid "Enable Auto Attendance"
 msgstr ""
 
+#. Label of a Check field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Enable Cross-Border Rules"
+msgstr ""
+
 #. Label of a Check field in DocType 'Shift Type'
 #: hrms/hr/doctype/shift_type/shift_type.json
 msgid "Enable Early Exit Marking"
@@ -4937,6 +5820,39 @@ msgstr ""
 
 #: frontend/src/views/AppSettings.vue:25
 msgid "Enable Push Notifications"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Enable Source Tax"
+msgstr ""
+
+#. Description of the 'Enable Swissdec Export' (Check) field in DocType 'Swiss
+#. Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Enable Swissdec ELM XML export for salary declarations."
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Enable Swissdec Export"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swissdec Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Enable Transmission"
+msgstr ""
+
+#. Description of the 'Enable Source Tax' (Check) field in DocType 'Swiss
+#. Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Enable automatic source tax calculation for employees subject to withholding tax."
+msgstr ""
+
+#. Description of the 'Enable Cross-Border Rules' (Check) field in DocType
+#. 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Enable cross-border worker tax rules (German flat rate, Italian 80%, French exemptions)."
 msgstr ""
 
 #. Label of a Check field in DocType 'Daily Work Summary Group'
@@ -5067,6 +5983,8 @@ msgstr ""
 msgid "Enter {0}"
 msgstr ""
 
+#. Option for the 'Validation' (Select) field in DocType 'Swissdec Declaration
+#. Employee'
 #: frontend/src/components/CheckInPanel.vue:185
 #: frontend/src/components/FormView.vue:530
 #: frontend/src/components/FormView.vue:557
@@ -5079,6 +5997,7 @@ msgstr ""
 #: hrms/overrides/company.py:50
 #: hrms/payroll/doctype/additional_salary/additional_salary.py:310
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.py:119
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
 msgid "Error"
 msgstr ""
 
@@ -5379,6 +6298,11 @@ msgstr ""
 msgid "Expense Account"
 msgstr ""
 
+#. Label of a Section Break field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Expense Allowances (Positions 13-14)"
+msgstr ""
+
 #. Name of a role
 #. Label of a Link field in DocType 'Expense Claim'
 #: hrms/hr/doctype/employee_advance/employee_advance.json
@@ -5529,16 +6453,52 @@ msgstr ""
 msgid "Explore"
 msgstr ""
 
+#. Label of a Section Break field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 #: hrms/public/js/hierarchy_chart/hierarchy_chart_desktop.js:116
 msgid "Export"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:31
+msgid "Export XML"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Exported"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Exported On"
 msgstr ""
 
 #: hrms/public/js/hierarchy_chart/hierarchy_chart_desktop.js:137
 msgid "Exporting..."
 msgstr ""
 
+#. Label of a Select field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "FAK Canton"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "FR"
+msgstr ""
+
 #. Option for the 'Status' (Select) field in DocType 'Payroll Entry'
+#. Option for the 'Last Ping Status' (Select) field in DocType 'Swissdec
+#. Transmitter Settings'
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
 msgid "Failed"
 msgstr ""
 
@@ -5582,6 +6542,26 @@ msgstr ""
 #. Label of a Tab Break field in DocType 'Payroll Entry'
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
 msgid "Failure Details"
+msgstr ""
+
+#. Label of a Link field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Family Allowance GL Account"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Family Allowance Rate - Employer (%)"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Family Allowances"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Family Allowances (FAK)"
 msgstr ""
 
 #: hrms/hr/report/monthly_attendance_sheet/monthly_attendance_sheet.js:37
@@ -5649,6 +6629,18 @@ msgstr ""
 msgid "Feedback {0} added successfully"
 msgstr ""
 
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:80
+msgid "Fetch"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:59
+msgid "Fetch All Cantons"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:62
+msgid "Fetch All Cantons from ESTV"
+msgstr ""
+
 #. Label of a Button field in DocType 'Employee Checkin'
 #. Label of a Button field in DocType 'Shift Location'
 #: hrms/hr/doctype/employee_checkin/employee_checkin.json
@@ -5662,6 +6654,14 @@ msgstr ""
 
 #: hrms/hr/doctype/employee_checkin/employee_checkin_list.js:9
 msgid "Fetch Shifts"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:24
+msgid "Fetch from ESTV"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:132
+msgid "Fetched from ESTV and imported {0} brackets for {1} tariff codes."
 msgstr ""
 
 #: hrms/hr/doctype/appraisal_cycle/appraisal_cycle.js:109
@@ -5757,12 +6757,30 @@ msgstr ""
 msgid "First Name "
 msgstr ""
 
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:134
+msgid "Fiscal Canton"
+msgstr ""
+
+#. Label of a Link field in DocType 'Swiss Salary Certificate'
+#. Label of a Link field in DocType 'Swissdec Declaration'
 #: hrms/hr/report/vehicle_expenses/vehicle_expenses.js:29
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 msgid "Fiscal Year"
 msgstr ""
 
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.py:1436
 msgid "Fiscal Year {0} not found"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:218
+msgid "Flat-rate car allowance"
+msgstr ""
+
+#. Description of the '13.2 Flat-rate Car Allowance' (Currency) field in
+#. DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Flat-rate car allowance (Pauschalspesen Fahrzeug)"
 msgstr ""
 
 #. Label of a Card Break in the Expense Claims Workspace
@@ -5807,6 +6825,12 @@ msgstr ""
 #: hrms/hr/doctype/attendance/attendance_list.js:29
 #: hrms/hr/doctype/employee_performance_feedback/employee_performance_feedback.json
 msgid "For Employee"
+msgstr ""
+
+#. Description of the 'Non-Return Days' (Int) field in DocType 'Cross-Border
+#. Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "For German workers: days not returning to country of residence (limit: 45/year)."
 msgstr ""
 
 #. Description of the 'Fraction of Daily Salary per Leave' (Float) field in
@@ -5857,6 +6881,11 @@ msgstr ""
 
 #: frontend/src/components/BaseLayout.vue:9
 msgid "Frappe HR"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "French Telework Threshold (%)"
 msgstr ""
 
 #. Label of a Select field in DocType 'Shift Schedule'
@@ -6056,6 +7085,68 @@ msgstr ""
 msgid "Future dates not allowed"
 msgstr ""
 
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "GE"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "GL"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "GR"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swissdec Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Gateway Connection"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swissdec Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Gateway URL"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.py:16
+msgid "Gateway URL must start with http:// or https://"
+msgstr ""
+
+#: hrms/regional/switzerland/swissdec_transmitter.py:75
+msgid "Gateway authentication failed. Check your API key in Swissdec Transmitter Settings."
+msgstr ""
+
+#: hrms/regional/switzerland/swissdec_transmitter.py:84
+msgid "Gateway error ({0}): {1}"
+msgstr ""
+
+#: hrms/regional/switzerland/swissdec_transmitter.py:97
+msgid "Gateway request failed ({0}): {1}"
+msgstr ""
+
 #: hrms/hr/report/employee_analytics/employee_analytics.py:36
 #: hrms/hr/report/employee_birthday/employee_birthday.py:32
 msgid "Gender"
@@ -6066,6 +7157,10 @@ msgstr ""
 #: hrms/hr/workspace/expense_claims/expense_claims.json
 #: hrms/payroll/workspace/salary_payout/salary_payout.json
 msgid "General Ledger"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py:107
+msgid "Generated from {0} salary slips for fiscal year {1}."
 msgstr ""
 
 #. Label of a Geolocation field in DocType 'Employee Checkin'
@@ -6082,6 +7177,17 @@ msgstr ""
 #: frontend/src/components/CheckInPanel.vue:143
 #: hrms/public/js/utils/index.js:185
 msgid "Geolocation is not supported by your current browser"
+msgstr ""
+
+#. Description of the 'German Flat Tax Rate (%)' (Percent) field in DocType
+#. 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "German DTA flat withholding tax rate in %."
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "German Flat Tax Rate (%)"
 msgstr ""
 
 #: hrms/payroll/doctype/employee_tax_exemption_proof_submission/employee_tax_exemption_proof_submission.js:47
@@ -6275,6 +7381,7 @@ msgstr ""
 #. Label of a Currency field in DocType 'Salary Slip'
 #: frontend/src/components/SalarySlipItem.vue:13
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:206
 #: hrms/payroll/report/income_tax_deductions/income_tax_deductions.py:54
 #: hrms/payroll/report/salary_payments_via_ecs/salary_payments_via_ecs.py:42
 #: hrms/payroll/report/salary_register/salary_register.py:211
@@ -6294,6 +7401,16 @@ msgstr ""
 #. Label of a Currency field in DocType 'Salary Slip'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 msgid "Gross Year To Date(Company Currency)"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:171
+msgid "Gross income"
+msgstr ""
+
+#. Description of the '8. Gross Income (Total)' (Currency) field in DocType
+#. 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Gross income = sum of positions 1-7 (Bruttolohn)"
 msgstr ""
 
 #: hrms/hr/report/daily_work_summary_replies/daily_work_summary_replies.js:9
@@ -6375,6 +7492,7 @@ msgstr ""
 #: hrms/hr/doctype/training_program/training_program.json
 #: hrms/hr/doctype/training_result/training_result.json
 #: hrms/hr/doctype/upload_attendance/upload_attendance.json
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
 #: hrms/payroll/doctype/employee_benefit_application/employee_benefit_application.json
 #: hrms/payroll/doctype/employee_benefit_claim/employee_benefit_claim.json
 #: hrms/payroll/doctype/employee_incentive/employee_incentive.json
@@ -6393,6 +7511,13 @@ msgstr ""
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
 #: hrms/payroll/doctype/salary_structure_assignment/salary_structure_assignment.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
 msgid "HR Manager"
 msgstr ""
 
@@ -6460,6 +7585,7 @@ msgstr ""
 #: hrms/hr/doctype/upload_attendance/upload_attendance.json
 #: hrms/payroll/doctype/additional_salary/additional_salary.json
 #: hrms/payroll/doctype/bulk_salary_structure_assignment/bulk_salary_structure_assignment.json
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
 #: hrms/payroll/doctype/employee_benefit_application/employee_benefit_application.json
 #: hrms/payroll/doctype/employee_benefit_claim/employee_benefit_claim.json
 #: hrms/payroll/doctype/employee_incentive/employee_incentive.json
@@ -6477,11 +7603,29 @@ msgstr ""
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
 #: hrms/payroll/doctype/salary_structure_assignment/salary_structure_assignment.json
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 msgid "HR User"
+msgstr ""
+
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "HRE"
 msgstr ""
 
 #: hrms/config/desktop.py:5
 msgid "HRMS"
+msgstr ""
+
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "HS"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Attendance'
@@ -6680,9 +7824,51 @@ msgstr ""
 msgid "IFSC Code"
 msgstr ""
 
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "IJM Employee Rate (%)"
+msgstr ""
+
+#. Label of a Link field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "IJM Employer GL Account"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "IJM Employer Rate (%)"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "IJM Insurer ID"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "IJM/KTG"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "IJM/KTG (Daily Sickness Allowance)"
+msgstr ""
+
+#. Description of the 'IJM Insurer ID' (Data) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "IJM/KTG insurer identification number."
+msgstr ""
+
 #. Option for the 'Log Type' (Select) field in DocType 'Employee Checkin'
 #: hrms/hr/doctype/employee_checkin/employee_checkin.json
 msgid "IN"
+msgstr ""
+
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "IND"
 msgstr ""
 
 #. Label of a Data field in DocType 'Travel Request'
@@ -6806,12 +7992,37 @@ msgid "Import Attendance"
 msgstr ""
 
 #. Label of a HTML field in DocType 'Upload Attendance'
+#. Label of a Section Break field in DocType 'Swiss QST Tariff'
+#. Label of a Long Text field in DocType 'Swiss QST Tariff'
 #: hrms/hr/doctype/upload_attendance/upload_attendance.json
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
 msgid "Import Log"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss QST Tariff'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Import Statistics"
 msgstr ""
 
 #: hrms/hr/doctype/upload_attendance/upload_attendance.js:67
 msgid "Import Successful"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:7
+msgid "Import from File"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Swiss QST Tariff'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Imported On"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:67
+msgid "Imported {0} brackets for {1} tariff codes."
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:15
+msgid "Importing tariff brackets..."
 msgstr ""
 
 #: hrms/hr/doctype/upload_attendance/upload_attendance.js:50
@@ -6892,9 +8103,39 @@ msgstr ""
 msgid "Include holidays within leaves as leaves"
 msgstr ""
 
+#. Label of a Check field in DocType 'Swiss Lohnausweis Mapping'
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+msgid "Include in Certificate"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swissdec Declaration Employee'
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "Included"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Included in Vacation Base"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Income (Positions 1-7)"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss QST Tariff Bracket'
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+msgid "Income From (CHF)"
+msgstr ""
+
 #. Label of a Section Break field in DocType 'Employee Other Income'
 #: hrms/payroll/doctype/employee_other_income/employee_other_income.json
 msgid "Income Source"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss QST Tariff Bracket'
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+msgid "Income Step (CHF)"
 msgstr ""
 
 #: hrms/payroll/report/income_tax_deductions/income_tax_deductions.py:47
@@ -6985,6 +8226,11 @@ msgstr ""
 msgid "Indicates the number of leaves that cannot be encashed from the leave balance. E.g. with a leave balance of 10 and 4 Non-Encashable Leaves, you can encash 6, while the remaining 4 can be carried forward or expired"
 msgstr ""
 
+#. Option for the 'Type' (Select) field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Informational"
+msgstr ""
+
 #. Option for the 'Type' (Select) field in DocType 'Vehicle Service'
 #: hrms/hr/doctype/vehicle_service/vehicle_service.json
 msgid "Inspection"
@@ -6997,6 +8243,16 @@ msgstr ""
 #: frontend/src/components/InstallPrompt.vue:5
 #: frontend/src/components/InstallPrompt.vue:28
 msgid "Install Frappe HR"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swissdec Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Instance ID"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Institutions"
 msgstr ""
 
 #: hrms/hr/doctype/leave_application/leave_application.py:461
@@ -7239,6 +8495,16 @@ msgstr ""
 msgid "Invoice Ref"
 msgstr ""
 
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:146
+msgid "Irregular benefits"
+msgstr ""
+
+#. Description of the '3. Irregular Benefits' (Currency) field in DocType
+#. 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Irregular benefits, capital payments (Unregelmässige Leistungen)"
+msgstr ""
+
 #. Label of a Check field in DocType 'Leave Period'
 #. Label of a Check field in DocType 'Employee Tax Exemption Category'
 #. Label of a Check field in DocType 'Employee Tax Exemption Sub Category'
@@ -7275,6 +8541,11 @@ msgstr ""
 #. Label of a Select field in DocType 'Salary Structure'
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
 msgid "Is Default"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Is Default Configuration"
 msgstr ""
 
 #. Label of a Check field in DocType 'Leave Type'
@@ -7359,6 +8630,30 @@ msgstr ""
 #: hrms/payroll/doctype/salary_component/salary_component.json
 #: hrms/payroll/doctype/salary_detail/salary_detail.json
 msgid "Is Tax Applicable"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Italian New Frontalier Rate Factor (%)"
+msgstr ""
+
+#. Description of the 'Italian New Frontalier Rate Factor (%)' (Percent) field
+#. in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+#, python-format
+msgid "Italian new frontalier rate factor in %. Standard rate is multiplied by this factor (e.g., 80 = 80% of standard rate)."
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "JU"
 msgstr ""
 
 #: hrms/hr/report/monthly_attendance_sheet/monthly_attendance_sheet.js:36
@@ -7503,6 +8798,10 @@ msgstr ""
 msgid "Job profile, qualifications required etc."
 msgstr ""
 
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:108
+msgid "Joined"
+msgstr ""
+
 #. Option for the 'Dates Based On' (Select) field in DocType 'Leave Control
 #. Panel'
 #. Option for the 'Assignment based on' (Select) field in DocType 'Leave Policy
@@ -7592,6 +8891,125 @@ msgstr ""
 msgid "Key Result Area"
 msgstr ""
 
+#. Label of a Link field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAA Employer GL Account"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAA Insurable Salary Cap (CHF)"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAA Insurer ID"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAA Non-Professional Rate - Employee (%)"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAA Professional Rate - Employer (%)"
+msgstr ""
+
+#. Description of the 'LAA Insurer ID' (Data) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAA insurer identification number."
+msgstr ""
+
+#. Label of a Check field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "LAA/UVG"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAA/UVG (Accident Insurance)"
+msgstr ""
+
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "LEC"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LPP Coordination Deduction (CHF/year)"
+msgstr ""
+
+#. Label of a Link field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LPP Employer GL Account"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LPP Employer Share (%)"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.py:16
+msgid "LPP Employer Share must be at least 50% as required by Swiss law."
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LPP Entry Threshold (CHF/year)"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LPP Institution ID"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LPP Maximum Coordinated Salary (CHF/year)"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LPP Minimum Insured Salary (CHF/year)"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swissdec Declaration Employee'
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "LPP Salary"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "LPP/BVG"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LPP/BVG (Occupational Pension)"
+msgstr ""
+
+#. Description of the 'LPP Institution ID' (Data) field in DocType 'Swiss
+#. Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LPP/BVG pension fund identification number."
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LU"
+msgstr ""
+
 #. Option for the 'Allocate on Day' (Select) field in DocType 'Leave Type'
 #: hrms/hr/doctype/leave_type/leave_type.json
 msgid "Last Day"
@@ -7611,6 +9029,21 @@ msgstr ""
 #. Label of a Int field in DocType 'Vehicle Log'
 #: hrms/hr/doctype/vehicle_log/vehicle_log.json
 msgid "Last Odometer Value "
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Swissdec Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Last Ping"
+msgstr ""
+
+#. Label of a Small Text field in DocType 'Swissdec Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Last Ping Output"
+msgstr ""
+
+#. Label of a Select field in DocType 'Swissdec Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Last Ping Status"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Shift Type'
@@ -7938,6 +9371,7 @@ msgstr ""
 
 #. Label of a Float field in DocType 'Salary Slip'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:164
 #: hrms/payroll/report/salary_register/salary_register.py:179 hrms/setup.py:374
 #: hrms/setup.py:375
 msgid "Leave Without Pay"
@@ -8038,6 +9472,7 @@ msgstr ""
 
 #. Label of a Int field in DocType 'Goal'
 #: hrms/hr/doctype/goal/goal.json
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:109
 msgid "Left"
 msgstr ""
 
@@ -8184,6 +9619,23 @@ msgstr ""
 msgid "Login Failed"
 msgstr ""
 
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Lohnausweis (Annual Salary Certificate)"
+msgstr ""
+
+#. Label of a Table field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Lohnausweis Mapping"
+msgstr ""
+
+#. Label of a Select field in DocType 'Swiss Lohnausweis Mapping'
+#. Label of a Select field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Lohnausweis Position"
+msgstr ""
+
 #. Label of a Float field in DocType 'Employee Checkin'
 #. Label of a Float field in DocType 'Shift Location'
 #: hrms/hr/doctype/employee_checkin/employee_checkin.json
@@ -8243,6 +9695,12 @@ msgstr ""
 #. Cycle'
 #: hrms/hr/doctype/appraisal_cycle/appraisal_cycle.json
 msgid "Manual Rating"
+msgstr ""
+
+#. Description of the 'Lohnausweis Mapping' (Table) field in DocType 'Swiss
+#. Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Map salary components to Lohnausweis Form 11 positions. Run setup to populate defaults."
 msgstr ""
 
 #: hrms/hr/report/monthly_attendance_sheet/monthly_attendance_sheet.js:38
@@ -8446,6 +9904,12 @@ msgstr ""
 msgid "Maximum leave allowed in the leave type {0} is {1}"
 msgstr ""
 
+#. Description of the 'French Telework Threshold (%)' (Percent) field in
+#. DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Maximum telework percentage from France before source tax rules change."
+msgstr ""
+
 #: hrms/hr/report/monthly_attendance_sheet/monthly_attendance_sheet.js:40
 #: hrms/public/js/salary_slip_deductions_report_filters.js:23
 msgid "May"
@@ -8563,9 +10027,11 @@ msgid "Monday"
 msgstr ""
 
 #. Option for the 'Salary Paid Per' (Select) field in DocType 'Job Opening'
+#. Label of a Select field in DocType 'Cross-Border Telework Log'
 #: hrms/hr/doctype/job_opening/job_opening.json
 #: hrms/hr/report/employee_birthday/employee_birthday.js:8
 #: hrms/hr/report/monthly_attendance_sheet/monthly_attendance_sheet.js:33
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
 #: hrms/public/js/salary_slip_deductions_report_filters.js:15
 msgid "Month"
 msgstr ""
@@ -8580,6 +10046,12 @@ msgstr ""
 msgid "Month To Date(Company Currency)"
 msgstr ""
 
+#. Description of the 'Declaration Month' (Int) field in DocType 'Swissdec
+#. Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Month number (1-12) for monthly declarations."
+msgstr ""
+
 #. Option for the 'Set the frequency for holiday reminders' (Select) field in
 #. DocType 'HR Settings'
 #. Option for the 'Earned Leave Frequency' (Select) field in DocType 'Leave
@@ -8591,6 +10063,10 @@ msgstr ""
 #. Structure'
 #. Option for the 'Payroll Frequency' (Select) field in DocType 'Salary
 #. Withholding'
+#. Option for the '13th Month Mode' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#. Option for the 'Declaration Type' (Select) field in DocType 'Swissdec
+#. Declaration'
 #: hrms/hr/doctype/hr_settings/hr_settings.json
 #: hrms/hr/doctype/leave_type/leave_type.json
 #: hrms/hr/doctype/vehicle_service/vehicle_service.json
@@ -8598,6 +10074,8 @@ msgstr ""
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 msgid "Monthly"
 msgstr ""
 
@@ -8655,6 +10133,30 @@ msgstr ""
 msgid "My Requests"
 msgstr ""
 
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "NE"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "NW"
+msgstr ""
+
 #. Label of a Data field in DocType 'Salary Component'
 #: hrms/hr/doctype/leave_control_panel/leave_control_panel.js:137
 #: hrms/hr/report/employee_analytics/employee_analytics.py:31
@@ -8687,6 +10189,7 @@ msgstr ""
 #. Label of a Currency field in DocType 'Salary Structure'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:252
 #: hrms/payroll/report/salary_payments_via_ecs/salary_payments_via_ecs.py:49
 #: hrms/payroll/report/salary_register/salary_register.py:251
 msgid "Net Pay"
@@ -8712,6 +10215,16 @@ msgstr ""
 
 #: hrms/payroll/doctype/salary_structure/salary_structure.py:93
 msgid "Net pay cannot be negative"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:197
+msgid "Net salary"
+msgstr ""
+
+#. Description of the '11. Net Salary' (Currency) field in DocType 'Swiss
+#. Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Net salary = position 8 - 9 - 10.1 - 10.2 (Nettolohn)"
 msgstr ""
 
 #. Label of a Data field in DocType 'Employee Property History'
@@ -8829,6 +10342,10 @@ msgstr ""
 msgid "No Staffing Plans found for this Designation"
 msgstr ""
 
+#: hrms/regional/switzerland/swissdec_transmitter.py:232
+msgid "No XML file attached to this declaration. Please export first."
+msgstr ""
+
 #: frontend/src/views/InvalidEmployee.vue:8
 msgid "No active employee found associated with the email ID {0}. Try logging in with your employee email ID or contact your HR manager for access."
 msgstr ""
@@ -8889,12 +10406,24 @@ msgstr ""
 msgid "No employees found with selected filters and active salary structure"
 msgstr ""
 
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:52
+msgid "No employees with submitted salary slips found."
+msgstr ""
+
 #: frontend/src/components/ExpensesTable.vue:64
 msgid "No expenses added"
 msgstr ""
 
 #: hrms/public/js/templates/feedback_history.html:55
 msgid "No feedback has been received yet"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:46
+msgid "No file found for canton {0} in ZIP archive."
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:106
+msgid "No file found for canton {0} in downloaded archive."
 msgstr ""
 
 #: hrms/hr/doctype/goal/goal_list.js:94
@@ -8938,8 +10467,16 @@ msgstr ""
 msgid "No salary slips found"
 msgstr ""
 
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py:72
+msgid "No submitted salary slips found for {0} in {1}."
+msgstr ""
+
 #: frontend/src/components/ExpenseTaxesTable.vue:56
 msgid "No taxes added"
+msgstr ""
+
+#: hrms/regional/switzerland/swissdec_transmitter.py:318
+msgid "No transmission ID found. Please transmit first."
 msgstr ""
 
 #: hrms/hr/doctype/employee_checkin/employee_checkin.js:51
@@ -8980,6 +10517,11 @@ msgstr ""
 #. Label of a Int field in DocType 'Leave Type'
 #: hrms/hr/doctype/leave_type/leave_type.json
 msgid "Non-Encashable Leaves"
+msgstr ""
+
+#. Label of a Int field in DocType 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Non-Return Days"
 msgstr ""
 
 #. Option for the 'Meal Preference' (Select) field in DocType 'Travel
@@ -9027,8 +10569,10 @@ msgstr ""
 
 #. Label of a Data field in DocType 'Job Applicant'
 #. Label of a Section Break field in DocType 'Leave Allocation'
+#. Label of a Small Text field in DocType 'Cross-Border Telework Log'
 #: hrms/hr/doctype/job_applicant/job_applicant.json
 #: hrms/hr/doctype/leave_allocation/leave_allocation.json
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
 msgid "Notes"
 msgstr ""
 
@@ -9070,6 +10614,11 @@ msgstr ""
 msgid "Number Of Positions"
 msgstr ""
 
+#. Label of a Int field in DocType 'Swiss QST Tariff Bracket'
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+msgid "Number of Children"
+msgstr ""
+
 #. Label of a Int field in DocType 'Salary Withholding'
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
 msgid "Number of Withholding Cycles"
@@ -9079,6 +10628,17 @@ msgstr ""
 #. Encashment'
 #: hrms/hr/doctype/leave_encashment/leave_encashment.json
 msgid "Number of leaves eligible for encashment based on leave type settings"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "OFS/BFS Statistics"
+msgstr ""
+
+#. Option for the 'Validation' (Select) field in DocType 'Swissdec Declaration
+#. Employee'
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "OK"
 msgstr ""
 
 #: frontend/src/views/Login.vue:86
@@ -9092,6 +10652,18 @@ msgstr ""
 #. Option for the 'Log Type' (Select) field in DocType 'Employee Checkin'
 #: hrms/hr/doctype/employee_checkin/employee_checkin.json
 msgid "OUT"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "OW"
 msgstr ""
 
 #. Label of a Rating field in DocType 'Interview'
@@ -9222,6 +10794,10 @@ msgstr ""
 msgid "Only interviewers can submit feedback"
 msgstr ""
 
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:337
+msgid "Only rejected declarations can be re-transmitted. Current status: {0}"
+msgstr ""
+
 #: hrms/hr/doctype/leave_application/leave_application.py:188
 msgid "Only users with the {0} role can create backdated leave applications"
 msgstr ""
@@ -9286,6 +10862,11 @@ msgstr ""
 msgid "Orange"
 msgstr ""
 
+#. Label of a Currency field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Ordinary Taxation Threshold (CHF)"
+msgstr ""
+
 #: hrms/hr/page/organizational_chart/organizational_chart.js:4
 msgid "Organizational Chart"
 msgstr ""
@@ -9297,6 +10878,11 @@ msgstr ""
 #: hrms/hr/doctype/travel_itinerary/travel_itinerary.json
 #: hrms/hr/doctype/travel_request/travel_request.json
 msgid "Other Details"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Other Properties"
 msgstr ""
 
 #. Label of a Card Break in the HR Workspace
@@ -9312,6 +10898,46 @@ msgstr ""
 #. Label of a Table field in DocType 'Income Tax Slab'
 #: hrms/payroll/doctype/income_tax_slab/income_tax_slab.json
 msgid "Other Taxes and Charges"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:131
+msgid "Other benefits"
+msgstr ""
+
+#. Description of the '2.1 Other Benefits' (Currency) field in DocType 'Swiss
+#. Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Other benefits (Andere Leistungen)"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:223
+msgid "Other flat-rate expenses"
+msgstr ""
+
+#. Description of the '13.3 Other Flat-rate Expenses' (Currency) field in
+#. DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Other flat-rate expenses (Andere Pauschalspesen)"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:141
+msgid "Other fringe benefits"
+msgstr ""
+
+#. Description of the '2.3 Other Fringe Benefits' (Currency) field in DocType
+#. 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Other fringe benefits (Andere Naturalleistungen)"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:166
+msgid "Other income"
+msgstr ""
+
+#. Description of the '7. Other Income' (Currency) field in DocType 'Swiss
+#. Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Other income (Andere Einkommen)"
 msgstr ""
 
 #: hrms/setup.py:328
@@ -9379,6 +11005,16 @@ msgstr ""
 msgid "Owned"
 msgstr ""
 
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:156
+msgid "Ownership rights"
+msgstr ""
+
+#. Description of the '5. Ownership Rights' (Currency) field in DocType 'Swiss
+#. Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Ownership rights pursuant to ESOP (Beteiligungsrechte)"
+msgstr ""
+
 #: hrms/payroll/report/income_tax_deductions/income_tax_deductions.py:41
 msgid "PAN Number"
 msgstr ""
@@ -9393,6 +11029,18 @@ msgstr ""
 
 #: hrms/payroll/report/provident_fund_deductions/provident_fund_deductions.py:51
 msgid "PF Loan"
+msgstr ""
+
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "PRT"
+msgstr ""
+
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "PS"
 msgstr ""
 
 #. Name of a DocType
@@ -9443,6 +11091,11 @@ msgstr ""
 msgid "Parent Goal"
 msgstr ""
 
+#. Label of a Link field in DocType 'Swiss QST Tariff Bracket'
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+msgid "Parent Tariff"
+msgstr ""
+
 #: hrms/setup.py:383
 msgid "Part-time"
 msgstr ""
@@ -9491,6 +11144,10 @@ msgstr ""
 #: hrms/payroll/doctype/employee_benefit_claim/employee_benefit_claim.json
 #: hrms/payroll/doctype/salary_component/salary_component.json
 msgid "Pay Against Benefit Claim"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:107
+msgid "Pay Slip"
 msgstr ""
 
 #. Label of a Check field in DocType 'Leave Encashment'
@@ -9547,6 +11204,7 @@ msgstr ""
 #. Label of a Float field in DocType 'Salary Slip'
 #. Label of a Tab Break field in DocType 'Salary Slip'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:159
 #: hrms/payroll/report/salary_register/salary_register.py:191
 msgid "Payment Days"
 msgstr ""
@@ -9789,12 +11447,20 @@ msgstr ""
 msgid "Performance"
 msgstr ""
 
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:151
+msgid "Period"
+msgstr ""
+
 #: frontend/src/components/FormView.vue:286
 msgid "Permanently cancel {0}"
 msgstr ""
 
 #: frontend/src/components/FormView.vue:255
 msgid "Permanently submit {0}"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:128
+msgid "Permit Type"
 msgstr ""
 
 #. Label of a Data field in DocType 'Job Applicant'
@@ -9811,6 +11477,10 @@ msgstr ""
 #. Option for the 'Roster Color' (Select) field in DocType 'Shift Type'
 #: hrms/hr/doctype/shift_type/shift_type.json
 msgid "Pink"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:254
+msgid "Place"
 msgstr ""
 
 #. Label of a Int field in DocType 'Job Opening'
@@ -9836,6 +11506,10 @@ msgstr ""
 
 #: hrms/payroll/doctype/salary_slip/salary_slip.py:818
 msgid "Please assign a Salary Structure for Employee {0} applicable from or before {1} first"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:22
+msgid "Please attach a source file first."
 msgstr ""
 
 #: hrms/hr/doctype/attendance_request/attendance_request.py:41
@@ -10093,6 +11767,24 @@ msgstr ""
 msgid "Please update your status for this training event"
 msgstr ""
 
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:9
+msgid "Populate Employees"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js:7
+msgid "Populate from Salary Slips"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:82
+msgid "Populated {0} employees from salary slips."
+msgstr ""
+
+#. Description of the '15. Remarks / Bemerkungen' (Small Text) field in DocType
+#. 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Position 15: additional remarks, codes, and cross-references."
+msgstr ""
+
 #. Label of a Datetime field in DocType 'Job Opening'
 #: hrms/hr/doctype/job_opening/job_opening.json
 msgid "Posted On"
@@ -10107,6 +11799,7 @@ msgstr ""
 #. Label of a Date field in DocType 'Payroll Entry'
 #. Label of a Date field in DocType 'Salary Slip'
 #. Label of a Date field in DocType 'Salary Withholding'
+#. Label of a Date field in DocType 'Swiss Salary Certificate'
 #: frontend/src/views/employee_advance/List.vue:62
 #: hrms/hr/doctype/employee_advance/employee_advance.json
 #: hrms/hr/doctype/expense_claim/expense_claim.json
@@ -10118,6 +11811,7 @@ msgstr ""
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
 #: hrms/payroll/report/income_tax_deductions/income_tax_deductions.py:60
 #: hrms/www/jobs/index.html:95
 msgid "Posting Date"
@@ -10372,6 +12066,10 @@ msgstr ""
 msgid "Push notifications have been disabled on your site"
 msgstr ""
 
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:257
+msgid "QST import complete: {0} cantons imported for {1} {2}."
+msgstr ""
+
 #. Option for the 'Earned Leave Frequency' (Select) field in DocType 'Leave
 #. Type'
 #. Option for the 'Frequency' (Select) field in DocType 'Vehicle Service'
@@ -10415,6 +12113,8 @@ msgstr ""
 
 #. Label of a Float field in DocType 'Expense Taxes and Charges'
 #: hrms/hr/doctype/expense_taxes_and_charges/expense_taxes_and_charges.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:218
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:285
 msgid "Rate"
 msgstr ""
 
@@ -10446,6 +12146,10 @@ msgstr ""
 #. Label of a Check field in DocType 'Employee Transfer'
 #: hrms/hr/doctype/employee_transfer/employee_transfer.json
 msgid "Re-allocate Leaves"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:69
+msgid "Re-transmit"
 msgstr ""
 
 #. Label of a Check field in DocType 'PWA Notification'
@@ -10617,6 +12321,12 @@ msgstr ""
 msgid "Refuelling Details"
 msgstr ""
 
+#. Description of the '10.1 BVG Regular Contributions' (Currency) field in
+#. DocType 'Swiss Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Regular BVG/LPP contributions (Ordentliche BVG-Beiträge)"
+msgstr ""
+
 #: frontend/src/components/RequestActionSheet.vue:96
 #: hrms/hr/doctype/shift_assignment_tool/shift_assignment_tool.js:126
 msgid "Reject"
@@ -10636,6 +12346,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Job Requisition'
 #. Option for the 'Status' (Select) field in DocType 'Leave Application'
 #. Option for the 'Status' (Select) field in DocType 'Shift Request'
+#. Option for the 'Status' (Select) field in DocType 'Swissdec Declaration'
 #: frontend/src/components/ExpenseClaimSummary.vue:53
 #: frontend/src/views/leave/List.vue:30
 #: hrms/hr/doctype/employee_referral/employee_referral.json
@@ -10647,6 +12358,7 @@ msgstr ""
 #: hrms/hr/doctype/job_requisition/job_requisition.json
 #: hrms/hr/doctype/leave_application/leave_application.json
 #: hrms/hr/doctype/shift_request/shift_request.json
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 msgid "Rejected"
 msgstr ""
 
@@ -10665,10 +12377,12 @@ msgstr ""
 
 #. Label of a Date field in DocType 'Exit Interview'
 #. Label of a Date field in DocType 'Salary Withholding'
+#. Label of a Date field in DocType 'Swiss Salary Certificate'
 #: hrms/hr/doctype/exit_interview/exit_interview.json
 #: hrms/hr/doctype/full_and_final_statement/full_and_final_statement.py:41
 #: hrms/hr/report/employee_exits/employee_exits.py:37
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
 msgid "Relieving Date"
 msgstr ""
 
@@ -10700,7 +12414,9 @@ msgid "Remark"
 msgstr ""
 
 #. Label of a Text field in DocType 'Appraisal'
+#. Label of a Section Break field in DocType 'Swiss Salary Certificate'
 #: hrms/hr/doctype/appraisal/appraisal.json
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
 msgid "Remarks"
 msgstr ""
 
@@ -10870,6 +12586,16 @@ msgstr ""
 msgid "Resolved By"
 msgstr ""
 
+#. Label of a Small Text field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Response Message"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Response Status"
+msgstr ""
+
 #: hrms/setup.py:404
 msgid "Responsibilities"
 msgstr ""
@@ -10883,6 +12609,11 @@ msgstr ""
 #: hrms/hr/doctype/interview/interview.js:149
 #: hrms/hr/doctype/interview_feedback/interview_feedback.json
 msgid "Result"
+msgstr ""
+
+#. Label of a Attach field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Result XML"
 msgstr ""
 
 #. Label of a Attach field in DocType 'Employee Referral'
@@ -11021,6 +12752,7 @@ msgstr ""
 
 #. Label of a Currency field in DocType 'Salary Slip'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:258
 msgid "Rounded Total"
 msgstr ""
 
@@ -11106,6 +12838,65 @@ msgstr ""
 msgid "Rules"
 msgstr ""
 
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "SG"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "SH"
+msgstr ""
+
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "SMS"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "SO"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "SZ"
+msgstr ""
+
+#. Option for the 'Tariff Type' (Select) field in DocType 'Swiss QST Tariff'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Salaires"
+msgstr ""
+
 #. Label of a Section Break field in DocType 'Additional Salary'
 #: frontend/src/components/BottomTabs.vue:63
 #: hrms/payroll/doctype/additional_salary/additional_salary.json
@@ -11113,6 +12904,7 @@ msgid "Salary"
 msgstr ""
 
 #. Label of a Link in the Salary Payout Workspace
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:90
 #: hrms/payroll/workspace/salary_payout/salary_payout.json
 msgid "Salary Certificate"
 msgstr ""
@@ -11128,6 +12920,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Retention Bonus'
 #. Name of a DocType
 #. Label of a Link field in DocType 'Salary Structure'
+#. Label of a Link field in DocType 'Swiss Lohnausweis Mapping'
 #. Label of a Link in the Salary Payout Workspace
 #: hrms/payroll/doctype/additional_salary/additional_salary.json
 #: hrms/payroll/doctype/employee_incentive/employee_incentive.json
@@ -11135,6 +12928,7 @@ msgstr ""
 #: hrms/payroll/doctype/retention_bonus/retention_bonus.json
 #: hrms/payroll/doctype/salary_component/salary_component.json
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
 #: hrms/payroll/workspace/salary_payout/salary_payout.json
 #: hrms/public/js/utils/payroll_utils.js:23
 msgid "Salary Component"
@@ -11143,6 +12937,10 @@ msgstr ""
 #. Label of a Link field in DocType 'Gratuity Applicable Component'
 #: hrms/payroll/doctype/gratuity_applicable_component/gratuity_applicable_component.json
 msgid "Salary Component "
+msgstr ""
+
+#: hrms/regional/switzerland/api.py:29
+msgid "Salary Component '{0}' already exists. Link it to Swiss Wage Type {1} manually."
 msgstr ""
 
 #. Name of a DocType
@@ -11159,6 +12957,10 @@ msgstr ""
 #. Structure'
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
 msgid "Salary Component for timesheet based payroll."
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.js:17
+msgid "Salary Component {0} created"
 msgstr ""
 
 #: hrms/payroll/doctype/salary_component/salary_component.js:97
@@ -11422,6 +13224,16 @@ msgstr ""
 #. Subtitle of the Module Onboarding 'Payroll'
 #: hrms/payroll/module_onboarding/payroll/payroll.json
 msgid "Salary, Compensation, and more."
+msgstr ""
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:126
+msgid "Salary, wages"
+msgstr ""
+
+#. Description of the '1. Salary / Lohn' (Currency) field in DocType 'Swiss
+#. Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Salary, wages, overtime, fees (Lohn)"
 msgstr ""
 
 #: hrms/hr/report/project_profitability/project_profitability.py:148
@@ -11770,6 +13582,12 @@ msgstr ""
 msgid "Set Relieving Date for Employee: {0}"
 msgstr ""
 
+#. Description of the 'Threshold Warning' (Check) field in DocType
+#. 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Set automatically when YTD telework percentage exceeds the configured threshold."
+msgstr ""
+
 #. Description of the 'Get Employees' (Section Break) field in DocType
 #. 'Employee Attendance Tool'
 #: hrms/hr/doctype/employee_attendance_tool/employee_attendance_tool.json
@@ -12111,6 +13929,10 @@ msgstr ""
 msgid "Sick Leave"
 msgstr ""
 
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:251
+msgid "Signature employer"
+msgstr ""
+
 #: hrms/payroll/doctype/salary_structure/salary_structure.js:120
 msgid "Single Assignment"
 msgstr ""
@@ -12155,11 +13977,23 @@ msgstr ""
 msgid "Skipping Salary Structure Assignment for the following employees, as Salary Structure Assignment records already exists against them. {0}"
 msgstr ""
 
+#. Label of a Section Break field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Social Insurance Bases"
+msgstr ""
+
 #. Label of a Link field in DocType 'Job Applicant'
 #. Label of a Data field in DocType 'Employee Other Income'
+#. Label of a Section Break field in DocType 'Swiss QST Tariff'
 #: hrms/hr/doctype/job_applicant/job_applicant.json
 #: hrms/payroll/doctype/employee_other_income/employee_other_income.json
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
 msgid "Source"
+msgstr ""
+
+#. Label of a Attach field in DocType 'Swiss QST Tariff'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Source File"
 msgstr ""
 
 #. Label of a Link field in DocType 'Job Applicant'
@@ -12167,6 +14001,31 @@ msgstr ""
 #: hrms/hr/doctype/job_applicant/job_applicant.json
 #: hrms/hr/doctype/job_applicant_source/job_applicant_source.json
 msgid "Source Name"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swissdec Declaration Employee'
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "Source Tax"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Source Tax (QST)"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Source Tax (Quellensteuer)"
+msgstr ""
+
+#. Label of a Link field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Source Tax GL Account"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swiss QST Tariff'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Source URL"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Job Applicant'
@@ -12203,6 +14062,11 @@ msgstr ""
 
 #: hrms/hr/doctype/staffing_plan/staffing_plan.py:71
 msgid "Staffing Plan {0} already exist for designation {1}"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Standard Code"
 msgstr ""
 
 #. Label of a Currency field in DocType 'Income Tax Slab'
@@ -12280,6 +14144,11 @@ msgstr ""
 msgid "Start time and end time cannot be same."
 msgstr ""
 
+#. Label of a Select field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Statistical Category"
+msgstr ""
+
 #. Label of a Check field in DocType 'Salary Component'
 #. Label of a Check field in DocType 'Salary Detail'
 #: hrms/payroll/doctype/salary_component/salary_component.json
@@ -12314,10 +14183,14 @@ msgstr ""
 #. Label of a Select field in DocType 'Shift Request'
 #. Label of a Select field in DocType 'Training Event Employee'
 #. Label of a Select field in DocType 'Training Program'
+#. Label of a Section Break field in DocType 'Cross-Border Telework Log'
 #. Label of a Select field in DocType 'Gratuity'
 #. Label of a Select field in DocType 'Payroll Entry'
 #. Label of a Select field in DocType 'Salary Slip'
 #. Label of a Select field in DocType 'Salary Withholding'
+#. Label of a Select field in DocType 'Swiss QST Tariff'
+#. Label of a Section Break field in DocType 'Swissdec Declaration'
+#. Label of a Select field in DocType 'Swissdec Declaration'
 #: frontend/src/views/attendance/ShiftRequestList.vue:36
 #: frontend/src/views/employee_advance/List.vue:47
 #: frontend/src/views/leave/List.vue:35
@@ -12356,10 +14229,13 @@ msgstr ""
 #: hrms/hr/report/employee_advance_summary/employee_advance_summary.py:83
 #: hrms/hr/report/employees_working_on_a_holiday/employees_working_on_a_holiday.py:41
 #: hrms/hr/report/shift_attendance/shift_attendance.py:49
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
 #: hrms/payroll/doctype/gratuity/gratuity.json
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 msgid "Status"
 msgstr ""
 
@@ -12368,6 +14244,14 @@ msgstr ""
 #: hrms/hr/doctype/attendance/attendance.json
 #: hrms/hr/doctype/employee_attendance_tool/employee_attendance_tool.json
 msgid "Status for Other Half"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:323
+msgid "Status updated to: {0}"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:328
+msgid "Still processing: {0}"
 msgstr ""
 
 #: hrms/setup.py:401
@@ -12395,6 +14279,36 @@ msgstr ""
 #: hrms/hr/doctype/daily_work_summary_group/daily_work_summary_group.json
 #: hrms/hr/doctype/employee_grievance/employee_grievance.json
 msgid "Subject"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Subject to AC"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Subject to AVS"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Subject to IJM"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Subject to LAA"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Subject to LPP"
+msgstr ""
+
+#. Label of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Subject to Source Tax"
 msgstr ""
 
 #. Label of a Date field in DocType 'Employee Tax Exemption Proof Submission'
@@ -12467,6 +14381,8 @@ msgstr ""
 msgid "Subsidiary companies have already planned for {1} vacancies at a budget of {2}. Staffing Plan for {0} should allocate more vacancies and budget for {3} than planned for its subsidiary companies"
 msgstr ""
 
+#. Option for the 'Last Ping Status' (Select) field in DocType 'Swissdec
+#. Transmitter Settings'
 #: frontend/src/components/CheckInPanel.vue:173
 #: frontend/src/components/FormView.vue:515
 #: frontend/src/components/FormView.vue:548
@@ -12476,12 +14392,21 @@ msgstr ""
 #: hrms/hr/doctype/employee_referral/employee_referral.py:54
 #: hrms/hr/utils.py:877
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.py:1511
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
 #: hrms/public/js/utils/index.js:139
 msgid "Success"
 msgstr ""
 
 #: hrms/hr/utils.py:880
 msgid "Successfully created {0} for employees:"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:138
+msgid "Successfully fetched and imported {0} bracket records from ESTV."
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:73
+msgid "Successfully imported {0} bracket records."
 msgstr ""
 
 #: hrms/public/js/utils/index.js:160
@@ -12516,6 +14441,68 @@ msgstr ""
 #: hrms/hr/report/employee_leave_balance_summary/employee_leave_balance_summary.js:42
 #: hrms/hr/report/leave_ledger/leave_ledger.js:40
 msgid "Suspended"
+msgstr ""
+
+#. Name of a DocType
+#: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
+msgid "Swiss Lohnausweis Mapping"
+msgstr ""
+
+#. Name of a DocType
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Swiss QST Tariff"
+msgstr ""
+
+#. Name of a DocType
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+msgid "Swiss QST Tariff Bracket"
+msgstr ""
+
+#. Name of a DocType
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Swiss Salary Certificate"
+msgstr ""
+
+#. Name of a DocType
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Swiss Social Insurance Config"
+msgstr ""
+
+#. Name of a DocType
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Swiss Wage Type"
+msgstr ""
+
+#: hrms/regional/switzerland/api.py:21
+msgid "Swiss Wage Type {0} not found"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Swissdec / ELM"
+msgstr ""
+
+#. Name of a DocType
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Swissdec Declaration"
+msgstr ""
+
+#. Name of a DocType
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "Swissdec Declaration Employee"
+msgstr ""
+
+#: hrms/regional/switzerland/swissdec_transmitter.py:35
+msgid "Swissdec Gateway URL and API Key are required. Configure them in Swissdec Transmitter Settings."
+msgstr ""
+
+#. Name of a DocType
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Swissdec Transmitter Settings"
+msgstr ""
+
+#: hrms/regional/switzerland/swissdec_transmitter.py:32
+msgid "Swissdec transmission is not enabled. Configure it in Swissdec Transmitter Settings."
 msgstr ""
 
 #: hrms/payroll/doctype/salary_component/salary_component.js:83
@@ -12585,13 +14572,60 @@ msgstr ""
 #: hrms/payroll/doctype/retention_bonus/retention_bonus.json
 #: hrms/payroll/doctype/salary_structure_assignment/salary_structure_assignment.json
 #: hrms/payroll/doctype/salary_withholding/salary_withholding.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
 msgid "System Manager"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "TG"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "TI"
 msgstr ""
 
 #. Option for the 'Work Experience Calculation Method' (Select) field in
 #. DocType 'Gratuity Rule'
 #: hrms/payroll/doctype/gratuity_rule/gratuity_rule.json
 msgid "Take Exact Completed Years"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swiss QST Tariff Bracket'
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+msgid "Tariff Code"
+msgstr ""
+
+#. Label of a Select field in DocType 'Swiss QST Tariff'
+#. Label of a Data field in DocType 'Swiss QST Tariff Bracket'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:72
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+msgid "Tariff Type"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swiss QST Tariff'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Tariff Type Abbreviation"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:165
+msgid "Tariff {0} is now Active."
 msgstr ""
 
 #. Label of a Link field in DocType 'Employee Boarding Activity'
@@ -12611,6 +14645,11 @@ msgstr ""
 #. Name of a Workspace
 #: hrms/payroll/workspace/tax_&_benefits/tax_&_benefits.json
 msgid "Tax & Benefits"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swiss QST Tariff Bracket'
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+msgid "Tax Amount (CHF)"
 msgstr ""
 
 #. Label of a Currency field in DocType 'Salary Structure Assignment'
@@ -12634,6 +14673,11 @@ msgstr ""
 #. Label of a Table field in DocType 'Employee Tax Exemption Proof Submission'
 #: hrms/payroll/doctype/employee_tax_exemption_proof_submission/employee_tax_exemption_proof_submission.json
 msgid "Tax Exemption Proofs"
+msgstr ""
+
+#. Label of a Float field in DocType 'Swiss QST Tariff Bracket'
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+msgid "Tax Rate"
 msgstr ""
 
 #. Label of a Card Break in the Tax & Benefits Workspace
@@ -12708,6 +14752,30 @@ msgstr ""
 #. Label of a Link in the HR Workspace
 #: hrms/hr/page/team_updates/team_updates.js:4 hrms/hr/workspace/hr/hr.json
 msgid "Team Updates"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Telework %"
+msgstr ""
+
+#. Label of a Int field in DocType 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Telework Days"
+msgstr ""
+
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.py:21
+msgid "Telework days ({0}) cannot exceed total work days ({1})."
+msgstr ""
+
+#. Description of the 'Telework %' (Percent) field in DocType 'Cross-Border
+#. Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Telework days / total work days × 100."
+msgstr ""
+
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.py:27
+msgid "Telework days cannot be negative."
 msgstr ""
 
 #. Label of a Data field in DocType 'Appointment Letter Template'
@@ -12892,12 +14960,25 @@ msgstr ""
 msgid "This method is only meant for developer mode"
 msgstr ""
 
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:9
+msgid "This will delete existing brackets and re-import from the attached file. Continue?"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:26
+msgid "This will download tariff data from ESTV and import brackets. Continue?"
+msgstr ""
+
 #: hrms/payroll/doctype/additional_salary/additional_salary.py:201
 msgid "This will overwrite the tax component {0} in the salary slip and tax won't be calculated based on the Income Tax Slabs"
 msgstr ""
 
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.js:395
 msgid "This will submit Salary Slips and create accrual Journal Entry. Do you want to proceed?"
+msgstr ""
+
+#. Label of a Check field in DocType 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Threshold Warning"
 msgstr ""
 
 #: frontend/src/components/AttendanceCalendar.vue:116
@@ -13099,11 +15180,23 @@ msgid "Today {0} completed {1} {2} at our Company! 🎉"
 msgstr ""
 
 #. Label of a Currency field in DocType 'Expense Taxes and Charges'
+#. Label of a Section Break field in DocType 'Swiss Salary Certificate'
 #: hrms/hr/doctype/expense_taxes_and_charges/expense_taxes_and_charges.json
 #: hrms/hr/report/daily_work_summary_replies/daily_work_summary_replies.py:29
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
 #: hrms/payroll/report/provident_fund_deductions/provident_fund_deductions.py:52
 #: hrms/payroll/report/salary_payments_based_on_payment_mode/salary_payments_based_on_payment_mode.py:40
 msgid "Total"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Total AC Salary"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Total AVS Salary"
 msgstr ""
 
 #: hrms/hr/report/monthly_attendance_sheet/monthly_attendance_sheet.py:149
@@ -13183,6 +15276,10 @@ msgstr ""
 msgid "Total Deduction (Company Currency)"
 msgstr ""
 
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:239
+msgid "Total Deductions"
+msgstr ""
+
 #: hrms/hr/report/monthly_attendance_sheet/monthly_attendance_sheet.py:174
 msgid "Total Early Exits"
 msgstr ""
@@ -13195,6 +15292,14 @@ msgstr ""
 #. Label of a Currency field in DocType 'Salary Slip'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 msgid "Total Earnings"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:306
+msgid "Total Employer Contributions"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:312
+msgid "Total Employer Cost"
 msgstr ""
 
 #. Label of a Currency field in DocType 'Staffing Plan'
@@ -13248,6 +15353,11 @@ msgstr ""
 
 #: hrms/setup.py:796
 msgid "Total Interest Amount"
+msgstr ""
+
+#. Label of a Currency field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Total LPP Salary"
 msgstr ""
 
 #: hrms/hr/report/monthly_attendance_sheet/monthly_attendance_sheet.py:168
@@ -13336,6 +15446,11 @@ msgstr ""
 msgid "Total Taxes and Charges"
 msgstr ""
 
+#. Label of a Int field in DocType 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Total Work Days"
+msgstr ""
+
 #. Label of a Float field in DocType 'Salary Slip'
 #: hrms/hr/report/shift_attendance/shift_attendance.py:79
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
@@ -13352,6 +15467,12 @@ msgstr ""
 
 #: hrms/hr/doctype/leave_allocation/leave_allocation.py:162
 msgid "Total allocated leaves {0} cannot be less than already approved leaves {1} for the period"
+msgstr ""
+
+#. Description of the 'Total Work Days' (Int) field in DocType 'Cross-Border
+#. Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Total contractual work days in this month."
 msgstr ""
 
 #: hrms/payroll/doctype/salary_structure/salary_structure.py:170
@@ -13398,6 +15519,10 @@ msgstr ""
 
 #: hrms/hr/doctype/appraisal/appraisal.py:156 hrms/mixins/appraisal.py:17
 msgid "Total weightage for all {0} must add up to 100. Currently, it is {1}%"
+msgstr ""
+
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.py:30
+msgid "Total work days cannot be negative."
 msgstr ""
 
 #. Label of a Float field in DocType 'Gratuity Rule'
@@ -13550,6 +15675,52 @@ msgstr ""
 msgid "Transfer Date"
 msgstr ""
 
+#. Label of a Section Break field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Transmission"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Transmission Files"
+msgstr ""
+
+#. Label of a Data field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Transmission ID"
+msgstr ""
+
+#. Label of a Long Text field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Transmission Log"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:273
+msgid "Transmission accepted. Declaration ID: {0}"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:285
+msgid "Transmission rejected: {0}"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:278
+msgid "Transmission sent. Awaiting response. Transmission ID: {0}"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:42
+msgid "Transmit"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Transmitted"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Transmitted On"
+msgstr ""
+
 #. Label of a Card Break in the Expense Claims Workspace
 #: hrms/hr/workspace/expense_claims/expense_claims.json hrms/setup.py:329
 msgid "Travel"
@@ -13609,9 +15780,11 @@ msgstr ""
 #. Label of a Select field in DocType 'Training Event'
 #. Label of a Select field in DocType 'Vehicle Service'
 #. Label of a Select field in DocType 'Salary Component'
+#. Label of a Select field in DocType 'Swiss Wage Type'
 #: hrms/hr/doctype/training_event/training_event.json
 #: hrms/hr/doctype/vehicle_service/vehicle_service.json
 #: hrms/payroll/doctype/salary_component/salary_component.json
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
 #: hrms/payroll/report/salary_payments_via_ecs/salary_payments_via_ecs.js:12
 msgid "Type"
 msgstr ""
@@ -13620,6 +15793,24 @@ msgstr ""
 #. Detail'
 #: hrms/payroll/doctype/employee_tax_exemption_proof_submission_detail/employee_tax_exemption_proof_submission_detail.json
 msgid "Type of Proof"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "UR"
+msgstr ""
+
+#. Description of the 'Gateway URL' (Data) field in DocType 'Swissdec
+#. Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "URL of the Swissdec Gateway service (e.g., http://192.168.8.240:8745)"
 msgstr ""
 
 #: hrms/payroll/doctype/employee_benefit_claim/employee_benefit_claim.py:116
@@ -13643,6 +15834,12 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Interview'
 #: hrms/hr/doctype/interview/interview.json
 msgid "Under Review"
+msgstr ""
+
+#. Description of the 'Instance ID' (Data) field in DocType 'Swissdec
+#. Transmitter Settings'
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Unique identifier for this HRMS instance (e.g., prod, staging, test)"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'HR Settings'
@@ -13722,6 +15919,10 @@ msgstr ""
 
 #: hrms/hr/doctype/appraisal_cycle/appraisal_cycle.py:158
 msgid "Unsubmitted Appraisals"
+msgstr ""
+
+#: hrms/regional/switzerland/swissdec_transmitter.py:72
+msgid "Unsupported HTTP method: {0}"
 msgstr ""
 
 #: hrms/hr/report/employee_hours_utilization_based_on_timesheet/employee_hours_utilization_based_on_timesheet.py:356
@@ -13861,6 +16062,36 @@ msgstr ""
 msgid "Utilization"
 msgstr ""
 
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "VD"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "VS"
+msgstr ""
+
+#. Option for the 'Statistical Category' (Select) field in DocType 'Swiss Wage
+#. Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "VU"
+msgstr ""
+
 #. Label of a Int field in DocType 'Job Opening'
 #. Label of a Int field in DocType 'Staffing Plan Detail'
 #: hrms/hr/doctype/job_opening/job_opening.json
@@ -13876,13 +16107,48 @@ msgstr ""
 msgid "Vacancies fulfilled"
 msgstr ""
 
+#. Label of a Date field in DocType 'Swiss QST Tariff'
+#. Label of a Date field in DocType 'Swiss QST Tariff Bracket'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_qst_tariff_bracket/swiss_qst_tariff_bracket.json
+msgid "Valid From"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:20
+msgid "Validate"
+msgstr ""
+
 #. Label of a Check field in DocType 'Payroll Entry'
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
 msgid "Validate Attendance"
 msgstr ""
 
+#. Option for the 'Status' (Select) field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Validated"
+msgstr ""
+
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.js:378
 msgid "Validating Employee Attendance..."
+msgstr ""
+
+#. Label of a Select field in DocType 'Swissdec Declaration Employee'
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "Validation"
+msgstr ""
+
+#. Label of a Long Text field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Validation Log"
+msgstr ""
+
+#. Label of a Small Text field in DocType 'Swissdec Declaration Employee'
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "Validation Notes"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:150
+msgid "Validation complete: {0} errors, {1} warnings."
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Job Offer Term'
@@ -14002,16 +16268,24 @@ msgstr ""
 msgid "WARNING: Loan Management module has been separated from ERPNext."
 msgstr ""
 
+#. Label of a Data field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Wage Type Name"
+msgstr ""
+
 #: hrms/setup.py:392
 msgid "Walk In"
 msgstr ""
 
+#. Option for the 'Validation' (Select) field in DocType 'Swissdec Declaration
+#. Employee'
 #: hrms/hr/doctype/leave_application/leave_application.py:456
 #: hrms/payroll/doctype/additional_salary/additional_salary.py:204
 #: hrms/payroll/doctype/salary_component/salary_component.py:56
 #: hrms/payroll/doctype/salary_structure/salary_structure.js:321
 #: hrms/payroll/doctype/salary_structure/salary_structure.py:52
 #: hrms/payroll/doctype/salary_structure/salary_structure.py:132
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
 msgid "Warning"
 msgstr ""
 
@@ -14025,6 +16299,10 @@ msgstr ""
 
 #: hrms/hr/doctype/leave_application/leave_application.py:390
 msgid "Warning: Leave application contains following block dates"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py:110
+msgid "Warning: No Lohnausweis mapping found in Swiss Social Insurance Config."
 msgstr ""
 
 #: hrms/hr/doctype/shift_assignment/shift_assignment.py:91
@@ -14089,6 +16367,16 @@ msgstr ""
 msgid "Withheld"
 msgstr ""
 
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:202
+msgid "Withholding tax"
+msgstr ""
+
+#. Description of the '12. Withholding Tax' (Currency) field in DocType 'Swiss
+#. Salary Certificate'
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Withholding tax deducted (Quellensteuerabzug)"
+msgstr ""
+
 #. Label of a Check field in DocType 'HR Settings'
 #: hrms/hr/doctype/hr_settings/hr_settings.json
 msgid "Work Anniversaries "
@@ -14097,6 +16385,11 @@ msgstr ""
 #: hrms/controllers/employee_reminders.py:278
 #: hrms/controllers/employee_reminders.py:285
 msgid "Work Anniversary Reminder"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "Work Days"
 msgstr ""
 
 #. Label of a Date field in DocType 'Compensatory Leave Request'
@@ -14140,6 +16433,7 @@ msgstr ""
 
 #. Label of a Float field in DocType 'Salary Slip'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:155
 msgid "Working Days"
 msgstr ""
 
@@ -14188,9 +16482,44 @@ msgstr ""
 msgid "Workshop"
 msgstr ""
 
+#. Label of a Attach field in DocType 'Swissdec Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "XML File"
+msgstr ""
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:238
+msgid "XML exported successfully: {0}"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:192
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:220
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:287
+msgid "YTD"
+msgstr ""
+
+#. Label of a Int field in DocType 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "YTD Assignment Days"
+msgstr ""
+
+#. Label of a Int field in DocType 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "YTD Non-Return Days"
+msgstr ""
+
+#. Label of a Percent field in DocType 'Cross-Border Telework Log'
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+msgid "YTD Telework %"
+msgstr ""
+
 #. Option for the 'Salary Paid Per' (Select) field in DocType 'Job Opening'
+#. Label of a Int field in DocType 'Cross-Border Telework Log'
+#. Label of a Int field in DocType 'Swiss QST Tariff'
 #: hrms/hr/doctype/job_opening/job_opening.json
 #: hrms/hr/report/monthly_attendance_sheet/monthly_attendance_sheet.js:68
+#: hrms/payroll/doctype/cross_border_telework_log/cross_border_telework_log.json
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:65
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
 #: hrms/public/js/salary_slip_deductions_report_filters.js:36
 msgid "Year"
 msgstr ""
@@ -14206,6 +16535,12 @@ msgstr ""
 #. Label of a Currency field in DocType 'Salary Slip'
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 msgid "Year To Date(Company Currency)"
+msgstr ""
+
+#. Option for the 'Declaration Type' (Select) field in DocType 'Swissdec
+#. Declaration'
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Year-End"
 msgstr ""
 
 #. Option for the 'Earned Leave Frequency' (Select) field in DocType 'Leave
@@ -14311,6 +16646,30 @@ msgstr ""
 
 #: frontend/src/views/Login.vue:61
 msgid "Your password has expired. Please reset your password to continue"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "ZG"
+msgstr ""
+
+#. Option for the 'Canton' (Select) field in DocType 'Swiss QST Tariff'
+#. Option for the 'Canton' (Select) field in DocType 'Swiss Social Insurance
+#. Config'
+#. Option for the 'Default Taxation Canton' (Select) field in DocType 'Swiss
+#. Social Insurance Config'
+#. Option for the 'FAK Canton' (Select) field in DocType 'Swiss Social
+#. Insurance Config'
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "ZH"
 msgstr ""
 
 #: hrms/hr/doctype/compensatory_leave_request/compensatory_leave_request.py:100
@@ -14510,6 +16869,10 @@ msgstr ""
 
 #: hrms/hr/doctype/leave_allocation/leave_allocation.py:356
 msgid "{0} leaves were manually allocated by {1} on {2}"
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.py:37
+msgid "{0} must be between 0 and 100."
 msgstr ""
 
 #: hrms/hr/doctype/training_feedback/training_feedback.py:14

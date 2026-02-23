@@ -1,0 +1,101 @@
+{
+	"actions": [],
+	"creation": "2026-02-23 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"enabled",
+		"column_break_conn",
+		"gateway_url",
+		"api_key",
+		"instance_id",
+		"section_status",
+		"last_ping",
+		"last_ping_status",
+		"column_break_status",
+		"last_ping_output"
+	],
+	"fields": [
+		{
+			"default": "0",
+			"fieldname": "enabled",
+			"fieldtype": "Check",
+			"label": "Enable Transmission"
+		},
+		{
+			"fieldname": "column_break_conn",
+			"fieldtype": "Section Break",
+			"label": "Gateway Connection"
+		},
+		{
+			"description": "URL of the Swissdec Gateway service (e.g., http://192.168.8.240:8745)",
+			"fieldname": "gateway_url",
+			"fieldtype": "Data",
+			"label": "Gateway URL",
+			"mandatory_depends_on": "eval:doc.enabled"
+		},
+		{
+			"fieldname": "api_key",
+			"fieldtype": "Password",
+			"label": "API Key",
+			"mandatory_depends_on": "eval:doc.enabled"
+		},
+		{
+			"description": "Unique identifier for this HRMS instance (e.g., prod, staging, test)",
+			"fieldname": "instance_id",
+			"fieldtype": "Data",
+			"label": "Instance ID",
+			"mandatory_depends_on": "eval:doc.enabled"
+		},
+		{
+			"fieldname": "section_status",
+			"fieldtype": "Section Break",
+			"label": "Connection Status"
+		},
+		{
+			"fieldname": "last_ping",
+			"fieldtype": "Datetime",
+			"label": "Last Ping",
+			"read_only": 1
+		},
+		{
+			"fieldname": "last_ping_status",
+			"fieldtype": "Select",
+			"label": "Last Ping Status",
+			"options": "\nSuccess\nFailed",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_status",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "last_ping_output",
+			"fieldtype": "Small Text",
+			"label": "Last Ping Output",
+			"read_only": 1
+		}
+	],
+	"issingle": 1,
+	"links": [],
+	"modified": "2026-02-23 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Swissdec Transmitter Settings",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"print": 1,
+			"read": 1,
+			"role": "HR Manager",
+			"share": 1,
+			"write": 1
+		}
+	],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"track_changes": 1
+}

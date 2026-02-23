@@ -238,3 +238,123 @@ class SwissdecDeclaration(Document):
 			_("XML exported successfully: {0}").format(filename),
 			indicator="green",
 		)
+
+	@frappe.whitelist()
+	def transmit(self):
+		"""Transmit the exported XML via the Swissdec Gateway."""
+		from hrms.regional.switzerland.swissdec_transmitter import transmit_declaration
+
+		if self.status != "Exported":
+			frappe.throw(
+				_("Declaration must be in 'Exported' status to transmit. Current status: {0}").format(
+					self.status
+				)
+			)
+
+		result = transmit_declaration(self.name)
+
+		self.transmission_id = result.get("transmission_id")
+		self.transmitted_on = now_datetime()
+		self.declaration_id = result.get("declaration_id")
+		self.response_status = result.get("response_status")
+		self.response_message = result.get("response_status")
+		self.transmission_log = result.get("transmission_log")
+
+		if result.get("result_file_url"):
+			self.result_xml = result["result_file_url"]
+		if result.get("answer_file_url"):
+			self.answer_xml = result["answer_file_url"]
+
+		self.status = result.get("final_status", "Transmitted")
+		self.save()
+
+		if self.status == "Accepted":
+			frappe.msgprint(
+				_("Transmission accepted. Declaration ID: {0}").format(self.declaration_id),
+				indicator="green",
+			)
+		elif self.status == "Transmitted":
+			frappe.msgprint(
+				_("Transmission sent. Awaiting response. Transmission ID: {0}").format(
+					self.transmission_id
+				),
+				indicator="blue",
+			)
+		else:
+			frappe.msgprint(
+				_("Transmission rejected: {0}").format(self.response_status),
+				indicator="red",
+			)
+
+	@frappe.whitelist()
+	def check_status(self):
+		"""Check the status of a pending (async) transmission."""
+		from hrms.regional.switzerland.swissdec_transmitter import check_transmission_status
+
+		if self.status != "Transmitted":
+			frappe.throw(
+				_("Can only check status for 'Transmitted' declarations. Current status: {0}").format(
+					self.status
+				)
+			)
+
+		result = check_transmission_status(self.name)
+
+		new_status = result.get("status")
+		if new_status in ("Accepted", "Rejected"):
+			self.status = new_status
+			self.response_status = result.get("message")
+			if result.get("declaration_id"):
+				self.declaration_id = result["declaration_id"]
+
+			# Append to transmission log
+			log_update = (
+				f"\n\n--- Status Check: {now_datetime()} ---\n"
+				f"Status: {new_status}\n"
+				f"Message: {result.get('message', '')}\n"
+			)
+			if result.get("output"):
+				log_update += f"Output: {result['output']}\n"
+			self.transmission_log = (self.transmission_log or "") + log_update
+
+			self.save()
+
+			frappe.msgprint(
+				_("Status updated to: {0}").format(new_status),
+				indicator="green" if new_status == "Accepted" else "red",
+			)
+		else:
+			frappe.msgprint(
+				_("Still processing: {0}").format(result.get("message", "")),
+				indicator="blue",
+			)
+
+	@frappe.whitelist()
+	def retransmit(self):
+		"""Reset a rejected declaration to Exported status and re-transmit."""
+		if self.status != "Rejected":
+			frappe.throw(
+				_("Only rejected declarations can be re-transmitted. Current status: {0}").format(
+					self.status
+				)
+			)
+
+		# Clear previous transmission data
+		self.transmission_id = None
+		self.transmitted_on = None
+		self.declaration_id = None
+		self.response_status = None
+		self.response_message = None
+		self.result_xml = None
+		self.answer_xml = None
+
+		# Keep the transmission log for history
+		self.transmission_log = (
+			(self.transmission_log or "") + f"\n\n--- Re-transmission initiated: {now_datetime()} ---\n"
+		)
+
+		self.status = "Exported"
+		self.save()
+
+		# Now transmit
+		self.transmit()

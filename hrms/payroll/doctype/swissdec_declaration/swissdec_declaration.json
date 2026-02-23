@@ -32,7 +32,18 @@
 		"exported_on",
 		"elm_version",
 		"section_employees",
-		"employees"
+		"employees",
+		"section_transmission",
+		"transmission_id",
+		"transmitted_on",
+		"declaration_id",
+		"column_break_tx",
+		"response_status",
+		"response_message",
+		"section_tx_files",
+		"result_xml",
+		"answer_xml",
+		"transmission_log"
 	],
 	"fields": [
 		{
@@ -210,6 +221,72 @@
 			"fieldtype": "Table",
 			"label": "Employees",
 			"options": "Swissdec Declaration Employee"
+		},
+		{
+			"collapsible": 1,
+			"depends_on": "eval:doc.status && ['Exported','Transmitted','Accepted','Rejected'].includes(doc.status)",
+			"fieldname": "section_transmission",
+			"fieldtype": "Section Break",
+			"label": "Transmission"
+		},
+		{
+			"fieldname": "transmission_id",
+			"fieldtype": "Data",
+			"label": "Transmission ID",
+			"read_only": 1
+		},
+		{
+			"fieldname": "transmitted_on",
+			"fieldtype": "Datetime",
+			"label": "Transmitted On",
+			"read_only": 1
+		},
+		{
+			"fieldname": "declaration_id",
+			"fieldtype": "Data",
+			"label": "Declaration ID (Swissdec)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_tx",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "response_status",
+			"fieldtype": "Data",
+			"label": "Response Status",
+			"read_only": 1
+		},
+		{
+			"fieldname": "response_message",
+			"fieldtype": "Small Text",
+			"label": "Response Message",
+			"read_only": 1
+		},
+		{
+			"collapsible": 1,
+			"depends_on": "eval:doc.transmission_id",
+			"fieldname": "section_tx_files",
+			"fieldtype": "Section Break",
+			"label": "Transmission Files"
+		},
+		{
+			"fieldname": "result_xml",
+			"fieldtype": "Attach",
+			"label": "Result XML",
+			"read_only": 1
+		},
+		{
+			"fieldname": "answer_xml",
+			"fieldtype": "Attach",
+			"label": "Answer XML",
+			"read_only": 1
+		},
+		{
+			"fieldname": "transmission_log",
+			"fieldtype": "Long Text",
+			"label": "Transmission Log",
+			"read_only": 1
 		}
 	],
 	"links": [],

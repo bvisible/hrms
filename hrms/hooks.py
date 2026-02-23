@@ -228,6 +228,7 @@ scheduler_events = {
 	],
 	"hourly": [
 		"hrms.hr.doctype.daily_work_summary_group.daily_work_summary_group.trigger_emails",
+		"hrms.regional.switzerland.swissdec_transmitter.poll_pending_transmissions",
 	],
 	"hourly_long": [
 		"hrms.hr.doctype.shift_type.shift_type.update_last_sync_of_checkin",
