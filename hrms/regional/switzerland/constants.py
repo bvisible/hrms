@@ -66,15 +66,16 @@ SWISS_CANTONS = [
 ]
 
 # Map of component names to config rate fields
-# (component_name: (config_field, is_employer_component))
+# (component_name: (config_field, is_employer_component, base_type))
+# base_type maps to the key in the dict returned by _get_insurance_base_totals()
 RATE_BASED_COMPONENTS = {
-	"AVS/AI/APG Employee": ("avs_rate_employee", False),
-	"AVS/AI/APG Employer": ("avs_rate_employer", True),
-	"LAA Professional Employer": ("laa_professional_rate", True),
-	"LAA Non-Professional Employee": ("laa_nonprofessional_rate", False),
-	"IJM/KTG Employee": ("ijm_rate_employee", False),
-	"IJM/KTG Employer": ("ijm_rate_employer", True),
-	"Family Allowances Employer": ("family_allowance_rate", True),
+	"AVS/AI/APG Employee": ("avs_rate_employee", False, "avs_base"),
+	"AVS/AI/APG Employer": ("avs_rate_employer", True, "avs_base"),
+	"LAA Professional Employer": ("laa_professional_rate", True, "laa_base"),
+	"LAA Non-Professional Employee": ("laa_nonprofessional_rate", False, "laa_base"),
+	"IJM/KTG Employee": ("ijm_rate_employee", False, "ijm_base"),
+	"IJM/KTG Employer": ("ijm_rate_employer", True, "ijm_base"),
+	"Family Allowances Employer": ("family_allowance_rate", True, "avs_base"),
 }
 
 # Lohnausweis Form 11 — position to DocType field mapping
@@ -100,15 +101,33 @@ POSITION_FIELD_MAP = {
 
 # Default mapping of Swiss salary components to Lohnausweis positions
 DEFAULT_LOHNAUSWEIS_MAPPING = [
+	# Earnings — position 1 (regular salary)
 	{"salary_component": "Basic", "lohnausweis_position": "1"},
 	{"salary_component": "13th Month Salary", "lohnausweis_position": "1"},
+	{"salary_component": "Overtime Pay", "lohnausweis_position": "1"},
+	{"salary_component": "Vacation Allowance", "lohnausweis_position": "1"},
+	# Earnings — position 3 (irregular benefits)
+	{"salary_component": "Bonus", "lohnausweis_position": "3"},
+	# Earnings — position 7 (other income / third-party benefits)
+	{"salary_component": "APG Allowance", "lohnausweis_position": "7"},
+	{"salary_component": "IJM Sickness Allowance", "lohnausweis_position": "7"},
+	{"salary_component": "Maternity Allowance", "lohnausweis_position": "7"},
+	{"salary_component": "Child Allowance", "lohnausweis_position": "7"},
+	# Deductions — position 9 (AVS/AC/AANP)
 	{"salary_component": "AVS/AI/APG Employee", "lohnausweis_position": "9"},
 	{"salary_component": "AC/ALV Employee", "lohnausweis_position": "9"},
 	{"salary_component": "AC Solidarity Employee", "lohnausweis_position": "9"},
 	{"salary_component": "LAA Non-Professional Employee", "lohnausweis_position": "9"},
 	{"salary_component": "IJM/KTG Employee", "lohnausweis_position": "9"},
+	# Deductions — position 10.1 (LPP/BVG)
 	{"salary_component": "LPP/BVG Employee", "lohnausweis_position": "10.1"},
+	# Deductions — position 12 (withholding tax)
 	{"salary_component": "Source Tax Employee", "lohnausweis_position": "12"},
+	# Earnings — position 13 (expense reimbursements)
+	{"salary_component": "Travel Expenses", "lohnausweis_position": "13.1.1"},
+	{"salary_component": "Car Expenses", "lohnausweis_position": "13.1.1"},
+	{"salary_component": "Meal Expenses", "lohnausweis_position": "13.1.1"},
+	{"salary_component": "Flat-Rate Representation Expenses", "lohnausweis_position": "13.2.1"},
 ]
 
 # Source Tax (Quellensteuer) — cantons using the annual calculation model

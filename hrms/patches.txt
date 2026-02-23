@@ -35,3 +35,5 @@ hrms.patches.v15_0.update_advance_payment_ledger_amount #2025-09-23
 hrms.patches.v15_0.call_set_total_advance_paid_on_advance_documents #2025-09-23
 hrms.patches.v15_0.add_leave_type_permission_for_ess
 hrms.patches.v15_0.add_swiss_qst_index
+hrms.patches.v15_0.create_swiss_wage_type_catalog
+hrms.patches.v15_0.set_swiss_insurance_flags_on_components

@@ -42,18 +42,17 @@ def update_swiss_social_contributions(doc, method):
 	if not base_monthly:
 		return
 
-	# Gross pay = sum of all earnings (including 13th month if added).
-	# Swiss law requires ALL salary earnings to be subject to social charges.
-	# NOTE: Expense reimbursements (Spesen) are NOT subject to social charges
-	# if covered by an approved expense regulation (Spesenreglement). They must
-	# be processed via the Expense Claim module, not as salary earning components.
-	gross_pay = sum(flt(row.default_amount) for row in doc.get("earnings"))
+	# Compute per-insurance-base totals from earnings.
+	# Each earning's Salary Component has ch_subject_to_* flags that determine
+	# which insurance bases it contributes to. Falls back to sum(all earnings)
+	# if no flags are configured (backward compatibility).
+	bases = _get_insurance_base_totals(doc)
 
-	# Update rate-based components (AVS, LAA, IJM, Family) on gross_pay
-	updated = _update_rate_based_components(doc, config, gross_pay) or updated
+	# Update rate-based components using the appropriate base for each
+	updated = _update_rate_based_components(doc, config, bases) or updated
 
-	# Update AC/ALV with ceiling tracking on gross_pay
-	updated = _update_ac_components(doc, config, gross_pay) or updated
+	# Update AC/ALV with ceiling tracking using the AC base
+	updated = _update_ac_components(doc, config, bases["ac_base"]) or updated
 
 	# Update LPP/BVG: annualize using base_monthly * multiplier (13 if 13th enabled)
 	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
@@ -62,10 +61,121 @@ def update_swiss_social_contributions(doc, method):
 
 	# Update Source Tax (Quellensteuer) if enabled
 	if config.get("qst_enabled") and employee.get("ch_qst_subject"):
-		updated = _update_source_tax(doc, config, employee, gross_pay) or updated
+		updated = _update_source_tax(doc, config, employee, bases["imp_base"]) or updated
 
 	if updated:
 		_recalculate_totals(doc)
+
+
+def _get_insurance_base_totals(doc):
+	"""Compute per-insurance-base totals from earnings.
+
+	For each earning row, looks up the Salary Component's ch_subject_to_* flags
+	and accumulates amounts into the corresponding base totals.
+
+	Backward compatibility: if NO earning has any ch_subject_to_* flag set
+	(all are 0 or NULL), falls back to sum(all earnings) for all bases.
+	This handles installations where the flags have not yet been configured.
+
+	Returns:
+		dict with keys: avs_base, ac_base, laa_base, ijm_base, lpp_base, imp_base, gross_total
+	"""
+	gross_total = 0
+	avs_base = 0
+	ac_base = 0
+	laa_base = 0
+	ijm_base = 0
+	lpp_base = 0
+	imp_base = 0
+	any_flag_configured = False
+
+	for row in doc.get("earnings"):
+		amount = flt(row.default_amount)
+		gross_total += amount
+
+		# Fetch insurance base flags from the Salary Component
+		flags = _get_component_insurance_flags(row.salary_component)
+
+		if flags["has_flags"]:
+			any_flag_configured = True
+			if flags["avs"]:
+				avs_base += amount
+			if flags["ac"]:
+				ac_base += amount
+			if flags["laa"]:
+				laa_base += amount
+			if flags["ijm"]:
+				ijm_base += amount
+			if flags["lpp"]:
+				lpp_base += amount
+			if flags["imp"]:
+				imp_base += amount
+		else:
+			# No flags configured on this component — accumulate into all bases
+			avs_base += amount
+			ac_base += amount
+			laa_base += amount
+			ijm_base += amount
+			lpp_base += amount
+			imp_base += amount
+
+	# Backward compatibility: if no component had any flag configured,
+	# all bases equal gross_total (same as the old behavior)
+	if not any_flag_configured:
+		return {
+			"avs_base": gross_total,
+			"ac_base": gross_total,
+			"laa_base": gross_total,
+			"ijm_base": gross_total,
+			"lpp_base": gross_total,
+			"imp_base": gross_total,
+			"gross_total": gross_total,
+		}
+
+	return {
+		"avs_base": avs_base,
+		"ac_base": ac_base,
+		"laa_base": laa_base,
+		"ijm_base": ijm_base,
+		"lpp_base": lpp_base,
+		"imp_base": imp_base,
+		"gross_total": gross_total,
+	}
+
+
+def _get_component_insurance_flags(component_name):
+	"""Get the Swiss social insurance base flags for a Salary Component.
+
+	Returns a dict with boolean flags for each insurance base plus a
+	has_flags indicator that is True if at least one flag is explicitly set.
+	Uses frappe.get_cached_value for performance.
+	"""
+	fields = [
+		"ch_subject_to_avs",
+		"ch_subject_to_ac",
+		"ch_subject_to_laa",
+		"ch_subject_to_ijm",
+		"ch_subject_to_lpp",
+		"ch_subject_to_imp",
+	]
+
+	values = frappe.get_cached_value("Salary Component", component_name, fields, as_dict=True)
+
+	if not values:
+		return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": False}
+
+	avs = cint(values.get("ch_subject_to_avs"))
+	ac = cint(values.get("ch_subject_to_ac"))
+	laa = cint(values.get("ch_subject_to_laa"))
+	ijm = cint(values.get("ch_subject_to_ijm"))
+	lpp = cint(values.get("ch_subject_to_lpp"))
+	imp = cint(values.get("ch_subject_to_imp"))
+
+	# has_flags is True if at least one flag is explicitly 1
+	# This distinguishes "all flags = 0" (configured as exempt) from "not configured"
+	has_flags = bool(avs or ac or laa or ijm or lpp or imp)
+
+	return {"avs": avs, "ac": ac, "laa": laa, "ijm": ijm, "lpp": lpp, "imp": imp, "has_flags": has_flags}
 
 
 def _get_base_from_earnings(doc):
@@ -76,16 +186,17 @@ def _get_base_from_earnings(doc):
 	return 0
 
 
-def _update_rate_based_components(doc, config, gross_pay):
-	"""Update components that are calculated as a simple percentage of gross pay."""
+def _update_rate_based_components(doc, config, bases):
+	"""Update components that are calculated as a simple percentage of their insurance base."""
 	updated = False
 
 	for row in doc.get("deductions"):
 		if row.salary_component in RATE_BASED_COMPONENTS:
-			rate_field, _is_employer = RATE_BASED_COMPONENTS[row.salary_component]
+			rate_field, _is_employer, base_type = RATE_BASED_COMPONENTS[row.salary_component]
 			rate = flt(config.get(rate_field))
+			base_amount = flt(bases.get(base_type, bases["gross_total"]))
 			if rate:
-				full_amount = flt(gross_pay * rate / 100, row.precision("amount"))
+				full_amount = flt(base_amount * rate / 100, row.precision("amount"))
 				prorated = _prorate_amount(doc, row, full_amount)
 				if prorated != flt(row.amount, row.precision("amount")):
 					row.default_amount = full_amount
@@ -95,13 +206,13 @@ def _update_rate_based_components(doc, config, gross_pay):
 	return updated
 
 
-def _update_ac_components(doc, config, gross_pay):
+def _update_ac_components(doc, config, ac_base):
 	"""Update AC/ALV components with annual ceiling tracking."""
 	updated = False
 
 	ytd_gross = get_ytd_gross_for_employee(doc.employee, doc.company, doc.start_date, doc.end_date)
 
-	ac_result = calculate_ac_contribution(gross_pay, ytd_gross, config)
+	ac_result = calculate_ac_contribution(ac_base, ytd_gross, config)
 
 	ac_mapping = {
 		"AC/ALV Employee": ac_result["ac_employee"],
@@ -236,7 +347,7 @@ def _add_earning_row(doc, component_name, amount):
 	row.amount = flt(amount, row.precision("amount"))
 
 
-def _update_source_tax(doc, config, employee, gross_pay):
+def _update_source_tax(doc, config, employee, imp_base):
 	"""Update the Source Tax Employee deduction based on ESTV tariff brackets."""
 	updated = False
 

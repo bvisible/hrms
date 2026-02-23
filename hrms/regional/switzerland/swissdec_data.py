@@ -8,7 +8,7 @@ into the format needed by the XML builder and validation engine.
 """
 
 import frappe
-from frappe.utils import flt, getdate
+from frappe.utils import cint, flt, getdate
 
 from hrms.regional.switzerland.constants import AC_ANNUAL_CEILING, LAA_INSURABLE_SALARY_CAP
 from hrms.regional.switzerland.utils import (
@@ -94,16 +94,19 @@ def get_annual_salary_summary(employee, company, year_start, year_end, config=No
 	total_net = sum(flt(s.net_pay) for s in slips)
 	months_worked = len(slips)
 
-	# AVS salary = total gross (all earnings subject to AVS)
-	avs_salary = total_gross
+	# Compute per-insurance-base totals from earnings
+	insurance_bases = _get_annual_insurance_base_totals(slip_names)
+	avs_salary = insurance_bases.get("avs_base", total_gross)
+	ac_base_raw = insurance_bases.get("ac_base", total_gross)
+	laa_base_raw = insurance_bases.get("laa_base", total_gross)
 
-	# AC salary = total gross, capped at annual ceiling
+	# AC salary = base capped at annual ceiling
 	ac_ceiling = flt(config.get("ac_annual_ceiling") if config else 0) or AC_ANNUAL_CEILING
-	ac_salary = min(total_gross, ac_ceiling)
+	ac_salary = min(ac_base_raw, ac_ceiling)
 
-	# LAA salary = total gross, capped at insurable salary cap
+	# LAA salary = base capped at insurable salary cap
 	laa_cap = flt(config.get("laa_insurable_salary_cap") if config else 0) or LAA_INSURABLE_SALARY_CAP
-	laa_salary = min(total_gross, laa_cap)
+	laa_salary = min(laa_base_raw, laa_cap)
 
 	# LPP coordinated salary
 	emp_doc = frappe.get_cached_doc("Employee", employee)
@@ -247,6 +250,90 @@ def _get_component_totals(slip_names):
 		result[row.salary_component] = round(flt(row.total), 2)
 
 	return result
+
+
+def _get_annual_insurance_base_totals(slip_names):
+	"""Compute per-insurance-base annual totals from earning components.
+
+	Joins Salary Detail with Salary Component to read the ch_subject_to_* flags
+	and sums amounts into per-base totals.
+
+	If no earning has any flag configured (all NULL/0), returns empty dict
+	which triggers fallback to total_gross for all bases.
+	"""
+	if not slip_names:
+		return {}
+
+	# Fetch earning amounts with their insurance base flags
+	rows = frappe.db.sql(
+		"""SELECT sd.salary_component, SUM(sd.amount) as total,
+			sc.ch_subject_to_avs, sc.ch_subject_to_ac, sc.ch_subject_to_laa,
+			sc.ch_subject_to_ijm, sc.ch_subject_to_lpp, sc.ch_subject_to_imp
+		FROM `tabSalary Detail` sd
+		LEFT JOIN `tabSalary Component` sc ON sc.name = sd.salary_component
+		WHERE sd.parent IN %s AND sd.parentfield = 'earnings'
+		GROUP BY sd.salary_component""",
+		(slip_names,),
+		as_dict=True,
+	)
+
+	if not rows:
+		return {}
+
+	avs_base = 0
+	ac_base = 0
+	laa_base = 0
+	ijm_base = 0
+	lpp_base = 0
+	imp_base = 0
+	any_flag_set = False
+
+	for row in rows:
+		amount = flt(row.total)
+		avs = cint(row.ch_subject_to_avs)
+		ac = cint(row.ch_subject_to_ac)
+		laa = cint(row.ch_subject_to_laa)
+		ijm = cint(row.ch_subject_to_ijm)
+		lpp = cint(row.ch_subject_to_lpp)
+		imp = cint(row.ch_subject_to_imp)
+
+		has_flags = bool(avs or ac or laa or ijm or lpp or imp)
+		if has_flags:
+			any_flag_set = True
+
+		if has_flags:
+			if avs:
+				avs_base += amount
+			if ac:
+				ac_base += amount
+			if laa:
+				laa_base += amount
+			if ijm:
+				ijm_base += amount
+			if lpp:
+				lpp_base += amount
+			if imp:
+				imp_base += amount
+		else:
+			# No flags configured — include in all bases (backward compat)
+			avs_base += amount
+			ac_base += amount
+			laa_base += amount
+			ijm_base += amount
+			lpp_base += amount
+			imp_base += amount
+
+	if not any_flag_set:
+		return {}
+
+	return {
+		"avs_base": round(avs_base, 2),
+		"ac_base": round(ac_base, 2),
+		"laa_base": round(laa_base, 2),
+		"ijm_base": round(ijm_base, 2),
+		"lpp_base": round(lpp_base, 2),
+		"imp_base": round(imp_base, 2),
+	}
 
 
 def _empty_salary_summary():

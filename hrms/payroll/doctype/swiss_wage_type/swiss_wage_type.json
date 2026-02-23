@@ -1,0 +1,189 @@
+{
+	"actions": [],
+	"autoname": "format:CH-WT-{code}",
+	"creation": "2026-02-23 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"code",
+		"wage_type_name",
+		"type",
+		"column_break_main",
+		"lohnausweis_position",
+		"statistical_category",
+		"section_insurance_bases",
+		"subject_to_avs",
+		"subject_to_ac",
+		"subject_to_laa",
+		"column_break_insurance",
+		"subject_to_ijm",
+		"subject_to_lpp",
+		"subject_to_imp",
+		"section_other",
+		"included_in_vacation_base",
+		"column_break_other",
+		"is_standard",
+		"is_common"
+	],
+	"fields": [
+		{
+			"fieldname": "code",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Code",
+			"reqd": 1,
+			"unique": 1
+		},
+		{
+			"fieldname": "wage_type_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Wage Type Name",
+			"reqd": 1
+		},
+		{
+			"fieldname": "type",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Type",
+			"options": "\nEarning\nDeduction\nInformational",
+			"reqd": 1
+		},
+		{
+			"fieldname": "column_break_main",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "lohnausweis_position",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Lohnausweis Position",
+			"options": "\n1\n2.1\n2.2\n2.3\n3\n4\n5\n6\n7\n9\n10.1\n10.2\n12\n13.1.1\n13.1.2\n13.2.1\n13.2.2\n13.2.3\n14"
+		},
+		{
+			"fieldname": "statistical_category",
+			"fieldtype": "Select",
+			"label": "Statistical Category",
+			"options": "\nBS\nCS\nIND\nHS\nSMS\nVU\nPRT\nCMO\nPS\nHRE\nLEC"
+		},
+		{
+			"fieldname": "section_insurance_bases",
+			"fieldtype": "Section Break",
+			"label": "Social Insurance Bases"
+		},
+		{
+			"default": "1",
+			"fieldname": "subject_to_avs",
+			"fieldtype": "Check",
+			"label": "Subject to AVS"
+		},
+		{
+			"default": "1",
+			"fieldname": "subject_to_ac",
+			"fieldtype": "Check",
+			"label": "Subject to AC"
+		},
+		{
+			"default": "1",
+			"fieldname": "subject_to_laa",
+			"fieldtype": "Check",
+			"label": "Subject to LAA"
+		},
+		{
+			"fieldname": "column_break_insurance",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "subject_to_ijm",
+			"fieldtype": "Check",
+			"label": "Subject to IJM"
+		},
+		{
+			"default": "1",
+			"fieldname": "subject_to_lpp",
+			"fieldtype": "Check",
+			"label": "Subject to LPP"
+		},
+		{
+			"default": "1",
+			"fieldname": "subject_to_imp",
+			"fieldtype": "Check",
+			"label": "Subject to Source Tax"
+		},
+		{
+			"fieldname": "section_other",
+			"fieldtype": "Section Break",
+			"label": "Other Properties"
+		},
+		{
+			"default": "0",
+			"fieldname": "included_in_vacation_base",
+			"fieldtype": "Check",
+			"label": "Included in Vacation Base"
+		},
+		{
+			"fieldname": "column_break_other",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"fieldname": "is_standard",
+			"fieldtype": "Check",
+			"label": "Standard Code",
+			"read_only_depends_on": "eval:doc.is_standard"
+		},
+		{
+			"default": "0",
+			"fieldname": "is_common",
+			"fieldtype": "Check",
+			"label": "Commonly Used"
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"links": [],
+	"modified": "2026-02-23 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Swiss Wage Type",
+	"naming_rule": "Expression",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "System Manager",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "HR Manager",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"read": 1,
+			"role": "HR User"
+		}
+	],
+	"sort_field": "code",
+	"sort_order": "ASC",
+	"states": [],
+	"title_field": "wage_type_name",
+	"track_changes": 0,
+	"show_title_field_in_link": 1
+}
