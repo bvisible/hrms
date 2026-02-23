@@ -104,15 +104,15 @@ class TestWageTypeData(unittest.TestCase):
 		self.assertEqual(wt["subject_to_lpp"], 1)
 		self.assertEqual(wt["subject_to_imp"], 1)
 
-	def test_child_allowance_exempt(self):
-		"""Child allowance (3000) should be exempt from all social charges."""
+	def test_child_allowance_flags(self):
+		"""Child allowance (3000) exempt from social charges but subject to source tax."""
 		wt = self._get_by_code("3000")
 		self.assertEqual(wt["subject_to_avs"], 0)
 		self.assertEqual(wt["subject_to_ac"], 0)
 		self.assertEqual(wt["subject_to_laa"], 0)
 		self.assertEqual(wt["subject_to_ijm"], 0)
 		self.assertEqual(wt["subject_to_lpp"], 0)
-		self.assertEqual(wt["subject_to_imp"], 0)
+		self.assertEqual(wt["subject_to_imp"], 1)  # taxable income
 
 	def test_apg_partial_flags(self):
 		"""APG (2000) should be subject to AVS+AC+IMP only."""
@@ -244,7 +244,8 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 			if comp == "Basic":
 				return {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 1, "has_flags": True}
 			elif comp == "Child Allowance":
-				return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": True}
+				# Exempt from social charges but subject to source tax
+				return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 1, "has_flags": True}
 			elif comp == "APG Allowance":
 				return {"avs": 1, "ac": 1, "laa": 0, "ijm": 0, "lpp": 0, "imp": 1, "has_flags": True}
 			return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": False}
@@ -278,8 +279,8 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 		# LPP: Basic (8000) only
 		self.assertEqual(result["lpp_base"], 8000)
 
-		# IMP: Basic (8000) + APG (1000) = 9000
-		self.assertEqual(result["imp_base"], 9000)
+		# IMP: Basic (8000) + Child Allowance (300) + APG (1000) = 9300
+		self.assertEqual(result["imp_base"], 9300)
 
 	@patch("hrms.regional.switzerland.payroll_hooks._get_component_insurance_flags")
 	def test_no_flags_configured_fallback(self, mock_flags):
@@ -348,8 +349,8 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 		def side_effect(comp):
 			if comp == "Basic":
 				return {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 1, "has_flags": True}
-			elif comp == "Child Allowance":
-				# Explicitly exempt
+			elif comp == "Travel Expenses":
+				# Explicitly exempt from everything
 				return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": True}
 			else:
 				# Not configured — goes into all bases

@@ -7,6 +7,8 @@ _ALL = {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 1}
 _NO_LPP = {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 0, "imp": 1}
 _AVS_AC = {"avs": 1, "ac": 1, "laa": 0, "ijm": 0, "lpp": 0, "imp": 1}
 _AVS_AC_LAA_IJM = {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 0, "imp": 1}
+_AVS_AC_LAA = {"avs": 1, "ac": 1, "laa": 1, "ijm": 0, "lpp": 0, "imp": 1}
+_AVS_AC_LAA_LPP = {"avs": 1, "ac": 1, "laa": 1, "ijm": 0, "lpp": 1, "imp": 0}
 _IMP_ONLY = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 1}
 _EXEMPT = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0}
 _DEDUCTION = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0}
@@ -267,30 +269,30 @@ def get_swiss_wage_types():
 		_wt(2031, "Rente accident", "Earning", "7", _IMP_ONLY, stat="PRT"),
 		_wt(2035, "Indemnité maladie", "Earning", "7", _IMP_ONLY, stat="PRT", common=1),
 		_wt(2040, "Indemnité maternité", "Earning", "7", _AVS_AC, stat="PRT", common=1),
-		_wt(2050, "Correction indemnité de tiers", "Deduction", "", _AVS_AC_LAA_IJM, stat=""),
+		_wt(2050, "Correction indemnité de tiers", "Deduction", "", _AVS_AC_LAA, stat=""),
 		_wt(2051, "Correction de salaire net", "Deduction", "", _IMP_ONLY, stat=""),
 		_wt(2060, "Déduction RHT/ITP (SM)", "Deduction", "", _IMP_ONLY, stat=""),
-		_wt(2065, "Perte de gain RHT/ITP (SH)", "Earning", "", _AVS_AC_LAA_IJM, stat=""),
+		_wt(2065, "Perte de gain RHT/ITP (SH)", "Earning", "", _AVS_AC_LAA_LPP, stat=""),
 		_wt(2070, "Indemnité de chômage", "Earning", "7", _IMP_ONLY, stat=""),
 		_wt(2075, "Délai de carence RHT/ITP", "Earning", "", _IMP_ONLY, stat=""),
 		# =====================================================================
 		# 3000-3034: Family allowances (not subject to social charges)
 		# =====================================================================
-		_wt(3000, "Allocation pour enfant", "Earning", "7", _EXEMPT, stat="CMO", common=1),
+		_wt(3000, "Allocation pour enfant", "Earning", "7", _IMP_ONLY, stat="CMO", common=1),
 		_wt(
 			3010,
 			"Allocation de formation professionnelle",
 			"Earning",
 			"7",
-			_EXEMPT,
+			_IMP_ONLY,
 			stat="CMO",
 			common=1,
 		),
-		_wt(3030, "Allocation familiale", "Earning", "7", _EXEMPT, stat="CMO"),
-		_wt(3031, "Allocation de ménage", "Earning", "7", _EXEMPT, stat="CMO"),
-		_wt(3032, "Allocation de naissance", "Earning", "3", _EXEMPT, stat="CMO", common=1),
-		_wt(3033, "Allocation de mariage", "Earning", "3", _EXEMPT, stat="CMO"),
-		_wt(3034, "Allocation pour charge d'assistance", "Earning", "7", _EXEMPT, stat="CMO"),
+		_wt(3030, "Allocation familiale", "Earning", "7", _IMP_ONLY, stat="CMO"),
+		_wt(3031, "Allocation de ménage", "Earning", "7", _IMP_ONLY, stat="CMO"),
+		_wt(3032, "Allocation de naissance", "Earning", "3", _IMP_ONLY, stat="CMO", common=1),
+		_wt(3033, "Allocation de mariage", "Earning", "3", _IMP_ONLY, stat="CMO"),
+		_wt(3034, "Allocation pour charge d'assistance", "Earning", "7", _IMP_ONLY, stat="CMO"),
 		# =====================================================================
 		# 5010-5027: AVS/AC/Family contributions (social deductions)
 		# =====================================================================
