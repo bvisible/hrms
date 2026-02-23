@@ -7,7 +7,7 @@ def execute():
 	This patch populates the Swiss Wage Type DocType with ~170 standard wage type
 	codes as defined by the Swissdec standard reference.
 	"""
-	if not frappe.db.table_exists("tabSwiss Wage Type"):
+	if not frappe.db.table_exists("Swiss Wage Type"):
 		return
 
 	from hrms.regional.switzerland.wage_type_data import get_swiss_wage_types

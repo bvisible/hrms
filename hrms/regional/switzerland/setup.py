@@ -37,7 +37,7 @@ def create_swiss_wage_types():
 	"""Create all Swiss Wage Type catalog entries from the standard reference data."""
 	from hrms.regional.switzerland.wage_type_data import get_swiss_wage_types
 
-	if not frappe.db.table_exists("tabSwiss Wage Type"):
+	if not frappe.db.table_exists("Swiss Wage Type"):
 		return
 
 	wage_types = get_swiss_wage_types()

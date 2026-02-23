@@ -3,7 +3,7 @@ import frappe
 
 def execute():
 	"""Add composite index on Swiss QST Tariff Bracket for fast lookups."""
-	if not frappe.db.table_exists("tabSwiss QST Tariff Bracket"):
+	if not frappe.db.table_exists("Swiss QST Tariff Bracket"):
 		return
 
 	# Check if index already exists
