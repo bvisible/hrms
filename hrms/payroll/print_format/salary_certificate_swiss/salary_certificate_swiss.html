@@ -19,11 +19,12 @@
 .print-format { padding: 0mm !important; margin: 0mm !important; }
 .print-format .form11 table td,
 .print-format .form11 table th { padding: 1px 8px !important; }
+.form11 { overflow: hidden; }
 @media print {
 	.print-format { width: 210mm !important; height: 297mm !important; padding: 0mm !important; }
 	.form11 { height: 297mm !important; margin-top: -6mm !important; background-position-y: -5px !important; }
 	.firstSpacer { height: 10px; }
-	.footerTable { height: 95px !important; }
+	.footerTable { height: 90px !important; }
 }
 </style>
 
@@ -269,11 +270,12 @@
 	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
 		<tr>
 			<td style="width: 220px; padding: 1px 8px !important; "></td>
-			<td style="padding: 1px 8px !important; text-align: right; ">{{ doc.position_14_description or '&nbsp;' }}</td>
+			<td style="width: 370px; padding: 1px 8px !important; ">{{ doc.position_14_description or '&nbsp;' }}</td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_14_employer_contributions) }}</td>
 		</tr>
 	</table>
 	<!-- 15. Remarks -->
-	<table style="margin-left: 75px; width: 710px; margin-top: 24px; height: 22px; ">
+	<table style="margin-left: 75px; width: 710px; margin-top: 20px; height: 22px; ">
 		<tr>
 			<td style="width: 80px; padding: 1px 8px !important; "></td>
 			<td style="padding: 1px 8px !important; ">{{ doc.position_15_remarks or '&nbsp;' }}</td>
@@ -281,7 +283,7 @@
 	</table>
 
 	<!-- Footer: Date, Signature, Company info -->
-	<table class="footerTable" style="margin-left: 75px;width: 690px;height: 90px;margin-top: 33px;">
+	<table class="footerTable" style="margin-left: 75px;width: 690px;height: 85px;margin-top: 20px;">
 		{%- set company_doc = frappe.get_cached_doc("Company", doc.company) -%}
 		<tr>
 			<td style="width: 230px; padding: 1px 8px !important; "><br>
