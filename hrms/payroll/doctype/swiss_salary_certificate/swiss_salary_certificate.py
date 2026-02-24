@@ -12,7 +12,17 @@ from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
 
 class SwissSalaryCertificate(Document):
 	def validate(self):
+		self.validate_mandatory_fields()
 		self.calculate_totals()
+
+	def validate_mandatory_fields(self):
+		"""Ensure all fields required for a valid Swiss salary certificate are present."""
+		if not self.avs_number:
+			frappe.throw(_("AVS Number is required for the salary certificate. Please update the employee record."))
+		if not self.date_of_birth:
+			frappe.throw(_("Date of Birth is required for the salary certificate. Please update the employee record."))
+		if not self.posting_date:
+			frappe.throw(_("Posting Date (certificate date) is required."))
 
 	def calculate_totals(self):
 		"""Compute positions 8 (gross) and 11 (net) from component positions."""

@@ -6,6 +6,10 @@
 	as_dict=True
 ) or {} -%}
 {%- set fiscal_year = frappe.get_cached_doc("Fiscal Year", doc.fiscal_year) -%}
+{%- set barcode_data = frappe.call(
+	"hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.get_barcode_data_for_print",
+	name=doc.name
+) -%}
 
 {%- macro fmt_amount(val) -%}
 {% if val %}{{ "{:,.0f}".format(val).replace(",", "'") }}{% endif %}
@@ -23,7 +27,11 @@
 }
 </style>
 
-<div class="form11">
+<div class="form11" style="position: relative;">
+	<!-- Page indicator -->
+	<div style="position: absolute; right: 10px; top: 5px; font-size: 9pt;">
+		Page 1/{% if barcode_data and barcode_data.page_count > 1 %}{{ barcode_data.page_count + 1 }}{% else %}1{% endif %}
+	</div>
 	<div class="firstSpacer"></div>
 	<!-- A: Salary certificate checkbox -->
 	<table class="firstTable" style="margin-left: 75px;height: 18px;margin-top: 7px;">
@@ -73,13 +81,21 @@
 		</tr>
 	</table>
 
-	<!-- Employee name and address -->
-	<table style="margin-left: 75px; margin-top: 35px; height: 130px; ">
+	<!-- H: Employee name, address and barcode -->
+	<table style="margin-left: 75px; margin-top: 35px; height: 130px; width: 690px; ">
 		<tr>
-			<td style="padding-left: 3px !important; padding-top: 4px !important; ">
+			<td style="width: 260px; vertical-align: top; padding: 2px !important; ">
+				{% if barcode_data and barcode_data.pdf417_images %}
+				<img src="data:image/png;base64,{{ barcode_data.pdf417_images[0] }}"
+					style="max-width: 250px; max-height: 120px; image-rendering: pixelated;" />
+				{% endif %}
+			</td>
+			<td style="vertical-align: top; padding: 2px 8px !important; ">
 				{{ doc.employee_name }}<br>
 				{% if employee.permanent_address %}
 				{{ employee.permanent_address.replace("\n", "<br>") }}
+				{% elif employee.current_address %}
+				{{ employee.current_address.replace("\n", "<br>") }}
 				{% endif %}
 			</td>
 		</tr>
@@ -280,42 +296,31 @@
 	</table>
 </div>
 
-<!-- eCH-0270 Barcode Page(s) -->
-{%- set barcode_data = frappe.call(
-	"hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.get_barcode_data_for_print",
-	name=doc.name
-) -%}
-
+<!-- eCH-0270 Barcode — additional pages for multi-barcode or CODE128C -->
 {% if barcode_data and barcode_data.pdf417_images %}
-{% for barcode_img in barcode_data.pdf417_images %}
+	{% if barcode_data.page_count > 1 %}
+		{# Multiple barcodes (Structured Append): first is in form, rest on separate pages #}
+		{% for barcode_img in barcode_data.pdf417_images[1:] %}
 <div style="page-break-before: always;"></div>
 <div style="text-align: center; padding-top: 15mm; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
 	<h2 style="font-size: 14pt; font-weight: 700; margin: 0 0 4px 0;">{{ _("Salary Certificate") }} / Lohnausweis</h2>
 	<div style="font-size: 9pt; color: #666; margin-bottom: 16px;">
-		{{ _("Barcode Page") }}{% if barcode_data.page_count > 1 %} ({{ loop.index }}/{{ barcode_data.page_count }}){% endif %}
+		{{ _("Barcode Page") }} ({{ loop.index + 1 }}/{{ barcode_data.page_count }})
 		&mdash; {{ doc.employee_name }} &mdash; {{ doc.fiscal_year }}
 	</div>
-
-	<!-- PDF417 2D barcode (eCH-0270) -->
 	<div style="margin: 10mm auto; padding: 5mm;">
 		<img src="data:image/png;base64,{{ barcode_img }}"
 			style="max-width: 180mm; image-rendering: pixelated;"
 			alt="PDF417 eCH-0270" />
 	</div>
-
-	<!-- CODE128C 1D identifier barcode -->
 	<div style="margin-top: 10mm;">
 		<img src="data:image/png;base64,{{ barcode_data.code128c_image }}"
-			style="height: 12mm;"
-			alt="CODE128C" />
+			style="height: 12mm;" alt="CODE128C" />
 		<div style="font-family: monospace; font-size: 9pt; margin-top: 3mm; letter-spacing: 1px;">
 			{{ barcode_data.identifier }}
 		</div>
 	</div>
-
-	<div style="margin-top: 15mm; font-size: 7pt; color: #999;">
-		eCH-0270 V1.0 &mdash; PDF417 Structured Append
-	</div>
 </div>
-{% endfor %}
+		{% endfor %}
+	{% endif %}
 {% endif %}

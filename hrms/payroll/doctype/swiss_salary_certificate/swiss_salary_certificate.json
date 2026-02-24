@@ -96,7 +96,8 @@
 			"fieldname": "certificate_type",
 			"fieldtype": "Select",
 			"label": "Certificate Type",
-			"options": "Salary\nPension"
+			"options": "Salary\nPension",
+			"reqd": 1
 		},
 		{
 			"fieldname": "free_transport",
@@ -119,20 +120,23 @@
 			"fieldname": "avs_number",
 			"fieldtype": "Data",
 			"label": "AVS Number",
-			"read_only": 1
+			"read_only": 1,
+			"reqd": 1
 		},
 		{
 			"fetch_from": "employee.date_of_birth",
 			"fieldname": "date_of_birth",
 			"fieldtype": "Date",
 			"label": "Date of Birth",
-			"read_only": 1
+			"read_only": 1,
+			"reqd": 1
 		},
 		{
 			"default": "Today",
 			"fieldname": "posting_date",
 			"fieldtype": "Date",
-			"label": "Posting Date"
+			"label": "Posting Date",
+			"reqd": 1
 		},
 		{
 			"fetch_from": "employee.date_of_joining",
