@@ -10,6 +10,9 @@
 		"employee_name",
 		"fiscal_year",
 		"company",
+		"certificate_type",
+		"free_transport",
+		"lunch_checks",
 		"column_break_header",
 		"avs_number",
 		"date_of_birth",
@@ -21,12 +24,16 @@
 		"position_2_1_other_benefits",
 		"position_2_2_board_lodging",
 		"position_2_3_other_fringe",
+		"position_2_3_description",
 		"column_break_income",
 		"position_3_irregular_benefits",
+		"position_3_description",
 		"position_4_capital_benefits",
+		"position_4_description",
 		"position_5_ownership_rights",
 		"position_6_board_of_directors",
 		"position_7_other_income",
+		"position_7_description",
 		"section_totals",
 		"position_8_gross_income",
 		"section_deductions",
@@ -37,11 +44,18 @@
 		"position_11_net_salary",
 		"position_12_withholding_tax",
 		"section_expenses",
-		"position_13_1_actual_expenses",
-		"position_13_2_flat_rate_car",
-		"position_13_3_other_flat_expenses",
+		"position_13_1_1_travel_check",
+		"position_13_1_1_travel",
+		"position_13_1_2_other_effective",
+		"position_13_1_2_description",
+		"position_13_2_1_representation",
+		"position_13_2_2_car",
+		"position_13_2_3_other_flat",
+		"position_13_2_3_description",
+		"position_13_3_education",
 		"column_break_expenses",
 		"position_14_employer_contributions",
+		"position_14_description",
 		"section_remarks",
 		"position_15_remarks",
 		"amended_from"
@@ -76,6 +90,25 @@
 			"label": "Company",
 			"options": "Company",
 			"reqd": 1
+		},
+		{
+			"default": "Salary",
+			"fieldname": "certificate_type",
+			"fieldtype": "Select",
+			"label": "Certificate Type",
+			"options": "Salary\nPension"
+		},
+		{
+			"fieldname": "free_transport",
+			"fieldtype": "Check",
+			"label": "Free Transport",
+			"description": "Free transport provided by employer"
+		},
+		{
+			"fieldname": "lunch_checks",
+			"fieldtype": "Check",
+			"label": "Lunch Checks",
+			"description": "Lunch checks or canteen meals provided"
 		},
 		{
 			"fieldname": "column_break_header",
@@ -149,6 +182,11 @@
 			"label": "2.3 Other Fringe Benefits"
 		},
 		{
+			"fieldname": "position_2_3_description",
+			"fieldtype": "Data",
+			"label": "2.3 Description"
+		},
+		{
 			"fieldname": "column_break_income",
 			"fieldtype": "Column Break"
 		},
@@ -160,11 +198,21 @@
 			"label": "3. Irregular Benefits"
 		},
 		{
+			"fieldname": "position_3_description",
+			"fieldtype": "Data",
+			"label": "3. Description"
+		},
+		{
 			"default": "0",
 			"description": "Capital benefits (Kapitalleistungen)",
 			"fieldname": "position_4_capital_benefits",
 			"fieldtype": "Currency",
 			"label": "4. Capital Benefits"
+		},
+		{
+			"fieldname": "position_4_description",
+			"fieldtype": "Data",
+			"label": "4. Description"
 		},
 		{
 			"default": "0",
@@ -186,6 +234,11 @@
 			"fieldname": "position_7_other_income",
 			"fieldtype": "Currency",
 			"label": "7. Other Income"
+		},
+		{
+			"fieldname": "position_7_description",
+			"fieldtype": "Data",
+			"label": "7. Description"
 		},
 		{
 			"fieldname": "section_totals",
@@ -251,25 +304,62 @@
 			"label": "Expense Allowances (Positions 13-14)"
 		},
 		{
-			"default": "0",
-			"description": "Effective expenses (Effektive Spesen)",
-			"fieldname": "position_13_1_actual_expenses",
-			"fieldtype": "Currency",
-			"label": "13.1 Actual Expenses"
+			"fieldname": "position_13_1_1_travel_check",
+			"fieldtype": "Check",
+			"label": "13.1.1 Effective Travel",
+			"default": 0
 		},
 		{
 			"default": "0",
-			"description": "Flat-rate car allowance (Pauschalspesen Fahrzeug)",
-			"fieldname": "position_13_2_flat_rate_car",
+			"description": "Effective travel expenses",
+			"fieldname": "position_13_1_1_travel",
 			"fieldtype": "Currency",
-			"label": "13.2 Flat-rate Car Allowance"
+			"label": "13.1.1 Travel Expenses"
 		},
 		{
 			"default": "0",
-			"description": "Other flat-rate expenses (Andere Pauschalspesen)",
-			"fieldname": "position_13_3_other_flat_expenses",
+			"description": "Other effective expenses",
+			"fieldname": "position_13_1_2_other_effective",
 			"fieldtype": "Currency",
-			"label": "13.3 Other Flat-rate Expenses"
+			"label": "13.1.2 Other Effective Expenses"
+		},
+		{
+			"fieldname": "position_13_1_2_description",
+			"fieldtype": "Data",
+			"label": "13.1.2 Description"
+		},
+		{
+			"default": "0",
+			"description": "Flat-rate representation expenses",
+			"fieldname": "position_13_2_1_representation",
+			"fieldtype": "Currency",
+			"label": "13.2.1 Representation Expenses"
+		},
+		{
+			"default": "0",
+			"description": "Flat-rate car expenses",
+			"fieldname": "position_13_2_2_car",
+			"fieldtype": "Currency",
+			"label": "13.2.2 Car Expenses"
+		},
+		{
+			"default": "0",
+			"description": "Other flat-rate expenses",
+			"fieldname": "position_13_2_3_other_flat",
+			"fieldtype": "Currency",
+			"label": "13.2.3 Other Flat-rate"
+		},
+		{
+			"fieldname": "position_13_2_3_description",
+			"fieldtype": "Data",
+			"label": "13.2.3 Description"
+		},
+		{
+			"default": "0",
+			"description": "Contributions to education and training",
+			"fieldname": "position_13_3_education",
+			"fieldtype": "Currency",
+			"label": "13.3 Education / Training"
 		},
 		{
 			"fieldname": "column_break_expenses",
@@ -281,6 +371,11 @@
 			"fieldname": "position_14_employer_contributions",
 			"fieldtype": "Currency",
 			"label": "14. Employer Contributions"
+		},
+		{
+			"fieldname": "position_14_description",
+			"fieldtype": "Data",
+			"label": "14. Description"
 		},
 		{
 			"fieldname": "section_remarks",

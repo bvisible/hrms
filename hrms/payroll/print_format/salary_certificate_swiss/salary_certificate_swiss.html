@@ -5,256 +5,267 @@
 	["lohnausweis_employer_name", "lohnausweis_employer_address"],
 	as_dict=True
 ) or {} -%}
+{%- set fiscal_year = frappe.get_cached_doc("Fiscal Year", doc.fiscal_year) -%}
 
-<style>
-	.lohnausweis {
-		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-		font-size: 9pt;
-		color: #333;
-		line-height: 1.4;
-	}
-	.lohnausweis h2 {
-		font-size: 14pt;
-		font-weight: 700;
-		text-align: center;
-		margin: 0 0 4px 0;
-	}
-	.lohnausweis .form-subtitle {
-		text-align: center;
-		font-size: 9pt;
-		color: #666;
-		margin-bottom: 16px;
-	}
-	.lohnausweis .header-table {
-		width: 100%;
-		border-collapse: collapse;
-		margin-bottom: 16px;
-	}
-	.lohnausweis .header-table td {
-		padding: 3px 8px;
-		vertical-align: top;
-		border: 1px solid #ccc;
-	}
-	.lohnausweis .header-table .section-label {
-		font-weight: 600;
-		background: #f5f5f5;
-		width: 50%;
-	}
-	.lohnausweis .pos-table {
-		width: 100%;
-		border-collapse: collapse;
-		margin-bottom: 12px;
-	}
-	.lohnausweis .pos-table th {
-		background: #f5f5f5;
-		border: 1px solid #ccc;
-		padding: 5px 8px;
-		text-align: left;
-		font-weight: 600;
-		font-size: 8.5pt;
-	}
-	.lohnausweis .pos-table td {
-		padding: 4px 8px;
-		border: 1px solid #ddd;
-	}
-	.lohnausweis .pos-table .pos-num {
-		width: 40px;
-		font-weight: 600;
-		text-align: center;
-		color: #555;
-	}
-	.lohnausweis .pos-table .amount {
-		width: 120px;
-		text-align: right;
-	}
-	.lohnausweis .pos-table .total-row {
-		font-weight: 700;
-		background: #fafafa;
-	}
-	.lohnausweis .pos-table .total-row td {
-		border-top: 2px solid #999;
-	}
-	.lohnausweis .footer {
-		margin-top: 30px;
-		font-size: 8.5pt;
-	}
-	.lohnausweis .signature-line {
-		border-top: 1px solid #333;
-		width: 200px;
-		margin-top: 40px;
-		padding-top: 4px;
-	}
-</style>
+{%- macro fmt_amount(val) -%}
+{% if val %}{{ "{:,.0f}".format(val).replace(",", "'") }}{% endif %}
+{%- endmacro -%}
 
-<div class="lohnausweis">
-	<h2>{{ _("Salary Certificate") }} / Lohnausweis</h2>
-	<div class="form-subtitle">Form 11 &mdash; {{ doc.fiscal_year }}</div>
-
-	<!-- Header: Employer / Employee -->
-	<table class="header-table">
+<div class="form11">
+	<div class="firstSpacer"></div>
+	<!-- A: Salary certificate checkbox -->
+	<table class="firstTable" style="margin-left: 75px;height: 18px;margin-top: 7px;">
 		<tr>
-			<td class="section-label">{{ _("Employer") }} / Arbeitgeber</td>
-			<td class="section-label">{{ _("Employee") }} / Arbeitnehmer/in</td>
-		</tr>
-		<tr>
-			<td>
-				<b>{{ config.get("lohnausweis_employer_name") or doc.company }}</b><br>
-				{{ (config.get("lohnausweis_employer_address") or "")|replace("\n", "<br>") }}
+			<td style="padding-top: 0px !important; padding-bottom: 0px !important;">
+				{% if doc.certificate_type == "Salary" %}X{% else %}&nbsp;{% endif %}
 			</td>
-			<td>
-				<b>{{ doc.employee_name }}</b><br>
-				{% if doc.avs_number %}{{ _("AVS No.") }}: {{ doc.avs_number }}<br>{% endif %}
-				{% if doc.date_of_birth %}{{ _("Date of Birth") }}: {{ frappe.format(doc.date_of_birth, {"fieldtype": "Date"}) }}<br>{% endif %}
-				{% if doc.date_of_joining %}{{ _("Joined") }}: {{ frappe.format(doc.date_of_joining, {"fieldtype": "Date"}) }}{% endif %}
-				{% if doc.relieving_date %} &mdash; {{ _("Left") }}: {{ frappe.format(doc.relieving_date, {"fieldtype": "Date"}) }}{% endif %}
+		</tr>
+	</table>
+	<!-- B: Pension certificate checkbox -->
+	<table style="margin-left: 75px; margin-top: 2px; height: 24px; ">
+		<tr>
+			<td style="padding-top: 5px !important; padding-bottom: 2px !important;">
+				{% if doc.certificate_type == "Pension" %}X{% else %}&nbsp;{% endif %}
+			</td>
+		</tr>
+	</table>
+	<!-- C: AVS number, Date of birth, Free transport -->
+	<table style="margin-left: 75px; margin-top: 4px; height: 24px; ">
+		<tr>
+			<td style="width: 195px; padding: 1px 8px !important; ">
+				{{ doc.avs_number or '' }}
+			</td>
+			<td style="width: 215px; padding: 1px 8px !important; ">
+				{% if doc.date_of_birth %}{{ frappe.utils.get_datetime(doc.date_of_birth).strftime('%d.%m.%Y') }}{% endif %}
+			</td>
+			<td style="padding: 1px 4px !important; ">
+				{% if doc.free_transport == 1 %}X{% else %}&nbsp;{% endif %}
+			</td>
+		</tr>
+	</table>
+	<!-- D: Year, Period, Lunch checks -->
+	<table style="margin-left: 75px; margin-top: 10px; height: 24px; ">
+		<tr>
+			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px 8px !important; width: 145px; ">
+				{% if fiscal_year %}{{ frappe.utils.get_datetime(fiscal_year.year_start_date).strftime('%Y') }}{% endif %}
+			</td>
+			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px 8px !important; width: 100px; ">
+				{% if fiscal_year %}{{ frappe.utils.get_datetime(fiscal_year.year_start_date).strftime('%d.%m.') }}{% endif %}
+			</td>
+			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px 8px !important; width: 165px; ">
+				{% if fiscal_year %}{{ frappe.utils.get_datetime(fiscal_year.year_end_date).strftime('%d.%m.') }}{% endif %}
+			</td>
+			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px 8px !important; ">
+				{% if doc.lunch_checks == 1 %}X{% else %}&nbsp;{% endif %}
 			</td>
 		</tr>
 	</table>
 
-	<!-- Positions 1-8: Income -->
-	<table class="pos-table">
-		<thead>
-			<tr>
-				<th class="pos-num">Pos.</th>
-				<th>{{ _("Description") }}</th>
-				<th class="amount">{{ _("CHF") }}</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td class="pos-num">1</td>
-				<td>{{ _("Salary, wages") }} / Lohn</td>
-				<td class="amount">{{ frappe.format(doc.position_1_salary, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">2.1</td>
-				<td>{{ _("Other benefits") }} / Andere Leistungen</td>
-				<td class="amount">{{ frappe.format(doc.position_2_1_other_benefits, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">2.2</td>
-				<td>{{ _("Board and lodging") }} / Verpflegung, Unterkunft</td>
-				<td class="amount">{{ frappe.format(doc.position_2_2_board_lodging, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">2.3</td>
-				<td>{{ _("Other fringe benefits") }} / Andere Naturalleistungen</td>
-				<td class="amount">{{ frappe.format(doc.position_2_3_other_fringe, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">3</td>
-				<td>{{ _("Irregular benefits") }} / Unregelm&auml;ssige Leistungen</td>
-				<td class="amount">{{ frappe.format(doc.position_3_irregular_benefits, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">4</td>
-				<td>{{ _("Capital benefits") }} / Kapitalleistungen</td>
-				<td class="amount">{{ frappe.format(doc.position_4_capital_benefits, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">5</td>
-				<td>{{ _("Ownership rights") }} / Beteiligungsrechte</td>
-				<td class="amount">{{ frappe.format(doc.position_5_ownership_rights, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">6</td>
-				<td>{{ _("Board of directors fees") }} / Verwaltungsratsentsch&auml;digungen</td>
-				<td class="amount">{{ frappe.format(doc.position_6_board_of_directors, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">7</td>
-				<td>{{ _("Other income") }} / Andere Eink&uuml;nfte</td>
-				<td class="amount">{{ frappe.format(doc.position_7_other_income, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr class="total-row">
-				<td class="pos-num">8</td>
-				<td><b>{{ _("Gross income") }} / Bruttolohn</b></td>
-				<td class="amount">{{ frappe.format(doc.position_8_gross_income, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-		</tbody>
+	<!-- Employee name and address -->
+	<table style="margin-left: 75px; margin-top: 35px; height: 130px; ">
+		<tr>
+			<td style="padding-left: 3px !important; padding-top: 4px !important; ">
+				{{ doc.employee_name }}<br>
+				{% if employee.permanent_address %}
+				{{ employee.permanent_address.replace("\n", "<br>") }}
+				{% endif %}
+			</td>
+		</tr>
 	</table>
 
-	<!-- Positions 9-12: Deductions -->
-	<table class="pos-table">
-		<tbody>
-			<tr>
-				<td class="pos-num">9</td>
-				<td>{{ _("AVS/AC/AANP contributions") }} / AHV/ALV/NBUV-Beitr&auml;ge</td>
-				<td class="amount">{{ frappe.format(doc.position_9_avs_ac_aanp, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">10.1</td>
-				<td>{{ _("BVG regular contributions") }} / Ordentliche BVG-Beitr&auml;ge</td>
-				<td class="amount">{{ frappe.format(doc.position_10_1_bvg_regular, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">10.2</td>
-				<td>{{ _("BVG buy-back") }} / BVG-Einkauf</td>
-				<td class="amount">{{ frappe.format(doc.position_10_2_bvg_buyback, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr class="total-row">
-				<td class="pos-num">11</td>
-				<td><b>{{ _("Net salary") }} / Nettolohn</b></td>
-				<td class="amount">{{ frappe.format(doc.position_11_net_salary, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">12</td>
-				<td>{{ _("Withholding tax") }} / Quellensteuer</td>
-				<td class="amount">{{ frappe.format(doc.position_12_withholding_tax, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-		</tbody>
+	<!-- MAIN POSITIONS -->
+
+	<!-- 1. Salary -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 95px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_1_salary) }}</td>
+		</tr>
+	</table>
+	<!-- 2.1 Other benefits -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 2px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_2_1_other_benefits) }}</td>
+		</tr>
+	</table>
+	<!-- 2.2 Board and lodging -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_2_2_board_lodging) }}</td>
+		</tr>
+	</table>
+	<!-- 2.3 Other fringe benefits -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 0px; height: 22px; ">
+		<tr>
+			<td style="width: 280px; padding: 1px 8px !important; "></td>
+			<td style="width: 310px; padding: 1px 8px !important; ">{{ doc.position_2_3_description or '&nbsp;' }}</td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_2_3_other_fringe) }}</td>
+		</tr>
+	</table>
+	<!-- 3. Irregular benefits -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 25px; height: 22px; ">
+		<tr>
+			<td style="width: 10px; padding: 1px 8px !important; "></td>
+			<td style="width: 580px; padding: 1px 8px !important; ">{{ doc.position_3_description or '&nbsp;' }}</td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_3_irregular_benefits) }}</td>
+		</tr>
+	</table>
+	<!-- 4. Capital benefits -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 310px; padding: 1px 8px !important; "></td>
+			<td style="width: 300px; padding: 1px 8px !important; ">{{ doc.position_4_description or '&nbsp;' }}</td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_4_capital_benefits) }}</td>
+		</tr>
+	</table>
+	<!-- 5. Ownership rights -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_5_ownership_rights) }}</td>
+		</tr>
+	</table>
+	<!-- 6. Board of directors -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_6_board_of_directors) }}</td>
+		</tr>
+	</table>
+	<!-- 7. Other income -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 280px; padding: 1px 8px !important; "></td>
+			<td style="width: 310px; padding: 1px 8px !important; ">{{ doc.position_7_description or '&nbsp;' }}</td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_7_other_income) }}</td>
+		</tr>
+	</table>
+	<!-- 8. Gross income (total) -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_8_gross_income) }}</td>
+		</tr>
 	</table>
 
-	<!-- Positions 13-14: Expense Allowances -->
-	<table class="pos-table">
-		<tbody>
-			<tr>
-				<td class="pos-num">13.1</td>
-				<td>{{ _("Actual expenses") }} / Effektive Spesen</td>
-				<td class="amount">{{ frappe.format(doc.position_13_1_actual_expenses, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">13.2</td>
-				<td>{{ _("Flat-rate car allowance") }} / Pauschalspesen Fahrzeug</td>
-				<td class="amount">{{ frappe.format(doc.position_13_2_flat_rate_car, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">13.3</td>
-				<td>{{ _("Other flat-rate expenses") }} / Andere Pauschalspesen</td>
-				<td class="amount">{{ frappe.format(doc.position_13_3_other_flat_expenses, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-			<tr>
-				<td class="pos-num">14</td>
-				<td>{{ _("Employer contributions") }} / Beitr&auml;ge Arbeitgeber</td>
-				<td class="amount">{{ frappe.format(doc.position_14_employer_contributions, {"fieldtype": "Currency"}) }}</td>
-			</tr>
-		</tbody>
+	<!-- DEDUCTIONS -->
+
+	<!-- 9. AVS/AC/AANP -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_9_avs_ac_aanp) }}</td>
+		</tr>
+	</table>
+	<!-- 10.1 BVG regular -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_10_1_bvg_regular) }}</td>
+		</tr>
+	</table>
+	<!-- 10.2 BVG buy-back -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_10_2_bvg_buyback) }}</td>
+		</tr>
+	</table>
+	<!-- 11. Net salary -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_11_net_salary) }}</td>
+		</tr>
+	</table>
+	<!-- 12. Withholding tax -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 11px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_12_withholding_tax) }}</td>
+		</tr>
 	</table>
 
-	<!-- Position 15: Remarks -->
-	{% if doc.position_15_remarks %}
-	<table class="pos-table">
-		<tbody>
-			<tr>
-				<td class="pos-num">15</td>
-				<td colspan="2">{{ doc.position_15_remarks|replace("\n", "<br>") }}</td>
-			</tr>
-		</tbody>
-	</table>
-	{% endif %}
+	<!-- EXPENSES -->
 
-	<!-- Footer -->
-	<div class="footer">
-		<div style="display: table; width: 100%;">
-			<div style="display: table-cell; width: 50%;">
-				<p>{{ _("Date") }}: {{ frappe.format(doc.posting_date, {"fieldtype": "Date"}) }}</p>
-				<div class="signature-line">{{ _("Signature employer") }} / Unterschrift Arbeitgeber</div>
-			</div>
-			<div style="display: table-cell; width: 50%; text-align: right;">
-				<p>{{ _("Place") }}: ___________________</p>
-			</div>
-		</div>
-	</div>
+	<!-- 13.1.1 Effective travel expenses -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 24px; height: 22px; ">
+		<tr>
+			<td style="width: 524px; padding: 1px 0px !important; "></td>
+			<td style="width: 50px; padding: 1px 8px !important; ">
+				{% if doc.position_13_1_1_travel_check == 1 %}X{% else %}&nbsp;{% endif %}
+			</td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_13_1_1_travel) }}</td>
+		</tr>
+	</table>
+	<!-- 13.1.2 Other effective expenses -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 280px; padding: 1px 8px !important; "></td>
+			<td style="width: 310px; padding: 1px 8px !important; ">{{ doc.position_13_1_2_description or '&nbsp;' }}</td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_13_1_2_other_effective) }}</td>
+		</tr>
+	</table>
+	<!-- 13.2.1 Representation expenses -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_13_2_1_representation) }}</td>
+		</tr>
+	</table>
+	<!-- 13.2.2 Car expenses -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_13_2_2_car) }}</td>
+		</tr>
+	</table>
+	<!-- 13.2.3 Other flat-rate expenses -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 280px; padding: 1px 8px !important; "></td>
+			<td style="width: 310px; padding: 1px 8px !important; ">{{ doc.position_13_2_3_description or '&nbsp;' }}</td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_13_2_3_other_flat) }}</td>
+		</tr>
+	</table>
+	<!-- 13.3 Education / Training -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 590px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_13_3_education) }}</td>
+		</tr>
+	</table>
+	<!-- 14. Employer contributions / Other -->
+	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
+		<tr>
+			<td style="width: 220px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; text-align: right; ">{{ doc.position_14_description or '&nbsp;' }}</td>
+		</tr>
+	</table>
+	<!-- 15. Remarks -->
+	<table style="margin-left: 75px; width: 710px; margin-top: 24px; height: 22px; ">
+		<tr>
+			<td style="width: 80px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; ">{{ doc.position_15_remarks or '&nbsp;' }}</td>
+		</tr>
+	</table>
+
+	<!-- Footer: Date, Signature, Company info -->
+	<table class="footerTable" style="margin-left: 75px;width: 690px;height: 90px;margin-top: 33px;">
+		{%- set company_doc = frappe.get_cached_doc("Company", doc.company) -%}
+		<tr>
+			<td style="width: 230px; padding: 1px 8px !important; "><br>
+			{% if doc.posting_date %}{{ frappe.utils.get_datetime(doc.posting_date).strftime('%d.%m.%Y') }}{% endif %}
+			</td>
+			<td style="width: 270px; padding: 1px 8px !important; "></td>
+			<td style="padding: 1px 8px !important; font-size: 8pt; ">
+			{{ config.get("lohnausweis_employer_name") or doc.company }}<br>
+			{{ (config.get("lohnausweis_employer_address") or "")|replace("\n", "<br>") }}
+			</td>
+		</tr>
+	</table>
 </div>
 
 <!-- eCH-0270 Barcode Page(s) -->
@@ -266,9 +277,9 @@
 {% if barcode_data and barcode_data.pdf417_images %}
 {% for barcode_img in barcode_data.pdf417_images %}
 <div style="page-break-before: always;"></div>
-<div class="lohnausweis" style="text-align: center; padding-top: 15mm;">
-	<h2>{{ _("Salary Certificate") }} / Lohnausweis</h2>
-	<div class="form-subtitle">
+<div style="text-align: center; padding-top: 15mm; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+	<h2 style="font-size: 14pt; font-weight: 700; margin: 0 0 4px 0;">{{ _("Salary Certificate") }} / Lohnausweis</h2>
+	<div style="font-size: 9pt; color: #666; margin-bottom: 16px;">
 		{{ _("Barcode Page") }}{% if barcode_data.page_count > 1 %} ({{ loop.index }}/{{ barcode_data.page_count }}){% endif %}
 		&mdash; {{ doc.employee_name }} &mdash; {{ doc.fiscal_year }}
 	</div>

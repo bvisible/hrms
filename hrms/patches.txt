@@ -37,3 +37,4 @@ hrms.patches.v15_0.add_leave_type_permission_for_ess
 hrms.patches.v15_0.add_swiss_qst_index
 hrms.patches.v15_0.create_swiss_wage_type_catalog
 hrms.patches.v15_0.set_swiss_insurance_flags_on_components
+hrms.patches.v15_0.migrate_salary_certificate_expense_fields

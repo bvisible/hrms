@@ -93,9 +93,12 @@ POSITION_FIELD_MAP = {
 	"10.1": "position_10_1_bvg_regular",
 	"10.2": "position_10_2_bvg_buyback",
 	"12": "position_12_withholding_tax",
-	"13.1": "position_13_1_actual_expenses",
-	"13.2": "position_13_2_flat_rate_car",
-	"13.3": "position_13_3_other_flat_expenses",
+	"13.1.1": "position_13_1_1_travel",
+	"13.1.2": "position_13_1_2_other_effective",
+	"13.2.1": "position_13_2_1_representation",
+	"13.2.2": "position_13_2_2_car",
+	"13.2.3": "position_13_2_3_other_flat",
+	"13.3": "position_13_3_education",
 	"14": "position_14_employer_contributions",
 }
 

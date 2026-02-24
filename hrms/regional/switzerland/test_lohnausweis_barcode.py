@@ -66,9 +66,12 @@ def _make_certificate_data(**overrides):
 			"10.2": 0.0,
 			"11": 92830.04,
 			"12": 0.0,
-			"13.1": 3600.0,
-			"13.2": 0.0,
-			"13.3": 2400.0,
+			"13.1.1": 3600.0,
+			"13.1.2": 0.0,
+			"13.2.1": 0.0,
+			"13.2.2": 0.0,
+			"13.2.3": 2400.0,
+			"13.3": 0.0,
 			"14": 0.0,
 			"15": "Generated from 12 salary slips for fiscal year 2025.",
 		},
@@ -134,7 +137,7 @@ class TestXmlGeneration(unittest.TestCase):
 		self.assertNotIn(".", uid)
 
 	def test_xml_all_positions_present(self):
-		"""All 20 Form 11 positions appear in XML."""
+		"""All Form 11 positions appear in XML."""
 		xml_bytes = generate_lohnausweis_xml(_make_certificate_data())
 		root = ET.fromstring(xml_bytes)
 		positions = root.findall("n:Positions/n:Position", _NSM)

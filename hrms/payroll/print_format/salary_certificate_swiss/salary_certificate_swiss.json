@@ -1,7 +1,9 @@
 {
 	"align_labels_right": 0,
 	"creation": "2026-02-21 00:00:00.000000",
+	"css": "@media print {\n    .print-format {\n        width:210mm!important;\n        height:297mm!important;\n        margin-top: 0mm!important;\n    }\n    .form11{\n        height:297mm!important;\n        margin-top: -6mm!important;\n        background-position-y: -5px!important;\n    }\n    .firstSpacer {\n        height:10px;\n    }\n    .footerTable{\n        height: 95px!important;\n    }\n}\n.print-format {\n    margin-top: 0mm;\n    margin-left: 0mm;\n    margin-right: 0mm;\n    margin-bottom: 0mm;\n    padding: 0px;\n}\n\n.form11 {\n  background-image: url(\"/assets/hrms/images/605_040_18N_Form_11.png\");\n  background-size:cover;\n  width: 100%;\n  height: 100%;\n  background-position-y: -3mm;\n}",
 	"custom_format": 1,
+	"default_print_language": "fr",
 	"disabled": 0,
 	"doc_type": "Swiss Salary Certificate",
 	"docstatus": 0,
@@ -9,7 +11,7 @@
 	"font_size": 0,
 	"format_data": null,
 	"html": "",
-	"modified": "2026-02-21 00:00:00.000000",
+	"modified": "2026-02-24 00:00:00.000000",
 	"modified_by": "Administrator",
 	"module": "Payroll",
 	"name": "Salary Certificate Swiss",
