@@ -33,6 +33,7 @@ PERMIT_MAP = {
 def generate_salary_declaration(
 	company_data, employees_data, config, fiscal_year,
 	declaration_type="Year-End", declaration_month=None, institutions=None,
+	completeness_flags=None,
 ):
 	"""Main entry point: generate full SalaryDeclaration XML.
 
@@ -44,12 +45,15 @@ def generate_salary_declaration(
 		declaration_type: "Year-End", "Monthly", or "Correction".
 		declaration_month: Month number (1-12) for Monthly declarations.
 		institutions: dict of institution flags (include_avs, include_ac, etc.).
+		completeness_flags: dict with laa_complete, ijm_complete, lpp_complete bools.
 
 	Returns:
 		bytes: UTF-8 encoded XML content.
 	"""
 	if institutions is None:
 		institutions = _default_institutions()
+	if completeness_flags is None:
+		completeness_flags = {}
 
 	root = Element("SalaryDeclaration")
 	root.set("xmlns", SWISSDEC_NS)
@@ -68,7 +72,7 @@ def generate_salary_declaration(
 		if not salary_data or not salary_data.get("months_worked"):
 			continue
 
-		_build_person_element(staff_el, emp_doc, salary_data, config, institutions)
+		_build_person_element(staff_el, emp_doc, salary_data, config, institutions, completeness_flags)
 
 	return _prettify_xml(root)
 
@@ -132,7 +136,8 @@ def _build_company_element(root, company_data, config, fiscal_year):
 	return company_el
 
 
-def _build_person_element(staff_el, employee_doc, salary_data, config, institutions):
+def _build_person_element(staff_el, employee_doc, salary_data, config, institutions,
+	completeness_flags=None):
 	"""Build a <Person> element for a single employee.
 
 	Args:
@@ -141,7 +146,11 @@ def _build_person_element(staff_el, employee_doc, salary_data, config, instituti
 		salary_data: Annual salary summary dict.
 		config: Swiss Social Insurance Config dict.
 		institutions: dict of institution inclusion flags.
+		completeness_flags: dict with laa_complete, ijm_complete, lpp_complete bools.
 	"""
+	if completeness_flags is None:
+		completeness_flags = {}
+
 	person_el = SubElement(staff_el, "Person")
 
 	# Particulars (identification)
@@ -158,13 +167,16 @@ def _build_person_element(staff_el, employee_doc, salary_data, config, instituti
 		_build_ac_salary(person_el, salary_data, employee_doc, config)
 
 	if institutions.get("include_lpp"):
-		_build_lpp_salary(person_el, salary_data, employee_doc, config)
+		lpp_complete = completeness_flags.get("lpp_complete", True)
+		_build_lpp_salary(person_el, salary_data, employee_doc, config, is_complete=lpp_complete)
 
 	if institutions.get("include_laa"):
-		_build_laa_salary(person_el, salary_data, employee_doc, config)
+		laa_complete = completeness_flags.get("laa_complete", True)
+		_build_laa_salary(person_el, salary_data, employee_doc, config, is_complete=laa_complete)
 
 	if institutions.get("include_ijm"):
-		_build_ijm_salary(person_el, salary_data, employee_doc, config)
+		ijm_complete = completeness_flags.get("ijm_complete", True)
+		_build_ijm_salary(person_el, salary_data, employee_doc, config, is_complete=ijm_complete)
 
 	if institutions.get("include_qst") and employee_doc.get("ch_qst_subject"):
 		_build_qst_salary(person_el, salary_data, employee_doc, config)
@@ -289,9 +301,10 @@ def _build_ac_salary(person_el, salary_data, employee_doc, config):
 	return ac_el
 
 
-def _build_lpp_salary(person_el, salary_data, employee_doc, config):
+def _build_lpp_salary(person_el, salary_data, employee_doc, config, is_complete=True):
 	"""Build <BVG-LPP-Salaries> element for LPP/BVG declaration."""
 	lpp_el = SubElement(person_el, "BVG-LPP-Salaries")
+	lpp_el.set("complete", "true" if is_complete else "false")
 
 	_add_amount_element(lpp_el, "BVG-LPP-AnnualSalary", flt(salary_data.get("total_gross")))
 	_add_amount_element(lpp_el, "BVG-LPP-CoordinatedSalary", flt(salary_data.get("lpp_coordinated")))
@@ -301,9 +314,10 @@ def _build_lpp_salary(person_el, salary_data, employee_doc, config):
 	return lpp_el
 
 
-def _build_laa_salary(person_el, salary_data, employee_doc, config):
+def _build_laa_salary(person_el, salary_data, employee_doc, config, is_complete=True):
 	"""Build <UVG-LAA-Salaries> element for LAA/UVG declaration."""
 	laa_el = SubElement(person_el, "UVG-LAA-Salaries")
+	laa_el.set("complete", "true" if is_complete else "false")
 
 	_add_amount_element(laa_el, "UVG-LAA-Income", flt(salary_data.get("laa_salary")))
 	_add_amount_element(laa_el, "UVG-LAA-BUV-ER", flt(salary_data.get("laa_professional")))
@@ -312,9 +326,10 @@ def _build_laa_salary(person_el, salary_data, employee_doc, config):
 	return laa_el
 
 
-def _build_ijm_salary(person_el, salary_data, employee_doc, config):
+def _build_ijm_salary(person_el, salary_data, employee_doc, config, is_complete=True):
 	"""Build <KTG-IJM-Salaries> element for IJM/KTG declaration."""
 	ijm_el = SubElement(person_el, "KTG-IJM-Salaries")
+	ijm_el.set("complete", "true" if is_complete else "false")
 
 	# IJM insured salary = same base as gross (insurer-specific cap may apply)
 	_add_amount_element(ijm_el, "KTG-IJM-Income", flt(salary_data.get("total_gross")))

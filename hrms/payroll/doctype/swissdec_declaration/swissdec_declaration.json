@@ -23,6 +23,10 @@
 		"include_qst",
 		"include_fak",
 		"include_ofs",
+		"section_completeness",
+		"laa_is_complete",
+		"ijm_is_complete",
+		"lpp_is_complete",
 		"column_break_inst",
 		"employee_count",
 		"total_avs_salary",
@@ -167,6 +171,36 @@
 			"fieldname": "include_ofs",
 			"fieldtype": "Check",
 			"label": "OFS/BFS Statistics"
+		},
+		{
+			"collapsible": 1,
+			"fieldname": "section_completeness",
+			"fieldtype": "Section Break",
+			"label": "Data Completeness"
+		},
+		{
+			"default": "1",
+			"depends_on": "include_laa",
+			"description": "Uncheck if LAA/UVG data is still incomplete.",
+			"fieldname": "laa_is_complete",
+			"fieldtype": "Check",
+			"label": "UVG/LAA Data Complete"
+		},
+		{
+			"default": "1",
+			"depends_on": "include_ijm",
+			"description": "Uncheck if KTG/IJM data is still incomplete.",
+			"fieldname": "ijm_is_complete",
+			"fieldtype": "Check",
+			"label": "KTG/IJM Data Complete"
+		},
+		{
+			"default": "1",
+			"depends_on": "include_lpp",
+			"description": "Uncheck if BVG/LPP data is still incomplete.",
+			"fieldname": "lpp_is_complete",
+			"fieldtype": "Check",
+			"label": "BVG/LPP Data Complete"
 		},
 		{
 			"fieldname": "column_break_inst",

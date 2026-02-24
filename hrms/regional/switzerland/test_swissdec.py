@@ -1249,5 +1249,83 @@ class TestCorrectionValidation(unittest.TestCase):
 		self.assertFalse(any("original declaration" in r.message.lower() for r in warnings))
 
 
+class TestCompletenessFlags(unittest.TestCase):
+	"""Test complete/incomplete flags on LAA, IJM, LPP elements."""
+
+	def _generate_xml_with_flags(self, laa_complete=True, ijm_complete=True, lpp_complete=True):
+		"""Helper to generate XML with specific completeness flags."""
+		company_data = _make_company()
+		salary_data = _make_salary_data()
+		employee_doc = _make_employee()
+		completeness_flags = {
+			"laa_complete": laa_complete,
+			"ijm_complete": ijm_complete,
+			"lpp_complete": lpp_complete,
+		}
+		xml_bytes = generate_salary_declaration(
+			company_data=company_data,
+			employees_data=[{"employee_doc": employee_doc, "salary_data": salary_data}],
+			config={},
+			fiscal_year="2025",
+			completeness_flags=completeness_flags,
+		)
+		return fromstring(xml_bytes)
+
+	def test_laa_complete_true(self):
+		"""LAA element has complete='true' by default."""
+		root = self._generate_xml_with_flags(laa_complete=True)
+		laa = root.find(f".//{{{SWISSDEC_NS}}}UVG-LAA-Salaries")
+		if laa is None:
+			laa = root.find(".//UVG-LAA-Salaries")
+		self.assertIsNotNone(laa)
+		self.assertEqual(laa.get("complete"), "true")
+
+	def test_laa_complete_false(self):
+		"""LAA element has complete='false' when flagged incomplete."""
+		root = self._generate_xml_with_flags(laa_complete=False)
+		laa = root.find(f".//{{{SWISSDEC_NS}}}UVG-LAA-Salaries")
+		if laa is None:
+			laa = root.find(".//UVG-LAA-Salaries")
+		self.assertIsNotNone(laa)
+		self.assertEqual(laa.get("complete"), "false")
+
+	def test_lpp_complete_flag(self):
+		"""LPP element has complete attribute."""
+		root = self._generate_xml_with_flags(lpp_complete=False)
+		lpp = root.find(f".//{{{SWISSDEC_NS}}}BVG-LPP-Salaries")
+		if lpp is None:
+			lpp = root.find(".//BVG-LPP-Salaries")
+		self.assertIsNotNone(lpp)
+		self.assertEqual(lpp.get("complete"), "false")
+
+	def test_ijm_complete_flag(self):
+		"""IJM element has complete attribute."""
+		root = self._generate_xml_with_flags(ijm_complete=False)
+		ijm = root.find(f".//{{{SWISSDEC_NS}}}KTG-IJM-Salaries")
+		if ijm is None:
+			ijm = root.find(".//KTG-IJM-Salaries")
+		self.assertIsNotNone(ijm)
+		self.assertEqual(ijm.get("complete"), "false")
+
+	def test_all_complete_by_default(self):
+		"""All flags default to true when no completeness_flags passed."""
+		company_data = _make_company()
+		salary_data = _make_salary_data()
+		employee_doc = _make_employee()
+		xml_bytes = generate_salary_declaration(
+			company_data=company_data,
+			employees_data=[{"employee_doc": employee_doc, "salary_data": salary_data}],
+			config={},
+			fiscal_year="2025",
+		)
+		root = fromstring(xml_bytes)
+		for tag in ["UVG-LAA-Salaries", "KTG-IJM-Salaries", "BVG-LPP-Salaries"]:
+			el = root.find(f".//{{{SWISSDEC_NS}}}{tag}")
+			if el is None:
+				el = root.find(f".//{tag}")
+			self.assertIsNotNone(el, f"{tag} not found")
+			self.assertEqual(el.get("complete"), "true", f"{tag} should default to complete=true")
+
+
 if __name__ == "__main__":
 	unittest.main()

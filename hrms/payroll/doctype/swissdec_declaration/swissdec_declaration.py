@@ -248,6 +248,12 @@ class SwissdecDeclaration(Document):
 			"include_ofs": self.include_ofs,
 		}
 
+		completeness_flags = {
+			"laa_complete": bool(self.laa_is_complete),
+			"ijm_complete": bool(self.ijm_is_complete),
+			"lpp_complete": bool(self.lpp_is_complete),
+		}
+
 		xml_bytes = generate_salary_declaration(
 			company_data=company_data,
 			employees_data=employees_data,
@@ -256,6 +262,7 @@ class SwissdecDeclaration(Document):
 			declaration_type=self.declaration_type,
 			declaration_month=int(self.declaration_month) if self.declaration_month else None,
 			institutions=institutions,
+			completeness_flags=completeness_flags,
 		)
 
 		# Save as attached file
