@@ -549,3 +549,64 @@ def _empty_salary_summary():
 		"period_start": None,
 		"period_end": None,
 	}
+
+
+def get_bvg_projection_data(employee, company, year, base_month=1, has_thirteenth=False, config=None):
+	"""Project annual salary for BVG Jahresmeldung.
+
+	Takes the gross salary from a base month and projects it to an annual figure.
+	The pension fund uses this to calculate BVG contributions for the coming year.
+
+	Args:
+		employee: Employee ID.
+		company: Company name.
+		year: Calendar year (int).
+		base_month: Month to use as projection basis (1-12, default January).
+		has_thirteenth: Whether to include 13th month salary (multiply by 13 instead of 12).
+		config: Optional Swiss Social Insurance Config dict.
+
+	Returns:
+		dict with projected salary data including bvg_projected_salary and lpp_coordinated.
+	"""
+	if not config:
+		emp_doc = frappe.get_cached_doc("Employee", employee)
+		canton = emp_doc.get("ch_fiscal_canton") or ""
+		config = get_swiss_social_insurance_config(company, canton)
+
+	# Get the base month salary
+	month_data = get_monthly_salary_summary(employee, company, year, base_month, config)
+
+	if not month_data or not month_data.get("months_worked"):
+		return _empty_salary_summary()
+
+	multiplier = 13 if has_thirteenth else 12
+	base_gross = flt(month_data.get("total_gross"))
+	projected_annual = base_gross * multiplier
+
+	# Check for employee-level override
+	emp_doc = frappe.get_cached_doc("Employee", employee)
+	override = flt(emp_doc.get("ch_bvg_basis_override"))
+	if override > 0:
+		projected_annual = override
+
+	# Calculate LPP coordinated salary from projected annual
+	employee_age = get_employee_age(employee, year)
+	lpp_coordinated = calculate_lpp_coordinated_salary(projected_annual, config)
+
+	# Build a projection summary (compatible with standard salary data format)
+	result = _empty_salary_summary()
+	result.update({
+		"total_gross": projected_annual,
+		"months_worked": multiplier,
+		"avs_salary": projected_annual,
+		"lpp_coordinated": lpp_coordinated,
+		"employee_age": employee_age,
+		"bvg_projected_salary": projected_annual,
+		"bvg_base_month": base_month,
+		"bvg_multiplier": multiplier,
+		"bvg_base_month_gross": base_gross,
+		"period_start": f"{year}-01-01",
+		"period_end": f"{year}-12-31",
+	})
+
+	return result

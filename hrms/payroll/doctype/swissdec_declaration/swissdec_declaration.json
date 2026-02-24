@@ -11,6 +11,8 @@
 		"declaration_type",
 		"declaration_month",
 		"original_declaration",
+		"bvg_projection_month",
+		"bvg_has_thirteenth",
 		"section_status",
 		"status",
 		"validation_log",
@@ -81,7 +83,7 @@
 			"fieldtype": "Select",
 			"in_list_view": 1,
 			"label": "Declaration Type",
-			"options": "Year-End\nMonthly\nCorrection",
+			"options": "Year-End\nMonthly\nCorrection\nBVG-Projection",
 			"reqd": 1
 		},
 		{
@@ -98,6 +100,22 @@
 			"label": "Original Declaration",
 			"options": "Swissdec Declaration",
 			"description": "Reference to the original declaration being corrected."
+		},
+		{
+			"default": "1",
+			"depends_on": "eval:doc.declaration_type == 'BVG-Projection'",
+			"description": "Base month for salary projection (1-12). Typically January.",
+			"fieldname": "bvg_projection_month",
+			"fieldtype": "Int",
+			"label": "Projection Base Month"
+		},
+		{
+			"default": "0",
+			"depends_on": "eval:doc.declaration_type == 'BVG-Projection'",
+			"description": "Project using 13 months (13th salary) instead of 12.",
+			"fieldname": "bvg_has_thirteenth",
+			"fieldtype": "Check",
+			"label": "Include 13th Month"
 		},
 		{
 			"fieldname": "section_status",

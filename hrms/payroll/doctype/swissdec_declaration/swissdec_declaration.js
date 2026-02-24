@@ -78,6 +78,46 @@ frappe.ui.form.on("Swissdec Declaration", {
 			);
 		}
 
+		// Import BVG Response button (for Accepted BVG-Projection)
+		if (
+			frm.doc.declaration_type === "BVG-Projection" &&
+			frm.doc.status === "Accepted"
+		) {
+			frm.add_custom_button(
+				__("Import BVG Response"),
+				() => {
+					frappe.prompt(
+						{
+							fieldname: "csv_data",
+							fieldtype: "Small Text",
+							label: __("Paste CSV (employee,contribution)"),
+							reqd: 1,
+						},
+						(values) => {
+							// Parse CSV into contributions array
+							let contributions = [];
+							let lines = values.csv_data.trim().split("\n");
+							for (let line of lines) {
+								let parts = line.split(",");
+								if (parts.length >= 2) {
+									contributions.push({
+										employee: parts[0].trim(),
+										bvg_response_contribution: parseFloat(parts[1].trim()) || 0,
+									});
+								}
+							}
+							frm.call("import_bvg_response", {
+								contributions: JSON.stringify(contributions),
+							}).then(() => frm.refresh_fields());
+						},
+						__("Import BVG Contributions"),
+						__("Import")
+					);
+				},
+				__("Actions")
+			);
+		}
+
 		// Re-transmit button
 		if (frm.doc.status === "Rejected") {
 			frm.add_custom_button(

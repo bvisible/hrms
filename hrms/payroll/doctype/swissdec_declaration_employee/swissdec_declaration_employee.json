@@ -14,6 +14,9 @@
 		"lpp_salary",
 		"source_tax",
 		"column_break_status",
+		"bvg_projected_salary",
+		"bvg_basis_override",
+		"bvg_response_contribution",
 		"validation_status",
 		"validation_notes"
 	],
@@ -79,6 +82,24 @@
 		{
 			"fieldname": "column_break_status",
 			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "bvg_projected_salary",
+			"fieldtype": "Currency",
+			"label": "Projected Annual Salary (BVG)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "bvg_basis_override",
+			"fieldtype": "Currency",
+			"label": "BVG Basis Override",
+			"description": "If set, replaces the automatic projection for this employee."
+		},
+		{
+			"fieldname": "bvg_response_contribution",
+			"fieldtype": "Currency",
+			"label": "BVG Contribution (Response)",
+			"description": "Annual contribution returned by the pension fund."
 		},
 		{
 			"default": "OK",

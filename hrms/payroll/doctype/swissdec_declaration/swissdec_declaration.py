@@ -32,6 +32,8 @@ class SwissdecDeclaration(Document):
 			)
 			seq = (existing or 0) + 1
 			self.name = f"SDD-{abbr}-{fy}-C{seq}"
+		elif self.declaration_type == "BVG-Projection":
+			self.name = f"SDD-{abbr}-{fy}-BVG"
 		else:
 			self.name = f"SDD-{abbr}-{fy}"
 
@@ -40,10 +42,14 @@ class SwissdecDeclaration(Document):
 		self._update_totals()
 
 	def _validate_month(self):
-		"""Ensure month is set for Monthly declarations."""
+		"""Ensure month is set for Monthly and BVG-Projection declarations."""
 		if self.declaration_type == "Monthly":
 			if not self.declaration_month or not (1 <= int(self.declaration_month) <= 12):
 				frappe.throw(_("Declaration month (1-12) is required for monthly declarations."))
+
+		if self.declaration_type == "BVG-Projection":
+			if not self.bvg_projection_month or not (1 <= int(self.bvg_projection_month) <= 12):
+				frappe.throw(_("Projection base month (1-12) is required for BVG projections."))
 
 	def _update_totals(self):
 		"""Recalculate summary totals from employee rows."""
@@ -87,20 +93,23 @@ class SwissdecDeclaration(Document):
 				emp.employee, fy, year, config
 			)
 
-			self.append(
-				"employees",
-				{
-					"employee": emp.employee,
-					"employee_name": emp.employee_name,
-					"avs_number": emp.ch_avs_number,
-					"included": 1,
-					"avs_salary": flt(salary_data.get("avs_salary"), 2),
-					"ac_salary": flt(salary_data.get("ac_salary"), 2),
-					"lpp_salary": flt(salary_data.get("lpp_coordinated"), 2),
-					"source_tax": flt(salary_data.get("source_tax_total"), 2),
-					"validation_status": "OK",
-				},
-			)
+			row_data = {
+				"employee": emp.employee,
+				"employee_name": emp.employee_name,
+				"avs_number": emp.ch_avs_number,
+				"included": 1,
+				"avs_salary": flt(salary_data.get("avs_salary"), 2),
+				"ac_salary": flt(salary_data.get("ac_salary"), 2),
+				"lpp_salary": flt(salary_data.get("lpp_coordinated"), 2),
+				"source_tax": flt(salary_data.get("source_tax_total"), 2),
+				"validation_status": "OK",
+			}
+
+			# BVG-Projection: add projected salary fields
+			if self.declaration_type == "BVG-Projection":
+				row_data["bvg_projected_salary"] = flt(salary_data.get("bvg_projected_salary"), 2)
+
+			self.append("employees", row_data)
 
 		self._update_totals()
 		self.save()
@@ -124,12 +133,20 @@ class SwissdecDeclaration(Document):
 		"""
 		from hrms.regional.switzerland.swissdec_data import (
 			get_annual_salary_summary,
+			get_bvg_projection_data,
 			get_monthly_salary_summary,
 		)
 
 		if self.declaration_type == "Monthly":
 			return get_monthly_salary_summary(
 				employee, self.company, year, int(self.declaration_month), config
+			)
+		elif self.declaration_type == "BVG-Projection":
+			return get_bvg_projection_data(
+				employee, self.company, year,
+				base_month=int(self.bvg_projection_month or 1),
+				has_thirteenth=bool(self.bvg_has_thirteenth),
+				config=config,
 			)
 		else:
 			# Year-End and Correction both use annual data
@@ -421,3 +438,31 @@ class SwissdecDeclaration(Document):
 
 		# Now transmit
 		self.transmit()
+
+	@frappe.whitelist()
+	def import_bvg_response(self, contributions):
+		"""Import BVG contribution amounts returned by the pension fund.
+
+		Args:
+			contributions: list of dicts with employee and bvg_response_contribution.
+		"""
+		if self.declaration_type != "BVG-Projection":
+			frappe.throw(_("BVG response import is only available for BVG-Projection declarations."))
+
+		if isinstance(contributions, str):
+			import json
+			contributions = json.loads(contributions)
+
+		contrib_map = {c["employee"]: flt(c["bvg_response_contribution"]) for c in contributions}
+
+		updated = 0
+		for row in self.get("employees") or []:
+			if row.employee in contrib_map:
+				row.bvg_response_contribution = contrib_map[row.employee]
+				updated += 1
+
+		self.save()
+		frappe.msgprint(
+			_("Updated BVG contributions for {0} employees.").format(updated),
+			indicator="green",
+		)

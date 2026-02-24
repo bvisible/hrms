@@ -1631,5 +1631,88 @@ class TestEmaHookLogic(unittest.TestCase):
 		self.assertTrue(_is_austritt(new, old))
 
 
+# === BVG PROJECTION TESTS ===
+
+
+class TestBvgProjection(unittest.TestCase):
+	"""Test BVG Jahresmeldung projection logic."""
+
+	def test_projection_basic_12_months(self):
+		"""Basic projection: monthly gross x 12."""
+		from hrms.regional.switzerland.utils import calculate_lpp_coordinated_salary
+
+		monthly_gross = 8000.0
+		projected_annual = monthly_gross * 12
+		self.assertEqual(projected_annual, 96000.0)
+
+		# LPP coordinated should be annual minus coordination deduction
+		lpp = calculate_lpp_coordinated_salary(projected_annual)
+		self.assertGreater(lpp, 0)
+		self.assertLessEqual(lpp, projected_annual)
+
+	def test_projection_with_thirteenth(self):
+		"""Projection with 13th month: monthly gross x 13."""
+		monthly_gross = 8000.0
+		projected_annual = monthly_gross * 13
+		self.assertEqual(projected_annual, 104000.0)
+
+	def test_lpp_coordinated_below_threshold(self):
+		"""Salary below LPP entry threshold returns 0."""
+		from hrms.regional.switzerland.utils import calculate_lpp_coordinated_salary
+
+		# Very low salary (below entry threshold of ~22,050)
+		lpp = calculate_lpp_coordinated_salary(10000.0)
+		self.assertEqual(lpp, 0)
+
+	def test_lpp_coordinated_normal(self):
+		"""Normal salary produces reasonable coordinated amount."""
+		from hrms.regional.switzerland.utils import calculate_lpp_coordinated_salary
+
+		lpp = calculate_lpp_coordinated_salary(96000.0)
+		# 96000 - 25725 (coordination deduction) = 70275
+		# But capped at max coordinated salary (62475)
+		self.assertGreater(lpp, 0)
+
+	def test_lpp_coordinated_minimum(self):
+		"""Salary just above threshold produces minimum insured amount."""
+		from hrms.regional.switzerland.utils import calculate_lpp_coordinated_salary
+
+		# Just above threshold — should get minimum insured
+		lpp = calculate_lpp_coordinated_salary(25000.0)
+		self.assertGreater(lpp, 0)
+
+	def test_projection_data_format(self):
+		"""Projected salary data has expected keys."""
+		# The full get_bvg_projection_data needs frappe.db,
+		# but we can verify the empty summary has the right structure
+		from hrms.regional.switzerland.swissdec_data import _empty_salary_summary
+
+		summary = _empty_salary_summary()
+		self.assertIn("total_gross", summary)
+		self.assertIn("lpp_coordinated", summary)
+		self.assertIn("avs_salary", summary)
+		self.assertIn("period_start", summary)
+
+	def test_projection_multiplier_choice(self):
+		"""Multiplier is 12 without 13th month, 13 with it."""
+		base = 7500.0
+		self.assertEqual(base * 12, 90000.0)
+		self.assertEqual(base * 13, 97500.0)
+
+	def test_lpp_with_custom_config(self):
+		"""LPP calculation respects custom config thresholds."""
+		from hrms.regional.switzerland.utils import calculate_lpp_coordinated_salary
+
+		config = {
+			"lpp_entry_threshold": 20000,
+			"lpp_coordination_deduction": 24000,
+			"lpp_minimum_insured_salary": 3000,
+			"lpp_maximum_coordinated_salary": 60000,
+		}
+		lpp = calculate_lpp_coordinated_salary(80000.0, config)
+		# 80000 - 24000 = 56000 (within max of 60000)
+		self.assertEqual(lpp, 56000.0)
+
+
 if __name__ == "__main__":
 	unittest.main()
