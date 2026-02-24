@@ -219,7 +219,7 @@ bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland
 bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland.test_source_tax
 ```
 
-~140 unit tests covering:
+~155 unit tests covering:
 - LPP coordinated salary (8 tests)
 - LPP age brackets (6 tests)
 - LPP full contribution (5 tests)
@@ -250,6 +250,10 @@ bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland
 - Full declaration validation (3 tests: multi-employee, mixed errors)
 - XML generation (16 tests: namespace, structure, all institution elements, UTF-8)
 - Date formatting (2 tests: ISO format, edge cases)
+- Month boundaries (5 tests: January, February leap/non-leap, December, April)
+- Monthly XML generation (4 tests: period, amounts, institutions, schema version)
+- Correction XML generation (2 tests: annual data, annual period)
+- Correction validation (2 tests: warning without reference, no warning for Year-End)
 
 ## File Structure
 
@@ -271,7 +275,7 @@ hrms/regional/switzerland/
 ├── swissdec_xml.py           # Swissdec ELM 5.0 XML builder engine
 ├── swissdec_validation.py    # Pre-export validation engine
 ├── swissdec_data.py          # Salary data aggregation for ELM declarations
-├── test_swissdec.py          # ~50 unit tests (XML + validation + data)
+├── test_swissdec.py          # ~65 unit tests (XML + validation + data + monthly + correction)
 └── README.md
 
 hrms/payroll/doctype/swiss_social_insurance_config/
@@ -385,18 +389,41 @@ This module generates **ELM 5.0-compliant XML** files that can be imported into 
 
 ### Swissdec Declaration DocType
 
-One declaration per company per fiscal year. Supports Year-End, Monthly, and Correction declaration types.
+One declaration per company per fiscal year (Year-End) or per month (Monthly). Corrections can be created at any time.
+
+**Declaration Types:**
+
+| Type | Naming | Period | Use Case |
+|------|--------|--------|----------|
+| **Year-End** | `SDD-{abbr}-{year}` | Full fiscal year | Annual salary declaration (once per year) |
+| **Monthly** | `SDD-{abbr}-{year}-M{month:02d}` | Single month | Monthly interim declaration |
+| **Correction** | `SDD-{abbr}-{year}-C{seq}` | Full fiscal year | Replaces a previously accepted declaration |
 
 **Workflow:**
-1. Create a **Swissdec Declaration** record (select company + fiscal year)
-2. Click **Populate Employees** to fetch all employees with submitted salary slips
-3. Review the employee list, toggle inclusion per employee
-4. Click **Run Validation** to check data completeness
-5. Fix any errors flagged in the validation log
-6. Click **Export XML** to generate the ELM file
-7. Download the attached XML and import into a certified Swissdec transmitter
+1. Create a **Swissdec Declaration** record (select company + fiscal year + type)
+2. For Monthly: select the declaration month (1-12)
+3. For Correction: optionally link the original declaration being corrected
+4. Click **Populate Employees** to fetch all employees with submitted salary slips
+5. Review the employee list, toggle inclusion per employee
+6. Click **Run Validation** to check data completeness
+7. Fix any errors flagged in the validation log
+8. Click **Export XML** to generate the ELM file
+9. Download the attached XML and import into a certified Swissdec transmitter
 
 **Institution toggles:** AVS, AC, LPP, LAA, IJM, QST, Family Allowances (FAK), OFS/BFS statistics. Enable/disable per declaration.
+
+**Monthly Declarations:**
+- Data is scoped to the selected month only (salary slips within that month)
+- AC ceiling tracking uses year-to-date gross from prior months
+- LAA salary cap is prorated to 1/12 of the annual cap
+- LPP coordinated salary is the annual coordinated amount divided by 12
+- XML `PeriodFrom`/`PeriodTo` reflect the month boundaries
+
+**Corrective Declarations:**
+- A correction sends **complete replacement data**, not a delta
+- The workflow is: fix salary slips → create Correction declaration → Populate → Validate → Export → Transmit
+- The `original_declaration` field links to the Accepted declaration being replaced (optional but recommended)
+- Validation warns if no original is referenced, errors if the referenced declaration doesn't exist
 
 ### Company Fields for ELM
 
@@ -467,6 +494,7 @@ Pre-export validation checks:
 - **Company**: UID-BFS presence and format, company name
 - **Employee**: AVS number (EAN-13 check digit), date of birth, fiscal canton, nationality, permit type for non-Swiss, QST tariff for source-taxed employees, residence country for cross-border workers
 - **Salary data**: salary slips exist for period, gross > 0, AVS contributions present, source tax for QST-subject employees
+- **Correction**: original declaration exists and is in Accepted status (warning if missing, error if invalid reference)
 
 ### Swissdec Transmission (Phase 5B)
 
@@ -502,3 +530,4 @@ HRMS Instance(s) ── HTTP ──> Swissdec Gateway (Synology) ── SSH/SCP 
 - PKI encryption (RSA-OAEP + AES-256-CBC)
 - Swissdec certification process
 - OFS/BFS statistics module
+- 2D barcode for salary certificates (PDF417 / eCH-0270)
