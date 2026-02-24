@@ -65,9 +65,9 @@ def call_gateway(endpoint, method="GET", files=None, data=None):
 	timeout = 180  # generous timeout for TX operations
 
 	if method.upper() == "GET":
-		response = requests.get(url, headers=headers, timeout=timeout)
+		response = requests.get(url, headers=headers, timeout=timeout, verify=False)
 	elif method.upper() == "POST":
-		response = requests.post(url, headers=headers, files=files, data=data, timeout=timeout)
+		response = requests.post(url, headers=headers, files=files, data=data, timeout=timeout, verify=False)
 	else:
 		frappe.throw(_("Unsupported HTTP method: {0}").format(method))
 
