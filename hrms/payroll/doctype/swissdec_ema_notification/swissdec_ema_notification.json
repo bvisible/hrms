@@ -1,0 +1,286 @@
+{
+	"actions": [],
+	"autoname": "",
+	"creation": "2026-02-24 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"company",
+		"company_abbr",
+		"employee",
+		"employee_name",
+		"avs_number",
+		"column_break_emp",
+		"event_type",
+		"event_date",
+		"change_details",
+		"section_institutions",
+		"notify_avs",
+		"notify_fak",
+		"notify_bvg",
+		"section_snapshot",
+		"snapshot_marital_status",
+		"snapshot_fiscal_canton",
+		"snapshot_work_percentage",
+		"column_break_snap",
+		"snapshot_entry_date",
+		"snapshot_exit_date",
+		"snapshot_permit_type",
+		"section_status",
+		"status",
+		"section_export",
+		"xml_file",
+		"exported_on",
+		"section_transmission",
+		"transmission_id",
+		"transmitted_on",
+		"column_break_tx",
+		"declaration_id",
+		"response_status",
+		"response_message",
+		"transmission_log"
+	],
+	"fields": [
+		{
+			"fieldname": "company",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Company",
+			"options": "Company",
+			"reqd": 1
+		},
+		{
+			"fetch_from": "company.abbr",
+			"fieldname": "company_abbr",
+			"fieldtype": "Data",
+			"hidden": 1,
+			"label": "Company Abbr",
+			"read_only": 1
+		},
+		{
+			"fieldname": "employee",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Employee",
+			"options": "Employee",
+			"reqd": 1
+		},
+		{
+			"fetch_from": "employee.employee_name",
+			"fieldname": "employee_name",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Employee Name",
+			"read_only": 1
+		},
+		{
+			"fetch_from": "employee.ch_avs_number",
+			"fieldname": "avs_number",
+			"fieldtype": "Data",
+			"label": "AVS Number",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_emp",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "event_type",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Event Type",
+			"options": "Eintritt\nMutation\nAustritt",
+			"reqd": 1
+		},
+		{
+			"fieldname": "event_date",
+			"fieldtype": "Date",
+			"in_list_view": 1,
+			"label": "Event Date",
+			"reqd": 1
+		},
+		{
+			"fieldname": "change_details",
+			"fieldtype": "Small Text",
+			"label": "Change Details",
+			"read_only": 1,
+			"description": "Auto-populated summary of what changed."
+		},
+		{
+			"fieldname": "section_institutions",
+			"fieldtype": "Section Break",
+			"label": "Notify Institutions"
+		},
+		{
+			"default": "1",
+			"fieldname": "notify_avs",
+			"fieldtype": "Check",
+			"label": "AHV/AVS"
+		},
+		{
+			"default": "1",
+			"fieldname": "notify_fak",
+			"fieldtype": "Check",
+			"label": "FAK (Family Allowances)"
+		},
+		{
+			"default": "1",
+			"fieldname": "notify_bvg",
+			"fieldtype": "Check",
+			"label": "BVG/LPP (Pension Fund)"
+		},
+		{
+			"collapsible": 1,
+			"fieldname": "section_snapshot",
+			"fieldtype": "Section Break",
+			"label": "Employee Snapshot"
+		},
+		{
+			"fieldname": "snapshot_marital_status",
+			"fieldtype": "Data",
+			"label": "Marital Status",
+			"read_only": 1
+		},
+		{
+			"fieldname": "snapshot_fiscal_canton",
+			"fieldtype": "Data",
+			"label": "Fiscal Canton",
+			"read_only": 1
+		},
+		{
+			"fieldname": "snapshot_work_percentage",
+			"fieldtype": "Percent",
+			"label": "Work Percentage",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_snap",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "snapshot_entry_date",
+			"fieldtype": "Date",
+			"label": "Entry Date",
+			"read_only": 1
+		},
+		{
+			"fieldname": "snapshot_exit_date",
+			"fieldtype": "Date",
+			"label": "Exit Date",
+			"read_only": 1
+		},
+		{
+			"fieldname": "snapshot_permit_type",
+			"fieldtype": "Data",
+			"label": "Permit Type",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_status",
+			"fieldtype": "Section Break",
+			"label": "Status"
+		},
+		{
+			"default": "Draft",
+			"fieldname": "status",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Status",
+			"options": "Draft\nExported\nTransmitted\nAccepted\nRejected",
+			"read_only": 1
+		},
+		{
+			"collapsible": 1,
+			"fieldname": "section_export",
+			"fieldtype": "Section Break",
+			"label": "Export"
+		},
+		{
+			"fieldname": "xml_file",
+			"fieldtype": "Attach",
+			"label": "XML File",
+			"read_only": 1
+		},
+		{
+			"fieldname": "exported_on",
+			"fieldtype": "Datetime",
+			"label": "Exported On",
+			"read_only": 1
+		},
+		{
+			"collapsible": 1,
+			"depends_on": "eval:doc.status && ['Transmitted','Accepted','Rejected'].includes(doc.status)",
+			"fieldname": "section_transmission",
+			"fieldtype": "Section Break",
+			"label": "Transmission"
+		},
+		{
+			"fieldname": "transmission_id",
+			"fieldtype": "Data",
+			"label": "Transmission ID",
+			"read_only": 1
+		},
+		{
+			"fieldname": "transmitted_on",
+			"fieldtype": "Datetime",
+			"label": "Transmitted On",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_tx",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "declaration_id",
+			"fieldtype": "Data",
+			"label": "Declaration ID (Swissdec)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "response_status",
+			"fieldtype": "Data",
+			"label": "Response Status",
+			"read_only": 1
+		},
+		{
+			"fieldname": "response_message",
+			"fieldtype": "Small Text",
+			"label": "Response Message",
+			"read_only": 1
+		},
+		{
+			"fieldname": "transmission_log",
+			"fieldtype": "Long Text",
+			"label": "Transmission Log",
+			"read_only": 1
+		}
+	],
+	"links": [],
+	"modified": "2026-02-24 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Swissdec EMA Notification",
+	"naming_rule": "By script",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"export": 1,
+			"print": 1,
+			"read": 1,
+			"report": 1,
+			"role": "HR Manager",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"read": 1,
+			"role": "HR User"
+		}
+	],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"track_changes": 1
+}

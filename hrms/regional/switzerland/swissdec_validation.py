@@ -418,3 +418,72 @@ def get_validation_summary(results):
 		"has_errors": len(errors) > 0,
 		"text_summary": "\n".join(lines),
 	}
+
+
+def validate_ema_notification(employee_doc, event_type, event_date):
+	"""Validate an EMA notification before export.
+
+	Args:
+		employee_doc: dict-like with employee fields.
+		event_type: "Eintritt", "Mutation", or "Austritt".
+		event_date: Date of the event.
+
+	Returns:
+		list of ValidationResult.
+	"""
+	results = []
+	emp_name = employee_doc.get("name") or employee_doc.get("employee") or "Unknown"
+
+	# Reuse standard employee validation
+	results.extend(_validate_employee(employee_doc))
+
+	# Event type validation
+	valid_types = ("Eintritt", "Mutation", "Austritt")
+	if event_type not in valid_types:
+		results.append(
+			ValidationResult(
+				level="error",
+				employee=emp_name,
+				field_name="event_type",
+				message=f"Invalid event type: {event_type}. Must be one of {valid_types}.",
+			)
+		)
+
+	# Event date validation
+	if not event_date:
+		results.append(
+			ValidationResult(
+				level="error",
+				employee=emp_name,
+				field_name="event_date",
+				message="Event date is required.",
+			)
+		)
+
+	# Eintritt: entry date should be set
+	if event_type == "Eintritt":
+		entry = employee_doc.get("ch_entry_date") or employee_doc.get("date_of_joining")
+		if not entry:
+			results.append(
+				ValidationResult(
+					level="warning",
+					employee=emp_name,
+					field_name="ch_entry_date",
+					message="Entry date not set on employee for Eintritt notification.",
+				)
+			)
+
+	# Austritt: exit date should be set
+	if event_type == "Austritt":
+		exit_date = employee_doc.get("ch_exit_date") or employee_doc.get("relieving_date")
+		if not exit_date:
+			results.append(
+				ValidationResult(
+					level="warning",
+					employee=emp_name,
+					field_name="ch_exit_date",
+					message="Exit date not set on employee for Austritt notification.",
+				)
+			)
+
+	return results

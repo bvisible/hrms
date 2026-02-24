@@ -437,3 +437,68 @@ def _default_institutions():
 		"include_fak": True,
 		"include_ofs": False,
 	}
+
+
+# --- EMA (Eintritt/Mutation/Austritt) Notification XML ---
+
+
+# EMA event type mapping to ELM codes
+EMA_EVENT_MAP = {
+	"Eintritt": "Entry",
+	"Mutation": "Mutation",
+	"Austritt": "Withdrawal",
+}
+
+
+def generate_ema_notification(
+	company_data, employee_doc, event_type, event_date, institutions=None, config=None,
+):
+	"""Generate EMA notification XML for a single employee event.
+
+	EMA notifications use the same SalaryDeclaration namespace but contain
+	only the employee identification and the event details, addressed to
+	specific institutions (AHV, FAK, BVG).
+
+	Args:
+		company_data: dict with company document fields.
+		employee_doc: dict-like Employee document.
+		event_type: "Eintritt", "Mutation", or "Austritt".
+		event_date: Date of the event (str or date).
+		institutions: dict with notify_avs, notify_fak, notify_bvg bools.
+		config: Swiss Social Insurance Config dict.
+
+	Returns:
+		bytes: UTF-8 encoded XML content.
+	"""
+	if institutions is None:
+		institutions = {"notify_avs": True, "notify_fak": True, "notify_bvg": True}
+	if config is None:
+		config = {}
+
+	root = Element("SalaryDeclaration")
+	root.set("xmlns", SWISSDEC_NS)
+	root.set("schemaVersion", SCHEMA_VERSION)
+
+	# Company element (reuse existing builder)
+	company_el = _build_company_element(root, company_data, config, "")
+
+	# EMA element
+	ema_el = SubElement(company_el, "EMA")
+	_add_text_element(ema_el, "EventType", EMA_EVENT_MAP.get(event_type, event_type))
+	_add_text_element(ema_el, "EventDate", _format_date(event_date))
+
+	# Target institutions
+	targets_el = SubElement(ema_el, "Institutions")
+	if institutions.get("notify_avs"):
+		_add_text_element(targets_el, "AHV-AVS", "true")
+	if institutions.get("notify_fak"):
+		_add_text_element(targets_el, "FAK-CAF", "true")
+	if institutions.get("notify_bvg"):
+		_add_text_element(targets_el, "BVG-LPP", "true")
+
+	# Person element (reuse existing builders for identification)
+	person_el = SubElement(ema_el, "Person")
+	_build_particulars(person_el, employee_doc)
+	_build_activity(person_el, employee_doc, {"period_start": None, "period_end": None})
+
+	return _prettify_xml(root)

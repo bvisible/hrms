@@ -209,19 +209,18 @@ def _extract_status_from_text(text):
 	return lines[0] if lines else text[:200]
 
 
-def transmit_declaration(declaration_name):
-	"""Transmit a Swissdec Declaration via the gateway.
-
-	Called by the Swissdec Declaration DocType's transmit() method.
+def transmit_declaration(declaration_name, doctype="Swissdec Declaration"):
+	"""Transmit a Swissdec Declaration or EMA notification via the gateway.
 
 	Args:
-		declaration_name: name of the Swissdec Declaration document
+		declaration_name: name of the document to transmit.
+		doctype: DocType name (default "Swissdec Declaration").
 
 	Returns:
 		dict with transmission result data
 	"""
 	settings = get_transmitter_settings()
-	doc = frappe.get_doc("Swissdec Declaration", declaration_name)
+	doc = frappe.get_doc(doctype, declaration_name)
 
 	if doc.status != "Exported":
 		frappe.throw(
@@ -298,16 +297,17 @@ def transmit_declaration(declaration_name):
 	}
 
 
-def check_transmission_status(declaration_name):
+def check_transmission_status(declaration_name, doctype="Swissdec Declaration"):
 	"""Check the async status of a pending transmission.
 
 	Args:
-		declaration_name: name of the Swissdec Declaration document
+		declaration_name: name of the document to check.
+		doctype: DocType name (default "Swissdec Declaration").
 
 	Returns:
 		dict with updated status information
 	"""
-	doc = frappe.get_doc("Swissdec Declaration", declaration_name)
+	doc = frappe.get_doc(doctype, declaration_name)
 
 	if doc.status != "Transmitted":
 		frappe.throw(
@@ -356,40 +356,38 @@ def check_transmission_status(declaration_name):
 
 
 def poll_pending_transmissions():
-	"""Scheduled job: check status of all pending (Transmitted) declarations.
+	"""Scheduled job: check status of all pending (Transmitted) declarations and EMA notifications.
 
 	Registered in hooks.py to run periodically.
 	"""
-	pending = frappe.get_all(
-		"Swissdec Declaration",
-		filters={"status": "Transmitted"},
-		fields=["name", "transmission_id"],
-	)
-
-	if not pending:
-		return
-
 	# Check if transmission is even enabled
 	settings = frappe.get_single("Swissdec Transmitter Settings")
 	if not settings.enabled:
 		return
 
-	for decl in pending:
-		try:
-			result = check_transmission_status(decl.name)
-			if result["status"] in ("Accepted", "Rejected"):
-				doc = frappe.get_doc("Swissdec Declaration", decl.name)
-				doc.status = result["status"]
-				doc.response_status = result.get("message", "")
-				if result.get("declaration_id"):
-					doc.declaration_id = result["declaration_id"]
-				doc.save(ignore_permissions=True)
-				frappe.db.commit()
-		except Exception:
-			frappe.log_error(
-				"Swissdec poll failed",
-				f"Failed to check status for {decl.name}: {frappe.get_traceback()}",
-			)
+	# Poll both Swissdec Declarations and EMA Notifications
+	for dt in ("Swissdec Declaration", "Swissdec EMA Notification"):
+		pending = frappe.get_all(
+			dt,
+			filters={"status": "Transmitted"},
+			fields=["name", "transmission_id"],
+		)
+		for decl in pending:
+			try:
+				result = check_transmission_status(decl.name, doctype=dt)
+				if result["status"] in ("Accepted", "Rejected"):
+					doc = frappe.get_doc(dt, decl.name)
+					doc.status = result["status"]
+					doc.response_status = result.get("message", "")
+					if result.get("declaration_id"):
+						doc.declaration_id = result["declaration_id"]
+					doc.save(ignore_permissions=True)
+					frappe.db.commit()
+			except Exception:
+				frappe.log_error(
+					"Swissdec poll failed",
+					f"Failed to check status for {decl.name}: {frappe.get_traceback()}",
+				)
 
 
 def _attach_xml(doc, filename, content):

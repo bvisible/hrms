@@ -7,7 +7,7 @@ All tests use pure functions with mock data — no Frappe DB dependency.
 """
 
 import unittest
-from xml.etree.ElementTree import fromstring
+from xml.etree.ElementTree import fromstring, tostring
 
 from hrms.regional.switzerland.swissdec_validation import (
 	ValidationResult,
@@ -21,9 +21,9 @@ from hrms.regional.switzerland.swissdec_validation import (
 )
 from hrms.regional.switzerland.swissdec_xml import (
 	SWISSDEC_NS,
+	_build_ac_salary,
 	_build_activity,
 	_build_avs_salary,
-	_build_ac_salary,
 	_build_company_element,
 	_build_fak_salary,
 	_build_ijm_salary,
@@ -35,7 +35,6 @@ from hrms.regional.switzerland.swissdec_xml import (
 	_prettify_xml,
 	generate_salary_declaration,
 )
-
 
 # --- Test Helpers ---
 
@@ -1325,6 +1324,311 @@ class TestCompletenessFlags(unittest.TestCase):
 				el = root.find(f".//{tag}")
 			self.assertIsNotNone(el, f"{tag} not found")
 			self.assertEqual(el.get("complete"), "true", f"{tag} should default to complete=true")
+
+
+# === EMA NOTIFICATION TESTS ===
+
+
+class TestEmaXmlGeneration(unittest.TestCase):
+	"""Test EMA (Eintritt/Mutation/Austritt) XML generation."""
+
+	def _generate_ema(self, event_type="Eintritt", event_date="2026-03-01", institutions=None):
+		"""Helper to generate EMA XML and return (root, xml_str)."""
+		from hrms.regional.switzerland.swissdec_xml import generate_ema_notification
+
+		company_data = _make_company()
+		employee_doc = _make_employee()
+		xml_bytes = generate_ema_notification(
+			company_data=company_data,
+			employee_doc=employee_doc,
+			event_type=event_type,
+			event_date=event_date,
+			institutions=institutions,
+		)
+		root = fromstring(xml_bytes)
+		# Return raw XML string (prettified) for text-based assertions
+		return root, xml_bytes.decode("utf-8")
+
+	def test_ema_root_element(self):
+		"""EMA XML has SalaryDeclaration root with correct namespace."""
+		root, _xml_str = self._generate_ema()
+		self.assertIn("SalaryDeclaration", root.tag)
+
+	def test_ema_has_company(self):
+		"""EMA XML contains Company element."""
+		root, _xml_str = self._generate_ema()
+		company = root.find(f".//{{{SWISSDEC_NS}}}Company")
+		if company is None:
+			company = root.find(".//Company")
+		self.assertIsNotNone(company)
+
+	def test_ema_has_ema_element(self):
+		"""EMA XML contains the EMA element."""
+		root, _xml_str = self._generate_ema()
+		ema = root.find(f".//{{{SWISSDEC_NS}}}EMA")
+		if ema is None:
+			ema = root.find(".//EMA")
+		self.assertIsNotNone(ema)
+
+	def test_ema_event_type_entry(self):
+		"""Eintritt maps to 'Entry' in XML."""
+		_root, xml_str = self._generate_ema(event_type="Eintritt")
+		self.assertIn(">Entry<", xml_str)
+
+	def test_ema_event_type_mutation(self):
+		"""Mutation maps to 'Mutation' in XML."""
+		_root, xml_str = self._generate_ema(event_type="Mutation")
+		self.assertIn(">Mutation<", xml_str)
+
+	def test_ema_event_type_withdrawal(self):
+		"""Austritt maps to 'Withdrawal' in XML."""
+		_root, xml_str = self._generate_ema(event_type="Austritt")
+		self.assertIn(">Withdrawal<", xml_str)
+
+	def test_ema_event_date(self):
+		"""Event date is formatted correctly in XML."""
+		_root, xml_str = self._generate_ema(event_date="2026-03-15")
+		self.assertIn(">2026-03-15<", xml_str)
+
+	def test_ema_institutions_default_all(self):
+		"""By default all 3 institutions are notified."""
+		_root, xml_str = self._generate_ema()
+		self.assertIn(">true<", xml_str)
+		self.assertIn("AHV-AVS", xml_str)
+		self.assertIn("FAK-CAF", xml_str)
+		self.assertIn("BVG-LPP", xml_str)
+
+	def test_ema_institutions_partial(self):
+		"""Only selected institutions are included."""
+		_root, xml_str = self._generate_ema(
+			institutions={"notify_avs": True, "notify_fak": False, "notify_bvg": True}
+		)
+		self.assertIn("AHV-AVS", xml_str)
+		self.assertNotIn("FAK-CAF", xml_str)
+		self.assertIn("BVG-LPP", xml_str)
+
+	def test_ema_has_person(self):
+		"""EMA XML contains Person element with employee data."""
+		root, _xml_str = self._generate_ema()
+		person = root.find(f".//{{{SWISSDEC_NS}}}Person")
+		if person is None:
+			person = root.find(".//Person")
+		self.assertIsNotNone(person)
+
+	def test_ema_has_particulars(self):
+		"""EMA XML contains Particulars with employee identification."""
+		_root, xml_str = self._generate_ema()
+		# AVS number is stored without dots in the XML (ELM format)
+		self.assertIn("7561234567897", xml_str)
+
+	def test_ema_has_activity(self):
+		"""EMA XML contains Activity element."""
+		root, _xml_str = self._generate_ema()
+		activity = root.find(f".//{{{SWISSDEC_NS}}}Activity")
+		if activity is None:
+			activity = root.find(".//Activity")
+		self.assertIsNotNone(activity)
+
+	def test_ema_institutions_none_selected(self):
+		"""All institutions false produces Institutions element without children."""
+		_root, xml_str = self._generate_ema(
+			institutions={"notify_avs": False, "notify_fak": False, "notify_bvg": False}
+		)
+		self.assertIn("Institutions", xml_str)
+		self.assertNotIn("AHV-AVS", xml_str)
+		self.assertNotIn("FAK-CAF", xml_str)
+		self.assertNotIn("BVG-LPP", xml_str)
+
+
+class TestEmaValidation(unittest.TestCase):
+	"""Test EMA-specific validation rules."""
+
+	def test_valid_eintritt(self):
+		"""Valid Eintritt notification passes validation."""
+		from hrms.regional.switzerland.swissdec_validation import validate_ema_notification
+
+		emp = _make_employee(ch_entry_date="2026-03-01")
+		results = validate_ema_notification(emp, "Eintritt", "2026-03-01")
+		errors = [r for r in results if r.level == "error"]
+		self.assertEqual(len(errors), 0)
+
+	def test_valid_mutation(self):
+		"""Valid Mutation notification passes validation."""
+		from hrms.regional.switzerland.swissdec_validation import validate_ema_notification
+
+		emp = _make_employee()
+		results = validate_ema_notification(emp, "Mutation", "2026-03-01")
+		errors = [r for r in results if r.level == "error"]
+		self.assertEqual(len(errors), 0)
+
+	def test_valid_austritt(self):
+		"""Valid Austritt notification passes validation."""
+		from hrms.regional.switzerland.swissdec_validation import validate_ema_notification
+
+		emp = _make_employee(ch_exit_date="2026-06-30", relieving_date="2026-06-30")
+		results = validate_ema_notification(emp, "Austritt", "2026-06-30")
+		errors = [r for r in results if r.level == "error"]
+		self.assertEqual(len(errors), 0)
+
+	def test_invalid_event_type(self):
+		"""Invalid event type produces error."""
+		from hrms.regional.switzerland.swissdec_validation import validate_ema_notification
+
+		emp = _make_employee()
+		results = validate_ema_notification(emp, "Invalid", "2026-03-01")
+		errors = [r for r in results if r.level == "error" and "event_type" in (r.field_name or "")]
+		self.assertGreater(len(errors), 0)
+
+	def test_missing_event_date(self):
+		"""Missing event date produces error."""
+		from hrms.regional.switzerland.swissdec_validation import validate_ema_notification
+
+		emp = _make_employee()
+		results = validate_ema_notification(emp, "Mutation", None)
+		errors = [r for r in results if r.level == "error" and "event_date" in (r.field_name or "")]
+		self.assertGreater(len(errors), 0)
+
+	def test_eintritt_missing_entry_date_warning(self):
+		"""Eintritt without entry date produces warning."""
+		from hrms.regional.switzerland.swissdec_validation import validate_ema_notification
+
+		emp = _make_employee(ch_entry_date=None, date_of_joining=None)
+		results = validate_ema_notification(emp, "Eintritt", "2026-03-01")
+		warnings = [r for r in results if r.level == "warning" and "entry" in (r.field_name or "").lower()]
+		self.assertGreater(len(warnings), 0)
+
+	def test_austritt_missing_exit_date_warning(self):
+		"""Austritt without exit date produces warning."""
+		from hrms.regional.switzerland.swissdec_validation import validate_ema_notification
+
+		emp = _make_employee(ch_exit_date=None, relieving_date=None)
+		results = validate_ema_notification(emp, "Austritt", "2026-06-30")
+		warnings = [r for r in results if r.level == "warning" and "exit" in (r.field_name or "").lower()]
+		self.assertGreater(len(warnings), 0)
+
+	def test_ema_inherits_employee_validation(self):
+		"""EMA validation also checks standard employee fields (AVS, canton, etc.)."""
+		from hrms.regional.switzerland.swissdec_validation import validate_ema_notification
+
+		emp = _make_employee(ch_avs_number="", ch_fiscal_canton="")
+		results = validate_ema_notification(emp, "Mutation", "2026-03-01")
+		errors = [r for r in results if r.level == "error"]
+		# Should have errors for missing AVS and canton
+		self.assertGreaterEqual(len(errors), 2)
+
+
+class TestEmaHookLogic(unittest.TestCase):
+	"""Test EMA change detection logic (pure function tests, no Frappe DB)."""
+
+	def test_detect_field_changes(self):
+		"""Detect changes in EMA-tracked fields."""
+		from hrms.regional.switzerland.ema_hooks import _detect_field_changes
+
+		class MockDoc:
+			def get(self, field):
+				return getattr(self, field, None)
+
+		old = MockDoc()
+		old.marital_status = "Single"
+		old.ch_fiscal_canton = "ZH"
+		old.ch_work_percentage = 100
+		old.ch_permit_type = "Swiss Citizen"
+		old.ch_avs_number = "756.1234.5678.97"
+		old.ch_nationality = "Switzerland"
+
+		new = MockDoc()
+		new.marital_status = "Married"  # changed
+		new.ch_fiscal_canton = "ZH"  # same
+		new.ch_work_percentage = 80  # changed
+		new.ch_permit_type = "Swiss Citizen"  # same
+		new.ch_avs_number = "756.1234.5678.97"  # same
+		new.ch_nationality = "Switzerland"  # same
+
+		changes = _detect_field_changes(new, old)
+		field_names = [c[0] for c in changes]
+		self.assertIn("marital_status", field_names)
+		self.assertIn("ch_work_percentage", field_names)
+		self.assertNotIn("ch_fiscal_canton", field_names)
+		self.assertEqual(len(changes), 2)
+
+	def test_detect_no_changes(self):
+		"""No changes detected when fields are identical."""
+		from hrms.regional.switzerland.ema_hooks import _detect_field_changes
+
+		class MockDoc:
+			def get(self, field):
+				return getattr(self, field, None)
+
+		doc = MockDoc()
+		doc.marital_status = "Single"
+		doc.ch_fiscal_canton = "ZH"
+		doc.ch_work_percentage = 100
+		doc.ch_permit_type = "Swiss Citizen"
+		doc.ch_avs_number = "756.1234.5678.97"
+		doc.ch_nationality = "Switzerland"
+
+		changes = _detect_field_changes(doc, doc)
+		self.assertEqual(len(changes), 0)
+
+	def test_is_austritt_status_change(self):
+		"""Austritt detected when status changes to Left."""
+		from hrms.regional.switzerland.ema_hooks import _is_austritt
+
+		class MockDoc:
+			def get(self, field):
+				return getattr(self, field, None)
+
+		old = MockDoc()
+		old.status = "Active"
+		old.ch_exit_date = None
+		old.relieving_date = None
+
+		new = MockDoc()
+		new.status = "Left"
+		new.ch_exit_date = "2026-06-30"
+		new.relieving_date = None
+
+		self.assertTrue(_is_austritt(new, old))
+
+	def test_is_not_austritt_active(self):
+		"""No Austritt for normal Active employee."""
+		from hrms.regional.switzerland.ema_hooks import _is_austritt
+
+		class MockDoc:
+			def get(self, field):
+				return getattr(self, field, None)
+
+		old = MockDoc()
+		old.status = "Active"
+		old.ch_exit_date = None
+		old.relieving_date = None
+
+		new = MockDoc()
+		new.status = "Active"
+		new.ch_exit_date = None
+		new.relieving_date = None
+
+		self.assertFalse(_is_austritt(new, old))
+
+	def test_is_austritt_exit_date_set(self):
+		"""Austritt detected when exit date is newly set."""
+		from hrms.regional.switzerland.ema_hooks import _is_austritt
+
+		class MockDoc:
+			def get(self, field):
+				return getattr(self, field, None)
+
+		old = MockDoc()
+		old.status = "Active"
+		old.ch_exit_date = None
+		old.relieving_date = None
+
+		new = MockDoc()
+		new.status = "Active"
+		new.ch_exit_date = None
+		new.relieving_date = "2026-07-31"
+
+		self.assertTrue(_is_austritt(new, old))
 
 
 if __name__ == "__main__":
