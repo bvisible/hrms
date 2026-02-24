@@ -281,11 +281,11 @@
 	<!-- I: Footer — Date, Signature, Company info -->
 	<table class="footerTable" style="margin-left: 75px; width: 690px; height: 85px; margin-top: 23px;">
 		<tr>
-			<td style="width: 230px; vertical-align: top; padding: 1px 8px !important; ">
+			<td style="width: 230px; vertical-align: top; padding: 28px 8px 1px 8px !important; ">
 			{% if doc.posting_date %}{{ frappe.utils.get_datetime(doc.posting_date).strftime('%d.%m.%Y') }}{% endif %}
 			</td>
 			<td style="width: 270px; padding: 1px 8px !important; "></td>
-			<td style="vertical-align: top; padding: 3px 8px !important; font-size: 8pt; ">
+			<td style="vertical-align: top; padding: 20px 8px 1px 8px !important; font-size: 8pt; ">
 			{{ config.get("lohnausweis_employer_name") or doc.company }}
 			</td>
 		</tr>
