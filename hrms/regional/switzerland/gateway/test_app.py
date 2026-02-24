@@ -3,7 +3,7 @@
 
 """Tests for the Swissdec Gateway Flask app.
 
-Uses Flask test client with mocked SSH connections — no real VM needed.
+Uses Flask test client with mocked subprocess — no real SwissDecTX needed.
 """
 
 import io
@@ -11,12 +11,11 @@ import json
 import os
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 # Set test environment before importing app
 os.environ["SWISSDEC_API_KEYS"] = "test-key-1,test-key-2"
-os.environ["SWISSDEC_VM_HOST"] = "192.168.20.103"
-os.environ["SWISSDEC_VM_USER"] = "TestUser"
 
 from app import app
 
@@ -60,26 +59,16 @@ class TestAuthentication(unittest.TestCase):
 		)
 		self.assertEqual(response.status_code, 401)
 
-	def test_valid_api_key_passes(self):
+	@patch("app._run_command")
+	def test_valid_api_key_passes(self, mock_run):
 		"""Request with valid API key is authenticated."""
-		with patch("app._get_ssh_client") as mock_ssh:
-			mock_client = MagicMock()
-			mock_ssh.return_value = mock_client
+		mock_run.return_value = (0, "Successful", "")
 
-			# Mock stdout with Successful message
-			mock_stdout = MagicMock()
-			mock_stdout.read.return_value = b"Successful"
-			mock_stdout.channel.recv_exit_status.return_value = 0
-			mock_stderr = MagicMock()
-			mock_stderr.read.return_value = b""
-
-			mock_client.exec_command.return_value = (MagicMock(), mock_stdout, mock_stderr)
-
-			response = self.client.post(
-				"/api/v1/ping",
-				headers={"X-API-Key": "test-key-1"},
-			)
-			self.assertNotEqual(response.status_code, 401)
+		response = self.client.post(
+			"/api/v1/ping",
+			headers={"X-API-Key": "test-key-1"},
+		)
+		self.assertNotEqual(response.status_code, 401)
 
 
 class TestPing(unittest.TestCase):
@@ -89,19 +78,10 @@ class TestPing(unittest.TestCase):
 		self.client = app.test_client()
 		self.headers = {"X-API-Key": "test-key-1"}
 
-	@patch("app._get_ssh_client")
-	def test_ping_successful(self, mock_ssh):
+	@patch("app._run_command")
+	def test_ping_successful(self, mock_run):
 		"""Successful PING returns success=true."""
-		mock_client = MagicMock()
-		mock_ssh.return_value = mock_client
-
-		mock_stdout = MagicMock()
-		mock_stdout.read.return_value = b"PING: Successful (server time synced)"
-		mock_stdout.channel.recv_exit_status.return_value = 0
-		mock_stderr = MagicMock()
-		mock_stderr.read.return_value = b""
-
-		mock_client.exec_command.return_value = (MagicMock(), mock_stdout, mock_stderr)
+		mock_run.return_value = (0, "PING: Successful (server time synced)", "")
 
 		response = self.client.post("/api/v1/ping", headers=self.headers)
 		data = response.get_json()
@@ -110,17 +90,16 @@ class TestPing(unittest.TestCase):
 		self.assertTrue(data["success"])
 		self.assertIn("Successful", data["output"])
 
-	@patch("app._get_ssh_client")
-	def test_ping_ssh_failure(self, mock_ssh):
-		"""SSH connection failure returns 500."""
-		mock_ssh.side_effect = Exception("Connection refused")
+	@patch("app._run_command")
+	def test_ping_failure(self, mock_run):
+		"""Failed PING returns success=false."""
+		mock_run.side_effect = Exception("Command not found")
 
 		response = self.client.post("/api/v1/ping", headers=self.headers)
 		data = response.get_json()
 
 		self.assertEqual(response.status_code, 500)
 		self.assertFalse(data["success"])
-		self.assertIn("Connection refused", data["error"])
 
 
 class TestTransmit(unittest.TestCase):
@@ -129,9 +108,7 @@ class TestTransmit(unittest.TestCase):
 	def setUp(self):
 		self.client = app.test_client()
 		self.headers = {"X-API-Key": "test-key-1"}
-		# Use temp dir for storage
 		self.temp_dir = tempfile.mkdtemp()
-		app.config["TESTING"] = True
 
 	def test_missing_xml_returns_400(self):
 		"""Request without xml_file returns 400."""
@@ -148,66 +125,52 @@ class TestTransmit(unittest.TestCase):
 		)
 		self.assertEqual(response.status_code, 400)
 
-	@patch("app.STORAGE_DIR")
-	@patch("app._get_ssh_client")
-	def test_transmit_success(self, mock_ssh, mock_storage):
+	@patch("app._run_command")
+	@patch("app._read_file")
+	def test_transmit_success(self, mock_read, mock_run):
 		"""Successful TX returns tx_id and result."""
-		from pathlib import Path
+		mock_run.return_value = (0, "TX: Successful", "")
+		mock_read.return_value = "<Result><DeclarationID>test-id</DeclarationID></Result>"
 
-		mock_storage.__class__ = Path
-		temp_path = Path(self.temp_dir)
-
-		mock_client = MagicMock()
-		mock_ssh.return_value = mock_client
-
-		# Mock SFTP
-		mock_sftp = MagicMock()
-		mock_client.open_sftp.return_value = mock_sftp
-
-		# Mock exec_command for mkdir
-		mock_stdout_mkdir = MagicMock()
-		mock_stdout_mkdir.read.return_value = b""
-		mock_stdout_mkdir.channel.recv_exit_status.return_value = 0
-		mock_stderr_mkdir = MagicMock()
-		mock_stderr_mkdir.read.return_value = b""
-
-		# Mock exec_command for TX
-		mock_stdout_tx = MagicMock()
-		mock_stdout_tx.read.return_value = b"TX: Successful"
-		mock_stdout_tx.channel.recv_exit_status.return_value = 0
-		mock_stderr_tx = MagicMock()
-		mock_stderr_tx.read.return_value = b""
-
-		mock_client.exec_command.side_effect = [
-			(MagicMock(), mock_stdout_mkdir, mock_stderr_mkdir),
-			(MagicMock(), mock_stdout_tx, mock_stderr_tx),
-		]
-
-		# Mock SFTP download — return result XML
-		result_xml = b"<Result><DeclarationID>test-id</DeclarationID></Result>"
-
-		def mock_getfo(remote_path, buf):
-			buf.write(result_xml)
-
-		mock_sftp.getfo.side_effect = mock_getfo
-
-		with patch("app.STORAGE_DIR", temp_path):
+		with patch("app.WORK_DIR", Path(self.temp_dir)), \
+			patch("app.STORAGE_DIR", Path(self.temp_dir)):
 			response = self.client.post(
 				"/api/v1/transmit",
 				headers=self.headers,
 				data={
 					"xml_file": (io.BytesIO(b"<SalaryDeclaration/>"), "test.xml"),
 					"instance_id": "test-instance",
-					"declaration_name": "SDD-TEST-2025",
+					"declaration_name": "SDD-TEST-2026",
 				},
 				content_type="multipart/form-data",
 			)
 
 		data = response.get_json()
-
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("tx_id", data)
 		self.assertEqual(data["exit_code"], 0)
+
+	@patch("app._run_command")
+	@patch("app._read_file")
+	def test_transmit_failure(self, mock_read, mock_run):
+		"""TX with non-zero exit code returns error info."""
+		mock_run.return_value = (8, "TX: Error", "Schema validation failed")
+		mock_read.return_value = None
+
+		with patch("app.WORK_DIR", Path(self.temp_dir)), \
+			patch("app.STORAGE_DIR", Path(self.temp_dir)):
+			response = self.client.post(
+				"/api/v1/transmit",
+				headers=self.headers,
+				data={
+					"xml_file": (io.BytesIO(b"<Invalid/>"), "test.xml"),
+				},
+				content_type="multipart/form-data",
+			)
+
+		data = response.get_json()
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(data["exit_code"], 8)
 
 
 class TestStatus(unittest.TestCase):
@@ -219,13 +182,7 @@ class TestStatus(unittest.TestCase):
 
 	def test_unknown_tx_id_returns_404(self):
 		"""Status for unknown tx_id returns 404."""
-		with patch("app.STORAGE_DIR") as mock_dir:
-			mock_dir.__truediv__ = MagicMock(
-				return_value=MagicMock(
-					__truediv__=MagicMock(return_value=MagicMock(exists=MagicMock(return_value=False)))
-				)
-			)
-
+		with patch("app._load_metadata", return_value=None):
 			response = self.client.get(
 				"/api/v1/status/nonexistent",
 				headers=self.headers,

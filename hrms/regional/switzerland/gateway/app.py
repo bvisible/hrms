@@ -2,26 +2,26 @@
 # License: GNU General Public License v3. See license.txt
 
 """
-Swissdec Gateway — lightweight Flask service bridging HRMS instances to SwissDecTX.
+Swissdec Gateway — lightweight Flask service running on the SwissDecTX Windows VM.
 
-Runs on a host with SSH access to the SwissDecTX Windows VM (e.g., Synology NAS).
-Exposes a REST API that any HRMS instance can call to transmit salary declarations.
+Executes SwissDecTX CLI commands locally via subprocess and exposes a REST API
+that any HRMS instance can call to transmit salary declarations.
 
-Deployment:
-    pip install flask paramiko gunicorn
-    gunicorn -w 2 -b 0.0.0.0:8745 app:app
+Deployment (Windows):
+    pip install flask waitress
+    waitress-serve --host=0.0.0.0 --port=8745 app:app
 """
 
 import json
 import logging
 import os
+import subprocess
 import threading
 import uuid
 from datetime import datetime, timezone
 from functools import wraps
 from pathlib import Path
 
-import paramiko
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
@@ -31,26 +31,22 @@ logger = logging.getLogger("swissdec-gateway")
 # ---------------------------------------------------------------------------
 # Configuration from environment
 # ---------------------------------------------------------------------------
-VM_HOST = os.environ.get("SWISSDEC_VM_HOST", "192.168.20.103")
-VM_PORT = int(os.environ.get("SWISSDEC_VM_PORT", "22"))
-VM_USER = os.environ.get("SWISSDEC_VM_USER", "Neoservice")
-VM_SSH_KEY = os.environ.get("SWISSDEC_VM_SSH_KEY", "")
 SWISSDECTX_PATH = os.environ.get(
 	"SWISSDECTX_PATH",
 	r"C:\Program Files (x86)\SwissDecTX5\SwissDecTX.exe",
 )
-VM_WORK_DIR = os.environ.get("SWISSDEC_VM_WORK_DIR", r"C:\swissdec\tx")
+WORK_DIR = Path(os.environ.get("SWISSDEC_WORK_DIR", r"C:\SwissDec\tx"))
 
 # Comma-separated list of valid API keys
 API_KEYS = [k.strip() for k in os.environ.get("SWISSDEC_API_KEYS", "").split(",") if k.strip()]
 
 # Local storage for transmission data
-STORAGE_DIR = Path(os.environ.get("SWISSDEC_STORAGE_DIR", "/volume1/SwissDec/transmissions"))
+STORAGE_DIR = Path(os.environ.get("SWISSDEC_STORAGE_DIR", r"C:\SwissDec\transmissions"))
 
 # TX command timeout in seconds
 TX_TIMEOUT = int(os.environ.get("SWISSDEC_TX_TIMEOUT", "120"))
 
-# Mutex to serialize TX command execution on the VM
+# Mutex to serialize TX command execution
 tx_lock = threading.Lock()
 
 
@@ -64,7 +60,6 @@ def require_api_key(f):
 	def decorated(*args, **kwargs):
 		api_key = request.headers.get("X-API-Key", "")
 		if not API_KEYS:
-			# No keys configured — open access (dev mode)
 			logger.warning("No API keys configured — running in open mode")
 		elif api_key not in API_KEYS:
 			return jsonify({"error": "Invalid or missing API key"}), 401
@@ -74,62 +69,26 @@ def require_api_key(f):
 
 
 # ---------------------------------------------------------------------------
-# SSH helpers
+# Local execution helpers
 # ---------------------------------------------------------------------------
-def _get_ssh_client():
-	"""Create and return an SSH client connected to the VM."""
-	client = paramiko.SSHClient()
-	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-	connect_kwargs = {
-		"hostname": VM_HOST,
-		"port": VM_PORT,
-		"username": VM_USER,
-	}
-
-	if VM_SSH_KEY:
-		connect_kwargs["key_filename"] = VM_SSH_KEY
-	else:
-		# Fall back to default key locations
-		connect_kwargs["look_for_keys"] = True
-
-	client.connect(**connect_kwargs)
-	return client
+def _run_command(command, timeout=TX_TIMEOUT):
+	"""Execute a local command and return (exit_code, stdout, stderr)."""
+	result = subprocess.run(
+		command,
+		capture_output=True,
+		text=True,
+		timeout=timeout,
+		shell=True,
+	)
+	return result.returncode, result.stdout, result.stderr
 
 
-def _ssh_exec(client, command, timeout=TX_TIMEOUT):
-	"""Execute a command via SSH and return (exit_code, stdout, stderr)."""
-	stdin, stdout, stderr = client.exec_command(command, timeout=timeout)
-	exit_code = stdout.channel.recv_exit_status()
-	out = stdout.read().decode("utf-8", errors="replace")
-	err = stderr.read().decode("utf-8", errors="replace")
-	return exit_code, out, err
-
-
-def _sftp_upload(client, local_content, remote_path):
-	"""Upload bytes content to remote path via SFTP."""
-	sftp = client.open_sftp()
-	try:
-		import io
-
-		sftp.putfo(io.BytesIO(local_content), remote_path)
-	finally:
-		sftp.close()
-
-
-def _sftp_download(client, remote_path):
-	"""Download a remote file and return its content as string. Returns None if not found."""
-	sftp = client.open_sftp()
-	try:
-		import io
-
-		buf = io.BytesIO()
-		sftp.getfo(remote_path, buf)
-		return buf.getvalue().decode("utf-8", errors="replace")
-	except FileNotFoundError:
+def _read_file(filepath):
+	"""Read a local file and return its content. Returns None if not found."""
+	path = Path(filepath)
+	if not path.exists():
 		return None
-	finally:
-		sftp.close()
+	return path.read_text(encoding="utf-8", errors="replace")
 
 
 def _save_metadata(tx_dir, metadata):
@@ -157,7 +116,7 @@ def health():
 	return jsonify({
 		"status": "ok",
 		"timestamp": datetime.now(timezone.utc).isoformat(),
-		"vm_host": VM_HOST,
+		"swissdectx": SWISSDECTX_PATH,
 	})
 
 
@@ -166,10 +125,8 @@ def health():
 def ping():
 	"""Test SwissDecTX PING connectivity."""
 	try:
-		client = _get_ssh_client()
 		cmd = f'"{SWISSDECTX_PATH}" PING -v 5.0 -i NeoserviceHRMS -l 2055'
-		exit_code, out, err = _ssh_exec(client, cmd, timeout=30)
-		client.close()
+		exit_code, out, err = _run_command(cmd, timeout=30)
 
 		success = "Successful" in out
 		return jsonify({
@@ -205,14 +162,17 @@ def transmit():
 	declaration_name = request.form.get("declaration_name", "unknown")
 
 	tx_id = uuid.uuid4().hex[:12]
-	remote_dir = f"{VM_WORK_DIR}\\{tx_id}"
+	tx_work = WORK_DIR / tx_id
+	tx_store = STORAGE_DIR / tx_id
 
-	# Prepare local storage
-	tx_dir = STORAGE_DIR / tx_id
-	tx_dir.mkdir(parents=True, exist_ok=True)
+	# Create directories
+	tx_work.mkdir(parents=True, exist_ok=True)
+	tx_store.mkdir(parents=True, exist_ok=True)
 
-	# Save input XML locally
-	(tx_dir / "input.xml").write_bytes(xml_content)
+	# Save input XML
+	input_path = tx_work / "input.xml"
+	input_path.write_bytes(xml_content)
+	(tx_store / "input.xml").write_bytes(xml_content)
 
 	metadata = {
 		"tx_id": tx_id,
@@ -223,49 +183,39 @@ def transmit():
 	}
 
 	try:
-		client = _get_ssh_client()
-
-		# Create remote working directory
-		_ssh_exec(client, f'mkdir "{remote_dir}"', timeout=10)
-
-		# Upload XML to VM
-		_sftp_upload(client, xml_content, f"{remote_dir}\\input.xml")
-
 		# Execute TX command (serialized with lock)
 		with tx_lock:
 			logger.info("TX start: tx_id=%s instance=%s declaration=%s", tx_id, instance_id, declaration_name)
 			cmd = (
 				f'"{SWISSDECTX_PATH}" TX '
-				f'-dec "{remote_dir}\\input.xml" '
-				f'-res "{remote_dir}\\result.xml" '
-				f'-msg "{remote_dir}\\sent.xml" '
-				f'-ans "{remote_dir}\\answer.xml" '
-				f'-job "{remote_dir}\\job.xml"'
+				f'-dec "{tx_work / "input.xml"}" '
+				f'-res "{tx_work / "result.xml"}" '
+				f'-msg "{tx_work / "sent.xml"}" '
+				f'-ans "{tx_work / "answer.xml"}" '
+				f'-job "{tx_work / "job.xml"}"'
 			)
-			exit_code, out, err = _ssh_exec(client, cmd, timeout=TX_TIMEOUT)
+			exit_code, out, err = _run_command(cmd, timeout=TX_TIMEOUT)
 			logger.info("TX done: tx_id=%s exit_code=%s", tx_id, exit_code)
 
-		# Download result files
-		result_xml = _sftp_download(client, f"{remote_dir}\\result.xml")
-		answer_xml = _sftp_download(client, f"{remote_dir}\\answer.xml")
-		job_xml = _sftp_download(client, f"{remote_dir}\\job.xml")
+		# Read result files
+		result_xml = _read_file(tx_work / "result.xml")
+		answer_xml = _read_file(tx_work / "answer.xml")
+		job_xml = _read_file(tx_work / "job.xml")
 
-		client.close()
-
-		# Save results locally
+		# Save results to storage
 		if result_xml:
-			(tx_dir / "result.xml").write_text(result_xml)
+			(tx_store / "result.xml").write_text(result_xml)
 		if answer_xml:
-			(tx_dir / "answer.xml").write_text(answer_xml)
+			(tx_store / "answer.xml").write_text(answer_xml)
 		if job_xml:
-			(tx_dir / "job.xml").write_text(job_xml)
+			(tx_store / "job.xml").write_text(job_xml)
 
 		metadata.update({
 			"status": "completed",
 			"exit_code": exit_code,
 			"completed_at": datetime.now(timezone.utc).isoformat(),
 		})
-		_save_metadata(tx_dir, metadata)
+		_save_metadata(tx_store, metadata)
 
 		return jsonify({
 			"tx_id": tx_id,
@@ -281,25 +231,21 @@ def transmit():
 		logger.exception("TX failed: tx_id=%s", tx_id)
 		metadata["status"] = "error"
 		metadata["error"] = str(e)
-		_save_metadata(tx_dir, metadata)
+		_save_metadata(tx_store, metadata)
 		return jsonify({"tx_id": tx_id, "error": str(e)}), 500
 
 
 @app.route("/api/v1/status/<tx_id>", methods=["GET"])
 @require_api_key
 def status(tx_id):
-	"""Check async job status for a transmission.
-
-	If the TX command returned a job.xml (async operation), this endpoint
-	runs the SwissDecTX STATUS command to check completion.
-	"""
-	tx_dir = STORAGE_DIR / tx_id
-	metadata = _load_metadata(tx_dir)
+	"""Check async job status for a transmission."""
+	tx_store = STORAGE_DIR / tx_id
+	metadata = _load_metadata(tx_store)
 
 	if not metadata:
 		return jsonify({"error": "Transmission not found"}), 404
 
-	job_file = tx_dir / "job.xml"
+	job_file = WORK_DIR / tx_id / "job.xml"
 	if not job_file.exists():
 		return jsonify({
 			"tx_id": tx_id,
@@ -309,12 +255,8 @@ def status(tx_id):
 		})
 
 	try:
-		remote_dir = f"{VM_WORK_DIR}\\{tx_id}"
-		client = _get_ssh_client()
-
-		cmd = f'"{SWISSDECTX_PATH}" STATUS -job "{remote_dir}\\job.xml"'
-		exit_code, out, err = _ssh_exec(client, cmd, timeout=30)
-		client.close()
+		cmd = f'"{SWISSDECTX_PATH}" STATUS -job "{job_file}"'
+		exit_code, out, err = _run_command(cmd, timeout=30)
 
 		return jsonify({
 			"tx_id": tx_id,
@@ -333,8 +275,8 @@ def status(tx_id):
 @require_api_key
 def result(tx_id):
 	"""Retrieve stored result files for a transmission."""
-	tx_dir = STORAGE_DIR / tx_id
-	metadata = _load_metadata(tx_dir)
+	tx_store = STORAGE_DIR / tx_id
+	metadata = _load_metadata(tx_store)
 
 	if not metadata:
 		return jsonify({"error": "Transmission not found"}), 404
@@ -345,7 +287,7 @@ def result(tx_id):
 	}
 
 	for filename in ("result.xml", "answer.xml", "job.xml", "input.xml"):
-		filepath = tx_dir / filename
+		filepath = tx_store / filename
 		if filepath.exists():
 			response[filename.replace(".", "_")] = filepath.read_text()
 
