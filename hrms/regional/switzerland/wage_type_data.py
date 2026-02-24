@@ -14,9 +14,34 @@ _EXEMPT = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0}
 _DEDUCTION = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0}
 
 
-def _wt(code, name, typ, cert, flags, vac=0, stat="", common=0):
-	"""Build a wage type dict entry."""
-	return {
+def _wt(
+	code, name, typ, cert, flags, vac=0, stat="", common=0,
+	abbr="", desc_fr="", employer=0, linked="", formula="", condition="",
+	amount=0, formula_based=0, no_total=0, payment_days=1,
+):
+	"""Build a wage type dict entry.
+
+	Args:
+		code: Numeric wage type code.
+		name: Wage type name (French).
+		typ: "Earning", "Deduction", or "Informational".
+		cert: Lohnausweis certificate position.
+		flags: Social insurance base flags dict.
+		vac: Included in vacation base.
+		stat: Statistical category code.
+		common: Commonly used flag.
+		abbr: Salary Component abbreviation template.
+		desc_fr: French description for the Salary Component.
+		employer: Is employer contribution flag.
+		linked: Linked wage type code (paired employee/employer).
+		formula: Formula expression for automatic calculation.
+		condition: Condition expression.
+		amount: Default fixed amount.
+		formula_based: Amount based on formula flag.
+		no_total: Do not include in total (net pay) flag.
+		payment_days: Depends on payment days flag.
+	"""
+	entry = {
 		"code": str(code),
 		"wage_type_name": name,
 		"type": typ,
@@ -32,6 +57,32 @@ def _wt(code, name, typ, cert, flags, vac=0, stat="", common=0):
 		"is_standard": 1,
 		"is_common": common,
 	}
+	# Template fields (only set if provided)
+	if abbr:
+		entry["abbreviation"] = abbr
+	if desc_fr:
+		entry["description_fr"] = desc_fr
+	if employer:
+		entry["is_employer_contribution"] = 1
+		entry["do_not_include_in_total"] = 1
+	if linked:
+		entry["linked_wage_type_code"] = str(linked)
+	if formula:
+		entry["formula"] = formula
+		entry["amount_based_on_formula"] = 1
+	if condition:
+		entry["condition"] = condition
+	if amount:
+		entry["default_amount"] = amount
+	if formula_based:
+		entry["amount_based_on_formula"] = 1
+	if no_total:
+		entry["do_not_include_in_total"] = 1
+	if not payment_days:
+		entry["depends_on_payment_days"] = 0
+	else:
+		entry["depends_on_payment_days"] = 1
+	return entry
 
 
 def get_swiss_wage_types():
@@ -67,7 +118,10 @@ def get_swiss_wage_types():
 		# =====================================================================
 		# 1060-1076: Overtime and shift/night work
 		# =====================================================================
-		_wt(1060, "Travail supplémentaire", "Earning", "1", _ALL, vac=1, stat="HS", common=1),
+		_wt(
+			1060, "Travail supplémentaire", "Earning", "1", _ALL, vac=1, stat="HS", common=1,
+			abbr="OTP", desc_fr="Heures supplémentaires",
+		),
 		_wt(1061, "Heures supplémentaires à 125%", "Earning", "1", _ALL, vac=1, stat="HS"),
 		_wt(1065, "Heures supplémentaires", "Earning", "1", _ALL, vac=1, stat="HS", common=1),
 		_wt(1070, "Indemnité travail par équipes", "Earning", "1", _ALL, vac=1, stat="IND"),
@@ -96,7 +150,10 @@ def get_swiss_wage_types():
 		# =====================================================================
 		# 1160-1165: Vacation pay
 		# =====================================================================
-		_wt(1160, "Indemnité de vacances", "Earning", "1", _ALL, vac=1, stat="BS", common=1),
+		_wt(
+			1160, "Indemnité de vacances", "Earning", "1", _ALL, vac=1, stat="BS", common=1,
+			abbr="VACA", desc_fr="Indemnité de vacances",
+		),
 		_wt(1161, "Indemnité pour jours fériés", "Earning", "1", _ALL, vac=1, stat="BS"),
 		_wt(1162, "Vacances payées %", "Earning", "1", _ALL, vac=0, stat="HS"),
 		_wt(1163, "Vacances payées", "Earning", "1", _ALL, vac=0, stat="HS"),
@@ -106,14 +163,21 @@ def get_swiss_wage_types():
 		# 1180-1182: 13th month salary
 		# =====================================================================
 		_wt(1180, "13e salaire payé %", "Earning", "1", _ALL, vac=0, stat="SMS", common=1),
-		_wt(1181, "13e salaire payé", "Earning", "1", _ALL, vac=0, stat="SMS", common=1),
+		_wt(
+			1181, "13e salaire payé", "Earning", "1", _ALL, vac=0, stat="SMS", common=1,
+			abbr="13M", desc_fr="Treizième salaire — Calculé automatiquement par le module suisse",
+			payment_days=0,
+		),
 		_wt(1182, "13e salaire calculé", "Earning", "1", _ALL, vac=0, stat="SMS"),
 		# =====================================================================
 		# 1201-1250: Gratifications, bonuses, primes
 		# =====================================================================
 		_wt(1201, "Gratification", "Earning", "3", _ALL, vac=1, stat="VU", common=1),
 		_wt(1202, "Gratification de Noël", "Earning", "3", _ALL, vac=1, stat="VU"),
-		_wt(1210, "Bonus", "Earning", "3", _ALL, vac=1, stat="VU", common=1),
+		_wt(
+			1210, "Bonus", "Earning", "3", _ALL, vac=1, stat="VU", common=1,
+			abbr="BONUS", desc_fr="Bonus / Gratification", payment_days=0,
+		),
 		_wt(1211, "Participation aux bénéfices", "Earning", "3", _ALL, vac=1, stat="VU"),
 		_wt(1212, "Allocation spéciale", "Earning", "3", _ALL, vac=1, stat="VU"),
 		_wt(1213, "Prime de succès", "Earning", "3", _ALL, vac=1, stat="VU"),
@@ -250,7 +314,10 @@ def get_swiss_wage_types():
 		# =====================================================================
 		# 2000-2075: Third-party benefits (APG, military, insurance, maternity)
 		# =====================================================================
-		_wt(2000, "Indemnité APG", "Earning", "7", _AVS_AC, stat="PRT", common=1),
+		_wt(
+			2000, "Indemnité APG", "Earning", "7", _AVS_AC, stat="PRT", common=1,
+			abbr="CHAP", desc_fr="Indemnité APG (allocation perte de gain)", payment_days=0,
+		),
 		_wt(
 			2005,
 			"Prestation compensation militaire (CCM)",
@@ -267,8 +334,14 @@ def get_swiss_wage_types():
 		_wt(2026, "Rente AI", "Earning", "7", _IMP_ONLY, stat="PRT"),
 		_wt(2030, "Indemnité accident", "Earning", "7", _IMP_ONLY, stat="PRT"),
 		_wt(2031, "Rente accident", "Earning", "7", _IMP_ONLY, stat="PRT"),
-		_wt(2035, "Indemnité maladie", "Earning", "7", _IMP_ONLY, stat="PRT", common=1),
-		_wt(2040, "Indemnité maternité", "Earning", "7", _AVS_AC, stat="PRT", common=1),
+		_wt(
+			2035, "Indemnité maladie", "Earning", "7", _IMP_ONLY, stat="PRT", common=1,
+			abbr="IIJM", desc_fr="Indemnité journalière maladie IJM", payment_days=0,
+		),
+		_wt(
+			2040, "Indemnité maternité", "Earning", "7", _AVS_AC, stat="PRT", common=1,
+			abbr="MATA", desc_fr="Allocation de maternité", payment_days=0,
+		),
 		_wt(2050, "Correction indemnité de tiers", "Deduction", "", _AVS_AC_LAA, stat=""),
 		_wt(2051, "Correction de salaire net", "Deduction", "", _IMP_ONLY, stat=""),
 		_wt(2060, "Déduction RHT/ITP (SM)", "Deduction", "", _IMP_ONLY, stat=""),
@@ -278,7 +351,10 @@ def get_swiss_wage_types():
 		# =====================================================================
 		# 3000-3034: Family allowances (not subject to social charges)
 		# =====================================================================
-		_wt(3000, "Allocation pour enfant", "Earning", "7", _IMP_ONLY, stat="CMO", common=1),
+		_wt(
+			3000, "Allocation pour enfant", "Earning", "7", _IMP_ONLY, stat="CMO", common=1,
+			abbr="CHALL", desc_fr="Allocation pour enfant", payment_days=0,
+		),
 		_wt(
 			3010,
 			"Allocation de formation professionnelle",
@@ -296,16 +372,63 @@ def get_swiss_wage_types():
 		# =====================================================================
 		# 5010-5027: AVS/AC/Family contributions (social deductions)
 		# =====================================================================
-		_wt(5010, "Cotisation AVS", "Deduction", "9", _DEDUCTION, stat="CS", common=1),
-		_wt(5020, "Cotisation AC", "Deduction", "9", _DEDUCTION, stat="CS", common=1),
-		_wt(5022, "Cotisation compl. AC", "Deduction", "9", _DEDUCTION, stat="CS"),
+		_wt(
+			5010, "Cotisation AVS employé", "Deduction", "9", _DEDUCTION,
+			stat="CS", common=1, abbr="AVS_EE", linked="5011",
+			desc_fr="AVS/AI/APG — Part employé (5.3%)",
+			formula="base * 0.053", formula_based=1,
+		),
+		_wt(
+			5011, "Cotisation AVS employeur", "Deduction", "9", _DEDUCTION,
+			stat="CS", common=1, abbr="AVS_ER", linked="5010", employer=1,
+			desc_fr="AVS/AI/APG — Part employeur (5.3%)",
+			formula="base * 0.053", formula_based=1,
+		),
+		_wt(
+			5020, "Cotisation AC employé", "Deduction", "9", _DEDUCTION,
+			stat="CS", common=1, abbr="AC_EE", linked="5021",
+			desc_fr="Assurance chômage — Part employé (1.1%, plafond CHF 148'200/an géré automatiquement)",
+			formula="base * 0.011", formula_based=1,
+		),
+		_wt(
+			5021, "Cotisation AC employeur", "Deduction", "9", _DEDUCTION,
+			stat="CS", common=1, abbr="AC_ER", linked="5020", employer=1,
+			desc_fr="Assurance chômage — Part employeur (1.1%, plafond CHF 148'200/an géré automatiquement)",
+			formula="base * 0.011", formula_based=1,
+		),
+		_wt(
+			5022, "Cotisation AC solidarité employé", "Deduction", "9", _DEDUCTION,
+			stat="CS", abbr="ACSOL_EE", linked="5023",
+			desc_fr="AC Solidarité — Part employé (0.5%, uniquement au-dessus du plafond CHF 148'200/an)",
+			formula="base * 0.005", formula_based=1, condition="0",
+		),
+		_wt(
+			5023, "Cotisation AC solidarité employeur", "Deduction", "9", _DEDUCTION,
+			stat="CS", abbr="ACSOL_ER", linked="5022", employer=1,
+			desc_fr="AC Solidarité — Part employeur (0.5%, uniquement au-dessus du plafond CHF 148'200/an)",
+			formula="base * 0.005", formula_based=1, condition="0",
+		),
+		_wt(
+			5024, "Cotisation allocations familiales employeur", "Deduction", "9", _DEDUCTION,
+			stat="CS", common=1, abbr="FALLOC_ER", employer=1,
+			desc_fr="Allocations familiales — Part employeur (taux cantonal)",
+		),
 		_wt(5025, "Cotisation PC Famille", "Deduction", "9", _DEDUCTION, stat="CS"),
 		_wt(5026, "Cotisation Assurance Maternité", "Deduction", "9", _DEDUCTION, stat="CS"),
 		_wt(5027, "Participation cotisation familiale", "Deduction", "9", _DEDUCTION, stat="CS"),
 		# =====================================================================
 		# 5031-5042: LAA non-professional (AANP) by sector
 		# =====================================================================
-		_wt(5031, "Cotisation AANP secteur A0", "Deduction", "9", _DEDUCTION, stat="CS", common=1),
+		_wt(
+			5030, "Cotisation AAP employeur", "Deduction", "9", _DEDUCTION,
+			stat="CS", common=1, abbr="LAAP_ER", employer=1,
+			desc_fr="LAA Professionnel — Part employeur (taux fixé par l'assureur)",
+		),
+		_wt(
+			5031, "Cotisation AANP employé", "Deduction", "9", _DEDUCTION,
+			stat="CS", common=1, abbr="LAANP_EE",
+			desc_fr="LAA Non-professionnel — Part employé (taux fixé par l'assureur)",
+		),
 		_wt(5032, "Cotisation AANP secteur A1", "Deduction", "9", _DEDUCTION, stat="CS"),
 		_wt(5033, "Cotisation AANP secteur A2", "Deduction", "9", _DEDUCTION, stat="CS"),
 		_wt(5034, "Cotisation AANP secteur A3", "Deduction", "9", _DEDUCTION, stat="CS"),
@@ -326,19 +449,42 @@ def get_swiss_wage_types():
 		# =====================================================================
 		# 5050-5052: IJM (daily sickness allowance) by category
 		# =====================================================================
-		_wt(5050, "Cotisation IJM catégorie 0", "Deduction", "9", _DEDUCTION, stat="CS", common=1),
-		_wt(5051, "Cotisation IJM catégorie 1", "Deduction", "9", _DEDUCTION, stat="CS"),
+		_wt(
+			5050, "Cotisation IJM employé", "Deduction", "9", _DEDUCTION,
+			stat="CS", common=1, abbr="IJM_EE", linked="5051",
+			desc_fr="IJM/KTG Indemnité journalière maladie — Part employé (taux fixé par l'assureur)",
+		),
+		_wt(
+			5051, "Cotisation IJM employeur", "Deduction", "9", _DEDUCTION,
+			stat="CS", common=1, abbr="IJM_ER", linked="5050", employer=1,
+			desc_fr="IJM/KTG Indemnité journalière maladie — Part employeur (taux fixé par l'assureur)",
+		),
 		_wt(5052, "Cotisation IJM catégorie 2", "Deduction", "9", _DEDUCTION, stat="CS"),
 		# =====================================================================
 		# 5054-5056: LPP (occupational pension)
 		# =====================================================================
-		_wt(5054, "Cotisation LPP fixe", "Deduction", "10.1", _DEDUCTION, stat="CS", common=1),
-		_wt(5055, "Cotisations rachat LPP", "Deduction", "10.2", _DEDUCTION, stat="CS"),
-		_wt(5056, "Retenue LPP coordonnée", "Deduction", "10.1", _DEDUCTION, stat="CS"),
+		_wt(
+			5054, "Cotisation LPP employé", "Deduction", "10.1", _DEDUCTION,
+			stat="CS", common=1, abbr="LPP_EE", linked="5055",
+			desc_fr="LPP/BVG Prévoyance professionnelle — Part employé (taux selon âge)",
+		),
+		_wt(
+			5055, "Cotisation LPP employeur", "Deduction", "10.1", _DEDUCTION,
+			stat="CS", common=1, abbr="LPP_ER", linked="5054", employer=1,
+			desc_fr="LPP/BVG Prévoyance professionnelle — Part employeur (min. 50%, taux selon âge)",
+		),
+		_wt(
+			5056, "Cotisations rachat LPP", "Deduction", "10.2", _DEDUCTION,
+			stat="CS", desc_fr="Rachat LPP (prévoyance professionnelle)",
+		),
 		# =====================================================================
 		# 5060-5062: Source tax (withholding tax)
 		# =====================================================================
-		_wt(5060, "Retenue impôt à la source", "Deduction", "12", _DEDUCTION, stat="", common=1),
+		_wt(
+			5060, "Retenue impôt à la source", "Deduction", "12", _DEDUCTION,
+			stat="", common=1, abbr="QST",
+			desc_fr="Impôt à la source (Quellensteuer) — Calculé automatiquement depuis les barèmes ESTV",
+		),
 		_wt(5061, "Correction impôt à la source", "Deduction", "12", _DEDUCTION, stat=""),
 		_wt(5062, "Retenue impôt ecclésiastique GE", "Deduction", "12", _DEDUCTION, stat=""),
 		# =====================================================================
@@ -359,20 +505,25 @@ def get_swiss_wage_types():
 		# =====================================================================
 		# 6000-6070: Expense reimbursements (not subject to social charges)
 		# =====================================================================
-		_wt(6000, "Frais de voyage", "Earning", "13.1.1", _EXEMPT, stat="", common=1),
-		_wt(6001, "Frais de voiture", "Earning", "13.1.1", _EXEMPT, stat="", common=1),
-		_wt(6002, "Frais de repas", "Earning", "13.1.1", _EXEMPT, stat="", common=1),
+		_wt(
+			6000, "Frais de voyage", "Earning", "13.1.1", _EXEMPT, stat="", common=1,
+			abbr="TVLE", desc_fr="Remboursement frais de voyage", payment_days=0,
+		),
+		_wt(
+			6001, "Frais de voiture", "Earning", "13.1.1", _EXEMPT, stat="", common=1,
+			abbr="CARE", desc_fr="Remboursement frais de voiture", payment_days=0,
+		),
+		_wt(
+			6002, "Frais de repas", "Earning", "13.1.1", _EXEMPT, stat="", common=1,
+			abbr="MEAL", desc_fr="Remboursement frais de repas", payment_days=0,
+		),
 		_wt(6010, "Frais de nuitées", "Earning", "13.1.1", _EXEMPT, stat=""),
 		_wt(6020, "Frais effectifs expatriés", "Earning", "13.1.2", _EXEMPT, stat=""),
 		_wt(6030, "Autres frais effectifs", "Earning", "13.1.2", _EXEMPT, stat=""),
 		_wt(
-			6040,
-			"Frais forfaitaires de représentation",
-			"Earning",
-			"13.2.1",
-			_EXEMPT,
-			stat="",
-			common=1,
+			6040, "Frais forfaitaires de représentation", "Earning", "13.2.1", _EXEMPT,
+			stat="", common=1, abbr="REPR",
+			desc_fr="Frais forfaitaires de représentation", payment_days=0,
 		),
 		_wt(6050, "Frais forfaitaires de voiture", "Earning", "13.2.2", _EXEMPT, stat=""),
 		_wt(6060, "Frais forfaitaires pour expatriés", "Earning", "2.3", _ALL, stat=""),

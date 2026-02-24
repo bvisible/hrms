@@ -7,46 +7,105 @@ from frappe import _
 
 @frappe.whitelist()
 def create_salary_component_from_wage_type(wage_type_code, company=None):
-	"""Create a Salary Component from a Swiss Wage Type catalog entry.
+	"""Create Salary Component(s) from a Swiss Wage Type catalog entry.
+
+	If the wage type has a linked counterpart (employee/employer pair),
+	both components are created and linked together.
 
 	Args:
-		wage_type_code: The Swiss Wage Type code (e.g., "1000").
+		wage_type_code: The Swiss Wage Type code (e.g., "5010").
 		company: Optional company name for GL account setup.
 
 	Returns:
-		The name of the newly created Salary Component.
+		dict with created component name(s).
 	"""
 	wt_name = f"CH-WT-{wage_type_code}"
 	if not frappe.db.exists("Swiss Wage Type", wt_name):
 		frappe.throw(_("Swiss Wage Type {0} not found").format(wage_type_code))
 
 	wt = frappe.get_doc("Swiss Wage Type", wt_name)
+	primary = _create_component_from_wage_type(wt)
 
-	# Generate a component name from the wage type
+	linked_name = None
+	if wt.linked_wage_type_code:
+		linked_wt_name = f"CH-WT-{wt.linked_wage_type_code}"
+		if frappe.db.exists("Swiss Wage Type", linked_wt_name):
+			linked_wt = frappe.get_doc("Swiss Wage Type", linked_wt_name)
+			existing = frappe.db.get_value(
+				"Salary Component", {"ch_wage_type": linked_wt_name}, "name"
+			)
+			if not existing:
+				linked_name = _create_component_from_wage_type(linked_wt)
+			else:
+				linked_name = existing
+
+	# Link paired components
+	if linked_name and primary:
+		frappe.db.set_value("Salary Component", primary, "linked_component", linked_name)
+		frappe.db.set_value("Salary Component", linked_name, "linked_component", primary)
+		frappe.db.commit()
+
+	result = {"primary": primary}
+	if linked_name:
+		result["linked"] = linked_name
+	return result
+
+
+def _create_component_from_wage_type(wt):
+	"""Create a single Salary Component from a Swiss Wage Type.
+
+	Args:
+		wt: Swiss Wage Type document.
+
+	Returns:
+		Name of the created Salary Component.
+	"""
 	component_name = wt.wage_type_name
 	if frappe.db.exists("Salary Component", component_name):
+		# Check if already linked to this wage type
+		existing_wt = frappe.db.get_value(
+			"Salary Component", component_name, "ch_wage_type"
+		)
+		if existing_wt == wt.name:
+			return component_name
 		frappe.throw(
-			_("Salary Component '{0}' already exists. Link it to Swiss Wage Type {1} manually.").format(
-				component_name, wage_type_code
-			)
+			_("Salary Component '{0}' already exists.").format(component_name)
 		)
 
-	# Generate abbreviation from code
-	abbr = f"CH{wage_type_code}"
-
 	comp_type = wt.type if wt.type in ("Earning", "Deduction") else "Earning"
+	abbr = wt.abbreviation or f"CH{wt.code}"
+
+	# Use French description if available, fallback to wage type name
+	description = wt.description_fr or f"{wt.wage_type_name} (Code {wt.code})"
 
 	doc = frappe.new_doc("Salary Component")
 	doc.salary_component = component_name
 	doc.salary_component_abbr = abbr
 	doc.type = comp_type
-	doc.description = f"{wt.wage_type_name} (Code {wage_type_code})"
-	doc.depends_on_payment_days = 1
+	doc.description = description
+	doc.depends_on_payment_days = wt.depends_on_payment_days if wt.depends_on_payment_days is not None else 1
 	doc.remove_if_zero_valued = 1
 
-	# Set Swiss-specific fields
-	doc.ch_wage_type = wt_name
-	doc.ch_wage_type_code = wage_type_code
+	# Formula/condition from template
+	if wt.amount_based_on_formula and wt.formula:
+		doc.amount_based_on_formula = 1
+		doc.formula = wt.formula
+	elif wt.default_amount:
+		doc.amount = wt.default_amount
+
+	if wt.condition:
+		doc.condition = wt.condition
+
+	# Employer contribution flags
+	if wt.is_employer_contribution:
+		doc.is_employer_contribution = 1
+		doc.do_not_include_in_total = 1
+	elif wt.do_not_include_in_total:
+		doc.do_not_include_in_total = 1
+
+	# Swiss-specific fields
+	doc.ch_wage_type = wt.name
+	doc.ch_wage_type_code = wt.code
 	doc.ch_subject_to_avs = wt.subject_to_avs
 	doc.ch_subject_to_ac = wt.subject_to_ac
 	doc.ch_subject_to_laa = wt.subject_to_laa
@@ -58,5 +117,4 @@ def create_salary_component_from_wage_type(wage_type_code, company=None):
 
 	doc.insert(ignore_permissions=True)
 	frappe.db.commit()
-
 	return doc.name

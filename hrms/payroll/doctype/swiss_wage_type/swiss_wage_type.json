@@ -9,8 +9,20 @@
 		"wage_type_name",
 		"type",
 		"column_break_main",
+		"abbreviation",
+		"is_employer_contribution",
+		"linked_wage_type_code",
 		"lohnausweis_position",
 		"statistical_category",
+		"section_component_template",
+		"description_fr",
+		"depends_on_payment_days",
+		"do_not_include_in_total",
+		"column_break_template",
+		"amount_based_on_formula",
+		"default_amount",
+		"formula",
+		"condition",
 		"section_insurance_bases",
 		"subject_to_avs",
 		"subject_to_ac",
@@ -57,6 +69,24 @@
 			"fieldtype": "Column Break"
 		},
 		{
+			"fieldname": "abbreviation",
+			"fieldtype": "Data",
+			"label": "Abbreviation",
+			"description": "Salary Component abbreviation (e.g., AVS_EE, AC_ER)"
+		},
+		{
+			"default": "0",
+			"fieldname": "is_employer_contribution",
+			"fieldtype": "Check",
+			"label": "Employer Contribution"
+		},
+		{
+			"fieldname": "linked_wage_type_code",
+			"fieldtype": "Data",
+			"label": "Linked Wage Type Code",
+			"description": "Code of the paired employee/employer wage type"
+		},
+		{
 			"fieldname": "lohnausweis_position",
 			"fieldtype": "Select",
 			"in_list_view": 1,
@@ -68,6 +98,57 @@
 			"fieldtype": "Select",
 			"label": "Statistical Category",
 			"options": "\nBS\nCS\nIND\nHS\nSMS\nVU\nPRT\nCMO\nPS\nHRE\nLEC"
+		},
+		{
+			"fieldname": "section_component_template",
+			"fieldtype": "Section Break",
+			"label": "Salary Component Template"
+		},
+		{
+			"fieldname": "description_fr",
+			"fieldtype": "Small Text",
+			"label": "Description (FR)"
+		},
+		{
+			"default": "1",
+			"fieldname": "depends_on_payment_days",
+			"fieldtype": "Check",
+			"label": "Depends on Payment Days"
+		},
+		{
+			"default": "0",
+			"fieldname": "do_not_include_in_total",
+			"fieldtype": "Check",
+			"label": "Do Not Include in Total"
+		},
+		{
+			"fieldname": "column_break_template",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "0",
+			"fieldname": "amount_based_on_formula",
+			"fieldtype": "Check",
+			"label": "Amount Based on Formula"
+		},
+		{
+			"fieldname": "default_amount",
+			"fieldtype": "Currency",
+			"label": "Default Amount",
+			"depends_on": "eval:!doc.amount_based_on_formula"
+		},
+		{
+			"fieldname": "formula",
+			"fieldtype": "Code",
+			"label": "Formula",
+			"options": "PythonExpression",
+			"depends_on": "eval:doc.amount_based_on_formula"
+		},
+		{
+			"fieldname": "condition",
+			"fieldtype": "Code",
+			"label": "Condition",
+			"options": "PythonExpression"
 		},
 		{
 			"fieldname": "section_insurance_bases",
@@ -145,7 +226,7 @@
 	],
 	"index_web_pages_for_search": 0,
 	"links": [],
-	"modified": "2026-02-23 00:00:00.000000",
+	"modified": "2026-02-24 20:00:00.000000",
 	"modified_by": "Administrator",
 	"module": "Payroll",
 	"name": "Swiss Wage Type",
