@@ -219,7 +219,7 @@ bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland
 bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland.test_source_tax
 ```
 
-~155 unit tests covering:
+~190 unit tests covering:
 - LPP coordinated salary (8 tests)
 - LPP age brackets (6 tests)
 - LPP full contribution (5 tests)
@@ -254,6 +254,11 @@ bench --site <site_name> run-tests --app hrms --module hrms.regional.switzerland
 - Monthly XML generation (4 tests: period, amounts, institutions, schema version)
 - Correction XML generation (2 tests: annual data, annual period)
 - Correction validation (2 tests: warning without reference, no warning for Year-End)
+- Completeness flags (5 tests: all-complete default, LAA true/false, LPP, IJM)
+- EMA XML generation (13 tests: root element, event types, institutions, person/activity)
+- EMA validation (8 tests: valid events, invalid type, missing date, entry/exit warnings)
+- EMA hook logic (5 tests: field change detection, Austritt detection, no-change)
+- BVG projection (8 tests: 12/13-month projection, LPP coordinated, custom config)
 
 ## File Structure
 
@@ -272,10 +277,12 @@ hrms/regional/switzerland/
 ├── test_source_tax.py        # 18 unit tests (models + calculations)
 ├── cross_border.py           # Cross-border worker tax engine (DE/FR/IT)
 ├── test_cross_border.py      # ~44 unit tests (classification + calculations)
-├── swissdec_xml.py           # Swissdec ELM 5.0 XML builder engine
-├── swissdec_validation.py    # Pre-export validation engine
-├── swissdec_data.py          # Salary data aggregation for ELM declarations
-├── test_swissdec.py          # ~65 unit tests (XML + validation + data + monthly + correction)
+├── swissdec_xml.py           # Swissdec ELM 5.0 XML builder engine (salary + EMA)
+├── swissdec_validation.py    # Pre-export validation engine (salary + EMA)
+├── swissdec_data.py          # Salary data aggregation + BVG projection for ELM
+├── swissdec_transmitter.py   # Gateway transmission engine (multi-DocType)
+├── ema_hooks.py              # Employee change detection for EMA notifications
+├── test_swissdec.py          # ~136 unit tests (XML + validation + EMA + BVG)
 └── README.md
 
 hrms/payroll/doctype/swiss_social_insurance_config/
@@ -319,6 +326,12 @@ hrms/payroll/doctype/swissdec_declaration_employee/
 ├── __init__.py
 ├── swissdec_declaration_employee.json # Child table for declaration employees
 └── swissdec_declaration_employee.py
+
+hrms/payroll/doctype/swissdec_ema_notification/
+├── __init__.py
+├── swissdec_ema_notification.json     # EMA event notification per employee
+├── swissdec_ema_notification.py       # Business logic (populate, export, transmit)
+└── swissdec_ema_notification.js       # Client-side buttons
 
 hrms/payroll/print_format/salary_slip_swiss/
 ├── salary_slip_swiss.json
@@ -398,6 +411,7 @@ One declaration per company per fiscal year (Year-End) or per month (Monthly). C
 | **Year-End** | `SDD-{abbr}-{year}` | Full fiscal year | Annual salary declaration (once per year) |
 | **Monthly** | `SDD-{abbr}-{year}-M{month:02d}` | Single month | Monthly interim declaration |
 | **Correction** | `SDD-{abbr}-{year}-C{seq}` | Full fiscal year | Replaces a previously accepted declaration |
+| **BVG-Projection** | `SDD-{abbr}-{year}-BVG` | Projected year | Annual salary projection for pension fund (Jahresmeldung) |
 
 **Workflow:**
 1. Create a **Swissdec Declaration** record (select company + fiscal year + type)
@@ -412,6 +426,8 @@ One declaration per company per fiscal year (Year-End) or per month (Monthly). C
 
 **Institution toggles:** AVS, AC, LPP, LAA, IJM, QST, Family Allowances (FAK), OFS/BFS statistics. Enable/disable per declaration.
 
+**Completeness Flags:** Each institution (LAA/UVG, IJM/KTG, LPP/BVG) has a "Data Complete" checkbox on the declaration. When set (default), the XML element includes `complete="true"`, allowing insurers to process the data more quickly. Uncheck if some employees are missing from the declaration.
+
 **Monthly Declarations:**
 - Data is scoped to the selected month only (salary slips within that month)
 - AC ceiling tracking uses year-to-date gross from prior months
@@ -424,6 +440,14 @@ One declaration per company per fiscal year (Year-End) or per month (Monthly). C
 - The workflow is: fix salary slips → create Correction declaration → Populate → Validate → Export → Transmit
 - The `original_declaration` field links to the Accepted declaration being replaced (optional but recommended)
 - Validation warns if no original is referenced, errors if the referenced declaration doesn't exist
+
+**BVG-Projection (Jahresmeldung):**
+- Projects annual salary for the pension fund based on a base month's salary
+- Base month (default January) is multiplied by 12 (or 13 if 13th month is enabled)
+- Employee-level override via `ch_bvg_basis_override` custom field replaces automatic projection
+- LPP coordinated salary is calculated from the projected annual amount
+- After transmission and acceptance, pension fund contributions can be imported via the **Import BVG Response** button (CSV format: `employee,contribution`)
+- Configuration fields: `bvg_projection_month` (1-12), `bvg_has_thirteenth` (checkbox)
 
 ### Company Fields for ELM
 
@@ -525,9 +549,56 @@ HRMS Instance(s) ── HTTP ──> Swissdec Gateway (Synology) ── SSH/SCP 
 - Result XML, Answer XML (attached files)
 - Transmission Log
 
+### EMA Notifications (Eintritt/Mutation/Austritt)
+
+Real-time employee lifecycle notifications to institutions (AHV, FAK, BVG). EMA notifications inform social insurance providers of employee entries, changes, and departures.
+
+**DocType: Swissdec EMA Notification** — One notification per employee event.
+
+| Field | Description |
+|-------|-------------|
+| Event Type | Eintritt (entry), Mutation (change), Austritt (departure) |
+| Event Date | Effective date of the change |
+| Institutions | Checkboxes: notify AHV/AVS, FAK/CAF, BVG/LPP |
+| Employee Snapshot | Captures marital status, canton, work%, permit, entry/exit dates at time of notification |
+
+**Naming:** `EMA-{abbr}-{employee}-{E|M|A}-{YYMMDD}`
+
+**Automatic Detection:** A hook on `Employee.on_update` automatically creates draft EMA notifications when:
+- A new employee is created (Eintritt)
+- Employee status changes to "Left" or exit date is set (Austritt)
+- EMA-tracked fields change: marital status, fiscal canton, work percentage, permit type, AVS number, nationality (Mutation)
+
+**Tracked Fields for Mutation:**
+- `marital_status`, `ch_fiscal_canton`, `ch_work_percentage`
+- `ch_permit_type`, `ch_avs_number`, `ch_nationality`
+
+**Workflow:** Draft → Export XML → Transmit → Accepted/Rejected (same transmission pipeline as salary declarations)
+
+**XML Structure:**
+```xml
+<SalaryDeclaration xmlns="..." schemaVersion="5.0">
+  <Company>
+    <EMA>
+      <EventType>Entry|Mutation|Withdrawal</EventType>
+      <EventDate>2026-03-01</EventDate>
+      <Institutions>
+        <AHV-AVS>true</AHV-AVS>
+        <FAK-CAF>true</FAK-CAF>
+        <BVG-LPP>true</BVG-LPP>
+      </Institutions>
+      <Person>
+        <Particulars>...</Particulars>
+        <Activity>...</Activity>
+      </Person>
+    </EMA>
+  </Company>
+</SalaryDeclaration>
+```
+
 ### Not In Scope (Future Phases)
 
 - PKI encryption (RSA-OAEP + AES-256-CBC)
 - Swissdec certification process
-- OFS/BFS statistics module
+- OFS/BFS statistics module (LSE, BESTA, SLI)
 - 2D barcode for salary certificates (PDF417 / eCH-0270)
