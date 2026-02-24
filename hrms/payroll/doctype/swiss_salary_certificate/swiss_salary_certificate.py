@@ -112,6 +112,65 @@ class SwissSalaryCertificate(Document):
 
 		frappe.msgprint(_("Certificate populated from {0} salary slips.").format(len(slips)))
 
+	@frappe.whitelist()
+	def get_barcode_data(self):
+		"""Generate eCH-0270 barcode data for this certificate.
+
+		Returns a dict with base64-encoded PDF417 and CODE128C barcode images
+		for embedding in the print format.
+		"""
+		from hrms.regional.switzerland.lohnausweis_barcode import generate_barcode_page_data
+
+		# Collect employer info
+		config = get_swiss_social_insurance_config(self.company)
+		company = frappe.get_cached_doc("Company", self.company)
+
+		employer_data = {
+			"name": (config and config.get("lohnausweis_employer_name")) or self.company,
+			"address": (config and config.get("lohnausweis_employer_address")) or "",
+			"uid_bfs": company.get("tax_id") or "",
+			"zip_code": company.get("pincode") or "",
+			"city": company.get("city") or "",
+		}
+
+		# Collect employee info
+		employee_data = {
+			"name": self.employee_name,
+			"avs_number": self.avs_number or "",
+			"date_of_birth": str(self.date_of_birth) if self.date_of_birth else "",
+			"date_of_joining": str(self.date_of_joining) if self.date_of_joining else "",
+			"relieving_date": str(self.relieving_date) if self.relieving_date else "",
+		}
+
+		# Collect all positions
+		positions = {}
+		for pos_key, field_name in POSITION_FIELD_MAP.items():
+			positions[pos_key] = flt(self.get(field_name), 2)
+		# Computed positions (not in POSITION_FIELD_MAP)
+		positions["8"] = flt(self.position_8_gross_income, 2)
+		positions["11"] = flt(self.position_11_net_salary, 2)
+		positions["15"] = self.position_15_remarks or ""
+
+		certificate_data = {
+			"employer": employer_data,
+			"employee": employee_data,
+			"fiscal_year": str(self.fiscal_year),
+			"posting_date": str(self.posting_date) if self.posting_date else "",
+			"positions": positions,
+		}
+
+		return generate_barcode_page_data(certificate_data)
+
+
+@frappe.whitelist()
+def get_barcode_data_for_print(name):
+	"""Generate eCH-0270 barcode data for a Swiss Salary Certificate.
+
+	Module-level whitelisted function callable from Jinja print formats.
+	"""
+	doc = frappe.get_doc("Swiss Salary Certificate", name)
+	return doc.get_barcode_data()
+
 
 def _get_slips_component_totals(slip_names):
 	"""Fetch aggregated component amounts from salary slips.

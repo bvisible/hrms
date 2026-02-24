@@ -89,6 +89,7 @@ website_route_rules = [
 jinja = {
 	"methods": [
 		"hrms.utils.get_country",
+		"hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.get_barcode_data_for_print",
 	],
 }
 

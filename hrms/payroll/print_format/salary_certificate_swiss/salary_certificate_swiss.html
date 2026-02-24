@@ -256,3 +256,43 @@
 		</div>
 	</div>
 </div>
+
+<!-- eCH-0270 Barcode Page(s) -->
+{%- set barcode_data = frappe.call(
+	"hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.get_barcode_data_for_print",
+	name=doc.name
+) -%}
+
+{% if barcode_data and barcode_data.pdf417_images %}
+{% for barcode_img in barcode_data.pdf417_images %}
+<div style="page-break-before: always;"></div>
+<div class="lohnausweis" style="text-align: center; padding-top: 15mm;">
+	<h2>{{ _("Salary Certificate") }} / Lohnausweis</h2>
+	<div class="form-subtitle">
+		{{ _("Barcode Page") }}{% if barcode_data.page_count > 1 %} ({{ loop.index }}/{{ barcode_data.page_count }}){% endif %}
+		&mdash; {{ doc.employee_name }} &mdash; {{ doc.fiscal_year }}
+	</div>
+
+	<!-- PDF417 2D barcode (eCH-0270) -->
+	<div style="margin: 10mm auto; padding: 5mm;">
+		<img src="data:image/png;base64,{{ barcode_img }}"
+			style="max-width: 180mm; image-rendering: pixelated;"
+			alt="PDF417 eCH-0270" />
+	</div>
+
+	<!-- CODE128C 1D identifier barcode -->
+	<div style="margin-top: 10mm;">
+		<img src="data:image/png;base64,{{ barcode_data.code128c_image }}"
+			style="height: 12mm;"
+			alt="CODE128C" />
+		<div style="font-family: monospace; font-size: 9pt; margin-top: 3mm; letter-spacing: 1px;">
+			{{ barcode_data.identifier }}
+		</div>
+	</div>
+
+	<div style="margin-top: 15mm; font-size: 7pt; color: #999;">
+		eCH-0270 V1.0 &mdash; PDF417 Structured Append
+	</div>
+</div>
+{% endfor %}
+{% endif %}
