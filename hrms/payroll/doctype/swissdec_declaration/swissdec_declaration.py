@@ -8,6 +8,33 @@ from frappe.utils import flt, now_datetime
 
 
 class SwissdecDeclaration(Document):
+	def autoname(self):
+		"""Generate document name based on declaration type.
+
+		Year-End: SDD-{abbr}-{year}
+		Monthly:  SDD-{abbr}-{year}-M{month:02d}
+		Correction: SDD-{abbr}-{year}-C{seq}
+		"""
+		abbr = self.company_abbr or frappe.db.get_value("Company", self.company, "abbr")
+		fy = self.fiscal_year
+
+		if self.declaration_type == "Monthly" and self.declaration_month:
+			self.name = f"SDD-{abbr}-{fy}-M{int(self.declaration_month):02d}"
+		elif self.declaration_type == "Correction":
+			# Find next sequence number for corrections
+			existing = frappe.db.count(
+				"Swissdec Declaration",
+				filters={
+					"company": self.company,
+					"fiscal_year": self.fiscal_year,
+					"declaration_type": "Correction",
+				},
+			)
+			seq = (existing or 0) + 1
+			self.name = f"SDD-{abbr}-{fy}-C{seq}"
+		else:
+			self.name = f"SDD-{abbr}-{fy}"
+
 	def validate(self):
 		self._validate_month()
 		self._update_totals()
@@ -33,11 +60,8 @@ class SwissdecDeclaration(Document):
 
 	@frappe.whitelist()
 	def populate_employees(self):
-		"""Fetch all employees with salary slips for the fiscal year."""
-		from hrms.regional.switzerland.swissdec_data import (
-			get_annual_salary_summary,
-			get_employees_for_declaration,
-		)
+		"""Fetch all employees with salary slips for the declaration period."""
+		from hrms.regional.switzerland.swissdec_data import get_employees_for_declaration
 		from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
 
 		if not self.company or not self.fiscal_year:
@@ -45,8 +69,11 @@ class SwissdecDeclaration(Document):
 
 		fy = frappe.get_doc("Fiscal Year", self.fiscal_year)
 		config = get_swiss_social_insurance_config(self.company)
+		year = fy.year_start_date.year if hasattr(fy.year_start_date, "year") else int(str(fy.year_start_date)[:4])
 
-		employees = get_employees_for_declaration(self.company, self.fiscal_year)
+		employees = get_employees_for_declaration(
+			self.company, self.fiscal_year, self.declaration_type, self.declaration_month
+		)
 
 		if not employees:
 			frappe.msgprint(_("No employees with submitted salary slips found."))
@@ -56,8 +83,8 @@ class SwissdecDeclaration(Document):
 		self.set("employees", [])
 
 		for emp in employees:
-			salary_data = get_annual_salary_summary(
-				emp.employee, self.company, fy.year_start_date, fy.year_end_date, config
+			salary_data = self._get_salary_data(
+				emp.employee, fy, year, config
 			)
 
 			self.append(
@@ -83,10 +110,36 @@ class SwissdecDeclaration(Document):
 			indicator="green",
 		)
 
+	def _get_salary_data(self, employee, fy, year, config):
+		"""Get salary data for an employee based on declaration type.
+
+		Args:
+			employee: Employee ID.
+			fy: Fiscal Year document.
+			year: Calendar year (int).
+			config: Swiss Social Insurance Config dict.
+
+		Returns:
+			dict with salary data (same format for all declaration types).
+		"""
+		from hrms.regional.switzerland.swissdec_data import (
+			get_annual_salary_summary,
+			get_monthly_salary_summary,
+		)
+
+		if self.declaration_type == "Monthly":
+			return get_monthly_salary_summary(
+				employee, self.company, year, int(self.declaration_month), config
+			)
+		else:
+			# Year-End and Correction both use annual data
+			return get_annual_salary_summary(
+				employee, self.company, fy.year_start_date, fy.year_end_date, config
+			)
+
 	@frappe.whitelist()
 	def run_validation(self):
 		"""Run pre-export validation on all included employees."""
-		from hrms.regional.switzerland.swissdec_data import get_annual_salary_summary
 		from hrms.regional.switzerland.swissdec_validation import (
 			get_validation_summary,
 			validate_declaration,
@@ -97,6 +150,7 @@ class SwissdecDeclaration(Document):
 		config = get_swiss_social_insurance_config(self.company)
 		company_doc = frappe.get_cached_doc("Company", self.company)
 		company_data = company_doc.as_dict()
+		year = fy.year_start_date.year if hasattr(fy.year_start_date, "year") else int(str(fy.year_start_date)[:4])
 
 		employees_data = []
 		for row in self.get("employees") or []:
@@ -104,9 +158,7 @@ class SwissdecDeclaration(Document):
 				continue
 
 			emp_doc = frappe.get_cached_doc("Employee", row.employee)
-			salary_data = get_annual_salary_summary(
-				row.employee, self.company, fy.year_start_date, fy.year_end_date, config
-			)
+			salary_data = self._get_salary_data(row.employee, fy, year, config)
 
 			employees_data.append({
 				"employee_doc": emp_doc.as_dict(),
@@ -118,6 +170,8 @@ class SwissdecDeclaration(Document):
 			[{"employee_doc": d["employee_doc"], "salary_data": d["salary_data"]} for d in employees_data],
 			company_data,
 			config,
+			declaration_type=self.declaration_type,
+			original_declaration=self.original_declaration if self.declaration_type == "Correction" else None,
 		)
 
 		# Update per-employee validation status
@@ -156,7 +210,6 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def export_xml(self):
 		"""Generate and attach the ELM XML file."""
-		from hrms.regional.switzerland.swissdec_data import get_annual_salary_summary
 		from hrms.regional.switzerland.swissdec_xml import generate_salary_declaration
 		from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
 
@@ -167,6 +220,7 @@ class SwissdecDeclaration(Document):
 		config = get_swiss_social_insurance_config(self.company)
 		company_doc = frappe.get_cached_doc("Company", self.company)
 		company_data = company_doc.as_dict()
+		year = fy.year_start_date.year if hasattr(fy.year_start_date, "year") else int(str(fy.year_start_date)[:4])
 
 		# Gather employee data
 		employees_data = []
@@ -175,9 +229,7 @@ class SwissdecDeclaration(Document):
 				continue
 
 			emp_doc = frappe.get_cached_doc("Employee", row.employee)
-			salary_data = get_annual_salary_summary(
-				row.employee, self.company, fy.year_start_date, fy.year_end_date, config
-			)
+			salary_data = self._get_salary_data(row.employee, fy, year, config)
 
 			employees_data.append({
 				"employee_doc": emp_doc.as_dict(),
@@ -202,11 +254,15 @@ class SwissdecDeclaration(Document):
 			config=config,
 			fiscal_year=self.fiscal_year,
 			declaration_type=self.declaration_type,
+			declaration_month=int(self.declaration_month) if self.declaration_month else None,
 			institutions=institutions,
 		)
 
 		# Save as attached file
-		filename = f"ELM_{self.company_abbr}_{self.fiscal_year}_{self.declaration_type}.xml"
+		if self.declaration_type == "Monthly" and self.declaration_month:
+			filename = f"ELM_{self.company_abbr}_{self.fiscal_year}_M{int(self.declaration_month):02d}.xml"
+		else:
+			filename = f"ELM_{self.company_abbr}_{self.fiscal_year}_{self.declaration_type}.xml"
 
 		# Remove old file if exists
 		if self.xml_file:

@@ -26,13 +26,16 @@ class ValidationResult:
 	message: str = ""
 
 
-def validate_declaration(employees_data, company_data, config=None):
+def validate_declaration(employees_data, company_data, config=None, declaration_type=None,
+	original_declaration=None):
 	"""Run all validation checks on a declaration.
 
 	Args:
 		employees_data: list of dicts, each with employee_doc and salary_data.
 		company_data: dict with company document fields.
 		config: Optional Swiss Social Insurance Config dict.
+		declaration_type: "Year-End", "Monthly", or "Correction".
+		original_declaration: Name of original declaration (for Correction type).
 
 	Returns:
 		list of ValidationResult.
@@ -42,12 +45,59 @@ def validate_declaration(employees_data, company_data, config=None):
 	# Validate company
 	results.extend(_validate_company(company_data))
 
+	# Validate correction reference
+	if declaration_type == "Correction":
+		results.extend(_validate_correction(original_declaration))
+
 	# Validate each employee
 	for emp_data in employees_data:
 		emp_doc = emp_data.get("employee_doc", {})
 		salary_data = emp_data.get("salary_data", {})
 		results.extend(_validate_employee(emp_doc))
 		results.extend(_validate_salary_data(salary_data, emp_doc, config))
+
+	return results
+
+
+def _validate_correction(original_declaration):
+	"""Check that a correction declaration references a valid original.
+
+	Args:
+		original_declaration: Name of the original declaration (or empty).
+
+	Returns:
+		list of ValidationResult.
+	"""
+	results = []
+
+	if not original_declaration:
+		results.append(
+			ValidationResult(
+				level="warning",
+				message="No original declaration referenced. Recommended for corrective declarations.",
+			)
+		)
+	else:
+		import frappe
+
+		if not frappe.db.exists("Swissdec Declaration", original_declaration):
+			results.append(
+				ValidationResult(
+					level="error",
+					field_name="original_declaration",
+					message=f"Original declaration '{original_declaration}' does not exist.",
+				)
+			)
+		else:
+			status = frappe.db.get_value("Swissdec Declaration", original_declaration, "status")
+			if status != "Accepted":
+				results.append(
+					ValidationResult(
+						level="warning",
+						field_name="original_declaration",
+						message=f"Original declaration status is '{status}', expected 'Accepted'.",
+					)
+				)
 
 	return results
 

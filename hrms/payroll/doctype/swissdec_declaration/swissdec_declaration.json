@@ -1,6 +1,6 @@
 {
 	"actions": [],
-	"autoname": "format:SDD-{company_abbr}-{fiscal_year}-{declaration_type}",
+	"autoname": "",
 	"creation": "2026-02-22 00:00:00.000000",
 	"doctype": "DocType",
 	"engine": "InnoDB",
@@ -10,6 +10,7 @@
 		"fiscal_year",
 		"declaration_type",
 		"declaration_month",
+		"original_declaration",
 		"section_status",
 		"status",
 		"validation_log",
@@ -85,6 +86,14 @@
 			"fieldtype": "Int",
 			"label": "Declaration Month",
 			"description": "Month number (1-12) for monthly declarations."
+		},
+		{
+			"depends_on": "eval:doc.declaration_type == 'Correction'",
+			"fieldname": "original_declaration",
+			"fieldtype": "Link",
+			"label": "Original Declaration",
+			"options": "Swissdec Declaration",
+			"description": "Reference to the original declaration being corrected."
 		},
 		{
 			"fieldname": "section_status",
@@ -294,7 +303,7 @@
 	"modified_by": "Administrator",
 	"module": "Payroll",
 	"name": "Swissdec Declaration",
-	"naming_rule": "Expression",
+	"naming_rule": "By script",
 	"owner": "Administrator",
 	"permissions": [
 		{

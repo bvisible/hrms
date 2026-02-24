@@ -2,6 +2,21 @@
 // License: GNU General Public License v3. See license.txt
 
 frappe.ui.form.on("Swissdec Declaration", {
+	setup(frm) {
+		// Filter original_declaration to show only Accepted declarations
+		// for the same company and fiscal year
+		frm.set_query("original_declaration", () => {
+			return {
+				filters: {
+					company: frm.doc.company,
+					fiscal_year: frm.doc.fiscal_year,
+					status: "Accepted",
+					declaration_type: ["!=", "Correction"],
+				},
+			};
+		});
+	},
+
 	refresh(frm) {
 		// Populate Employees button
 		if (frm.doc.company && frm.doc.fiscal_year && frm.doc.status === "Draft") {

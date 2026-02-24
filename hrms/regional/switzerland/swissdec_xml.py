@@ -31,7 +31,8 @@ PERMIT_MAP = {
 
 
 def generate_salary_declaration(
-	company_data, employees_data, config, fiscal_year, declaration_type="Year-End", institutions=None
+	company_data, employees_data, config, fiscal_year,
+	declaration_type="Year-End", declaration_month=None, institutions=None,
 ):
 	"""Main entry point: generate full SalaryDeclaration XML.
 
@@ -41,6 +42,7 @@ def generate_salary_declaration(
 		config: Swiss Social Insurance Config dict.
 		fiscal_year: Fiscal Year name string.
 		declaration_type: "Year-End", "Monthly", or "Correction".
+		declaration_month: Month number (1-12) for Monthly declarations.
 		institutions: dict of institution flags (include_avs, include_ac, etc.).
 
 	Returns:

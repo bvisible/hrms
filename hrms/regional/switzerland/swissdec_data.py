@@ -18,20 +18,26 @@ from hrms.regional.switzerland.utils import (
 )
 
 
-def get_employees_for_declaration(company, fiscal_year, declaration_type="Year-End"):
+def get_employees_for_declaration(company, fiscal_year, declaration_type="Year-End", declaration_month=None):
 	"""Get all employees who had submitted salary slips in the period.
 
 	Args:
 		company: Company name.
 		fiscal_year: Fiscal Year name.
 		declaration_type: "Year-End", "Monthly", or "Correction".
+		declaration_month: Month number (1-12) for Monthly declarations.
 
 	Returns:
 		list of dicts with employee, employee_name, avs_number.
 	"""
 	fy = frappe.get_doc("Fiscal Year", fiscal_year)
-	year_start = fy.year_start_date
-	year_end = fy.year_end_date
+
+	if declaration_type == "Monthly" and declaration_month:
+		year = getdate(fy.year_start_date).year
+		period_start, period_end = _get_month_boundaries(year, declaration_month)
+	else:
+		period_start = fy.year_start_date
+		period_end = fy.year_end_date
 
 	employees = frappe.db.sql(
 		"""SELECT DISTINCT ss.employee, e.employee_name, e.ch_avs_number
@@ -42,7 +48,7 @@ def get_employees_for_declaration(company, fiscal_year, declaration_type="Year-E
 			AND ss.end_date <= %s
 			AND ss.docstatus = 1
 		ORDER BY e.employee_name""",
-		(company, year_start, year_end),
+		(company, period_start, period_end),
 		as_dict=True,
 	)
 
@@ -162,6 +168,135 @@ def get_annual_salary_summary(employee, company, year_start, year_end, config=No
 	}
 
 
+def get_monthly_salary_summary(employee, company, year, month, config=None):
+	"""Aggregate all salary components for an employee for a single month.
+
+	Same return format as get_annual_salary_summary() but scoped to one month.
+	AC ceiling is tracked using year-to-date gross from prior months.
+
+	Args:
+		employee: Employee ID.
+		company: Company name.
+		year: Calendar year (int).
+		month: Month number (1-12).
+		config: Optional Swiss Social Insurance Config dict.
+
+	Returns:
+		dict with comprehensive salary data for ELM declaration.
+	"""
+	if not config:
+		emp_doc = frappe.get_cached_doc("Employee", employee)
+		canton = emp_doc.get("ch_fiscal_canton") or ""
+		config = get_swiss_social_insurance_config(company, canton)
+
+	month_start, month_end = _get_month_boundaries(year, month)
+
+	# Get submitted salary slips for the month
+	slips = frappe.get_all(
+		"Salary Slip",
+		filters={
+			"employee": employee,
+			"company": company,
+			"start_date": [">=", month_start],
+			"end_date": ["<=", month_end],
+			"docstatus": 1,
+		},
+		fields=["name", "start_date", "end_date", "gross_pay", "net_pay", "total_deduction"],
+		order_by="start_date asc",
+	)
+
+	if not slips:
+		return _empty_salary_summary()
+
+	slip_names = [s.name for s in slips]
+
+	# Get component totals from month slips
+	component_totals = _get_component_totals(slip_names)
+
+	# Calculate monthly aggregates
+	total_gross = sum(flt(s.gross_pay) for s in slips)
+	total_net = sum(flt(s.net_pay) for s in slips)
+	months_worked = 1
+
+	# Compute per-insurance-base totals from earnings
+	insurance_bases = _get_annual_insurance_base_totals(slip_names)
+	avs_salary = insurance_bases.get("avs_base", total_gross)
+	ac_base_raw = insurance_bases.get("ac_base", total_gross)
+	laa_base_raw = insurance_bases.get("laa_base", total_gross)
+
+	# AC salary: cap using YTD gross from prior months
+	ac_ceiling = flt(config.get("ac_annual_ceiling") if config else 0) or AC_ANNUAL_CEILING
+	ytd_gross_before = _get_ytd_gross_before_month(employee, company, year, month)
+	if ytd_gross_before >= ac_ceiling:
+		# Already above ceiling from prior months
+		ac_salary = 0
+	elif ytd_gross_before + ac_base_raw > ac_ceiling:
+		# Ceiling crossed this month
+		ac_salary = ac_ceiling - ytd_gross_before
+	else:
+		ac_salary = ac_base_raw
+
+	# LAA salary: cap at insurable salary cap (monthly = annual cap / 12)
+	laa_cap = flt(config.get("laa_insurable_salary_cap") if config else 0) or LAA_INSURABLE_SALARY_CAP
+	laa_monthly_cap = round(laa_cap / 12, 2)
+	laa_salary = min(laa_base_raw, laa_monthly_cap)
+
+	# LPP: take contribution amounts directly from slip components
+	lpp_ee = flt(component_totals.get("LPP/BVG Employee", 0))
+	lpp_er = flt(component_totals.get("LPP/BVG Employer", 0))
+	# LPP coordinated salary for the month = annual / 12
+	lpp_coordinated = round(calculate_lpp_coordinated_salary(total_gross * 12, config) / 12, 2)
+
+	# Source tax total
+	source_tax_total = flt(component_totals.get("Source Tax Employee", 0))
+
+	# Social contribution totals
+	avs_ee = flt(component_totals.get("AVS/AI/APG Employee", 0))
+	avs_er = flt(component_totals.get("AVS/AI/APG Employer", 0))
+	ac_ee = flt(component_totals.get("AC/ALV Employee", 0))
+	ac_er = flt(component_totals.get("AC/ALV Employer", 0))
+	ac_sol_ee = flt(component_totals.get("AC Solidarity Employee", 0))
+	ac_sol_er = flt(component_totals.get("AC Solidarity Employer", 0))
+	laa_prof = flt(component_totals.get("LAA Professional Employer", 0))
+	laa_nprof = flt(component_totals.get("LAA Non-Professional Employee", 0))
+	ijm_ee = flt(component_totals.get("IJM/KTG Employee", 0))
+	ijm_er = flt(component_totals.get("IJM/KTG Employer", 0))
+	fak_er = flt(component_totals.get("Family Allowances Employer", 0))
+
+	emp_doc = frappe.get_cached_doc("Employee", employee)
+	age = get_employee_age(employee, month_end)
+
+	return {
+		"total_gross": round(total_gross, 2),
+		"total_net": round(total_net, 2),
+		"months_worked": months_worked,
+		"component_totals": component_totals,
+		"avs_salary": round(avs_salary, 2),
+		"ac_salary": round(ac_salary, 2),
+		"laa_salary": round(laa_salary, 2),
+		"lpp_coordinated": round(lpp_coordinated, 2),
+		"source_tax_total": round(source_tax_total, 2),
+		"employee_age": age,
+		# Contribution details
+		"avs_employee": round(avs_ee, 2),
+		"avs_employer": round(avs_er, 2),
+		"ac_employee": round(ac_ee, 2),
+		"ac_employer": round(ac_er, 2),
+		"ac_solidarity_employee": round(ac_sol_ee, 2),
+		"ac_solidarity_employer": round(ac_sol_er, 2),
+		"lpp_employee": round(lpp_ee, 2),
+		"lpp_employer": round(lpp_er, 2),
+		"laa_professional": round(laa_prof, 2),
+		"laa_nonprofessional": round(laa_nprof, 2),
+		"ijm_employee": round(ijm_ee, 2),
+		"ijm_employer": round(ijm_er, 2),
+		"fak_employer": round(fak_er, 2),
+		# Period
+		"period_start": month_start,
+		"period_end": month_end,
+	}
+
+
 def get_monthly_salary_details(employee, company, year, month):
 	"""Get detailed salary data for a specific month.
 
@@ -176,11 +311,7 @@ def get_monthly_salary_details(employee, company, year, month):
 	Returns:
 		dict with monthly salary details or empty dict.
 	"""
-	import calendar
-
-	_, last_day = calendar.monthrange(year, month)
-	month_start = f"{year}-{month:02d}-01"
-	month_end = f"{year}-{month:02d}-{last_day:02d}"
+	month_start, month_end = _get_month_boundaries(year, month)
 
 	slips = frappe.get_all(
 		"Salary Slip",
@@ -334,6 +465,59 @@ def _get_annual_insurance_base_totals(slip_names):
 		"lpp_base": round(lpp_base, 2),
 		"imp_base": round(imp_base, 2),
 	}
+
+
+def _get_month_boundaries(year, month):
+	"""Return the first and last day of the given month as date strings.
+
+	Args:
+		year: Calendar year (int).
+		month: Month number (1-12).
+
+	Returns:
+		tuple of (month_start, month_end) as date strings (YYYY-MM-DD).
+	"""
+	import calendar
+
+	_, last_day = calendar.monthrange(int(year), int(month))
+	month_start = f"{year}-{int(month):02d}-01"
+	month_end = f"{year}-{int(month):02d}-{last_day:02d}"
+	return month_start, month_end
+
+
+def _get_ytd_gross_before_month(employee, company, year, month):
+	"""Get year-to-date gross salary from January up to (not including) the given month.
+
+	Used for AC ceiling tracking in monthly declarations.
+
+	Args:
+		employee: Employee ID.
+		company: Company name.
+		year: Calendar year.
+		month: Month number (1-12). For month=1 returns 0.
+
+	Returns:
+		float: Total gross from prior months.
+	"""
+	if int(month) <= 1:
+		return 0
+
+	year_start = f"{year}-01-01"
+	month_start = f"{year}-{int(month):02d}-01"
+
+	result = frappe.db.sql(
+		"""SELECT COALESCE(SUM(ss.gross_pay), 0) as total
+		FROM `tabSalary Slip` ss
+		WHERE ss.employee = %s
+			AND ss.company = %s
+			AND ss.start_date >= %s
+			AND ss.start_date < %s
+			AND ss.docstatus = 1""",
+		(employee, company, year_start, month_start),
+		as_dict=True,
+	)
+
+	return flt(result[0].total) if result else 0
 
 
 def _empty_salary_summary():

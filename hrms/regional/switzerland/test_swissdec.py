@@ -994,5 +994,260 @@ class TestExtractStatusFromText(unittest.TestCase):
 		self.assertEqual(result, "Some unknown output")
 
 
+# === MONTHLY DECLARATIONS ===
+
+
+def _make_monthly_salary_data(**kwargs):
+	"""Create a mock monthly salary summary dict."""
+	defaults = {
+		"total_gross": 8000.0,
+		"total_net": 6666.67,
+		"months_worked": 1,
+		"component_totals": {
+			"Basic": 8000.0,
+			"AVS/AI/APG Employee": 424.0,
+			"AVS/AI/APG Employer": 424.0,
+			"AC/ALV Employee": 88.0,
+			"AC/ALV Employer": 88.0,
+			"LPP/BVG Employee": 132.83,
+			"LPP/BVG Employer": 132.83,
+		},
+		"avs_salary": 8000.0,
+		"ac_salary": 8000.0,
+		"laa_salary": 8000.0,
+		"lpp_coordinated": 3795.0,
+		"source_tax_total": 0,
+		"employee_age": 40,
+		"avs_employee": 424.0,
+		"avs_employer": 424.0,
+		"ac_employee": 88.0,
+		"ac_employer": 88.0,
+		"ac_solidarity_employee": 0,
+		"ac_solidarity_employer": 0,
+		"lpp_employee": 132.83,
+		"lpp_employer": 132.83,
+		"laa_professional": 40.0,
+		"laa_nonprofessional": 80.0,
+		"ijm_employee": 32.0,
+		"ijm_employer": 32.0,
+		"fak_employer": 88.0,
+		"period_start": "2025-03-01",
+		"period_end": "2025-03-31",
+	}
+	defaults.update(kwargs)
+	return defaults
+
+
+class TestMonthBoundaries(unittest.TestCase):
+	"""Tests for month boundary calculation (same logic as _get_month_boundaries)."""
+
+	@staticmethod
+	def _get_month_boundaries(year, month):
+		"""Local copy of _get_month_boundaries to avoid frappe import."""
+		import calendar
+
+		_, last_day = calendar.monthrange(int(year), int(month))
+		month_start = f"{year}-{int(month):02d}-01"
+		month_end = f"{year}-{int(month):02d}-{last_day:02d}"
+		return month_start, month_end
+
+	def test_january(self):
+		"""January boundaries: 01-01 to 01-31."""
+		start, end = self._get_month_boundaries(2025, 1)
+		self.assertEqual(start, "2025-01-01")
+		self.assertEqual(end, "2025-01-31")
+
+	def test_february_non_leap(self):
+		"""February non-leap year: 02-01 to 02-28."""
+		start, end = self._get_month_boundaries(2025, 2)
+		self.assertEqual(start, "2025-02-01")
+		self.assertEqual(end, "2025-02-28")
+
+	def test_february_leap(self):
+		"""February leap year: 02-01 to 02-29."""
+		start, end = self._get_month_boundaries(2024, 2)
+		self.assertEqual(start, "2024-02-01")
+		self.assertEqual(end, "2024-02-29")
+
+	def test_december(self):
+		"""December boundaries: 12-01 to 12-31."""
+		start, end = self._get_month_boundaries(2025, 12)
+		self.assertEqual(start, "2025-12-01")
+		self.assertEqual(end, "2025-12-31")
+
+	def test_april(self):
+		"""April boundaries: 04-01 to 04-30."""
+		start, end = self._get_month_boundaries(2025, 4)
+		self.assertEqual(start, "2025-04-01")
+		self.assertEqual(end, "2025-04-30")
+
+
+class TestMonthlyXmlGeneration(unittest.TestCase):
+	"""Tests for Monthly declaration XML generation."""
+
+	NS = {"sd": SWISSDEC_NS}
+
+	def test_monthly_xml_period(self):
+		"""Monthly declaration XML has correct PeriodFrom/PeriodTo."""
+		monthly_salary = _make_monthly_salary_data(
+			period_start="2025-03-01",
+			period_end="2025-03-31",
+		)
+
+		xml_bytes = generate_salary_declaration(
+			company_data=_make_company(),
+			employees_data=[
+				{"employee_doc": _make_employee(), "salary_data": monthly_salary},
+			],
+			config=_make_config(),
+			fiscal_year="2025",
+			declaration_type="Monthly",
+			declaration_month=3,
+		)
+		root = fromstring(xml_bytes)
+		activity = root.find("sd:Company/sd:Staff/sd:Person/sd:Activity", self.NS)
+
+		period_from = activity.find("sd:PeriodFrom", self.NS)
+		period_to = activity.find("sd:PeriodTo", self.NS)
+		self.assertEqual(period_from.text, "2025-03-01")
+		self.assertEqual(period_to.text, "2025-03-31")
+
+	def test_monthly_xml_amounts(self):
+		"""Monthly declaration XML has monthly (not annual) amounts."""
+		monthly_salary = _make_monthly_salary_data(avs_salary=8000.0)
+
+		xml_bytes = generate_salary_declaration(
+			company_data=_make_company(),
+			employees_data=[
+				{"employee_doc": _make_employee(), "salary_data": monthly_salary},
+			],
+			config=_make_config(),
+			fiscal_year="2025",
+			declaration_type="Monthly",
+			declaration_month=3,
+		)
+		root = fromstring(xml_bytes)
+		avs_income = root.find(
+			"sd:Company/sd:Staff/sd:Person/sd:AHV-AVS-Salaries/sd:AHV-AVS-Income", self.NS
+		)
+		self.assertEqual(avs_income.text, "8000.00")
+
+	def test_monthly_xml_has_all_institutions(self):
+		"""Monthly declaration includes all institution elements like annual."""
+		monthly_salary = _make_monthly_salary_data()
+
+		xml_bytes = generate_salary_declaration(
+			company_data=_make_company(),
+			employees_data=[
+				{"employee_doc": _make_employee(), "salary_data": monthly_salary},
+			],
+			config=_make_config(),
+			fiscal_year="2025",
+			declaration_type="Monthly",
+			declaration_month=1,
+		)
+		root = fromstring(xml_bytes)
+		person = root.find("sd:Company/sd:Staff/sd:Person", self.NS)
+
+		# All main institutions should be present
+		self.assertIsNotNone(person.find("sd:AHV-AVS-Salaries", self.NS))
+		self.assertIsNotNone(person.find("sd:ALV-AC-Salaries", self.NS))
+		self.assertIsNotNone(person.find("sd:BVG-LPP-Salaries", self.NS))
+		self.assertIsNotNone(person.find("sd:UVG-LAA-Salaries", self.NS))
+		self.assertIsNotNone(person.find("sd:KTG-IJM-Salaries", self.NS))
+		self.assertIsNotNone(person.find("sd:FAK-CAF-Salaries", self.NS))
+
+	def test_monthly_xml_schema_version(self):
+		"""Monthly declaration still uses ELM 5.0 schema version."""
+		xml_bytes = generate_salary_declaration(
+			company_data=_make_company(),
+			employees_data=[
+				{"employee_doc": _make_employee(), "salary_data": _make_monthly_salary_data()},
+			],
+			config=_make_config(),
+			fiscal_year="2025",
+			declaration_type="Monthly",
+			declaration_month=6,
+		)
+		root = fromstring(xml_bytes)
+		self.assertEqual(root.get("schemaVersion"), "5.0")
+
+
+class TestCorrectionXmlGeneration(unittest.TestCase):
+	"""Tests for Correction declaration XML generation."""
+
+	NS = {"sd": SWISSDEC_NS}
+
+	def test_correction_xml_uses_annual_data(self):
+		"""Correction declaration uses full annual data (same as Year-End)."""
+		annual_salary = _make_salary_data(
+			avs_salary=100000.0,
+			period_start="2025-01-01",
+			period_end="2025-12-31",
+		)
+
+		xml_bytes = generate_salary_declaration(
+			company_data=_make_company(),
+			employees_data=[
+				{"employee_doc": _make_employee(), "salary_data": annual_salary},
+			],
+			config=_make_config(),
+			fiscal_year="2025",
+			declaration_type="Correction",
+		)
+		root = fromstring(xml_bytes)
+		avs_income = root.find(
+			"sd:Company/sd:Staff/sd:Person/sd:AHV-AVS-Salaries/sd:AHV-AVS-Income", self.NS
+		)
+		self.assertEqual(avs_income.text, "100000.00")
+
+	def test_correction_xml_has_annual_period(self):
+		"""Correction declaration has full-year period."""
+		xml_bytes = generate_salary_declaration(
+			company_data=_make_company(),
+			employees_data=[
+				{"employee_doc": _make_employee(), "salary_data": _make_salary_data()},
+			],
+			config=_make_config(),
+			fiscal_year="2025",
+			declaration_type="Correction",
+		)
+		root = fromstring(xml_bytes)
+		activity = root.find("sd:Company/sd:Staff/sd:Person/sd:Activity", self.NS)
+
+		period_from = activity.find("sd:PeriodFrom", self.NS)
+		period_to = activity.find("sd:PeriodTo", self.NS)
+		self.assertEqual(period_from.text, "2025-01-01")
+		self.assertEqual(period_to.text, "2025-12-31")
+
+
+# === CORRECTION VALIDATION ===
+
+
+class TestCorrectionValidation(unittest.TestCase):
+	"""Tests for correction declaration validation."""
+
+	def test_correction_without_reference_gives_warning(self):
+		"""Correction without original_declaration gives a warning."""
+		results = validate_declaration(
+			[{"employee_doc": _make_employee(), "salary_data": _make_salary_data()}],
+			_make_company(),
+			declaration_type="Correction",
+			original_declaration=None,
+		)
+		warnings = [r for r in results if r.level == "warning"]
+		self.assertTrue(any("original declaration" in r.message.lower() for r in warnings))
+
+	def test_year_end_no_correction_warning(self):
+		"""Year-End declarations do NOT get correction validation warnings."""
+		results = validate_declaration(
+			[{"employee_doc": _make_employee(), "salary_data": _make_salary_data()}],
+			_make_company(),
+			declaration_type="Year-End",
+		)
+		warnings = [r for r in results if r.level == "warning"]
+		self.assertFalse(any("original declaration" in r.message.lower() for r in warnings))
+
+
 if __name__ == "__main__":
 	unittest.main()
