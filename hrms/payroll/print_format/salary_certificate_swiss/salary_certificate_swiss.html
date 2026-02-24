@@ -271,7 +271,7 @@
 		</tr>
 	</table>
 	<!-- 15. Remarks -->
-	<table style="margin-left: 75px; width: 710px; margin-top: 20px; height: 22px; ">
+	<table style="margin-left: 75px; width: 710px; margin-top: 45px; height: 22px; ">
 		<tr>
 			<td style="width: 80px; padding: 1px 8px !important; "></td>
 			<td style="padding: 1px 8px !important; ">{{ doc.position_15_remarks or '&nbsp;' }}</td>
@@ -279,7 +279,7 @@
 	</table>
 
 	<!-- I: Footer — Date, Signature, Company info -->
-	<table class="footerTable" style="margin-left: 75px; width: 690px; height: 85px; margin-top: 23px;">
+	<table class="footerTable" style="margin-left: 75px; width: 690px; height: 85px; margin-top: 0px;">
 		<tr>
 			<td style="width: 230px; vertical-align: top; padding: 28px 8px 1px 8px !important; ">
 			{% if doc.posting_date %}{{ frappe.utils.get_datetime(doc.posting_date).strftime('%d.%m.%Y') }}{% endif %}
