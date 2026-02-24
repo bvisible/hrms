@@ -28,11 +28,7 @@
 }
 </style>
 
-<div class="form11" style="position: relative;">
-	<!-- Page indicator -->
-	<div style="position: absolute; right: 10px; top: 5px; font-size: 9pt;">
-		Page 1/{% if barcode_data and barcode_data.page_count > 1 %}{{ barcode_data.page_count + 1 }}{% else %}1{% endif %}
-	</div>
+<div class="form11">
 	<div class="firstSpacer"></div>
 	<!-- A: Salary certificate checkbox -->
 	<table class="firstTable" style="margin-left: 75px;height: 18px;margin-top: 7px;">
@@ -282,17 +278,15 @@
 		</tr>
 	</table>
 
-	<!-- Footer: Date, Signature, Company info -->
-	<table class="footerTable" style="margin-left: 75px;width: 690px;height: 85px;margin-top: 20px;">
-		{%- set company_doc = frappe.get_cached_doc("Company", doc.company) -%}
+	<!-- I: Footer — Date, Signature, Company info -->
+	<table class="footerTable" style="margin-left: 75px; width: 690px; height: 85px; margin-top: 20px;">
 		<tr>
-			<td style="width: 230px; padding: 1px 8px !important; "><br>
+			<td style="width: 230px; vertical-align: bottom; padding: 1px 8px 30px 8px !important; ">
 			{% if doc.posting_date %}{{ frappe.utils.get_datetime(doc.posting_date).strftime('%d.%m.%Y') }}{% endif %}
 			</td>
 			<td style="width: 270px; padding: 1px 8px !important; "></td>
-			<td style="padding: 1px 8px !important; font-size: 8pt; ">
-			{{ config.get("lohnausweis_employer_name") or doc.company }}<br>
-			{{ (config.get("lohnausweis_employer_address") or "")|replace("\n", "<br>") }}
+			<td style="vertical-align: top; padding: 3px 8px !important; font-size: 8pt; ">
+			{{ config.get("lohnausweis_employer_name") or doc.company }}
 			</td>
 		</tr>
 	</table>
