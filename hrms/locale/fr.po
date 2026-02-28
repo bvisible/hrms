@@ -10239,19 +10239,19 @@ msgstr "Échec de connexion"
 #. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
 #: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
 msgid "Lohnausweis (Annual Salary Certificate)"
-msgstr "Certificat de salaire annuel (Lohnausweis)"
+msgstr "Certificat de salaire annuel"
 
 #. Label of a Table field in DocType 'Swiss Social Insurance Config'
 #: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
 msgid "Lohnausweis Mapping"
-msgstr "Mappage Lohnausweis"
+msgstr "Mappage du certificat de salaire"
 
 #. Label of a Select field in DocType 'Swiss Lohnausweis Mapping'
 #. Label of a Select field in DocType 'Swiss Wage Type'
 #: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
 #: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
 msgid "Lohnausweis Position"
-msgstr "Position Lohnausweis"
+msgstr "Position du certificat de salaire"
 
 #. Label of a Float field in DocType 'Employee Checkin'
 #. Label of a Float field in DocType 'Shift Location'
@@ -10322,7 +10322,7 @@ msgid ""
 "populate defaults."
 msgstr ""
 "Mappez les composantes salariales aux positions du formulaire 11 "
-"Lohnausweis. Lancez la configuration pour remplir les valeurs par défaut."
+"du certificat de salaire. Lancez la configuration pour remplir les valeurs par défaut."
 
 #: hrms/hr/report/monthly_attendance_sheet/monthly_attendance_sheet.js:38
 #: hrms/public/js/salary_slip_deductions_report_filters.js:21
@@ -15418,7 +15418,7 @@ msgstr "Suspendu"
 #. Name of a DocType
 #: hrms/payroll/doctype/swiss_lohnausweis_mapping/swiss_lohnausweis_mapping.json
 msgid "Swiss Lohnausweis Mapping"
-msgstr "Mappage Lohnausweis Suisse"
+msgstr "Mappage du certificat de salaire suisse"
 
 #. Name of a DocType
 #: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
@@ -17442,7 +17442,7 @@ msgstr "Attention : la demande de congé contient les dates bloquées suivantes"
 msgid ""
 "Warning: No Lohnausweis mapping found in Swiss Social Insurance Config."
 msgstr ""
-"Attention : Aucun mappage Lohnausweis trouvé dans la configuration des "
+"Attention : Aucun mappage du certificat de salaire trouvé dans la configuration des "
 "assurances sociales suisses."
 
 #: hrms/hr/doctype/shift_assignment/shift_assignment.py:91
