@@ -1,131 +1,137 @@
 {%- set d = get_salary_slip_print_data(doc) -%}
 
 <style>
-	@page { margin: 15mm 12mm; }
+	@page { size: A4; margin: 10mm 15mm; }
 
 	.ss {
 		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-		font-size: 9pt;
+		font-size: 8pt;
 		color: #1a1a1a;
-		line-height: 1.3;
-		max-width: 720px;
-		margin: 0 auto;
+		line-height: 1.25;
 	}
 
 	/* ── Header ── */
-	.ss-hdr { display: table; width: 100%; margin-bottom: 20px; }
+	.ss-hdr { display: table; width: 100%; margin-bottom: 16px; }
 	.ss-hdr-l, .ss-hdr-r { display: table-cell; vertical-align: top; width: 50%; }
-	.ss-hdr-r { text-align: right; padding-top: 4px; }
-	.ss-co { font-size: 14pt; font-weight: 700; margin: 0 0 3px; color: #111; }
-	.ss-co-addr { font-size: 8.5pt; color: #666; line-height: 1.4; }
-	.ss-emp-name { font-weight: 700; font-size: 9.5pt; }
-	.ss-emp-addr { font-size: 8.5pt; color: #444; line-height: 1.5; }
+	.ss-hdr-r { text-align: right; }
+	.ss-co { font-size: 11pt; font-weight: 700; margin: 0 0 2px; }
+	.ss-co-addr { font-size: 7.5pt; color: #555; line-height: 1.35; }
+	.ss-emp-name { font-weight: 700; font-size: 8.5pt; }
+	.ss-emp-addr { font-size: 7.5pt; color: #444; line-height: 1.4; }
 
 	/* ── Title bar ── */
 	.ss-title {
 		background: #2c3e50;
 		color: #fff;
-		padding: 7px 12px;
-		font-size: 11pt;
+		padding: 5px 10px;
+		font-size: 9.5pt;
 		font-weight: 600;
-		letter-spacing: 0.3px;
-		margin-bottom: 0;
+		letter-spacing: 0.2px;
 	}
 
 	/* ── Info bar ── */
 	.ss-info {
 		display: table;
 		width: 100%;
-		background: #f7f8f9;
+		background: #f5f6f7;
 		border-bottom: 1px solid #ddd;
-		padding: 6px 12px;
-		margin-bottom: 14px;
+		padding: 4px 10px;
+		margin-bottom: 10px;
+		font-size: 7.5pt;
 	}
 	.ss-info-l, .ss-info-r { display: table-cell; vertical-align: top; width: 50%; }
-	.ss-info .il { display: block; padding: 1px 0; }
-	.ss-info .ik { color: #888; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.3px; display: inline-block; width: 100px; }
-	.ss-info .iv { font-weight: 500; font-size: 8.5pt; }
+	.ss-info .il { display: block; padding: 0.5px 0; }
+	.ss-info .ik { color: #888; font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3px; display: inline-block; width: 80px; }
+	.ss-info .iv { font-weight: 600; }
 
 	/* ── Tables ── */
 	.ss table { width: 100%; border-collapse: collapse; }
 	.ss .t th {
-		background: #eef1f3;
-		padding: 4px 8px;
-		font-size: 7pt;
+		background: #e8eaed;
+		padding: 3px 6px;
+		font-size: 6pt;
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
 		color: #556;
-		border-bottom: 1.5px solid #ccd;
+		border-bottom: 1px solid #ccc;
 	}
-	.ss .t td { padding: 5px 8px; border-bottom: 1px solid #eef0f2; }
+	.ss .t td { padding: 3px 6px; border-bottom: 1px solid #eef0f2; font-size: 8pt; }
 	.ss .r { text-align: right; }
 
 	/* GS code */
-	.ss .gs { width: 38px; font-size: 7.5pt; color: #aab; font-family: "SF Mono", "Consolas", monospace; }
+	.ss .gs { width: 32px; font-size: 6.5pt; color: #aab; font-family: "SF Mono", "Consolas", monospace; }
 
 	/* Column widths */
-	.ss .c-name { }
-	.ss .c-base { width: 110px; }
-	.ss .c-rate { width: 70px; }
-	.ss .c-amt { width: 100px; }
+	.ss .c-base { width: 90px; }
+	.ss .c-rate { width: 55px; }
+	.ss .c-amt { width: 85px; }
 
 	/* Totals */
 	.ss .t-row td {
 		font-weight: 700;
-		border-top: 2px solid #aab;
+		border-top: 1.5px solid #999;
 		border-bottom: none;
-		padding-top: 5px;
-		font-size: 9pt;
+		padding-top: 4px;
 	}
 
 	/* Bases summary */
 	.ss .bases {
-		padding: 4px 8px 8px;
-		font-size: 7.5pt;
+		padding: 3px 6px 8px;
+		font-size: 6.5pt;
 		color: #889;
 	}
-	.ss .bases span { margin-right: 12px; }
+	.ss .bases span { margin-right: 10px; }
 	.ss .bases b { color: #556; font-weight: 600; }
 
 	/* ── Net pay ── */
 	.ss-net {
 		background: #2c3e50;
 		color: #fff;
-		padding: 8px 12px;
-		margin: 12px 0;
+		padding: 6px 10px;
+		margin: 8px 0 2px;
 		display: table;
 		width: 100%;
 	}
-	.ss-net-l { display: table-cell; vertical-align: middle; font-size: 11pt; font-weight: 600; }
-	.ss-net-r { display: table-cell; vertical-align: middle; text-align: right; font-size: 13pt; font-weight: 700; }
+	.ss-net-l { display: table-cell; vertical-align: middle; font-size: 9.5pt; font-weight: 600; }
+	.ss-net-r { display: table-cell; vertical-align: middle; text-align: right; font-size: 11pt; font-weight: 700; }
 	.ss-net-sub {
 		display: table;
 		width: 100%;
-		padding: 0 12px;
-		font-size: 8pt;
+		padding: 2px 10px;
+		font-size: 7pt;
 		color: #666;
-		margin-bottom: 2px;
 	}
 	.ss-net-sub div { display: table-cell; }
 	.ss-net-sub .r { text-align: right; }
-	.ss-words { padding: 2px 12px 8px; font-style: italic; font-size: 7.5pt; color: #999; }
+	.ss-words { padding: 1px 10px 6px; font-style: italic; font-size: 6.5pt; color: #999; }
 
-	/* ── Employer section ── */
-	.ss-er { margin-top: 10px; }
-	.ss-er .t th { background: #f9fafb; color: #99a; }
-	.ss-er .t td { color: #778; border-bottom-color: #f0f1f3; }
-	.ss-er .gs { color: #bbc; }
-	.ss-er .t-row td { color: #556; border-top-color: #bbc; }
-
-	/* Section label */
-	.ss-section {
-		font-size: 7pt;
+	/* ── Employer section — hidden on print by default ── */
+	.ss-er { margin-top: 8px; }
+	.ss-er .er-label {
+		font-size: 6pt;
 		text-transform: uppercase;
 		letter-spacing: 1px;
-		color: #99a;
-		padding: 8px 0 4px;
+		color: #aab;
 		font-weight: 600;
+		padding: 6px 0 3px;
+	}
+	.ss-er .t th { background: #f9fafb; color: #aab; }
+	.ss-er .t td { color: #889; border-bottom-color: #f0f1f3; font-size: 7.5pt; }
+	.ss-er .gs { color: #ccd; }
+	.ss-er .t-row td { color: #667; border-top-color: #bbc; }
+
+	@media print {
+		.ss-er { display: none; }
+	}
+
+	/* ── Footer ── */
+	.ss-footer {
+		margin-top: 10px;
+		padding-top: 6px;
+		border-top: 1px solid #ddd;
+		font-size: 6.5pt;
+		color: #aaa;
 	}
 </style>
 
@@ -149,20 +155,14 @@
 	</div>
 
 	<!-- Title bar -->
-	<div class="ss-title">
-		{{ _("Bulletin de salaire") }} &mdash; {{ d.period_label }}
-	</div>
+	<div class="ss-title">{{ _("Bulletin de salaire") }} &mdash; {{ d.period_label }}</div>
 
 	<!-- Info bar -->
 	<div class="ss-info">
 		<div class="ss-info-l">
 			<span class="il"><span class="ik">{{ _("AVS No.") }}</span> <span class="iv">{{ d.employee.get("ch_avs_number") or "-" }}</span></span>
-			{% if d.employee.get("ch_permit_type") %}
-			<span class="il"><span class="ik">{{ _("Permit") }}</span> <span class="iv">{{ d.employee.ch_permit_type }}</span></span>
-			{% endif %}
-			{% if d.employee.get("ch_fiscal_canton") %}
-			<span class="il"><span class="ik">{{ _("Canton") }}</span> <span class="iv">{{ d.employee.ch_fiscal_canton }}</span></span>
-			{% endif %}
+			{% if d.employee.get("ch_permit_type") %}<span class="il"><span class="ik">{{ _("Permit") }}</span> <span class="iv">{{ d.employee.ch_permit_type }}</span></span>{% endif %}
+			{% if d.employee.get("ch_fiscal_canton") %}<span class="il"><span class="ik">{{ _("Canton") }}</span> <span class="iv">{{ d.employee.ch_fiscal_canton }}</span></span>{% endif %}
 		</div>
 		<div class="ss-info-r">
 			<span class="il"><span class="ik">{{ _("Period") }}</span> <span class="iv">{{ frappe.format(doc.start_date, {"fieldtype": "Date"}) }} &ndash; {{ frappe.format(doc.end_date, {"fieldtype": "Date"}) }}</span></span>
@@ -175,11 +175,11 @@
 	<table class="t">
 		<thead>
 			<tr>
-				<th class="gs">{{ _("GS") }}</th>
-				<th class="c-name">{{ _("Earnings") }}</th>
+				<th class="gs">GS</th>
+				<th>{{ _("Earnings") }}</th>
 				<th class="c-base"></th>
 				<th class="c-rate"></th>
-				<th class="c-amt r">{{ _("CHF") }}</th>
+				<th class="c-amt r">CHF</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -216,11 +216,11 @@
 	<table class="t">
 		<thead>
 			<tr>
-				<th class="gs">{{ _("GS") }}</th>
-				<th class="c-name">{{ _("Deductions") }}</th>
+				<th class="gs">GS</th>
+				<th>{{ _("Deductions") }}</th>
 				<th class="c-base r">{{ _("Base") }}</th>
 				<th class="c-rate r">{{ _("Rate") }}</th>
-				<th class="c-amt r">{{ _("CHF") }}</th>
+				<th class="c-amt r">CHF</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -260,18 +260,18 @@
 	<div class="ss-words">{{ d.total_in_words }}</div>
 	{% endif %}
 
-	<!-- Employer Contributions -->
+	<!-- Employer Contributions (hidden on print) -->
 	{% if d.deductions_er %}
 	<div class="ss-er">
-		<div class="ss-section">{{ _("Employer Contributions") }}</div>
+		<div class="er-label">{{ _("Employer Contributions") }}</div>
 		<table class="t">
 			<thead>
 				<tr>
-					<th class="gs">{{ _("GS") }}</th>
-					<th class="c-name"></th>
+					<th class="gs">GS</th>
+					<th></th>
 					<th class="c-base r">{{ _("Base") }}</th>
 					<th class="c-rate r">{{ _("Rate") }}</th>
-					<th class="c-amt r">{{ _("CHF") }}</th>
+					<th class="c-amt r">CHF</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -307,7 +307,7 @@
 
 	<!-- Footer -->
 	{% if doc.bank_name or doc.bank_account_no %}
-	<div style="margin-top: 14px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 7.5pt; color: #999;">
+	<div class="ss-footer">
 		{% if doc.bank_name %}{{ _("Bank") }}: {{ doc.bank_name }}{% endif %}
 		{% if doc.bank_account_no %} &mdash; {{ _("Account") }}: {{ doc.bank_account_no }}{% endif %}
 	</div>
