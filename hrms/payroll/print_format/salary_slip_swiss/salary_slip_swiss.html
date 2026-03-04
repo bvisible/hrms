@@ -229,7 +229,7 @@
 				<td class="gs">{{ row.gs_code }}</td>
 				<td>{{ _(row.name) }}</td>
 				<td class="r">{{ format_chf(row.determinant) }}</td>
-				<td class="r">{% if row.rate %}{{ row.rate }}{% endif %}</td>
+				<td class="r">{% if row.rate %}{{ row.rate }}%{% endif %}</td>
 				<td class="r">{{ format_chf(-1 * row.amount if row.amount > 0 else row.amount) }}</td>
 			</tr>
 			{% endfor %}
@@ -280,7 +280,7 @@
 					<td class="gs">{{ row.gs_code }}</td>
 					<td>{{ _(row.name) }}</td>
 					<td class="r">{{ format_chf(row.determinant) }}</td>
-					<td class="r">{% if row.rate %}{{ row.rate }}{% endif %}</td>
+					<td class="r">{% if row.rate %}{{ row.rate }}%{% endif %}</td>
 					<td class="r">{{ format_chf(row.amount) }}</td>
 				</tr>
 				{% endfor %}
