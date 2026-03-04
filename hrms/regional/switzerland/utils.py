@@ -540,11 +540,15 @@ def get_salary_slip_print_data(doc):
 	except Exception:
 		period_label = ""
 
+	# Company logo
+	company_logo = company_doc.get("company_logo") or ""
+
 	return {
 		"employee": employee,
 		"salutation": salutation,
 		"address_lines": address_lines,
 		"company_address": company_address,
+		"company_logo": company_logo,
 		"period_label": period_label,
 		"earnings": earnings,
 		"deductions_ee": deductions_ee,

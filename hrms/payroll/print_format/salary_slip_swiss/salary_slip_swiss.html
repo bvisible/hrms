@@ -10,14 +10,36 @@
 		line-height: 1.25;
 	}
 
-	/* ── Header ── */
-	.ss-hdr { display: table; width: 100%; margin-bottom: 16px; }
-	.ss-hdr-l, .ss-hdr-r { display: table-cell; vertical-align: top; width: 50%; }
-	.ss-hdr-r { text-align: right; }
-	.ss-co { font-size: 11pt; font-weight: 700; margin: 0 0 2px; }
-	.ss-co-addr { font-size: 7.5pt; color: #555; line-height: 1.35; }
+	/* ── Letterhead header ── */
+	.ss-letterhead {
+		display: table;
+		width: 100%;
+		margin-bottom: 6px;
+	}
+	.ss-lh-left {
+		display: table-cell;
+		vertical-align: top;
+		width: 55%;
+	}
+	.ss-lh-right {
+		display: table-cell;
+		vertical-align: top;
+		width: 45%;
+		text-align: right;
+	}
+	.ss-co { font-size: 10pt; font-weight: 700; margin: 0 0 1px; }
+	.ss-co-addr { font-size: 7pt; color: #555; line-height: 1.35; }
+	.ss-co-addr .co-line { display: inline; }
+
+	/* ── Recipient address block (envelope window) ── */
+	.ss-recipient {
+		margin-top: 12px;
+		margin-bottom: 16px;
+		padding: 8px 0;
+		min-height: 55px;
+	}
 	.ss-emp-name { font-weight: 700; font-size: 8.5pt; }
-	.ss-emp-addr { font-size: 7.5pt; color: #444; line-height: 1.4; }
+	.ss-emp-addr { font-size: 7.5pt; color: #333; line-height: 1.4; }
 
 	/* ── Title bar ── */
 	.ss-title {
@@ -64,7 +86,7 @@
 
 	/* Column widths */
 	.ss .c-base { width: 90px; }
-	.ss .c-rate { width: 55px; }
+	.ss .c-qty { width: 55px; }
 	.ss .c-amt { width: 85px; }
 
 	/* Totals */
@@ -137,20 +159,27 @@
 
 <div class="ss">
 
-	<!-- Header -->
-	<div class="ss-hdr">
-		<div class="ss-hdr-l">
+	<!-- Letterhead: company info top-left, small inline -->
+	<div class="ss-letterhead">
+		<div class="ss-lh-left">
 			<div class="ss-co">{{ doc.company }}</div>
 			<div class="ss-co-addr">
-				{% for line in d.company_address %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+				{% for line in d.company_address %}<span class="co-line">{{ line }}</span>{% if not loop.last %} &middot; {% endif %}{% endfor %}
 			</div>
 		</div>
-		<div class="ss-hdr-r">
-			{% if d.salutation %}<div class="ss-emp-addr">{{ d.salutation }}</div>{% endif %}
-			<div class="ss-emp-name">{{ doc.employee_name }}</div>
-			<div class="ss-emp-addr">
-				{% for line in d.address_lines %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}
-			</div>
+		<div class="ss-lh-right">
+			{% if d.company_logo %}
+			<img src="{{ d.company_logo }}" style="max-height: 40px; max-width: 120px;">
+			{% endif %}
+		</div>
+	</div>
+
+	<!-- Recipient address block -->
+	<div class="ss-recipient">
+		{% if d.salutation %}<div class="ss-emp-addr">{{ d.salutation }}</div>{% endif %}
+		<div class="ss-emp-name">{{ doc.employee_name }}</div>
+		<div class="ss-emp-addr">
+			{% for line in d.address_lines %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}
 		</div>
 	</div>
 
@@ -161,7 +190,6 @@
 	<div class="ss-info">
 		<div class="ss-info-l">
 			<span class="il"><span class="ik">{{ _("AVS No.") }}</span> <span class="iv">{{ d.employee.get("ch_avs_number") or "-" }}</span></span>
-			{% if d.employee.get("ch_permit_type") %}<span class="il"><span class="ik">{{ _("Permit") }}</span> <span class="iv">{{ d.employee.ch_permit_type }}</span></span>{% endif %}
 			{% if d.employee.get("ch_fiscal_canton") %}<span class="il"><span class="ik">{{ _("Canton") }}</span> <span class="iv">{{ d.employee.ch_fiscal_canton }}</span></span>{% endif %}
 		</div>
 		<div class="ss-info-r">
@@ -178,7 +206,7 @@
 				<th class="gs">GS</th>
 				<th>{{ _("Earnings") }}</th>
 				<th class="c-base"></th>
-				<th class="c-rate"></th>
+				<th class="c-qty"></th>
 				<th class="c-amt r">CHF</th>
 			</tr>
 		</thead>
@@ -219,7 +247,7 @@
 				<th class="gs">GS</th>
 				<th>{{ _("Deductions") }}</th>
 				<th class="c-base r">{{ _("Base") }}</th>
-				<th class="c-rate r">{{ _("Rate") }}</th>
+				<th class="c-qty r">{{ _("Qty/Rate") }}</th>
 				<th class="c-amt r">CHF</th>
 			</tr>
 		</thead>
@@ -270,7 +298,7 @@
 					<th class="gs">GS</th>
 					<th></th>
 					<th class="c-base r">{{ _("Base") }}</th>
-					<th class="c-rate r">{{ _("Rate") }}</th>
+					<th class="c-qty r">{{ _("Qty/Rate") }}</th>
 					<th class="c-amt r">CHF</th>
 				</tr>
 			</thead>
