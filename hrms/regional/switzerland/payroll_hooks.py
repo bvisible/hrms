@@ -187,8 +187,15 @@ def _get_base_from_earnings(doc):
 
 
 def _update_rate_based_components(doc, config, bases):
-	"""Update components that are calculated as a simple percentage of their insurance base."""
+	"""Update components that are calculated as a simple percentage of their insurance base.
+
+	Also adds missing component rows that may have been removed by remove_if_zero_valued
+	during salary slip generation.
+	"""
 	updated = False
+
+	# Track which components are already in the slip
+	existing_components = {row.salary_component for row in doc.get("deductions")}
 
 	for row in doc.get("deductions"):
 		if row.salary_component in RATE_BASED_COMPONENTS:
@@ -202,6 +209,18 @@ def _update_rate_based_components(doc, config, bases):
 					row.default_amount = full_amount
 					row.amount = prorated
 					updated = True
+
+	# Add missing rate-based components (removed by remove_if_zero_valued)
+	for comp_name, (rate_field, _is_employer, base_type) in RATE_BASED_COMPONENTS.items():
+		if comp_name in existing_components:
+			continue
+		rate = flt(config.get(rate_field))
+		base_amount = flt(bases.get(base_type, bases["gross_total"]))
+		if rate and base_amount:
+			amount = flt(base_amount * rate / 100, 2)
+			if amount:
+				_add_deduction_row(doc, comp_name, amount)
+				updated = True
 
 	return updated
 
@@ -262,6 +281,13 @@ def _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee):
 				row.default_amount = full_amount
 				row.amount = prorated
 				updated = True
+
+	# Add missing LPP rows (removed by remove_if_zero_valued)
+	for comp_name, amount in lpp_mapping.items():
+		amount = flt(amount, 2)
+		if amount and not _has_component(doc, comp_name):
+			_add_deduction_row(doc, comp_name, amount)
+			updated = True
 
 	return updated
 
