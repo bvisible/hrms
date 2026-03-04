@@ -361,7 +361,7 @@ def _build_rate_dict(config, age):
 	rates = {}
 
 	# Rate-based components: direct rate from config
-	for comp_name, (rate_field, _is_employer) in RATE_BASED_COMPONENTS.items():
+	for comp_name, (rate_field, _is_employer, _base_type) in RATE_BASED_COMPONENTS.items():
 		rate = flt(config.get(rate_field))
 		if rate:
 			rates[comp_name] = str(rate)
