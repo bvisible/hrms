@@ -456,9 +456,16 @@ def get_salary_slip_print_data(doc):
 	}
 	any_flag = False
 
+	comp_fields = [
+		"ch_wage_type_code", "ch_subject_to_avs", "ch_subject_to_ac",
+		"ch_subject_to_laa", "ch_subject_to_ijm", "ch_subject_to_lpp", "ch_subject_to_imp",
+	]
+
 	for row in doc.get("earnings", []):
-		comp_doc = frappe.get_cached_doc("Salary Component", row.salary_component)
-		gs_code = comp_doc.get("ch_wage_type_code") or ""
+		comp_vals = frappe.get_cached_value(
+			"Salary Component", row.salary_component, comp_fields, as_dict=True
+		) or {}
+		gs_code = comp_vals.get("ch_wage_type_code") or ""
 		earnings.append({
 			"gs_code": gs_code,
 			"name": row.salary_component,
@@ -470,12 +477,12 @@ def get_salary_slip_print_data(doc):
 		insurance_bases["gross"] += amount
 
 		flags = {
-			"avs": comp_doc.get("ch_subject_to_avs"),
-			"ac": comp_doc.get("ch_subject_to_ac"),
-			"laa": comp_doc.get("ch_subject_to_laa"),
-			"ijm": comp_doc.get("ch_subject_to_ijm"),
-			"lpp": comp_doc.get("ch_subject_to_lpp"),
-			"imp": comp_doc.get("ch_subject_to_imp"),
+			"avs": comp_vals.get("ch_subject_to_avs"),
+			"ac": comp_vals.get("ch_subject_to_ac"),
+			"laa": comp_vals.get("ch_subject_to_laa"),
+			"ijm": comp_vals.get("ch_subject_to_ijm"),
+			"lpp": comp_vals.get("ch_subject_to_lpp"),
+			"imp": comp_vals.get("ch_subject_to_imp"),
 		}
 		if any(flags.values()):
 			any_flag = True
@@ -499,8 +506,10 @@ def get_salary_slip_print_data(doc):
 			continue
 		comp_name = row.salary_component
 		is_employer = comp_name in employer_set
-		comp_doc = frappe.get_cached_doc("Salary Component", comp_name)
-		gs_code = comp_doc.get("ch_wage_type_code") or ""
+		comp_vals = frappe.get_cached_value(
+			"Salary Component", comp_name, ["ch_wage_type_code"], as_dict=True
+		) or {}
+		gs_code = comp_vals.get("ch_wage_type_code") or ""
 
 		rate_str = rates.get(comp_name, "")
 		determinant = _compute_determinant(comp_name, flt(row.amount, 2), rate_str, insurance_bases)
