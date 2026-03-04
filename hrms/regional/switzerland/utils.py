@@ -559,6 +559,35 @@ def get_salary_slip_print_data(doc):
 			"employer_cost": flt(doc.gross_pay, 2) + flt(total_er, 2),
 		},
 		"total_in_words": doc.total_in_words or "",
+		"bank": _get_bank_details(doc, employee),
+	}
+
+
+def _get_bank_details(doc, employee):
+	"""Get bank details from salary slip, employee, or linked Bank Account."""
+	bank_name = doc.bank_name or employee.get("bank_name") or ""
+	account_no = doc.bank_account_no or employee.get("bank_ac_no") or ""
+	iban = ""
+
+	# Try to find IBAN from Bank Account linked to employee
+	if not iban:
+		bank_account = frappe.db.get_value(
+			"Bank Account",
+			{"party_type": "Employee", "party": doc.employee, "is_default": 1},
+			["bank", "bank_account_no", "iban"],
+			as_dict=True,
+		)
+		if bank_account:
+			if not bank_name:
+				bank_name = bank_account.get("bank") or ""
+			if not account_no:
+				account_no = bank_account.get("bank_account_no") or ""
+			iban = bank_account.get("iban") or ""
+
+	return {
+		"bank_name": bank_name,
+		"account_no": account_no,
+		"iban": iban,
 	}
 
 

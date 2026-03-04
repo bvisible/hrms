@@ -305,11 +305,13 @@
 	</div>
 	{% endif %}
 
-	<!-- Footer -->
-	{% if doc.bank_name or doc.bank_account_no %}
+	<!-- Bank Details Footer -->
+	{% if d.bank.bank_name or d.bank.account_no or d.bank.iban %}
 	<div class="ss-footer">
-		{% if doc.bank_name %}{{ _("Bank") }}: {{ doc.bank_name }}{% endif %}
-		{% if doc.bank_account_no %} &mdash; {{ _("Account") }}: {{ doc.bank_account_no }}{% endif %}
+		<div style="font-size: 6pt; text-transform: uppercase; letter-spacing: 0.5px; color: #aab; font-weight: 600; margin-bottom: 3px;">{{ _("Bank Details") }}</div>
+		{% if d.bank.bank_name %}<span>{{ _("Bank") }}: <b>{{ d.bank.bank_name }}</b></span>{% endif %}
+		{% if d.bank.iban %}<span style="margin-left: 12px;">IBAN: <b>{{ d.bank.iban }}</b></span>
+		{% elif d.bank.account_no %}<span style="margin-left: 12px;">{{ _("Account") }}: <b>{{ d.bank.account_no }}</b></span>{% endif %}
 	</div>
 	{% endif %}
 
