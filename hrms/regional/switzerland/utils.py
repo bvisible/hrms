@@ -395,3 +395,233 @@ def _build_rate_dict(config, age):
 			rates["LPP/BVG Employer"] = str(employer_rate)
 
 	return rates
+
+
+def format_chf(value, show_zero=False):
+	"""Format a number with Swiss apostrophe thousands separator.
+
+	Examples: 12345.60 -> "12'345.60", 0 -> ""
+	"""
+	if not value and not show_zero:
+		return ""
+	value = flt(value, 2)
+	formatted = f"{abs(value):,.2f}".replace(",", "'")
+	if value < 0:
+		formatted = "-" + formatted
+	return formatted
+
+
+def get_salary_slip_print_data(doc):
+	"""Prepare enriched data for the Swiss salary slip print format.
+
+	Pre-computes all data needed by the template so it doesn't need
+	to call frappe.get_cached_doc() in Jinja loops.
+	"""
+	employee = frappe.get_cached_doc("Employee", doc.employee)
+	config = get_swiss_social_insurance_config(
+		doc.company, employee.get("ch_fiscal_canton") or ""
+	)
+	age = get_employee_age(doc.employee, doc.end_date)
+	rates = _build_rate_dict(config, age) if config else {}
+
+	# Salutation
+	gender = (employee.get("gender") or "").strip()
+	if gender == "Female":
+		salutation = "Madame"
+	elif gender == "Male":
+		salutation = "Monsieur"
+	else:
+		salutation = ""
+
+	# Employee address
+	address_lines = _parse_address(employee)
+
+	# Company address
+	company_doc = frappe.get_cached_doc("Company", doc.company)
+	company_address = _parse_company_address(company_doc)
+
+	# Employer component names (set for fast lookup)
+	employer_set = set(
+		frappe.get_all(
+			"Salary Component",
+			filters={"is_employer_contribution": 1},
+			pluck="name",
+		)
+	)
+
+	# Build enriched earnings
+	earnings = []
+	insurance_bases = {
+		"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "gross": 0
+	}
+	any_flag = False
+
+	for row in doc.get("earnings", []):
+		comp_doc = frappe.get_cached_doc("Salary Component", row.salary_component)
+		gs_code = comp_doc.get("ch_wage_type_code") or ""
+		earnings.append({
+			"gs_code": gs_code,
+			"name": row.salary_component,
+			"amount": flt(row.amount, 2),
+		})
+
+		# Accumulate insurance bases
+		amount = flt(row.default_amount or row.amount, 2)
+		insurance_bases["gross"] += amount
+
+		flags = {
+			"avs": comp_doc.get("ch_subject_to_avs"),
+			"ac": comp_doc.get("ch_subject_to_ac"),
+			"laa": comp_doc.get("ch_subject_to_laa"),
+			"ijm": comp_doc.get("ch_subject_to_ijm"),
+			"lpp": comp_doc.get("ch_subject_to_lpp"),
+			"imp": comp_doc.get("ch_subject_to_imp"),
+		}
+		if any(flags.values()):
+			any_flag = True
+			for key in ("avs", "ac", "laa", "ijm", "lpp", "imp"):
+				if flags[key]:
+					insurance_bases[key] += amount
+
+	# Backward compat: if no flags configured, all bases = gross
+	if not any_flag:
+		for key in ("avs", "ac", "laa", "ijm", "lpp", "imp"):
+			insurance_bases[key] = insurance_bases["gross"]
+
+	# Build enriched deductions (employee and employer separate)
+	deductions_ee = []
+	deductions_er = []
+	total_ee = 0
+	total_er = 0
+
+	for row in doc.get("deductions", []):
+		if not flt(row.amount):
+			continue
+		comp_name = row.salary_component
+		is_employer = comp_name in employer_set
+		comp_doc = frappe.get_cached_doc("Salary Component", comp_name)
+		gs_code = comp_doc.get("ch_wage_type_code") or ""
+
+		rate_str = rates.get(comp_name, "")
+		determinant = _compute_determinant(comp_name, flt(row.amount, 2), rate_str, insurance_bases)
+
+		entry = {
+			"gs_code": gs_code,
+			"name": comp_name,
+			"determinant": flt(determinant, 2),
+			"rate": rate_str,
+			"amount": flt(row.amount, 2),
+		}
+
+		if is_employer:
+			deductions_er.append(entry)
+			total_er += flt(row.amount, 2)
+		else:
+			deductions_ee.append(entry)
+			total_ee += flt(row.amount, 2)
+
+	# Period label
+	try:
+		end = getdate(doc.end_date)
+		months_fr = [
+			"", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+			"Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
+		]
+		period_label = f"{months_fr[end.month]} {end.year}"
+	except Exception:
+		period_label = ""
+
+	return {
+		"employee": employee,
+		"salutation": salutation,
+		"address_lines": address_lines,
+		"company_address": company_address,
+		"period_label": period_label,
+		"earnings": earnings,
+		"deductions_ee": deductions_ee,
+		"deductions_er": deductions_er,
+		"insurance_bases": insurance_bases,
+		"totals": {
+			"gross": flt(doc.gross_pay, 2),
+			"ee_deductions": flt(total_ee, 2),
+			"net": flt(doc.net_pay, 2),
+			"rounded": flt(doc.rounded_total, 2) if doc.rounded_total else 0,
+			"er_contributions": flt(total_er, 2),
+			"employer_cost": flt(doc.gross_pay, 2) + flt(total_er, 2),
+		},
+		"total_in_words": doc.total_in_words or "",
+	}
+
+
+def _compute_determinant(comp_name, amount, rate_str, insurance_bases):
+	"""Compute the determinant (base amount) for a deduction component."""
+	# Check RATE_BASED_COMPONENTS first for direct base type mapping
+	if comp_name in RATE_BASED_COMPONENTS:
+		_, _, base_type = RATE_BASED_COMPONENTS[comp_name]
+		return insurance_bases.get(base_type.replace("_base", ""), 0)
+
+	# AC/ALV: use ac base or back-calculate if capped
+	if "AC/ALV" in comp_name or "AC Solidarity" in comp_name:
+		rate = flt(rate_str)
+		if rate and amount:
+			return round(abs(amount) / (rate / 100), 2)
+		return insurance_bases.get("ac", 0)
+
+	# LPP/BVG: back-calculate from amount and rate (coordinated salary)
+	if "LPP/BVG" in comp_name:
+		rate = flt(rate_str)
+		if rate and amount:
+			return round(abs(amount) / (rate / 100), 2)
+		return 0
+
+	# Source Tax: use imp_base
+	if "Source Tax" in comp_name:
+		return insurance_bases.get("imp", 0)
+
+	# Default: no determinant
+	return 0
+
+
+def _parse_address(employee):
+	"""Parse employee address into lines for the print format."""
+	lines = []
+	addr = employee.get("current_address") or employee.get("permanent_address") or ""
+	if addr:
+		# Address is stored as a small text with newlines
+		for line in addr.strip().split("\n"):
+			line = line.strip()
+			if line:
+				lines.append(line)
+	return lines
+
+
+def _parse_company_address(company_doc):
+	"""Parse company address into lines for the print format."""
+	lines = []
+	# Try company address fields
+	for field in ("address_line1", "address_line2", "city", "pincode"):
+		val = company_doc.get(field)
+		if val:
+			lines.append(str(val).strip())
+
+	if not lines:
+		# Fallback: try to get from Address doctype
+		address_name = frappe.db.get_value(
+			"Dynamic Link",
+			{"link_doctype": "Company", "link_name": company_doc.name, "parenttype": "Address"},
+			"parent",
+		)
+		if address_name:
+			addr = frappe.get_cached_doc("Address", address_name)
+			for field in ("address_line1", "address_line2"):
+				val = addr.get(field)
+				if val:
+					lines.append(str(val).strip())
+			city_line = ""
+			if addr.get("pincode"):
+				city_line += str(addr.pincode)
+			if addr.get("city"):
+				city_line += " " + str(addr.city) if city_line else str(addr.city)
+			if city_line:
+				lines.append(city_line.strip())
+	return lines

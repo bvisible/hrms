@@ -91,6 +91,8 @@ jinja = {
 		"hrms.utils.get_country",
 		"hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.get_barcode_data_for_print",
 		"hrms.regional.switzerland.utils.get_component_rates_for_salary_slip",
+		"hrms.regional.switzerland.utils.get_salary_slip_print_data",
+		"hrms.regional.switzerland.utils.format_chf",
 	],
 }
 
