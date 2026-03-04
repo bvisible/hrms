@@ -1,219 +1,185 @@
 {%- set d = get_salary_slip_print_data(doc) -%}
 
 <style>
-	.swiss-slip {
+	@page { margin: 15mm 12mm; }
+
+	.ss {
 		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-		font-size: 8.5pt;
-		color: #222;
-		line-height: 1.35;
+		font-size: 9pt;
+		color: #1a1a1a;
+		line-height: 1.3;
+		max-width: 720px;
+		margin: 0 auto;
 	}
-	/* Header */
-	.swiss-slip .header-block {
-		display: table;
-		width: 100%;
-		margin-bottom: 6px;
-	}
-	.swiss-slip .header-block > div {
-		display: table-cell;
-		width: 50%;
-		vertical-align: top;
-	}
-	.swiss-slip .company-name {
-		font-size: 13pt;
-		font-weight: 700;
-		margin: 0 0 2px 0;
-	}
-	.swiss-slip .company-addr {
-		font-size: 8pt;
-		color: #555;
-	}
-	.swiss-slip .emp-addr {
-		text-align: right;
-		font-size: 8.5pt;
-	}
-	.swiss-slip .emp-name {
-		font-weight: 700;
-	}
-	/* Title */
-	.swiss-slip .slip-title {
+
+	/* ── Header ── */
+	.ss-hdr { display: table; width: 100%; margin-bottom: 20px; }
+	.ss-hdr-l, .ss-hdr-r { display: table-cell; vertical-align: top; width: 50%; }
+	.ss-hdr-r { text-align: right; padding-top: 4px; }
+	.ss-co { font-size: 14pt; font-weight: 700; margin: 0 0 3px; color: #111; }
+	.ss-co-addr { font-size: 8.5pt; color: #666; line-height: 1.4; }
+	.ss-emp-name { font-weight: 700; font-size: 9.5pt; }
+	.ss-emp-addr { font-size: 8.5pt; color: #444; line-height: 1.5; }
+
+	/* ── Title bar ── */
+	.ss-title {
+		background: #2c3e50;
+		color: #fff;
+		padding: 7px 12px;
 		font-size: 11pt;
-		font-weight: 700;
-		margin: 10px 0 2px 0;
-		border-bottom: 2px solid #333;
-		padding-bottom: 3px;
-	}
-	/* Info grid */
-	.swiss-slip .info-grid {
-		display: table;
-		width: 100%;
-		margin: 4px 0 10px 0;
-	}
-	.swiss-slip .info-grid > div {
-		display: table-cell;
-		width: 50%;
-		vertical-align: top;
-	}
-	.swiss-slip .info-grid .lbl {
-		color: #666;
-		font-size: 7.5pt;
-		display: inline-block;
-		width: 110px;
-	}
-	.swiss-slip .info-grid .val {
-		font-weight: 500;
-	}
-	/* Data tables */
-	.swiss-slip table {
-		width: 100%;
-		border-collapse: collapse;
+		font-weight: 600;
+		letter-spacing: 0.3px;
 		margin-bottom: 0;
 	}
-	.swiss-slip .dt th {
-		background: #f0f0f0;
-		border-bottom: 1.5px solid #bbb;
-		padding: 3px 6px;
-		text-align: left;
-		font-weight: 600;
-		font-size: 7.5pt;
-		text-transform: uppercase;
-		color: #444;
+
+	/* ── Info bar ── */
+	.ss-info {
+		display: table;
+		width: 100%;
+		background: #f7f8f9;
+		border-bottom: 1px solid #ddd;
+		padding: 6px 12px;
+		margin-bottom: 14px;
 	}
-	.swiss-slip .dt td {
-		padding: 2.5px 6px;
-		border-bottom: 0.5px solid #e8e8e8;
-	}
-	.swiss-slip .r { text-align: right; }
-	.swiss-slip .c { text-align: center; }
-	.swiss-slip .gs {
+	.ss-info-l, .ss-info-r { display: table-cell; vertical-align: top; width: 50%; }
+	.ss-info .il { display: block; padding: 1px 0; }
+	.ss-info .ik { color: #888; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.3px; display: inline-block; width: 100px; }
+	.ss-info .iv { font-weight: 500; font-size: 8.5pt; }
+
+	/* ── Tables ── */
+	.ss table { width: 100%; border-collapse: collapse; }
+	.ss .t th {
+		background: #eef1f3;
+		padding: 4px 8px;
 		font-size: 7pt;
-		color: #999;
-		width: 36px;
-		font-family: "Courier New", monospace;
-	}
-	.swiss-slip .col-name { width: 38%; }
-	.swiss-slip .col-det { width: 18%; }
-	.swiss-slip .col-rate { width: 12%; }
-	.swiss-slip .col-amt { width: 20%; }
-	/* Total rows */
-	.swiss-slip .total-row td {
 		font-weight: 700;
-		border-top: 1.5px solid #999;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		color: #556;
+		border-bottom: 1.5px solid #ccd;
+	}
+	.ss .t td { padding: 5px 8px; border-bottom: 1px solid #eef0f2; }
+	.ss .r { text-align: right; }
+
+	/* GS code */
+	.ss .gs { width: 38px; font-size: 7.5pt; color: #aab; font-family: "SF Mono", "Consolas", monospace; }
+
+	/* Column widths */
+	.ss .c-name { }
+	.ss .c-base { width: 110px; }
+	.ss .c-rate { width: 70px; }
+	.ss .c-amt { width: 100px; }
+
+	/* Totals */
+	.ss .t-row td {
+		font-weight: 700;
+		border-top: 2px solid #aab;
 		border-bottom: none;
-		padding-top: 4px;
+		padding-top: 5px;
+		font-size: 9pt;
 	}
-	/* Net pay */
-	.swiss-slip .net-block {
-		margin: 8px 0;
-		padding: 6px 8px;
-		border: 2px solid #333;
-	}
-	.swiss-slip .net-block table td {
-		border: none;
-		padding: 2px 6px;
-	}
-	.swiss-slip .net-label {
-		font-size: 10pt;
-		font-weight: 700;
-	}
-	.swiss-slip .net-amount {
-		font-size: 11pt;
-		font-weight: 700;
-		text-align: right;
-	}
-	.swiss-slip .net-words {
-		font-style: italic;
+
+	/* Bases summary */
+	.ss .bases {
+		padding: 4px 8px 8px;
 		font-size: 7.5pt;
-		color: #555;
-		padding-top: 2px;
+		color: #889;
 	}
-	/* Employer section */
-	.swiss-slip .er-section {
-		margin-top: 8px;
-		color: #777;
+	.ss .bases span { margin-right: 12px; }
+	.ss .bases b { color: #556; font-weight: 600; }
+
+	/* ── Net pay ── */
+	.ss-net {
+		background: #2c3e50;
+		color: #fff;
+		padding: 8px 12px;
+		margin: 12px 0;
+		display: table;
+		width: 100%;
 	}
-	.swiss-slip .er-section th {
-		background: #f8f8f8;
-		color: #777;
-	}
-	.swiss-slip .er-section td {
-		color: #777;
-	}
-	/* Insurance bases summary */
-	.swiss-slip .bases-row td {
-		font-size: 7.5pt;
+	.ss-net-l { display: table-cell; vertical-align: middle; font-size: 11pt; font-weight: 600; }
+	.ss-net-r { display: table-cell; vertical-align: middle; text-align: right; font-size: 13pt; font-weight: 700; }
+	.ss-net-sub {
+		display: table;
+		width: 100%;
+		padding: 0 12px;
+		font-size: 8pt;
 		color: #666;
-		border-top: 1px solid #ddd;
-		border-bottom: none;
-		padding: 3px 6px;
+		margin-bottom: 2px;
 	}
-	/* Divider */
-	.swiss-slip .divider {
-		border: none;
-		border-top: 1px solid #ddd;
-		margin: 6px 0;
+	.ss-net-sub div { display: table-cell; }
+	.ss-net-sub .r { text-align: right; }
+	.ss-words { padding: 2px 12px 8px; font-style: italic; font-size: 7.5pt; color: #999; }
+
+	/* ── Employer section ── */
+	.ss-er { margin-top: 10px; }
+	.ss-er .t th { background: #f9fafb; color: #99a; }
+	.ss-er .t td { color: #778; border-bottom-color: #f0f1f3; }
+	.ss-er .gs { color: #bbc; }
+	.ss-er .t-row td { color: #556; border-top-color: #bbc; }
+
+	/* Section label */
+	.ss-section {
+		font-size: 7pt;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+		color: #99a;
+		padding: 8px 0 4px;
+		font-weight: 600;
 	}
 </style>
 
-<div class="swiss-slip">
+<div class="ss">
 
-	<!-- Header: Company + Employee address -->
-	<div class="header-block">
-		<div>
-			<div class="company-name">{{ doc.company }}</div>
-			{% for line in d.company_address %}
-			<div class="company-addr">{{ line }}</div>
-			{% endfor %}
+	<!-- Header -->
+	<div class="ss-hdr">
+		<div class="ss-hdr-l">
+			<div class="ss-co">{{ doc.company }}</div>
+			<div class="ss-co-addr">
+				{% for line in d.company_address %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+			</div>
 		</div>
-		<div class="emp-addr">
-			{% if d.salutation %}<div>{{ d.salutation }}</div>{% endif %}
-			<div class="emp-name">{{ doc.employee_name }}</div>
-			{% for line in d.address_lines %}
-			<div>{{ line }}</div>
-			{% endfor %}
+		<div class="ss-hdr-r">
+			{% if d.salutation %}<div class="ss-emp-addr">{{ d.salutation }}</div>{% endif %}
+			<div class="ss-emp-name">{{ doc.employee_name }}</div>
+			<div class="ss-emp-addr">
+				{% for line in d.address_lines %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+			</div>
 		</div>
 	</div>
 
-	<!-- Title -->
-	<div class="slip-title">
+	<!-- Title bar -->
+	<div class="ss-title">
 		{{ _("Bulletin de salaire") }} &mdash; {{ d.period_label }}
 	</div>
 
-	<!-- Info grid -->
-	<div class="info-grid">
-		<div>
-			<div><span class="lbl">{{ _("Employee") }}</span> <span class="val">{{ doc.employee_name }} ({{ doc.employee }})</span></div>
-			{% if d.employee.get("ch_avs_number") %}
-			<div><span class="lbl">{{ _("AVS Number") }}</span> <span class="val">{{ d.employee.ch_avs_number }}</span></div>
-			{% endif %}
+	<!-- Info bar -->
+	<div class="ss-info">
+		<div class="ss-info-l">
+			<span class="il"><span class="ik">{{ _("AVS No.") }}</span> <span class="iv">{{ d.employee.get("ch_avs_number") or "-" }}</span></span>
 			{% if d.employee.get("ch_permit_type") %}
-			<div><span class="lbl">{{ _("Permit") }}</span> <span class="val">{{ d.employee.ch_permit_type }}</span></div>
+			<span class="il"><span class="ik">{{ _("Permit") }}</span> <span class="iv">{{ d.employee.ch_permit_type }}</span></span>
 			{% endif %}
 			{% if d.employee.get("ch_fiscal_canton") %}
-			<div><span class="lbl">{{ _("Fiscal Canton") }}</span> <span class="val">{{ d.employee.ch_fiscal_canton }}</span></div>
+			<span class="il"><span class="ik">{{ _("Canton") }}</span> <span class="iv">{{ d.employee.ch_fiscal_canton }}</span></span>
 			{% endif %}
 		</div>
-		<div>
-			<div><span class="lbl">{{ _("Period") }}</span> <span class="val">{{ frappe.format(doc.start_date, {"fieldtype": "Date"}) }} &ndash; {{ frappe.format(doc.end_date, {"fieldtype": "Date"}) }}</span></div>
-			<div><span class="lbl">{{ _("Working Days") }}</span> <span class="val">{{ doc.total_working_days }}</span></div>
-			<div><span class="lbl">{{ _("Payment Days") }}</span> <span class="val">{{ doc.payment_days }}</span></div>
-			{% if doc.bank_name %}
-			<div><span class="lbl">{{ _("Bank") }}</span> <span class="val">{{ doc.bank_name }}</span></div>
-			{% endif %}
-			{% if doc.bank_account_no %}
-			<div><span class="lbl">{{ _("Account") }}</span> <span class="val">{{ doc.bank_account_no }}</span></div>
-			{% endif %}
+		<div class="ss-info-r">
+			<span class="il"><span class="ik">{{ _("Period") }}</span> <span class="iv">{{ frappe.format(doc.start_date, {"fieldtype": "Date"}) }} &ndash; {{ frappe.format(doc.end_date, {"fieldtype": "Date"}) }}</span></span>
+			<span class="il"><span class="ik">{{ _("Work days") }}</span> <span class="iv">{{ doc.total_working_days }}</span></span>
+			<span class="il"><span class="ik">{{ _("Pay days") }}</span> <span class="iv">{{ doc.payment_days }}</span></span>
 		</div>
 	</div>
 
 	<!-- Earnings -->
-	<table class="dt">
+	<table class="t">
 		<thead>
 			<tr>
 				<th class="gs">{{ _("GS") }}</th>
-				<th class="col-name">{{ _("Earnings") }}</th>
-				<th class="col-det"></th>
-				<th class="col-rate"></th>
-				<th class="col-amt r">{{ _("Amount") }}</th>
+				<th class="c-name">{{ _("Earnings") }}</th>
+				<th class="c-base"></th>
+				<th class="c-rate"></th>
+				<th class="c-amt r">{{ _("CHF") }}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -228,37 +194,33 @@
 			{% endfor %}
 		</tbody>
 		<tfoot>
-			<tr class="total-row">
+			<tr class="t-row">
 				<td class="gs"></td>
 				<td>{{ _("Gross Pay") }}</td>
 				<td></td>
 				<td></td>
 				<td class="r">{{ format_chf(d.totals.gross) }}</td>
 			</tr>
-			<!-- Insurance bases summary -->
-			<tr class="bases-row">
-				<td colspan="5">
-					{{ _("Bases") }}:
-					AVS {{ format_chf(d.insurance_bases.avs) }}
-					&ensp;|&ensp; AC {{ format_chf(d.insurance_bases.ac) }}
-					&ensp;|&ensp; LAA {{ format_chf(d.insurance_bases.laa) }}
-					{% if d.insurance_bases.lpp and d.insurance_bases.lpp != d.insurance_bases.gross %}
-					&ensp;|&ensp; LPP {{ format_chf(d.insurance_bases.lpp) }}
-					{% endif %}
-				</td>
-			</tr>
 		</tfoot>
 	</table>
+	<div class="bases">
+		<span><b>AVS</b> {{ format_chf(d.insurance_bases.avs) }}</span>
+		<span><b>AC</b> {{ format_chf(d.insurance_bases.ac) }}</span>
+		<span><b>LAA</b> {{ format_chf(d.insurance_bases.laa) }}</span>
+		{% if d.insurance_bases.lpp and d.insurance_bases.lpp != d.insurance_bases.gross %}
+		<span><b>LPP</b> {{ format_chf(d.insurance_bases.lpp) }}</span>
+		{% endif %}
+	</div>
 
-	<!-- Employee Deductions -->
-	<table class="dt">
+	<!-- Deductions -->
+	<table class="t">
 		<thead>
 			<tr>
 				<th class="gs">{{ _("GS") }}</th>
-				<th class="col-name">{{ _("Deductions") }}</th>
-				<th class="col-det r">{{ _("Base") }}</th>
-				<th class="col-rate r">{{ _("Rate") }}</th>
-				<th class="col-amt r">{{ _("Amount") }}</th>
+				<th class="c-name">{{ _("Deductions") }}</th>
+				<th class="c-base r">{{ _("Base") }}</th>
+				<th class="c-rate r">{{ _("Rate") }}</th>
+				<th class="c-amt r">{{ _("CHF") }}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -267,13 +229,13 @@
 				<td class="gs">{{ row.gs_code }}</td>
 				<td>{{ _(row.name) }}</td>
 				<td class="r">{{ format_chf(row.determinant) }}</td>
-				<td class="r">{% if row.rate %}{{ row.rate }}%{% endif %}</td>
+				<td class="r">{% if row.rate %}{{ row.rate }}{% endif %}</td>
 				<td class="r">{{ format_chf(-1 * row.amount if row.amount > 0 else row.amount) }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
 		<tfoot>
-			<tr class="total-row">
+			<tr class="t-row">
 				<td class="gs"></td>
 				<td>{{ _("Total Deductions") }}</td>
 				<td></td>
@@ -284,37 +246,32 @@
 	</table>
 
 	<!-- Net Pay -->
-	<div class="net-block">
-		<table>
-			<tr>
-				<td class="net-label">{{ _("Net Pay") }}</td>
-				<td class="net-amount">CHF {{ format_chf(d.totals.net) }}</td>
-			</tr>
-			{% if d.totals.rounded %}
-			<tr>
-				<td style="font-size: 8pt;">{{ _("Rounded Total") }}</td>
-				<td class="r" style="font-size: 8pt;">CHF {{ format_chf(d.totals.rounded) }}</td>
-			</tr>
-			{% endif %}
-			{% if d.total_in_words %}
-			<tr>
-				<td colspan="2" class="net-words">{{ d.total_in_words }}</td>
-			</tr>
-			{% endif %}
-		</table>
+	<div class="ss-net">
+		<div class="ss-net-l">{{ _("Net Pay") }}</div>
+		<div class="ss-net-r">{{ format_chf(d.totals.net) }}</div>
 	</div>
+	{% if d.totals.rounded %}
+	<div class="ss-net-sub">
+		<div>{{ _("Rounded Total") }}</div>
+		<div class="r">CHF {{ format_chf(d.totals.rounded) }}</div>
+	</div>
+	{% endif %}
+	{% if d.total_in_words %}
+	<div class="ss-words">{{ d.total_in_words }}</div>
+	{% endif %}
 
 	<!-- Employer Contributions -->
 	{% if d.deductions_er %}
-	<div class="er-section">
-		<table class="dt">
+	<div class="ss-er">
+		<div class="ss-section">{{ _("Employer Contributions") }}</div>
+		<table class="t">
 			<thead>
 				<tr>
 					<th class="gs">{{ _("GS") }}</th>
-					<th class="col-name">{{ _("Employer Contributions") }}</th>
-					<th class="col-det r">{{ _("Base") }}</th>
-					<th class="col-rate r">{{ _("Rate") }}</th>
-					<th class="col-amt r">{{ _("Amount") }}</th>
+					<th class="c-name"></th>
+					<th class="c-base r">{{ _("Base") }}</th>
+					<th class="c-rate r">{{ _("Rate") }}</th>
+					<th class="c-amt r">{{ _("CHF") }}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -323,20 +280,20 @@
 					<td class="gs">{{ row.gs_code }}</td>
 					<td>{{ _(row.name) }}</td>
 					<td class="r">{{ format_chf(row.determinant) }}</td>
-					<td class="r">{% if row.rate %}{{ row.rate }}%{% endif %}</td>
+					<td class="r">{% if row.rate %}{{ row.rate }}{% endif %}</td>
 					<td class="r">{{ format_chf(row.amount) }}</td>
 				</tr>
 				{% endfor %}
 			</tbody>
 			<tfoot>
-				<tr class="total-row">
+				<tr class="t-row">
 					<td class="gs"></td>
-					<td>{{ _("Total Employer Contributions") }}</td>
+					<td>{{ _("Total") }}</td>
 					<td></td>
 					<td></td>
 					<td class="r">{{ format_chf(d.totals.er_contributions) }}</td>
 				</tr>
-				<tr class="total-row">
+				<tr class="t-row">
 					<td class="gs"></td>
 					<td>{{ _("Total Employer Cost") }}</td>
 					<td></td>
@@ -345,6 +302,14 @@
 				</tr>
 			</tfoot>
 		</table>
+	</div>
+	{% endif %}
+
+	<!-- Footer -->
+	{% if doc.bank_name or doc.bank_account_no %}
+	<div style="margin-top: 14px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 7.5pt; color: #999;">
+		{% if doc.bank_name %}{{ _("Bank") }}: {{ doc.bank_name }}{% endif %}
+		{% if doc.bank_account_no %} &mdash; {{ _("Account") }}: {{ doc.bank_account_no }}{% endif %}
 	</div>
 	{% endif %}
 
