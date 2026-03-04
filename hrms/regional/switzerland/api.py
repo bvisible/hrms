@@ -31,9 +31,7 @@ def create_salary_component_from_wage_type(wage_type_code, company=None):
 		linked_wt_name = f"CH-WT-{wt.linked_wage_type_code}"
 		if frappe.db.exists("Swiss Wage Type", linked_wt_name):
 			linked_wt = frappe.get_doc("Swiss Wage Type", linked_wt_name)
-			existing = frappe.db.get_value(
-				"Salary Component", {"ch_wage_type": linked_wt_name}, "name"
-			)
+			existing = frappe.db.get_value("Salary Component", {"ch_wage_type": linked_wt_name}, "name")
 			if not existing:
 				linked_name = _create_component_from_wage_type(linked_wt)
 			else:
@@ -63,14 +61,10 @@ def _create_component_from_wage_type(wt):
 	component_name = wt.wage_type_name
 	if frappe.db.exists("Salary Component", component_name):
 		# Check if already linked to this wage type
-		existing_wt = frappe.db.get_value(
-			"Salary Component", component_name, "ch_wage_type"
-		)
+		existing_wt = frappe.db.get_value("Salary Component", component_name, "ch_wage_type")
 		if existing_wt == wt.name:
 			return component_name
-		frappe.throw(
-			_("Salary Component '{0}' already exists.").format(component_name)
-		)
+		frappe.throw(_("Salary Component '{0}' already exists.").format(component_name))
 
 	comp_type = wt.type if wt.type in ("Earning", "Deduction") else "Earning"
 	abbr = wt.abbreviation or f"CH{wt.code}"
@@ -118,3 +112,71 @@ def _create_component_from_wage_type(wt):
 	doc.insert(ignore_permissions=True)
 	frappe.db.commit()
 	return doc.name
+
+
+# ─── Swiss Payroll Chat Assistant API ─────────────────────────────────
+
+
+@frappe.whitelist()
+def chat_start_session(company=None):
+	"""Start or resume a Swiss payroll configuration chat session."""
+	from hrms.regional.switzerland.assistant.chat_service import SwissPayrollChatService
+
+	service = SwissPayrollChatService()
+	return service.start_session(company=company)
+
+
+@frappe.whitelist()
+def chat_send_message(session_id, message):
+	"""Send a user message and get AI response."""
+	from hrms.regional.switzerland.assistant.chat_service import SwissPayrollChatService
+
+	if not session_id or not message:
+		frappe.throw(_("Session ID and message are required"))
+
+	service = SwissPayrollChatService()
+	return service.process_message(session_id, message)
+
+
+@frappe.whitelist()
+def chat_apply_step(session_id):
+	"""Apply collected data for the current step to Frappe records."""
+	from hrms.regional.switzerland.assistant.chat_service import SwissPayrollChatService
+
+	if not session_id:
+		frappe.throw(_("Session ID is required"))
+
+	service = SwissPayrollChatService()
+	return service.apply_step(session_id)
+
+
+@frappe.whitelist()
+def chat_get_session(session_id):
+	"""Get full session data for display."""
+	if not session_id:
+		frappe.throw(_("Session ID is required"))
+
+	import json
+
+	session = frappe.get_doc("Swiss Payroll Chat Session", session_id)
+
+	# Verify ownership
+	if session.user != frappe.session.user and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Access denied"))
+
+	return {
+		"session_id": session.name,
+		"status": session.status,
+		"current_step": session.current_step,
+		"completion": session.completion_percentage,
+		"collected_data": session.get_collected_data(),
+		"messages": [
+			{
+				"role": msg.role,
+				"content": msg.content,
+				"buttons": json.loads(msg.buttons) if msg.buttons else None,
+				"timestamp": str(msg.timestamp) if msg.timestamp else None,
+			}
+			for msg in session.messages
+		],
+	}

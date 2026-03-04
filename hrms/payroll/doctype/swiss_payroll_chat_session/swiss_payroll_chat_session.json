@@ -1,0 +1,152 @@
+{
+	"actions": [],
+	"autoname": "format:SPCS-{####}",
+	"creation": "2026-03-04 10:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"session_section",
+		"user",
+		"company",
+		"status",
+		"column_break_session",
+		"current_step",
+		"completion_percentage",
+		"data_section",
+		"collected_data",
+		"column_break_data",
+		"missing_fields",
+		"messages_section",
+		"messages"
+	],
+	"fields": [
+		{
+			"fieldname": "session_section",
+			"fieldtype": "Section Break",
+			"label": "Session"
+		},
+		{
+			"default": "__user",
+			"fieldname": "user",
+			"fieldtype": "Link",
+			"label": "User",
+			"options": "User",
+			"reqd": 1
+		},
+		{
+			"fieldname": "company",
+			"fieldtype": "Link",
+			"label": "Company",
+			"options": "Company"
+		},
+		{
+			"default": "Active",
+			"fieldname": "status",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"label": "Status",
+			"options": "Active\nCompleted\nAbandoned"
+		},
+		{
+			"fieldname": "column_break_session",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "company_setup",
+			"fieldname": "current_step",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Current Step",
+			"options": "company_setup\ninsurance_config\nemployee_setup\nemployee_qst\nemployee_crossborder\nqst_tariffs\nreview"
+		},
+		{
+			"default": "0",
+			"fieldname": "completion_percentage",
+			"fieldtype": "Percent",
+			"label": "Completion"
+		},
+		{
+			"fieldname": "data_section",
+			"fieldtype": "Section Break",
+			"label": "Collected Data"
+		},
+		{
+			"default": "{}",
+			"fieldname": "collected_data",
+			"fieldtype": "JSON",
+			"label": "Collected Data"
+		},
+		{
+			"fieldname": "column_break_data",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "[]",
+			"fieldname": "missing_fields",
+			"fieldtype": "JSON",
+			"label": "Missing Fields"
+		},
+		{
+			"fieldname": "messages_section",
+			"fieldtype": "Section Break",
+			"label": "Messages"
+		},
+		{
+			"fieldname": "messages",
+			"fieldtype": "Table",
+			"label": "Messages",
+			"options": "Swiss Payroll Chat Message"
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"links": [],
+	"modified": "2026-03-04 10:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Swiss Payroll Chat Session",
+	"naming_rule": "Expression",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 0,
+			"export": 0,
+			"print": 0,
+			"read": 1,
+			"report": 0,
+			"role": "System Manager",
+			"share": 0,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 0,
+			"email": 0,
+			"export": 0,
+			"print": 0,
+			"read": 1,
+			"report": 0,
+			"role": "HR Manager",
+			"share": 0,
+			"write": 1
+		},
+		{
+			"create": 1,
+			"delete": 0,
+			"email": 0,
+			"export": 0,
+			"print": 0,
+			"read": 1,
+			"report": 0,
+			"role": "HR User",
+			"share": 0,
+			"write": 1
+		}
+	],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 0
+}
