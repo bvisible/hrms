@@ -406,6 +406,10 @@ def _update_source_tax(doc, config, employee, imp_base):
 
 def _recalculate_totals(doc):
 	"""Recalculate salary slip totals after component amounts have been updated."""
+	doc.gross_pay = doc.get_component_totals("earnings", depends_on_payment_days=1)
+	doc.base_gross_pay = flt(
+		flt(doc.gross_pay) * flt(doc.exchange_rate), doc.precision("base_gross_pay")
+	)
 	doc.set_net_pay()
 	doc.compute_year_to_date()
 	doc.compute_month_to_date()
