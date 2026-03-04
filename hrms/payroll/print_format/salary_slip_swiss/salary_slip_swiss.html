@@ -4,7 +4,7 @@
 	filters={"is_employer_contribution": 1},
 	pluck="name"
 ) -%}
-{%- set rates = frappe.get_attr("hrms.regional.switzerland.utils.get_component_rates_for_salary_slip")(doc) -%}
+{%- set rates = get_component_rates_for_salary_slip(doc) -%}
 
 <style>
 	.swiss-slip {
