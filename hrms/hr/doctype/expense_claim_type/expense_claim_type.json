@@ -27,6 +27,7 @@
   {
    "fieldname": "description",
    "fieldtype": "Small Text",
+   "in_list_view": 0,
    "label": "Description",
    "oldfieldname": "description",
    "oldfieldtype": "Small Text",
@@ -42,6 +43,7 @@
    "default": "0",
    "fieldname": "deferred_expense_account",
    "fieldtype": "Check",
+   "in_list_view": 0,
    "label": "Deferred Expense Account"
   }
  ],

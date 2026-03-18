@@ -805,6 +805,7 @@
    "title": "Withheld"
   }
  ],
+ "default_print_format": "Salary Slip Swiss",
  "timeline_field": "employee",
  "title_field": "employee_name"
 }
