@@ -12,6 +12,7 @@ from hrms.hr.doctype.shift_assignment.shift_assignment import (
 	OverlappingShiftError,
 	get_actual_start_end_datetime_of_shift,
 	get_events,
+	mark_expired_shift_assignments_as_inactive,
 )
 from hrms.hr.doctype.shift_type.test_shift_type import make_shift_assignment, setup_shift_type
 
@@ -246,3 +247,35 @@ class TestShiftAssignment(FrappeTestCase):
 		self.assertTrue(checkin.shift_type.name == checkout.shift_type.name == "Morning")
 		self.assertEqual(checkin.actual_start, get_datetime(f"{yesterday} 06:00:00"))
 		self.assertEqual(checkout.actual_end, get_datetime(f"{yesterday} 13:00:00"))
+
+	def test_mark_expired_shift_assignments_as_inactive(self):
+		today = getdate()
+		shift_type = setup_shift_type(shift_type="Expired Shift", start_time="08:00:00", end_time="16:00:00")
+
+		expired_employee = make_employee("test_expired_shift_assignment@example.com", company="_Test Company")
+		active_employee = make_employee("test_active_shift_assignment@example.com", company="_Test Company")
+		ongoing_employee = make_employee("test_ongoing_shift_assignment@example.com", company="_Test Company")
+
+		expired_assignment = make_shift_assignment(
+			shift_type.name,
+			expired_employee,
+			add_days(today, -7),
+			add_days(today, -1),
+		)
+		active_assignment = make_shift_assignment(
+			shift_type.name,
+			active_employee,
+			add_days(today, -1),
+			add_days(today, 2),
+		)
+		ongoing_assignment = make_shift_assignment(shift_type.name, ongoing_employee, add_days(today, -3))
+
+		mark_expired_shift_assignments_as_inactive()
+
+		expired_assignment.reload()
+		active_assignment.reload()
+		ongoing_assignment.reload()
+
+		self.assertEqual(expired_assignment.status, "Inactive")
+		self.assertEqual(active_assignment.status, "Active")
+		self.assertEqual(ongoing_assignment.status, "Active")

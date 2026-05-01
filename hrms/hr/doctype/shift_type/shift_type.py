@@ -376,7 +376,12 @@ class ShiftType(Document):
 	def mark_absent_for_half_day_dates(self, employee):
 		half_day_attendances = frappe.get_all(
 			"Attendance",
-			filters={"employee": employee, "status": "Half Day", "modify_half_day_status": 1},
+			filters={
+				"employee": employee,
+				"status": "Half Day",
+				"modify_half_day_status": 1,
+				"attendance_date": ["<=", getdate(self.last_sync_of_checkin)],
+			},
 			fields=["name", "attendance_date"],
 		)
 		start_time = get_time(self.start_time)

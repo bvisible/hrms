@@ -12,7 +12,7 @@ from hrms.payroll.doctype.salary_slip.test_salary_slip import (
 	make_holiday_list,
 	make_leave_application,
 )
-from hrms.tests.test_utils import add_date_to_holiday_list, get_first_sunday
+from hrms.tests.test_utils import add_date_to_holiday_list
 
 test_dependencies = ["Employee"]
 
@@ -264,6 +264,7 @@ def create_attendance_request(**args: dict) -> dict:
 			"to_date": today,
 			"reason": "On Duty",
 			"company": "_Test Company",
+			"shift": args.shift or None,
 		}
 	)
 

@@ -8,6 +8,11 @@ on:
       - "**.md"
       - "**.html"
       - "**.csv"
+      - "**.po"
+      - "**.pot"
+      - 'crowdin.yml'
+      - '.mergify.yml'
+      - '**.vue'
   schedule:
     # Run everday at midnight UTC / 5:30 IST
     - cron: "0 0 * * *"

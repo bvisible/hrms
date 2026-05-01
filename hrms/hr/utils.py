@@ -384,41 +384,49 @@ def allocate_earned_leaves():
 
 def update_previous_leave_allocation(allocation, annual_allocation, e_leave_type, date_of_joining):
 	allocation = frappe.get_doc("Leave Allocation", allocation.name)
-	annual_allocation = flt(annual_allocation, allocation.precision("total_leaves_allocated"))
-
-	earned_leaves = get_monthly_earned_leave(
-		date_of_joining,
-		annual_allocation,
-		e_leave_type.earned_leave_frequency,
-		e_leave_type.rounding,
+	precision = allocation.precision("total_leaves_allocated")
+	annual_allocation = flt(annual_allocation, precision)
+	earned_leaves = flt(
+		get_monthly_earned_leave(
+			date_of_joining,
+			annual_allocation,
+			e_leave_type.earned_leave_frequency,
+			e_leave_type.rounding,
+		),
+		precision,
 	)
 
-	new_allocation = flt(allocation.total_leaves_allocated) + flt(earned_leaves)
 	new_allocation_without_cf = flt(
-		flt(allocation.get_existing_leave_count()) + flt(earned_leaves),
-		allocation.precision("total_leaves_allocated"),
+		flt(allocation.get_existing_leave_count()) + earned_leaves,
+		precision,
 	)
-
-	if new_allocation > e_leave_type.max_leaves_allowed and e_leave_type.max_leaves_allowed > 0:
-		new_allocation = e_leave_type.max_leaves_allowed
+	if e_leave_type.max_leaves_allowed:
+		leave_quota = flt(e_leave_type.max_leaves_allowed - allocation.total_leaves_allocated, precision)
+		if leave_quota <= 0:
+			return
+		else:
+			if leave_quota < earned_leaves:
+				earned_leaves = leave_quota
 
 	if (
-		new_allocation != allocation.total_leaves_allocated
 		# annual allocation as per policy should not be exceeded except for yearly leaves
-		and (
-			new_allocation_without_cf <= annual_allocation or e_leave_type.earned_leave_frequency == "Yearly"
-		)
+		new_allocation_without_cf <= annual_allocation or e_leave_type.earned_leave_frequency == "Yearly"
 	):
 		today_date = frappe.flags.current_date or getdate()
-
-		allocation.db_set("total_leaves_allocated", new_allocation, update_modified=False)
+		allocation.db_set(
+			"total_leaves_allocated",
+			earned_leaves + allocation.total_leaves_allocated,
+			update_modified=False,
+		)
 		create_additional_leave_ledger_entry(allocation, earned_leaves, today_date)
 
 		if e_leave_type.allocate_on_day:
 			text = _(
 				"Allocated {0} leave(s) via scheduler on {1} based on the 'Allocate on Day' option set to {2}"
 			).format(
-				frappe.bold(earned_leaves), frappe.bold(formatdate(today_date)), e_leave_type.allocate_on_day
+				frappe.bold(earned_leaves),
+				frappe.bold(formatdate(today_date)),
+				e_leave_type.allocate_on_day,
 			)
 
 		allocation.add_comment(comment_type="Info", text=text)

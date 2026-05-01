@@ -2070,6 +2070,7 @@ class TestSalarySlip(FrappeTestCase):
 				"type": "Earning",
 				"is_income_tax_component": 0,
 				"amount": 350,
+				"remove_if_zero_valued": 0,
 			},
 		]
 		make_salary_component(data, False, company_list=["_Test Company"])
@@ -2602,6 +2603,8 @@ def make_leave_application(
 	company=None,
 	half_day=False,
 	half_day_date=None,
+	status=None,
+	leave_approver=None,
 	submit=True,
 ):
 	create_user("test@example.com")

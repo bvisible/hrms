@@ -387,9 +387,20 @@ class ExpenseClaim(AccountsController, PWANotificationsMixin):
 			ref_doc = frappe.db.get_value(
 				"Employee Advance",
 				d.employee_advance,
-				["posting_date", "paid_amount", "claimed_amount", "return_amount", "advance_account"],
+				[
+					"employee",
+					"posting_date",
+					"paid_amount",
+					"claimed_amount",
+					"return_amount",
+					"advance_account",
+				],
 				as_dict=1,
 			)
+
+			if self.employee != ref_doc.employee:
+				frappe.throw(_("Selected employee advance is not of employee {}").format(self.employee))
+
 			d.posting_date = ref_doc.posting_date
 			d.advance_account = ref_doc.advance_account
 			d.advance_paid = ref_doc.paid_amount
@@ -553,7 +564,7 @@ def get_expense_claim_account(expense_claim_type, company):
 
 
 @frappe.whitelist()
-def get_advances(employee, advance_id=None):
+def get_advances(employee: str, advance_id: str | None = None):
 	advance = frappe.qb.DocType("Employee Advance")
 
 	query = frappe.qb.from_(advance).select(
@@ -574,7 +585,7 @@ def get_advances(employee, advance_id=None):
 			& (advance.status.notin(["Claimed", "Returned", "Partly Claimed and Returned"]))
 		)
 	else:
-		query = query.where(advance.name == advance_id)
+		query = query.where((advance.name == advance_id) & (advance.employee == employee))
 
 	return query.run(as_dict=True)
 

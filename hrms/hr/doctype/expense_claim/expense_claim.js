@@ -72,6 +72,10 @@ frappe.ui.form.on("Expense Claim", {
 				},
 			};
 		});
+
+		frm.make_methods = {
+			"Payment Entry": () => frm.events.make_payment_entry(frm),
+		};
 	},
 
 	onload: function (frm) {
@@ -99,6 +103,7 @@ frappe.ui.form.on("Expense Claim", {
 		if (
 			frm.doc.docstatus === 1 &&
 			frm.doc.status !== "Paid" &&
+			frm.doc.approval_status !== "Rejected" &&
 			frappe.model.can_create("Payment Entry")
 		) {
 			frm.add_custom_button(
@@ -415,7 +420,7 @@ frappe.ui.form.on("Expense Claim Advance", {
 					advance_id: child.employee_advance,
 				},
 				callback: function (r, rt) {
-					if (r.message) {
+					if (r.message && r.message.length > 0) {
 						child.employee_advance = r.message[0].name;
 						child.posting_date = r.message[0].posting_date;
 						child.advance_account = r.message[0].advance_account;
@@ -430,6 +435,15 @@ frappe.ui.form.on("Expense Claim Advance", {
 						);
 						frm.trigger("calculate_grand_total");
 						refresh_field("advances");
+					} else {
+						frm.doc.advances = [];
+						frappe.validated = false;
+						refresh_field("advances");
+						frappe.throw(
+							__("Selected employee advance is not of employee {0}", [
+								frm.doc.employee,
+							]),
+						);
 					}
 				},
 			});
