@@ -16,8 +16,12 @@ __pycache__/
 node_modules
 *debug.log
 hrms/docs/current
-hrms/public/frontend
-hrms/www/hrms.html
-hrms/public/roster
-hrms/www/roster.html
+# 2026-05-07 (NORA #28) — frontend build outputs are committed on this branch.
+# See docs/COMMIT-BUILD-PATTERN.md in neoffice-devops.
+# (HRMS ships TWO SPAs : hrms (employee self-service) from frontend/, and
+# roster (shift planner) from roster/.)
+# hrms/public/frontend
+# hrms/www/hrms.html
+# hrms/public/roster
+# hrms/www/roster.html
 CLAUDE.md
