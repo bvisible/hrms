@@ -34,7 +34,7 @@ import "./theme/variables.css"
 import "./main.css"
 
 const app = createApp(App)
-const socket = initSocket()
+let socket = null
 
 setConfig("resourceFetcher", frappeRequest)
 app.use(resourcesPlugin)
@@ -105,6 +105,8 @@ router.isReady().then(async () => {
 
 	await translationsPlugin.isReady();
 	registerServiceWorker()
+	socket = await initSocket()
+	app.config.globalProperties.$socket = socket
 	app.mount("#app")
 })
 
