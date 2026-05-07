@@ -24,4 +24,4 @@ hrms/docs/current
 # hrms/www/hrms.html
 # hrms/public/roster
 # hrms/www/roster.html
-CLAUDE.md
+# CLAUDE.md  # 2026-05-07 unshipped to document commit-the-build pipeline
