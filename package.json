@@ -19,7 +19,8 @@
     "install-roster-deps": "cd roster && yarn install --check-files",
     "dev-pwa": "cd frontend && yarn dev",
     "dev-roster": "cd roster && yarn dev",
-    "build": "yarn build-pwa && yarn build-roster",
+    "build": "if [ -d 'hrms/public/frontend/assets' ] && [ -d 'hrms/public/roster/assets' ] && [ -z \"$FORCE_REBUILD\" ]; then echo '[skip-build] pre-built artifacts present at hrms/public/{frontend,roster}/assets (set FORCE_REBUILD=1 to force rebuild)'; else yarn build:force; fi",
+    "build:force": "yarn build-pwa && yarn build-roster",
     "build-pwa": "cd frontend && yarn build",
     "build-roster": "cd roster && yarn build"
   },
