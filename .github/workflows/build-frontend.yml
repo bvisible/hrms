@@ -1,0 +1,65 @@
+name: build-frontend
+
+on:
+  push:
+    branches: [version-15]
+    paths:
+      - 'frontend/**'
+      - 'roster/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '!**/node_modules/**'
+      - '!hrms/public/frontend/**'
+      - '!hrms/public/roster/**'
+      - '!hrms/www/hrms.html'
+      - '!hrms/www/roster.html'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Install (workspace)
+        run: yarn install --frozen-lockfile
+
+      # frontend/src/socket.js is now DEV-only (commit 3a8bd5c9), but the build
+      # plugins may still try to read common_site_config under build sometimes.
+      # Stub it just to be safe.
+      - name: Create common_site_config stub
+        run: |
+          mkdir -p ../../sites
+          echo '{"socketio_port": 9000}' > ../../sites/common_site_config.json
+
+      # Root build script: yarn build-pwa && yarn build-roster (both vite)
+      - name: Build
+        run: yarn build
+
+      - name: Commit artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add hrms/public/frontend hrms/public/roster hrms/www/hrms.html hrms/www/roster.html
+          if git diff --cached --quiet; then
+            echo "No artifact changes to commit"
+            exit 0
+          fi
+          git commit --no-verify -m "[skip-build] frontend artifacts for ${GITHUB_SHA::8}"
+          git push
