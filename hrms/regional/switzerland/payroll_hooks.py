@@ -179,11 +179,32 @@ def _get_component_insurance_flags(component_name):
 
 
 def _get_base_from_earnings(doc):
-	"""Get the base salary from earnings if doc.base is not set."""
+	"""Get the base monthly salary from the slip's earnings.
+
+	The base component is identified by its Swissdec wage type (code 1000,
+	monthly salary) rather than by a hard-coded name: the component may be
+	called "Basic", "Salaire mensuel", "Monatslohn"… depending on the
+	instance's wage type catalog. Falls back to the historical name/abbr
+	match for setups without the catalog.
+	"""
+	for row in doc.get("earnings"):
+		if _is_base_wage_type(row.salary_component):
+			return flt(row.default_amount)
 	for row in doc.get("earnings"):
 		if row.salary_component == "Basic" or row.abbr == "B":
 			return flt(row.default_amount)
 	return 0
+
+
+def _is_base_wage_type(component_name):
+	"""True when the salary component is linked to Swissdec wage type 1000."""
+	if not component_name:
+		return False
+	wage_type = frappe.get_cached_value("Salary Component", component_name, "ch_wage_type")
+	if not wage_type:
+		return False
+	code = frappe.get_cached_value("Swiss Wage Type", wage_type, "code")
+	return cint(code) == 1000
 
 
 def _update_rate_based_components(doc, config, bases):
@@ -368,6 +389,24 @@ def _add_earning_row(doc, component_name, amount):
 	row.amount = flt(amount, row.precision("amount"))
 
 
+def _resolve_component_by_wage_type(code, fallback_name):
+	"""Resolve a Salary Component by its Swissdec wage type code.
+
+	Component names vary per instance (English setup names vs. the French
+	wage type catalog), so the stable identifier is the wage type code.
+	Falls back to the historical name when no component carries the code.
+	Returns None when neither exists.
+	"""
+	wage_type = frappe.db.get_value("Swiss Wage Type", {"code": code}, "name")
+	if wage_type:
+		component = frappe.db.get_value("Salary Component", {"ch_wage_type": wage_type}, "name")
+		if component:
+			return component
+	if frappe.db.exists("Salary Component", fallback_name):
+		return fallback_name
+	return None
+
+
 def _update_source_tax(doc, config, employee, imp_base):
 	"""Update the Source Tax Employee deduction based on ESTV tariff brackets."""
 	updated = False
@@ -375,10 +414,24 @@ def _update_source_tax(doc, config, employee, imp_base):
 	result = calculate_source_tax(employee, doc, config)
 	tax_amount = flt(result.get("tax_amount", 0), 2)
 
+	# Resolve the component by wage type 5060 (names vary per instance)
+	component = _resolve_component_by_wage_type(5060, "Source Tax Employee")
+	if not component:
+		# A subject employee without an installed component would be silently
+		# under-withheld — refuse to save the slip instead.
+		frappe.throw(
+			frappe._(
+				"Employee {0} is subject to source tax but no salary component is "
+				"linked to wage type 5060 (and 'Source Tax Employee' does not exist). "
+				"Run the Swiss payroll setup or create the component."
+			).format(doc.employee),
+			title=frappe._("Source Tax Component Missing"),
+		)
+
 	# Find or add the Source Tax component
 	found = False
 	for row in doc.get("deductions"):
-		if row.salary_component == "Source Tax Employee":
+		if row.salary_component == component:
 			found = True
 			if flt(row.amount, 2) != tax_amount:
 				row.default_amount = tax_amount
@@ -387,10 +440,10 @@ def _update_source_tax(doc, config, employee, imp_base):
 			break
 
 	if not found and tax_amount:
-		_add_deduction_row(doc, "Source Tax Employee", tax_amount)
+		_add_deduction_row(doc, component, tax_amount)
 		# Source tax is not prorated — override the default proration
 		for row in doc.get("deductions"):
-			if row.salary_component == "Source Tax Employee":
+			if row.salary_component == component:
 				row.default_amount = tax_amount
 				row.amount = tax_amount
 				break
