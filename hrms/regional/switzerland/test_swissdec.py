@@ -1440,6 +1440,38 @@ class TestEmaXmlGeneration(unittest.TestCase):
 		self.assertNotIn("BVG-LPP", xml_str)
 
 
+class TestEmaAutoname(unittest.TestCase):
+	"""Test EMA notification autoname with both event_date types."""
+
+	def _autoname(self, event_date):
+		from types import SimpleNamespace
+
+		from hrms.payroll.doctype.swissdec_ema_notification.swissdec_ema_notification import (
+			SwissdecEMANotification,
+		)
+
+		doc = SimpleNamespace(
+			company_abbr="AIS",
+			employee="Hans Mueller",
+			event_type="Eintritt",
+			event_date=event_date,
+			name=None,
+		)
+		SwissdecEMANotification.autoname(doc)
+		return doc.name
+
+	def test_autoname_with_string_date(self):
+		self.assertEqual(self._autoname("2026-01-15"), "EMA-AIS-Hans-Mueller-E-260115")
+
+	def test_autoname_with_date_object(self):
+		"""Employee hook passes a datetime.date — regression: str.replace crashed on it."""
+		import datetime
+
+		self.assertEqual(
+			self._autoname(datetime.date(2026, 1, 15)), "EMA-AIS-Hans-Mueller-E-260115"
+		)
+
+
 class TestEmaValidation(unittest.TestCase):
 	"""Test EMA-specific validation rules."""
 

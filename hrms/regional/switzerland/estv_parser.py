@@ -253,3 +253,22 @@ def bulk_import_tariff_brackets(parent_tariff_name, brackets, tariff_type):
 		)
 
 	frappe.db.commit()
+	ensure_bracket_lookup_index()
+
+
+def ensure_bracket_lookup_index():
+	"""Guarantee the composite lookup index on the bracket table.
+
+	lookup_qst_rate / tariff_code_exists filter on (canton, tariff_code,
+	tariff_type) then range on valid_from/income_from with ORDER BY ...
+	DESC LIMIT 1. Without this index every lookup is a full scan of the
+	~2.8M bracket rows (457s per query observed on osiris). Re-asserted
+	after every bulk import because a table rebuild (reload-doc) drops it.
+	"""
+	import frappe
+
+	frappe.db.add_index(
+		"Swiss QST Tariff Bracket",
+		["canton", "tariff_code", "tariff_type", "valid_from", "income_from"],
+		index_name="idx_qst_lookup",
+	)

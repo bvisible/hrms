@@ -12,7 +12,8 @@ class SwissdecEMANotification(frappe.model.document.Document):
 		abbr = self.company_abbr or frappe.db.get_value("Company", self.company, "abbr")
 		emp_id = (self.employee or "").replace(" ", "-")[:20]
 		event_code = (self.event_type or "M")[0]  # E, M, or A
-		date_str = (self.event_date or "").replace("-", "")[2:]  # YYMMDD
+		# event_date may be a datetime.date (hook path) or a str (API path)
+		date_str = str(self.event_date or "").replace("-", "")[2:]  # YYMMDD
 		self.name = f"EMA-{abbr}-{emp_id}-{event_code}-{date_str}"
 
 	def validate(self):
