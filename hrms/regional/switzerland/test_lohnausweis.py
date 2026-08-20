@@ -23,10 +23,15 @@ class TestLohnausweisMapping(unittest.TestCase):
 		# Social deductions (employee side)
 		self.assertIn("AVS/AI/APG Employee", mapped_components)
 		self.assertIn("AC/ALV Employee", mapped_components)
-		self.assertIn("AC Solidarity Employee", mapped_components)
 		self.assertIn("LAA Non-Professional Employee", mapped_components)
-		self.assertIn("IJM/KTG Employee", mapped_components)
 		self.assertIn("LPP/BVG Employee", mapped_components)
+
+		# NOT mapped by default:
+		# - AC Solidarity: contribution abolished on 2023-01-01
+		# - IJM/KTG Employee: does not belong in certificate position 9
+		#   (guide 2026 margin no. 42, CSI FAQ 9.1)
+		self.assertNotIn("AC Solidarity Employee", mapped_components)
+		self.assertNotIn("IJM/KTG Employee", mapped_components)
 
 	def test_default_mapping_positions_valid(self):
 		"""All positions in default mapping exist in POSITION_FIELD_MAP."""
@@ -87,23 +92,24 @@ class TestLohnausweisComputation(unittest.TestCase):
 		self.assertAlmostEqual(result["1"], 104000.0, places=2)
 
 	def test_position_9_aggregates_social_insurance(self):
-		"""All employee social charges map to position 9 and are summed."""
+		"""AVS/AC/AANP employee charges map to position 9 and are summed.
+
+		IJM is intentionally absent: the employee IJM retention must not be
+		aggregated into position 9 (guide 2026 Cm 42, CSI FAQ 9.1).
+		"""
 		slips_data = {
 			"AVS/AI/APG Employee": 5088.0,
 			"AC/ALV Employee": 1056.0,
-			"AC Solidarity Employee": 0.0,
 			"LAA Non-Professional Employee": 1152.0,
-			"IJM/KTG Employee": 480.0,
+			"IJM/KTG Employee": 480.0,  # present in slips but NOT mapped
 		}
 		position_map = {
 			"AVS/AI/APG Employee": "9",
 			"AC/ALV Employee": "9",
-			"AC Solidarity Employee": "9",
 			"LAA Non-Professional Employee": "9",
-			"IJM/KTG Employee": "9",
 		}
 		result = aggregate_salary_slips_for_lohnausweis(slips_data, position_map)
-		self.assertAlmostEqual(result["9"], 7776.0, places=2)
+		self.assertAlmostEqual(result["9"], 7296.0, places=2)
 
 	def test_position_10_1_lpp(self):
 		"""LPP/BVG Employee maps to position 10.1."""

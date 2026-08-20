@@ -236,8 +236,10 @@ def _update_ac_components(doc, config, ac_base):
 	ac_mapping = {
 		"AC/ALV Employee": ac_result["ac_employee"],
 		"AC/ALV Employer": ac_result["ac_employer"],
-		"AC Solidarity Employee": ac_result["solidarity_employee"],
-		"AC Solidarity Employer": ac_result["solidarity_employer"],
+		# Legacy rows from before the 2023 abolition of the solidarity
+		# contribution are forced to zero if still present on a structure.
+		"AC Solidarity Employee": 0,
+		"AC Solidarity Employer": 0,
 	}
 
 	for row in doc.get("deductions"):
@@ -248,13 +250,6 @@ def _update_ac_components(doc, config, ac_base):
 				row.default_amount = full_amount
 				row.amount = prorated
 				updated = True
-
-	# Add solidarity rows if they have amounts but weren't in the slip
-	for comp_name in ("AC Solidarity Employee", "AC Solidarity Employer"):
-		amount = flt(ac_mapping.get(comp_name, 0), 2)
-		if amount and not _has_component(doc, comp_name):
-			_add_deduction_row(doc, comp_name, amount)
-			updated = True
 
 	return updated
 

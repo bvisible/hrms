@@ -33,8 +33,7 @@ def create_insurance_config(data):
 		"ac_rate_employee",
 		"ac_rate_employer",
 		"ac_annual_ceiling",
-		"ac_solidarity_rate_employee",
-		"ac_solidarity_rate_employer",
+		# AC solidarity rates dropped: contribution abolished on 2023-01-01.
 		"laa_professional_rate",
 		"laa_nonprofessional_rate",
 		"laa_insurable_salary_cap",

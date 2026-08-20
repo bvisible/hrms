@@ -9,8 +9,6 @@ from hrms.regional.switzerland.constants import (
 	AC_ANNUAL_CEILING,
 	AC_RATE_EMPLOYEE,
 	AC_RATE_EMPLOYER,
-	AC_SOLIDARITY_RATE_EMPLOYEE,
-	AC_SOLIDARITY_RATE_EMPLOYER,
 	AVS_RATE_EMPLOYEE,
 	AVS_RATE_EMPLOYER,
 	LPP_AGE_BRACKETS,
@@ -147,8 +145,9 @@ def calculate_lpp_contribution(annual_salary, age, config=None):
 def calculate_ac_contribution(monthly_gross, ytd_gross, config=None):
 	"""Calculate AC/ALV contribution for a given month, respecting annual ceiling.
 
-	Handles the transition from standard rate to solidarity rate when the
-	annual ceiling is reached mid-year.
+	Salary above the annual ceiling (CHF 148'200) is fully exempt: the AC
+	solidarity contribution that used to apply above the ceiling was abolished
+	on 2023-01-01 (SECO communication of 2022-10-13; AHV/AVS leaflet 2.08).
 
 	Args:
 		monthly_gross: Gross salary for the current month
@@ -156,44 +155,32 @@ def calculate_ac_contribution(monthly_gross, ytd_gross, config=None):
 		config: Optional SwissSocialInsuranceConfig dict
 
 	Returns:
-		dict with keys: ac_employee, ac_employer, solidarity_employee, solidarity_employer,
-		subject_to_ac, subject_to_solidarity
+		dict with keys: ac_employee, ac_employer, subject_to_ac, exempt_above_ceiling
 	"""
 	ceiling = flt(config.get("ac_annual_ceiling") if config else 0) or AC_ANNUAL_CEILING
 	ac_rate_ee = flt(config.get("ac_rate_employee") if config else 0) / 100 or AC_RATE_EMPLOYEE
 	ac_rate_er = flt(config.get("ac_rate_employer") if config else 0) / 100 or AC_RATE_EMPLOYER
-	sol_rate_ee = (
-		flt(config.get("ac_solidarity_rate_employee") if config else 0) / 100 or AC_SOLIDARITY_RATE_EMPLOYEE
-	)
-	sol_rate_er = (
-		flt(config.get("ac_solidarity_rate_employer") if config else 0) / 100 or AC_SOLIDARITY_RATE_EMPLOYER
-	)
 
 	monthly_gross = flt(monthly_gross)
 	ytd_gross = flt(ytd_gross)
 	new_ytd = ytd_gross + monthly_gross
 
-	# Determine how much of this month's salary is below vs above ceiling
+	# Determine how much of this month's salary is below vs above the ceiling
 	if ytd_gross >= ceiling:
-		# Already above ceiling: entire salary subject to solidarity only
+		# Already above ceiling: entire salary exempt from AC
 		subject_to_ac = 0
-		subject_to_solidarity = monthly_gross
 	elif new_ytd <= ceiling:
-		# Still below ceiling: entire salary subject to standard AC
+		# Still below ceiling: entire salary subject to AC
 		subject_to_ac = monthly_gross
-		subject_to_solidarity = 0
 	else:
-		# Ceiling crossed this month: split
+		# Ceiling crossed this month: only the part below the ceiling is subject
 		subject_to_ac = ceiling - ytd_gross
-		subject_to_solidarity = monthly_gross - subject_to_ac
 
 	return {
 		"ac_employee": round(subject_to_ac * ac_rate_ee, 2),
 		"ac_employer": round(subject_to_ac * ac_rate_er, 2),
-		"solidarity_employee": round(subject_to_solidarity * sol_rate_ee, 2),
-		"solidarity_employer": round(subject_to_solidarity * sol_rate_er, 2),
 		"subject_to_ac": subject_to_ac,
-		"subject_to_solidarity": subject_to_solidarity,
+		"exempt_above_ceiling": monthly_gross - subject_to_ac,
 	}
 
 
@@ -374,13 +361,7 @@ def _build_rate_dict(config, age):
 	if ac_rate_er:
 		rates["AC/ALV Employer"] = str(ac_rate_er)
 
-	# AC Solidarity
-	sol_rate_ee = flt(config.get("ac_solidarity_rate_employee"))
-	sol_rate_er = flt(config.get("ac_solidarity_rate_employer"))
-	if sol_rate_ee:
-		rates["AC Solidarity Employee"] = str(sol_rate_ee)
-	if sol_rate_er:
-		rates["AC Solidarity Employer"] = str(sol_rate_er)
+	# AC Solidarity: abolished 2023-01-01 — no longer displayed.
 
 	# LPP/BVG: age-based rate (total rate, then split)
 	lpp_total_rate = get_lpp_rate_for_age(age)

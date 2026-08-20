@@ -8,9 +8,10 @@ AVS_RATE_EMPLOYER = 0.053  # 5.3%
 # AC/ALV (Unemployment Insurance)
 AC_RATE_EMPLOYEE = 0.011  # 1.1%
 AC_RATE_EMPLOYER = 0.011  # 1.1%
-AC_ANNUAL_CEILING = 148_200  # CHF — no standard AC above this
-AC_SOLIDARITY_RATE_EMPLOYEE = 0.005  # 0.5% on salary above ceiling
-AC_SOLIDARITY_RATE_EMPLOYER = 0.005  # 0.5%
+AC_ANNUAL_CEILING = 148_200  # CHF — NO contribution at all above this
+# The AC solidarity contribution (1% above the ceiling) was ABOLISHED on
+# 2023-01-01 (SECO communication of 2022-10-13; leaflet 2.08). Salary above
+# the annual ceiling is simply exempt from AC.
 
 # LPP/BVG (Occupational Pension — 2nd Pillar)
 LPP_ENTRY_THRESHOLD = 22_680  # Minimum annual salary to be insured
@@ -119,9 +120,11 @@ DEFAULT_LOHNAUSWEIS_MAPPING = [
 	# Deductions — position 9 (AVS/AC/AANP)
 	{"salary_component": "AVS/AI/APG Employee", "lohnausweis_position": "9"},
 	{"salary_component": "AC/ALV Employee", "lohnausweis_position": "9"},
-	{"salary_component": "AC Solidarity Employee", "lohnausweis_position": "9"},
 	{"salary_component": "LAA Non-Professional Employee", "lohnausweis_position": "9"},
-	{"salary_component": "IJM/KTG Employee", "lohnausweis_position": "9"},
+	# NOTE: the employee IJM/KTG retention does NOT belong in position 9
+	# (salary certificate guide 2026, margin no. 42 + CSI FAQ 9.1) — it may
+	# only be mentioned under position 15 (remarks). AC Solidarity was
+	# abolished in 2023 and is no longer mapped either.
 	# Deductions — position 10.1 (LPP/BVG)
 	{"salary_component": "LPP/BVG Employee", "lohnausweis_position": "10.1"},
 	# Deductions — position 12 (withholding tax)
@@ -170,19 +173,35 @@ PERMIT_TYPES = [
 # Cross-border worker constants
 CROSS_BORDER_COUNTRIES = ["DE", "FR", "IT", "AT", "LI"]
 
-# German DTA CH-DE: flat withholding rate
-GERMAN_FLAT_TAX_RATE = 0.045  # 4.5%
-GERMAN_NON_RETURN_DAY_LIMIT = 45  # days/year
+# German DTA CH-DE (art. 15a): Switzerland may withhold AT MOST 4.5% of the
+# gross salary. The cantonal L/M/N/P tariff files are mirrors of A/B/C/H with
+# this cap already built in; GERMAN_TAX_CAP_RATE is used as the cap (and as a
+# fallback when no tariff data is available). Requires a valid Gre-1 residence
+# attestation — without it, the ordinary (uncapped) tariff applies.
+GERMAN_TAX_CAP_RATE = 0.045  # 4.5% cap, not a flat rate
+# Frontalier status is lost beyond 60 non-return nights per year
+# (art. 15a para. 2 DTA CH-DE — 45 days applies to FR/IT/LI, not Germany).
+GERMAN_NON_RETURN_DAY_LIMIT = 60  # nights/year
 GERMAN_SWISS_WORK_THRESHOLD = 0.20  # 20% minimum work in CH
+GERMAN_TARIFF_LETTERS = ["L", "M", "N", "P"]
 
-# French CDI CH-FR: cantons where France taxes at residence (no CH withholding)
+# French agreement of 1983-04-11: cantons where France taxes at residence
+# (no CH withholding) — conditional on the French residence attestation
+# 2041-AS being provided before January 1st.
 FRENCH_EXEMPTED_CANTONS = frozenset({"BE", "BS", "BL", "JU", "NE", "SO", "VD", "VS"})
-# Exception: GE withholds at source for French frontaliers using G/M/N/Q tariff codes
+# Exception: GE is outside the 1983 agreement and withholds at source using
+# the ordinary tariff codes.
 FRENCH_TELEWORK_THRESHOLD = 0.40  # 40% max remote work from France
 FRENCH_ASSIGNMENT_DAY_LIMIT = 10  # days/year in France for business
 
-# Italian CDI CH-IT: old/new regime cutoff
+# Italian agreement of 2020-12-23 (in force 2023-07-17):
+# - OLD frontaliers (border-zone activity between 2018-12-31 and the cutoff,
+#   cantons GR/TI/VS): taxed EXCLUSIVELY in Switzerland at the FULL ordinary
+#   tariff (the 40% "ristorno" to Italian municipalities is settled by the
+#   canton, not by payroll). They are NOT exempt.
+# - NEW frontaliers (from the cutoff): the R/S/T/U/V tariff files published
+#   by the FTA ALREADY include the 80% reduction — payroll must NOT apply an
+#   additional 0.8 factor on top (that would double the reduction).
 ITALIAN_NEW_FRONTALIER_CUTOFF = "2023-07-17"
 ITALIAN_FRONTALIER_CANTONS = frozenset({"TI", "GR", "VS"})
-ITALIAN_NEW_RATE_FACTOR = 0.80  # 80% of standard rate for new frontaliers
 ITALIAN_TARIFF_LETTERS = ["R", "S", "T", "U", "V"]

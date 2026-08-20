@@ -42,3 +42,4 @@ hrms.patches.v15_0.create_swiss_wage_type_catalog
 hrms.patches.v15_0.set_swiss_insurance_flags_on_components
 hrms.patches.v15_0.migrate_salary_certificate_expense_fields
 hrms.patches.v15_0.update_swiss_wage_type_templates
+hrms.patches.v15_0.remove_ac_solidarity_and_fix_ijm_mapping

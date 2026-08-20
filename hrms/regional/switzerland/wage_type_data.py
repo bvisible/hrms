@@ -399,13 +399,13 @@ def get_swiss_wage_types():
 		_wt(
 			5022, "Cotisation AC solidarité employé", "Deduction", "9", _DEDUCTION,
 			stat="CS", abbr="ACSOL_EE", linked="5023",
-			desc_fr="AC Solidarité — Part employé (0.5%, uniquement au-dessus du plafond CHF 148'200/an)",
+			desc_fr="OBSOLÈTE — AC Solidarité part employé, supprimée au 1.1.2023 (code conservé pour l'historique)",
 			formula="base * 0.005", formula_based=1, condition="0",
 		),
 		_wt(
 			5023, "Cotisation AC solidarité employeur", "Deduction", "9", _DEDUCTION,
 			stat="CS", abbr="ACSOL_ER", linked="5022", employer=1,
-			desc_fr="AC Solidarité — Part employeur (0.5%, uniquement au-dessus du plafond CHF 148'200/an)",
+			desc_fr="OBSOLÈTE — AC Solidarité part employeur, supprimée au 1.1.2023 (code conservé pour l'historique)",
 			formula="base * 0.005", formula_based=1, condition="0",
 		),
 		_wt(
@@ -450,16 +450,16 @@ def get_swiss_wage_types():
 		# 5050-5052: IJM (daily sickness allowance) by category
 		# =====================================================================
 		_wt(
-			5050, "Cotisation IJM employé", "Deduction", "9", _DEDUCTION,
+			5050, "Cotisation IJM employé", "Deduction", "", _DEDUCTION,
 			stat="CS", common=1, abbr="IJM_EE", linked="5051",
-			desc_fr="IJM/KTG Indemnité journalière maladie — Part employé (taux fixé par l'assureur)",
+			desc_fr="IJM/KTG Indemnité journalière maladie — Part employé (taux fixé par l'assureur ; ne figure PAS au chiffre 9 du certificat — mention possible au chiffre 15, guide 2026 Cm 42)",
 		),
 		_wt(
-			5051, "Cotisation IJM employeur", "Deduction", "9", _DEDUCTION,
+			5051, "Cotisation IJM employeur", "Deduction", "", _DEDUCTION,
 			stat="CS", common=1, abbr="IJM_ER", linked="5050", employer=1,
 			desc_fr="IJM/KTG Indemnité journalière maladie — Part employeur (taux fixé par l'assureur)",
 		),
-		_wt(5052, "Cotisation IJM catégorie 2", "Deduction", "9", _DEDUCTION, stat="CS"),
+		_wt(5052, "Cotisation IJM catégorie 2", "Deduction", "", _DEDUCTION, stat="CS"),
 		# =====================================================================
 		# 5054-5056: LPP (occupational pension)
 		# =====================================================================

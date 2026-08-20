@@ -58,8 +58,8 @@ IMPORTANT CONTEXT:
 DEFAULT VALUES (2025):
 - AVS employee: 5.3%, AVS employer: 5.3%
 - AC employee: 1.1%, AC employer: 1.1%
-- AC annual ceiling: CHF 148'200
-- AC solidarity: 0.5% each (on salary above ceiling)
+- AC annual ceiling: CHF 148'200 (NO contribution above it — the solidarity
+  contribution was abolished on 2023-01-01)
 
 Ask about LAA and IJM rates — these are NOT standard and vary by insurer.
 For family allowances, suggest the typical rate for the selected canton.

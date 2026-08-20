@@ -10,7 +10,7 @@ bench --site <site_name> migrate
 ```
 
 This creates:
-- 14 Salary Components (employee + employer pairs for AVS, AC, LPP, IJM, AC Solidarity; plus LAA Professional employer-only, LAA Non-Professional employee-only, Family Allowances employer-only, and 13th Month Salary earning)
+- 12 Salary Components (employee + employer pairs for AVS, AC, LPP, IJM; plus LAA Professional employer-only, LAA Non-Professional employee-only, Family Allowances employer-only, and 13th Month Salary earning)
 - Custom fields on Employee (permit type, fiscal canton, AVS number), Company (default config link, employer cost account), and Salary Component (is_employer_contribution, linked_component)
 - A default Salary Structure "Swiss Payroll - Standard" with all deduction components pre-configured
 
@@ -24,7 +24,6 @@ Create one record per company (or per company+canton for cantonal variations):
 |---------|--------|-------|
 | AVS/AI/APG | Employee rate, Employer rate | Default 5.3% each |
 | AC/ALV | Employee rate, Employer rate, Annual ceiling | Default 1.1%, ceiling CHF 148'200 |
-| AC Solidarity | Employee rate, Employer rate | Default 0.5%, applies above AC ceiling |
 | LAA | Professional rate, Non-professional rate | Set by insurer, no default |
 | LPP/BVG | Employer share %, Entry threshold, Coordination deduction, Min/Max coordinated | Employer share minimum 50% by law |
 | IJM/KTG | Employee rate, Employer rate | Set by insurer, no default |
@@ -63,7 +62,7 @@ The module hooks into `Salary Slip.validate` via `doc_events` in `hooks.py`. Whe
 1. **13th month earning** (if enabled): the hook adds a "13th Month Salary" earning row before computing gross pay. In Monthly mode, this is `base / 12` every month. In Annual mode, it's the full (pro-rated) base in December or on the relieving month.
 2. **Gross pay calculation**: `gross_pay = sum(default_amount for all earnings)`. This unprorated total is used as the base for social charges. Swiss law requires ALL salary earnings to be subject to social charges.
 3. **Rate-based components** (AVS, LAA, IJM, Family): calculated as `gross_pay * rate / 100`.
-4. **AC/ALV**: tracks year-to-date gross via SQL query on submitted salary slips. Splits contribution between standard AC and solidarity when the annual ceiling (CHF 148'200) is crossed mid-month.
+4. **AC/ALV**: tracks year-to-date gross via SQL query on submitted salary slips. Salary above the annual ceiling (CHF 148'200) is fully exempt — the solidarity contribution was abolished on 2023-01-01 (SECO 2022-10-13; leaflet 2.08).
 5. **LPP/BVG**: uses `base_monthly * multiplier` (13 if 13th month enabled, 12 otherwise) for the annual salary. Calculates coordinated salary, applies age-dependent rate (7%-18%), splits between employee and employer (minimum 50% employer by law).
 
 All components support **payment-day proration**: `default_amount` holds the full monthly value, `amount` is prorated by `payment_days / total_working_days`.
@@ -80,8 +79,6 @@ Employer components use `do_not_include_in_total=1` so they appear in journal en
 | AVS/AI/APG Employer | Deduction | AVS_ER | Rate from config |
 | AC/ALV Employee | Deduction | AC_EE | Rate + ceiling tracking |
 | AC/ALV Employer | Deduction | AC_ER | Rate + ceiling tracking |
-| AC Solidarity Employee | Deduction | ACSOL_EE | Above ceiling only |
-| AC Solidarity Employer | Deduction | ACSOL_ER | Above ceiling only |
 | LAA Professional Employer | Deduction | LAAP_ER | Insurer rate |
 | LAA Non-Professional Employee | Deduction | LAANP_EE | Insurer rate |
 | LPP/BVG Employee | Deduction | LPP_EE | Age-based |
@@ -198,9 +195,7 @@ The mapping between salary components and Form 11 positions is configured on the
 | 13th Month Salary | 1 |
 | AVS/AI/APG Employee | 9 |
 | AC/ALV Employee | 9 |
-| AC Solidarity Employee | 9 |
 | LAA Non-Professional Employee | 9 |
-| IJM/KTG Employee | 9 |
 | LPP/BVG Employee | 10.1 |
 
 ## Tests
@@ -352,9 +347,9 @@ Employees residing in Germany, France, or Italy who commute to work in Switzerla
 
 | Country | Agreement | Tax Treatment |
 |---------|-----------|---------------|
-| **Germany** | DTA CH-DE | Flat 4.5% withholding tax. Employee must commute daily and not exceed 45 non-return days/year. |
-| **France** | CDI CH-FR | Most border cantons (BE, BS, BL, JU, NE, SO, VD, VS): taxed in France, no CH withholding. **Exception**: Geneva (GE) withholds at source using ESTV tariff codes G/M/N/Q. |
-| **Italy** | CDI CH-IT | *Old frontaliers* (started before July 17, 2023) in TI/GR/VS: taxed only in Italy, no Swiss withholding. *New frontaliers* (from July 17, 2023): Switzerland withholds 80% of standard source tax using tariff codes R/S/T/U/V. |
+| **Germany** | DTA CH-DE art. 15a | Withholding CAPPED at 4.5% of gross (the cantonal L/M/N/P tariffs are capped mirrors of A/B/C/H). Requires the Gre-1 residence attestation — without it, the ordinary uncapped tariff applies. Status lost beyond 60 non-return nights/year. |
+| **France** | Agreement of 1983-04-11 | Border cantons (BE, BS, BL, JU, NE, SO, VD, VS): taxed in France, no CH withholding — conditional on the 2041-AS residence attestation (without it the employer must withhold at the ordinary tariff). **Exception**: Geneva (outside the agreement) withholds at source using the ordinary tariff codes. |
+| **Italy** | Agreement of 2020 (in force 2023-07-17) | *Old frontaliers* (border-zone activity before the cutoff) in TI/GR/VS: taxed EXCLUSIVELY in Switzerland at the FULL ordinary tariff (the 40% ristorno to Italian municipalities is settled by the canton, not by payroll). *New frontaliers*: use tariff codes R/S/T/U/V — the published tariff files ALREADY include the 80% reduction, no extra factor is applied. |
 
 ### Employee Configuration
 
@@ -366,7 +361,9 @@ On the Employee form, in the "Cross-Border Worker" section:
 | Country of Residence | DE, FR, IT, AT, LI |
 | Cross-Border Start Date | For Italian old/new frontalier determination |
 | New Frontalier (post-2023) | Auto-set for Italian workers starting on or after July 17, 2023 |
-| German Flat Tax (4.5%) | Auto-set for German workers |
+| German Capped Tax (max 4.5%) | Auto-set for German workers |
+| Gre-1 Residence Attestation | German attestation on file — required for the 4.5% cap |
+| 2041-AS Residence Attestation | French attestation on file — required for the exemption |
 | Permit Expiry Date | Optional tracking for Permit G |
 
 ### Config (Swiss Social Insurance Config)
@@ -374,23 +371,23 @@ On the Employee form, in the "Cross-Border Worker" section:
 | Field | Description | Default |
 |-------|-------------|---------|
 | Enable Cross-Border Rules | Master toggle | Disabled |
-| German Flat Tax Rate (%) | DTA flat rate | 4.5 |
-| Italian New Frontalier Rate Factor (%) | Multiplier for new frontalier rate | 80 |
+| German Tax Cap Rate (%) | DTA cap on gross | 4.5 |
 | French Telework Threshold (%) | Max remote work from France | 40 |
 
 ### Cross-Border Telework Log
 
-Monthly tracking DocType for telework days (French 40% threshold) and non-return days (German 45-day limit). One record per employee per month with YTD cumulative calculation and automatic threshold warnings.
+Monthly tracking DocType for telework days (French 40% threshold) and non-return days (German 60-night limit). One record per employee per month with YTD cumulative calculation and automatic threshold warnings.
 
 ### Tax Calculation Flow
 
 1. Standard source tax is calculated via ESTV tariff brackets (Phase 3)
-2. If `cb_enabled` and employee is cross-border, the cross-border engine overrides:
-   - **German**: replaces with flat 4.5% tax
-   - **French exempt** (non-GE border cantons): sets tax to 0
-   - **French GE**: keeps standard ESTV result (tariff G/M/N/Q)
-   - **Italian old**: sets tax to 0
-   - **Italian new**: multiplies standard tax by 80%
+2. If `cb_enabled` and employee is cross-border, the cross-border engine adjusts:
+   - **German (with Gre-1)**: caps the ordinary result at 4.5% of gross
+   - **German (no Gre-1)**: ordinary uncapped tariff
+   - **French exempt** (non-GE border cantons, with 2041-AS): sets tax to 0
+   - **French (no 2041-AS) / French GE**: keeps the ordinary ESTV result
+   - **Italian old**: keeps the FULL ordinary result (exclusively taxed in CH)
+   - **Italian new**: keeps the R-V tariff result as-is (80% already built in)
 
 ## Swissdec ELM 5.0 Export
 

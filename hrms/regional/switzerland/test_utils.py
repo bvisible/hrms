@@ -172,34 +172,26 @@ class TestACContribution(unittest.TestCase):
 		# Entire salary subject to AC at 1.1%
 		self.assertAlmostEqual(result["ac_employee"], 88.0, places=2)  # 8000 * 0.011
 		self.assertAlmostEqual(result["ac_employer"], 88.0, places=2)
-		self.assertEqual(result["solidarity_employee"], 0)
-		self.assertEqual(result["solidarity_employer"], 0)
 		self.assertEqual(result["subject_to_ac"], 8000)
-		self.assertEqual(result["subject_to_solidarity"], 0)
+		self.assertEqual(result["exempt_above_ceiling"], 0)
 
 	def test_above_ceiling(self):
-		"""YTD already above ceiling: solidarity rate applies."""
+		"""YTD already above ceiling: salary fully EXEMPT (solidarity abolished 2023)."""
 		result = calculate_ac_contribution(8000, 150000)
-		# Already above ceiling: entire salary subject to solidarity
 		self.assertEqual(result["ac_employee"], 0)
 		self.assertEqual(result["ac_employer"], 0)
-		self.assertAlmostEqual(result["solidarity_employee"], 40.0, places=2)  # 8000 * 0.005
-		self.assertAlmostEqual(result["solidarity_employer"], 40.0, places=2)
 		self.assertEqual(result["subject_to_ac"], 0)
-		self.assertEqual(result["subject_to_solidarity"], 8000)
+		self.assertEqual(result["exempt_above_ceiling"], 8000)
 
 	def test_ceiling_crossed_mid_month(self):
-		"""Ceiling crossed during the current month: split calculation."""
+		"""Ceiling crossed during the current month: only the part below is subject."""
 		# YTD = 145'000, monthly = 8'000, ceiling = 148'200
-		# Subject to AC: 148'200 - 145'000 = 3'200
-		# Subject to solidarity: 8'000 - 3'200 = 4'800
+		# Subject to AC: 148'200 - 145'000 = 3'200 ; exempt: 4'800
 		result = calculate_ac_contribution(8000, 145000)
 		self.assertAlmostEqual(result["ac_employee"], 35.2, places=2)  # 3200 * 0.011
 		self.assertAlmostEqual(result["ac_employer"], 35.2, places=2)
-		self.assertAlmostEqual(result["solidarity_employee"], 24.0, places=2)  # 4800 * 0.005
-		self.assertAlmostEqual(result["solidarity_employer"], 24.0, places=2)
 		self.assertEqual(result["subject_to_ac"], 3200)
-		self.assertEqual(result["subject_to_solidarity"], 4800)
+		self.assertEqual(result["exempt_above_ceiling"], 4800)
 
 	def test_exactly_at_ceiling(self):
 		"""YTD + monthly exactly reaches the ceiling."""
@@ -207,21 +199,20 @@ class TestACContribution(unittest.TestCase):
 		result = calculate_ac_contribution(8000, 140200)
 		# Entire salary subject to AC (exactly at ceiling)
 		self.assertAlmostEqual(result["ac_employee"], 88.0, places=2)
-		self.assertEqual(result["solidarity_employee"], 0)
 		self.assertEqual(result["subject_to_ac"], 8000)
-		self.assertEqual(result["subject_to_solidarity"], 0)
+		self.assertEqual(result["exempt_above_ceiling"], 0)
 
 	def test_first_month_of_year(self):
 		"""First month: YTD is 0."""
 		result = calculate_ac_contribution(8000, 0)
 		self.assertAlmostEqual(result["ac_employee"], 88.0, places=2)
-		self.assertEqual(result["solidarity_employee"], 0)
+		self.assertEqual(result["exempt_above_ceiling"], 0)
 
 	def test_zero_salary(self):
 		"""Zero salary month (unpaid leave)."""
 		result = calculate_ac_contribution(0, 80000)
 		self.assertEqual(result["ac_employee"], 0)
-		self.assertEqual(result["solidarity_employee"], 0)
+		self.assertEqual(result["exempt_above_ceiling"], 0)
 
 
 class TestThirteenthMonth(unittest.TestCase):
@@ -331,26 +322,21 @@ class TestThirteenthMonthIntegration(unittest.TestCase):
 		self.assertEqual(result_with["coordinated_salary"], LPP_MINIMUM_INSURED_SALARY)
 
 	def test_ac_ceiling_reached_before_december_thirteenth(self):
-		"""AC ceiling already exceeded in November: December 13th month all at solidarity.
+		"""AC ceiling already exceeded in November: December 13th month fully exempt.
 
 		Employee CHF 14'000/month. By November end: YTD = 14'000x11 = 154'000 > 148'200.
 		December gross = 14'000 (regular) + 14'000 (13th month) = 28'000.
-		Entire December should be at solidarity rate (0.5%), no standard AC (1.1%).
+		No AC at all above the ceiling (solidarity abolished 2023-01-01).
 		"""
 		december_gross = 28000  # regular + 13th month
 		ytd_after_november = 14000 * 11  # 154'000
 
 		result = calculate_ac_contribution(december_gross, ytd_after_november)
 
-		# Already above ceiling: no standard AC
 		self.assertEqual(result["subject_to_ac"], 0)
 		self.assertEqual(result["ac_employee"], 0)
 		self.assertEqual(result["ac_employer"], 0)
-
-		# Entire December at solidarity rate
-		self.assertEqual(result["subject_to_solidarity"], 28000)
-		self.assertAlmostEqual(result["solidarity_employee"], 140.0, places=2)  # 28000 * 0.005
-		self.assertAlmostEqual(result["solidarity_employer"], 140.0, places=2)
+		self.assertEqual(result["exempt_above_ceiling"], 28000)
 
 
 class TestComponentRates(unittest.TestCase):
@@ -389,14 +375,14 @@ class TestComponentRates(unittest.TestCase):
 		self.assertEqual(rates["Family Allowances Employer"], "2.0")
 
 	def test_ac_rates_included(self):
-		"""AC standard and solidarity rates are included."""
+		"""AC standard rates are included; solidarity (abolished 2023) is not."""
 		config = self._make_config()
 		rates = _build_rate_dict(config, 30)
 
 		self.assertEqual(rates["AC/ALV Employee"], "1.1")
 		self.assertEqual(rates["AC/ALV Employer"], "1.1")
-		self.assertEqual(rates["AC Solidarity Employee"], "0.5")
-		self.assertEqual(rates["AC Solidarity Employer"], "0.5")
+		self.assertNotIn("AC Solidarity Employee", rates)
+		self.assertNotIn("AC Solidarity Employer", rates)
 
 	def test_lpp_rate_age_30(self):
 		"""LPP rate for age 30: 7% total, 50/50 split → 3.5% each."""
