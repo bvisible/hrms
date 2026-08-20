@@ -29,8 +29,8 @@ class SwissSalaryCertificate(Document):
 		# Position 8 = sum of positions 1-7
 		self.position_8_gross_income = flt(
 			flt(self.position_1_salary)
-			+ flt(self.position_2_1_other_benefits)
-			+ flt(self.position_2_2_board_lodging)
+			+ flt(self.position_2_1_board_lodging)
+			+ flt(self.position_2_2_company_car)
 			+ flt(self.position_2_3_other_fringe)
 			+ flt(self.position_3_irregular_benefits)
 			+ flt(self.position_4_capital_benefits)
@@ -143,9 +143,15 @@ class SwissSalaryCertificate(Document):
 			"city": company.get("city") or "",
 		}
 
-		# Collect employee info
+		# Collect employee info (identity + address attributes for PersonID)
+		emp = frappe.get_cached_doc("Employee", self.employee) if self.employee else None
+		emp_zip, emp_city = _extract_zip_city(emp.get("current_address") if emp else "")
 		employee_data = {
 			"name": self.employee_name,
+			"first_name": (emp.get("first_name") if emp else "") or "",
+			"last_name": (emp.get("last_name") if emp else "") or "",
+			"zip_code": emp_zip,
+			"city": emp_city,
 			"avs_number": self.avs_number or "",
 			"date_of_birth": str(self.date_of_birth) if self.date_of_birth else "",
 			"date_of_joining": str(self.date_of_joining) if self.date_of_joining else "",
@@ -161,12 +167,27 @@ class SwissSalaryCertificate(Document):
 		positions["11"] = flt(self.position_11_net_salary, 2)
 		positions["15"] = self.position_15_remarks or ""
 
+		# Free-text descriptions feeding the TxAB SortSum elements
+		descriptions = {
+			"2.3": self.get("position_2_3_description") or "",
+			"3": self.get("position_3_description") or "",
+			"4": self.get("position_4_description") or "",
+			"7": self.get("position_7_description") or "",
+			"13.1.2": self.get("position_13_1_2_description") or "",
+			"13.2.3": self.get("position_13_2_3_description") or "",
+			"14": self.get("position_14_description") or "",
+		}
+
 		certificate_data = {
 			"employer": employer_data,
 			"employee": employee_data,
 			"fiscal_year": str(self.fiscal_year),
 			"posting_date": str(self.posting_date) if self.posting_date else "",
 			"positions": positions,
+			"descriptions": descriptions,
+			"free_transport": bool(self.get("free_transport")),
+			"lunch_checks": bool(self.get("lunch_checks")),
+			"certificate_id": self.name,
 		}
 
 		return generate_barcode_page_data(certificate_data)
@@ -180,6 +201,18 @@ def get_barcode_data_for_print(name):
 	"""
 	doc = frappe.get_doc("Swiss Salary Certificate", name)
 	return doc.get_barcode_data()
+
+
+def _extract_zip_city(address_text):
+	"""Best-effort extraction of (zip, city) from a free-text Swiss address."""
+	import re
+
+	if not address_text:
+		return "", ""
+	match = re.search(r"\b(\d{4})\s+([A-Za-zÀ-ÿ'\. -]+)", address_text)
+	if match:
+		return match.group(1), match.group(2).strip().splitlines()[0].strip()
+	return "", ""
 
 
 def _get_slips_component_totals(slip_names):

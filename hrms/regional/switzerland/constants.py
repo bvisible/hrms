@@ -82,8 +82,8 @@ RATE_BASED_COMPONENTS = {
 # Lohnausweis Form 11 — position to DocType field mapping
 POSITION_FIELD_MAP = {
 	"1": "position_1_salary",
-	"2.1": "position_2_1_other_benefits",
-	"2.2": "position_2_2_board_lodging",
+	"2.1": "position_2_1_board_lodging",
+	"2.2": "position_2_2_company_car",
 	"2.3": "position_2_3_other_fringe",
 	"3": "position_3_irregular_benefits",
 	"4": "position_4_capital_benefits",

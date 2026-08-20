@@ -21,8 +21,8 @@
 		"relieving_date",
 		"section_income",
 		"position_1_salary",
-		"position_2_1_other_benefits",
-		"position_2_2_board_lodging",
+		"position_2_1_board_lodging",
+		"position_2_2_company_car",
 		"position_2_3_other_fringe",
 		"position_2_3_description",
 		"column_break_income",
@@ -167,16 +167,16 @@
 		{
 			"default": "0",
 			"description": "Other benefits (Andere Leistungen)",
-			"fieldname": "position_2_1_other_benefits",
+			"fieldname": "position_2_1_board_lodging",
 			"fieldtype": "Currency",
-			"label": "2.1 Other Benefits"
+			"label": "2.1 Board and Lodging"
 		},
 		{
 			"default": "0",
 			"description": "Board and lodging (Verpflegung / Unterkunft)",
-			"fieldname": "position_2_2_board_lodging",
+			"fieldname": "position_2_2_company_car",
 			"fieldtype": "Currency",
-			"label": "2.2 Board and Lodging"
+			"label": "2.2 Private Share Company Car"
 		},
 		{
 			"default": "0",
