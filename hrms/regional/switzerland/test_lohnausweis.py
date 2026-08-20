@@ -39,7 +39,7 @@ class TestLohnausweisMapping(unittest.TestCase):
 			)
 
 	def test_position_field_map_completeness(self):
-		"""POSITION_FIELD_MAP covers all 17 Form 11 positions."""
+		"""POSITION_FIELD_MAP covers all 20 Form 11 positions (incl. 13.x sub-positions)."""
 		expected_positions = {
 			"1",
 			"2.1",
@@ -54,8 +54,11 @@ class TestLohnausweisMapping(unittest.TestCase):
 			"10.1",
 			"10.2",
 			"12",
-			"13.1",
-			"13.2",
+			"13.1.1",
+			"13.1.2",
+			"13.2.1",
+			"13.2.2",
+			"13.2.3",
 			"13.3",
 			"14",
 		}

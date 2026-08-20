@@ -154,9 +154,17 @@ class TestWageTypeData(unittest.TestCase):
 				)
 
 	def test_deductions_have_no_insurance_flags(self):
-		"""Deduction wage types should have all insurance flags = 0."""
+		"""Deduction wage types should have all insurance flags = 0.
+
+		Exception: the 2000-2099 correction/absence range (e.g. 2050 third-party
+		indemnity correction, 2051 net salary correction, 2060 RHT/ITP deduction)
+		legitimately carries insurance-base flags because these lines correct the
+		insured bases themselves (per the Swissdec wage type reference).
+		"""
 		for wt in self.wage_types:
 			if wt["type"] == "Deduction":
+				if 2000 <= int(wt["code"]) < 2100:
+					continue
 				total_flags = sum(
 					wt[f] for f in ["subject_to_avs", "subject_to_ac", "subject_to_laa",
 									"subject_to_ijm", "subject_to_lpp", "subject_to_imp"]
@@ -349,7 +357,7 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 		def side_effect(comp):
 			if comp == "Basic":
 				return {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 1, "has_flags": True}
-			elif comp == "Travel Expenses":
+			elif comp in ("Travel Expenses", "Child Allowance"):
 				# Explicitly exempt from everything
 				return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": True}
 			else:
