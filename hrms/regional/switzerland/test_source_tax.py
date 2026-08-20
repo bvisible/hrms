@@ -247,3 +247,56 @@ class TestEdgeCases(unittest.TestCase):
 
 if __name__ == "__main__":
 	unittest.main()
+
+
+class TestTariffAvailabilityGuard(unittest.TestCase):
+	"""ensure_tariff_available must fail loudly instead of taxing at 0%."""
+
+	def test_passes_when_brackets_exist(self):
+		from unittest.mock import patch
+
+		from hrms.regional.switzerland import source_tax
+
+		with patch.object(source_tax, "tariff_code_exists", return_value=True):
+			# Must not raise
+			source_tax.ensure_tariff_available("VD", "A0N", "2026-06-30")
+
+	def test_raises_when_no_bracket(self):
+		from unittest.mock import MagicMock, patch
+
+		from hrms.regional.switzerland import source_tax
+
+		thrown = {}
+
+		def fake_throw(msg, title=None):
+			thrown["msg"] = str(msg)
+			raise Exception("thrown")
+
+		with (
+			patch.object(source_tax, "tariff_code_exists", return_value=False),
+			patch.object(source_tax.frappe, "throw", side_effect=fake_throw),
+			patch.object(source_tax, "_", side_effect=lambda s: s, create=True),
+		):
+			with self.assertRaises(Exception):
+				source_tax.ensure_tariff_available("VD", "A0N", "2026-06-30")
+		self.assertIn("No source tax bracket found", thrown["msg"])
+
+	def test_hint_for_church_tax_codes(self):
+		from unittest.mock import patch
+
+		from hrms.regional.switzerland import source_tax
+
+		thrown = {}
+
+		def fake_throw(msg, title=None):
+			thrown["msg"] = str(msg)
+			raise Exception("thrown")
+
+		with (
+			patch.object(source_tax, "tariff_code_exists", return_value=False),
+			patch.object(source_tax.frappe, "throw", side_effect=fake_throw),
+			patch.object(source_tax, "_", side_effect=lambda s: s, create=True),
+		):
+			with self.assertRaises(Exception):
+				source_tax.ensure_tariff_available("GE", "B2Y", "2026-06-30")
+		self.assertIn("church tax", thrown["msg"])

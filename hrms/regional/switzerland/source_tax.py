@@ -8,6 +8,7 @@ Handles both the monthly model (21 cantons) and the annual model
 """
 
 import frappe
+from frappe import _
 from frappe.utils import flt, getdate
 
 from hrms.regional.switzerland.constants import ANNUAL_MODEL_CANTONS
@@ -171,6 +172,42 @@ def calculate_source_tax_annual(
 	}
 
 
+def tariff_code_exists(canton, tariff_code, reference_date, tariff_type="SAL"):
+	"""Return True if at least one bracket exists for this canton/code/type/date."""
+	result = frappe.db.sql(
+		"""SELECT 1 FROM `tabSwiss QST Tariff Bracket`
+		WHERE canton = %s AND tariff_code = %s AND tariff_type = %s
+			AND valid_from <= %s
+		LIMIT 1""",
+		(canton.upper(), tariff_code, tariff_type, reference_date),
+	)
+	return bool(result)
+
+
+def ensure_tariff_available(canton, tariff_code, reference_date, tariff_type="SAL"):
+	"""Fail loudly when no tariff data exists for a source-taxed employee.
+
+	A silent 0% withholding on a subject employee is a compliance risk (the
+	employer stays liable for the missing tax). Raised for: tariffs not yet
+	imported for the year, or a tariff code the canton does not publish —
+	e.g. Geneva has no church tax at source, so no "…Y" codes exist there.
+	"""
+	if tariff_code_exists(canton, tariff_code, reference_date, tariff_type):
+		return
+	hint = ""
+	if str(tariff_code).upper().endswith("Y"):
+		hint = " " + _(
+			"Note: some cantons (e.g. GE) levy no church tax at source and only publish '…N' codes."
+		)
+	frappe.throw(
+		_(
+			"No source tax bracket found for canton {0}, tariff code {1}, date {2}. "
+			"Import the ESTV tariffs for this year or fix the employee's tariff code.{3}"
+		).format(canton, tariff_code, reference_date, hint),
+		title=_("Source Tax Tariff Missing"),
+	)
+
+
 def calculate_source_tax(employee_doc, salary_slip_doc, config):
 	"""Main entry point: calculate source tax for a salary slip.
 
@@ -211,6 +248,10 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 	gross = sum(flt(row.default_amount) for row in salary_slip_doc.get("earnings"))
 
 	ref_date = salary_slip_doc.end_date or salary_slip_doc.start_date
+
+	# Never withhold 0 silently because tariff data is missing
+	if gross > 0:
+		ensure_tariff_available(canton, tariff_code, ref_date)
 
 	model = get_calculation_model(canton)
 
