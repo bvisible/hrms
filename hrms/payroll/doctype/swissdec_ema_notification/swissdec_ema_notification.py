@@ -6,7 +6,7 @@ from frappe import _
 from frappe.utils import now_datetime
 
 
-class SwissdecEmaNotification(frappe.model.document.Document):
+class SwissdecEMANotification(frappe.model.document.Document):
 	def autoname(self):
 		"""Generate name: EMA-{abbr}-{employee}-{E|M|A}-{YYMMDD}."""
 		abbr = self.company_abbr or frappe.db.get_value("Company", self.company, "abbr")

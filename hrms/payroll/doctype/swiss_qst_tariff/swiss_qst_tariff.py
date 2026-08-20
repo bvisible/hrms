@@ -7,7 +7,7 @@ from frappe.model.document import Document
 from frappe.utils import now_datetime
 
 
-class SwissQstTariff(Document):
+class SwissQSTTariff(Document):
 	def before_save(self):
 		self.tariff_type_abbr = "SAL" if self.tariff_type == "Salaires" else "VSL"
 
