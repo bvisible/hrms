@@ -108,6 +108,29 @@ def _create_ema_notification(doc, event_type, change_details, event_date=None):
 		else:
 			event_date = today()
 
+	# One draft per employee/type/day: the deterministic autoname collides
+	# on a second same-day event. Append to the existing draft instead of
+	# failing the insert with a DuplicateEntryError.
+	existing = frappe.db.exists(
+		"Swissdec EMA Notification",
+		{
+			"employee": doc.name,
+			"event_type": event_type,
+			"event_date": event_date,
+			"status": "Draft",
+		},
+	)
+	if existing:
+		current = frappe.db.get_value("Swissdec EMA Notification", existing, "change_details") or ""
+		if change_details not in current:
+			frappe.db.set_value(
+				"Swissdec EMA Notification",
+				existing,
+				"change_details",
+				(current + "\n" + change_details).strip(),
+			)
+		return
+
 	try:
 		ema = frappe.get_doc(
 			{
