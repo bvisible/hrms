@@ -77,57 +77,99 @@ def lookup_qst_rate(canton, tariff_code, income, reference_date, tariff_type="SA
 	return flt(result[0].tax_rate, 6) if result else 0
 
 
-def calculate_source_tax_monthly(gross, canton, tariff_code, ref_date, tariff_type="SAL"):
+def calculate_source_tax_monthly(
+	gross, canton, tariff_code, ref_date, tariff_type="SAL", qst_days=30, aperiodic=0.0
+):
 	"""Calculate source tax using the monthly model.
 
 	Used by 21 cantons (all except FR, GE, TI, VD, VS).
-	Simple bracket lookup: rate = lookup(monthly_gross) → tax = gross × rate.
+	Rate lookup on the rate-determining salary, tax = gross × rate.
+
+	For a partial month (entry/exit mid-month) the periodic part of the
+	salary is extrapolated to 30 days to determine the rate; aperiodic
+	payments (bonus, back pay) are added without extrapolation. Validated
+	against Swissdec Annex 1 (e.g. M17: 5750 over 15 days -> determinant
+	11500). With qst_days=30 and aperiodic=0 this reduces to the plain
+	lookup on gross.
 
 	Args:
-		gross: Monthly gross salary in CHF.
+		gross: Monthly gross salary in CHF (periodic + aperiodic).
 		canton: 2-letter canton code.
 		tariff_code: 3-character tariff code.
 		ref_date: Reference date for tariff validity.
 		tariff_type: "SAL" or "VSL".
+		qst_days: Source-tax days in the month (30 = full month, base 360).
+		aperiodic: Aperiodic portion of gross (not extrapolated).
 
 	Returns:
-		dict with tax_amount, tax_rate, model.
+		dict with tax_amount, tax_rate, determinant, model.
 	"""
 	gross = flt(gross)
 	if gross <= 0:
-		return {"tax_amount": 0, "tax_rate": 0, "model": "monthly"}
+		return {"tax_amount": 0, "tax_rate": 0, "determinant": 0, "model": "monthly"}
 
-	rate = lookup_qst_rate(canton, tariff_code, gross, ref_date, tariff_type)
+	qst_days = flt(qst_days) or 30
+	aperiodic = flt(aperiodic)
+	periodic = gross - aperiodic
+	determinant = round(periodic / qst_days * 30 + aperiodic, 2)
+
+	rate = lookup_qst_rate(canton, tariff_code, determinant, ref_date, tariff_type)
 	tax = round(gross * rate, 2)
 
 	return {
 		"tax_amount": tax,
 		"tax_rate": rate,
+		"determinant": determinant,
 		"model": "monthly",
 	}
 
 
 def calculate_source_tax_annual(
-	gross, canton, tariff_code, ytd_gross, ytd_tax, month_num, ref_date, tariff_type="SAL"
+	gross,
+	canton,
+	tariff_code,
+	ytd_gross,
+	ytd_tax,
+	month_num,
+	ref_date,
+	tariff_type="SAL",
+	qst_days=30,
+	ytd_days=None,
+	aperiodic=0.0,
+	ytd_aperiodic=0.0,
 ):
 	"""Calculate source tax using the annual model.
 
 	Used by 5 cantons: FR, GE, TI, VD, VS.
-	Projects annual income, looks up the rate, then calculates
-	cumulative tax due minus already-deducted amounts.
+	Annualizes the cumulative periodic income over the cumulative
+	source-tax days (base 360), adds aperiodic payments without
+	extrapolation, looks up the rate on the annualized/12 determinant,
+	then withholds cumulative-due minus already-deducted.
+
+	Validated against Swissdec Annex 1 (e.g. Y17 exit June 15th:
+	35750 over 165 days -> annualized 78000, determinant 6500,
+	due 35750 x 12.4% = 4433, June = 4433 - 3450 = 983). With full
+	months and no aperiodic split this reduces to the historical
+	cumulative-average projection (cum/months x 12).
 
 	Args:
-		gross: Current month gross salary in CHF.
+		gross: Current month gross salary in CHF (periodic + aperiodic).
 		canton: 2-letter canton code.
 		tariff_code: 3-character tariff code.
 		ytd_gross: Year-to-date gross BEFORE this month.
 		ytd_tax: Year-to-date source tax already deducted.
-		month_num: Current month number in the year (1-12).
+		month_num: Current employment month number in the year (1-12).
 		ref_date: Reference date for tariff validity.
 		tariff_type: "SAL" or "VSL".
+		qst_days: Source-tax days of this month (30 = full, base 360).
+		ytd_days: Cumulative source-tax days BEFORE this month
+			(defaults to (month_num - 1) x 30 = all prior months full).
+		aperiodic: Aperiodic portion of this month's gross.
+		ytd_aperiodic: Aperiodic portion of ytd_gross.
 
 	Returns:
-		dict with tax_amount, tax_rate, projected_annual, cumulative_due, model.
+		dict with tax_amount, tax_rate, determinant, projected_annual,
+		cumulative_due, model.
 	"""
 	gross = flt(gross)
 	ytd_gross = flt(ytd_gross)
@@ -138,22 +180,30 @@ def calculate_source_tax_annual(
 		return {
 			"tax_amount": 0,
 			"tax_rate": 0,
+			"determinant": 0,
 			"projected_annual": 0,
 			"cumulative_due": 0,
 			"model": "annual",
 		}
 
-	# Project annual income based on average so far
+	qst_days = flt(qst_days) or 30
+	if ytd_days is None:
+		ytd_days = (month_num - 1) * 30
+	total_days = flt(ytd_days) + qst_days
+
 	total_gross = ytd_gross + gross
-	projected_annual = round(total_gross / month_num * 12, 2)
+	total_aperiodic = flt(ytd_aperiodic) + flt(aperiodic)
+	total_periodic = total_gross - total_aperiodic
 
-	# Look up rate based on projected monthly (annual / 12)
-	projected_monthly = round(projected_annual / 12, 2)
-	rate = lookup_qst_rate(canton, tariff_code, projected_monthly, ref_date, tariff_type)
+	# Annualize periodic income over source-tax days; aperiodic added as is.
+	projected_annual = round(total_periodic / total_days * 360 + total_aperiodic, 2)
 
-	# Calculate cumulative tax due through this month
-	annual_tax = round(projected_annual * rate, 2)
-	cumulative_due = round(annual_tax * month_num / 12, 2)
+	# Look up rate based on the monthly determinant (annual / 12)
+	determinant = round(projected_annual / 12, 2)
+	rate = lookup_qst_rate(canton, tariff_code, determinant, ref_date, tariff_type)
+
+	# Cumulative tax due on the actual cumulative gross
+	cumulative_due = round(total_gross * rate, 2)
 
 	# This month's tax = cumulative due - already deducted
 	this_month_tax = round(cumulative_due - ytd_tax, 2)
@@ -166,6 +216,7 @@ def calculate_source_tax_annual(
 	return {
 		"tax_amount": this_month_tax,
 		"tax_rate": rate,
+		"determinant": determinant,
 		"projected_annual": projected_annual,
 		"cumulative_due": cumulative_due,
 		"model": "annual",
