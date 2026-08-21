@@ -567,6 +567,16 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0):
 
 	ref_date = salary_slip_doc.end_date or salary_slip_doc.start_date
 
+	# Some cantons publish only one church-tax variant: GE only "...N"
+	# codes (no church tax at source), JU only "...Y" (church tax levied
+	# for everyone). Fall back to the twin code when the requested one
+	# does not exist but its N<->Y twin does — the code actually used is
+	# stored on the slip either way.
+	if gross > 0 and not tariff_code_exists(canton, tariff_code, ref_date):
+		twin = tariff_code[:-1] + ("Y" if tariff_code.endswith("N") else "N")
+		if tariff_code_exists(canton, twin, ref_date):
+			tariff_code = twin
+
 	# Never withhold 0 silently because tariff data is missing
 	if gross > 0:
 		ensure_tariff_available(canton, tariff_code, ref_date)
