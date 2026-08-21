@@ -1005,3 +1005,18 @@ def populate_default_lohnausweis_mapping():
 			config.save(ignore_permissions=True)
 
 	frappe.db.commit()
+
+
+def ensure_swiss_workspace_hierarchy():
+	"""after_migrate hook: keep the Swiss Payroll workspace and sidebar order.
+
+	The workspace sync at the end of migrate skips records edited in the
+	DB and can undo what a patch set earlier in the run, so the
+	hierarchy is (re)asserted after everything else. Idempotent.
+	"""
+	from hrms.patches.v15_0.add_swiss_payroll_workspace import execute
+
+	try:
+		execute()
+	except Exception:
+		frappe.log_error("Swiss workspace hierarchy hook failed", frappe.get_traceback())

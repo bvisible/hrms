@@ -1,29 +1,428 @@
 {
  "charts": [],
- "content": "[{\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Payroll\",\"col\":12}},{\"type\":\"chart\",\"data\":{\"chart_name\":\"Outgoing Salary\",\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Dashboard\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Salary Register\",\"col\":3}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
- "creation": "2020-05-27 19:54:23.405607",
+ "content": "[{\"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Quick Access</b></span>\", \"col\": 12}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payroll Dashboard\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salary Slip\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payroll Entry\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salary Register\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Employee Tax Exemption Declaration\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Income Tax Computation\", \"col\": 3}}, {\"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Menu</b></span>\", \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Payroll\", \"col\": 4, \"items\": [{\"type\": \"Link\", \"link_type\": \"DocType\", \"link_to\": \"PWA Notification\", \"label\": \"PWA Notification\"}]}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Salary Masters\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Incentives\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Tax & Benefits\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Payroll Reports\", \"col\": 4}}, {\"id\": \"SwissPayroll1\", \"type\": \"card\", \"data\": {\"card_name\": \"Swiss Payroll\", \"col\": 4}}]",
+ "creation": "2026-02-03 15:35:06.239064",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "money-coins-1",
- "idx": 0,
+ "icon": "lucide-banknote",
+ "idx": 1,
+ "indicator_color": "green",
  "is_hidden": 0,
  "label": "Payroll",
- "links": [],
- "modified": "2024-05-14 22:31:12.610477",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Payroll",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Payroll Entry",
+   "link_count": 0,
+   "link_to": "Payroll Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salary Slip",
+   "link_count": 0,
+   "link_to": "Salary Slip",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Payroll Settings",
+   "link_count": 0,
+   "link_to": "Payroll Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Other Income",
+   "link_count": 0,
+   "link_to": "Employee Other Income",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "PWA Notification",
+   "link_count": 0,
+   "link_to": "PWA Notification",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salary Masters",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salary Component",
+   "link_count": 0,
+   "link_to": "Salary Component",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salary Structure",
+   "link_count": 0,
+   "link_to": "Salary Structure",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salary Structure Assignment",
+   "link_count": 0,
+   "link_to": "Salary Structure Assignment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Income Tax Slab",
+   "link_count": 0,
+   "link_to": "Income Tax Slab",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Payroll Period",
+   "link_count": 0,
+   "link_to": "Payroll Period",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Incentives",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Additional Salary",
+   "link_count": 0,
+   "link_to": "Additional Salary",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Incentive",
+   "link_count": 0,
+   "link_to": "Employee Incentive",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Retention Bonus",
+   "link_count": 0,
+   "link_to": "Retention Bonus",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Tax & Benefits",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Tax Exemption Declaration",
+   "link_count": 0,
+   "link_to": "Employee Tax Exemption Declaration",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Tax Exemption Proof Submission",
+   "link_count": 0,
+   "link_to": "Employee Tax Exemption Proof Submission",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Benefit Application",
+   "link_count": 0,
+   "link_to": "Employee Benefit Application",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Benefit Claim",
+   "link_count": 0,
+   "link_to": "Employee Benefit Claim",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Payroll Reports",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salary Register",
+   "link_count": 0,
+   "link_to": "Salary Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Salary Slip",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Income Tax Computation",
+   "link_count": 0,
+   "link_to": "Income Tax Computation",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Salary Slip",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bank Remittance",
+   "link_count": 0,
+   "link_to": "Bank Remittance",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Payroll Entry",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cross-Border Telework Log",
+   "link_count": 0,
+   "link_to": "Cross-Border Telework Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Swiss Payroll",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Swiss Wage Type",
+   "link_count": 0,
+   "link_to": "Swiss Wage Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Swissdec Declaration",
+   "link_count": 0,
+   "link_to": "Swissdec Declaration",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Swiss Salary Certificate",
+   "link_count": 0,
+   "link_to": "Swiss Salary Certificate",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Swiss Social Insurance Config",
+   "link_count": 0,
+   "link_to": "Swiss Social Insurance Config",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Swissdec Transmitter Settings",
+   "link_count": 0,
+   "link_to": "Swissdec Transmitter Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salary Certificate Settings",
+   "link_count": 0,
+   "link_to": "Salary Certificate Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Salary Withholding",
+   "link_count": 0,
+   "link_to": "Salary Withholding",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Swiss Payroll Chat Session",
+   "link_count": 0,
+   "link_to": "Swiss Payroll Chat Session",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-08-20 11:55:39.587022",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "Payroll",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "",
  "public": 1,
  "quick_lists": [],
  "restrict_to_domain": "HR",
  "roles": [],
- "sequence_id": 15.0,
- "shortcuts": [],
- "title": "Payroll"
+ "sequence_id": 31.0,
+ "shortcuts": [
+  {
+   "doc_view": "",
+   "label": "Payroll Dashboard",
+   "link_to": "Payroll",
+   "type": "Dashboard"
+  },
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "format": "{} Draft",
+   "label": "Salary Slip",
+   "link_to": "Salary Slip",
+   "stats_filter": "[[\"Salary Slip\",\"status\",\"=\",\"Draft\",false]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "format": "{} Draft",
+   "label": "Payroll Entry",
+   "link_to": "Payroll Entry",
+   "stats_filter": "[[\"Payroll Entry\",\"docstatus\",\"=\",\"0\",false]]",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "",
+   "label": "Salary Register",
+   "link_to": "Salary Register",
+   "report_ref_doctype": "Salary Slip",
+   "type": "Report"
+  },
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "format": "{} Draft",
+   "label": "Employee Tax Exemption Declaration",
+   "link_to": "Employee Tax Exemption Declaration",
+   "stats_filter": "[[\"Employee Tax Exemption Declaration\",\"docstatus\",\"=\",\"0\",false]]",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "",
+   "label": "Income Tax Computation",
+   "link_to": "Income Tax Computation",
+   "report_ref_doctype": "Salary Slip",
+   "type": "Report"
+  }
+ ],
+ "title": "Payroll",
+ "parent_page": "Swiss Payroll"
 }
