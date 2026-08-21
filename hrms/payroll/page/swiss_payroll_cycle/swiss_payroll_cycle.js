@@ -108,7 +108,7 @@ class SwissPayrollCycle {
 				message += `<br>${frappe.utils.escape_html(f.employee)}: ${f.error}`;
 			});
 		}
-		frappe.msgprint({ title: __("Generation"), message: message, indicator: res.failed.length ? "orange" : "green" });
+		frappe.msgprint({ title: __("Cycle generation"), message: message, indicator: res.failed.length ? "orange" : "green" });
 		await this.run_preflight();
 	}
 
@@ -128,7 +128,7 @@ class SwissPayrollCycle {
 					});
 				}
 				frappe.msgprint({
-					title: __("Submission"),
+					title: __("Cycle submission"),
 					message: message,
 					indicator: res.failed.length ? "orange" : "green",
 				});
