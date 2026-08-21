@@ -90,7 +90,12 @@ def _get_insurance_base_totals(doc):
 	any_flag_configured = False
 
 	for row in doc.get("earnings"):
-		amount = flt(row.default_amount)
+		if cint(row.get("do_not_include_in_total")):
+			continue
+		# Amounts actually paid: on a partial month row.amount is prorated
+		# while default_amount stays full. Ceilings (AC/LAA) must apply to
+		# the real base, so no downstream proration of the results either.
+		amount = flt(row.default_amount if row.get("amount") is None else row.amount)
 		gross_total += amount
 
 		# Fetch insurance base flags from the Salary Component
@@ -224,11 +229,12 @@ def _update_rate_based_components(doc, config, bases):
 			rate = flt(config.get(rate_field))
 			base_amount = flt(bases.get(base_type, bases["gross_total"]))
 			if rate:
-				full_amount = round_half_up(base_amount * rate / 100, row.precision("amount") or 2)
-				prorated = _prorate_amount(doc, row, full_amount)
-				if prorated != flt(row.amount, row.precision("amount")):
-					row.default_amount = full_amount
-					row.amount = prorated
+				# The base already reflects the prorated amounts paid, so the
+				# result is final — prorating it again would double-count.
+				amount = round_half_up(base_amount * rate / 100, row.precision("amount") or 2)
+				if amount != flt(row.amount, row.precision("amount")):
+					row.default_amount = amount
+					row.amount = amount
 					updated = True
 
 	# Add missing rate-based components (removed by remove_if_zero_valued)
@@ -269,11 +275,10 @@ def _update_ac_components(doc, config, ac_base):
 
 	for row in doc.get("deductions"):
 		if row.salary_component in ac_mapping:
-			full_amount = flt(ac_mapping[row.salary_component], row.precision("amount"))
-			prorated = _prorate_amount(doc, row, full_amount)
-			if prorated != flt(row.amount, row.precision("amount")):
-				row.default_amount = full_amount
-				row.amount = prorated
+			amount = flt(ac_mapping[row.salary_component], row.precision("amount"))
+			if amount != flt(row.amount, row.precision("amount")):
+				row.default_amount = amount
+				row.amount = amount
 				updated = True
 
 	return updated
@@ -421,17 +426,54 @@ def _resolve_component_by_wage_type(code, fallback_name):
 	return None
 
 
+def _is_aperiodic_component(component_name, thirteenth_mode):
+	"""True when the component's wage type is an aperiodic payment.
+
+	Derived from the catalog's statistical category: "VU" (one-off
+	payments — bonuses, gratifications, anniversary gifts) is always
+	aperiodic; "SMS" (13th month) only when it is NOT paid monthly —
+	Annex 1 treats the monthly twelfth and the pro-rata exit payment as
+	periodic (M17/M21) but a lump 13th as aperiodic.
+	"""
+	if not component_name:
+		return False
+	wage_type = frappe.get_cached_value("Salary Component", component_name, "ch_wage_type")
+	if not wage_type:
+		return False
+	category = frappe.get_cached_value("Swiss Wage Type", wage_type, "statistical_category")
+	if category == "VU":
+		return True
+	if category == "SMS":
+		return (thirteenth_mode or "Disabled") != "Monthly"
+	return False
+
+
+def _get_aperiodic_total(doc, config):
+	"""Sum of the aperiodic earnings actually paid on this slip."""
+	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
+	total = 0.0
+	for row in doc.get("earnings"):
+		if cint(row.get("do_not_include_in_total")):
+			continue
+		if _is_aperiodic_component(row.salary_component, thirteenth_mode):
+			total += flt(row.default_amount if row.get("amount") is None else row.amount)
+	return round(total, 2)
+
+
 def _update_source_tax(doc, config, employee, imp_base):
 	"""Update the Source Tax Employee deduction based on ESTV tariff brackets."""
 	updated = False
 
-	result = calculate_source_tax(employee, doc, config)
+	aperiodic = _get_aperiodic_total(doc, config)
+	result = calculate_source_tax(employee, doc, config, aperiodic=aperiodic)
 	tax_amount = flt(result.get("tax_amount", 0), 2)
 
 	# Audit trail for retroactive corrections: the tariff code this slip
 	# was settled with, and the corrections applied in this run.
 	if result.get("tariff_code") and hasattr(doc, "ch_qst_tariff_code"):
 		doc.ch_qst_tariff_code = result["tariff_code"]
+	if hasattr(doc, "ch_qst_aperiodic"):
+		doc.ch_qst_aperiodic = aperiodic
 	if hasattr(doc, "ch_qst_correction_details"):
 		corrections = result.get("corrections") or []
 		if corrections:

@@ -205,11 +205,15 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 	"""
 
 	def _make_earning_row(self, component, amount):
-		"""Create a mock earning row."""
-		row = MagicMock()
-		row.salary_component = component
-		row.default_amount = amount
-		return row
+		"""Create a mock earning row shaped like a real Salary Detail."""
+		import frappe
+
+		return frappe._dict(
+			salary_component=component,
+			default_amount=amount,
+			amount=amount,
+			do_not_include_in_total=0,
+		)
 
 	def _make_mock_doc(self, earnings):
 		"""Create a mock Salary Slip doc with earnings."""

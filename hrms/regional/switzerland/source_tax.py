@@ -517,7 +517,7 @@ def find_retro_corrections(employee_doc, salary_slip_doc, current_code):
 	return corrections
 
 
-def calculate_source_tax(employee_doc, salary_slip_doc, config):
+def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0):
 	"""Main entry point: calculate source tax for a salary slip.
 
 	Determines the calculation model (monthly/annual) based on canton,
@@ -584,7 +584,12 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 
 	if model == "monthly":
 		result = calculate_source_tax_monthly(
-			gross, canton, tariff_code, ref_date, qst_days=qst_days or 30
+			gross,
+			canton,
+			tariff_code,
+			ref_date,
+			qst_days=qst_days or 30,
+			aperiodic=flt(aperiodic),
 		)
 		if corrections:
 			details = []
@@ -644,10 +649,12 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 			)
 			current["cumulative_gross"] = round(current["cumulative_gross"] + gross, 2)
 
+			total_aperiodic = flt(ytd_data.get("ytd_aperiodic") or 0) + flt(aperiodic)
 			result = calculate_source_tax_annual_settlement(
 				canton,
 				ref_date,
-				total_periodic=flt(ytd_data["ytd_gross"]) + gross,
+				total_periodic=flt(ytd_data["ytd_gross"]) + gross - total_aperiodic,
+				total_aperiodic=total_aperiodic,
 				total_days=flt(ytd_data.get("ytd_days") or 0) + (qst_days or 30),
 				per_code=per_code,
 			)
@@ -675,6 +682,8 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 				ref_date,
 				qst_days=qst_days or 30,
 				ytd_days=ytd_data.get("ytd_days"),
+				aperiodic=flt(aperiodic),
+				ytd_aperiodic=flt(ytd_data.get("ytd_aperiodic") or 0),
 			)
 
 	result["tariff_code"] = tariff_code
@@ -726,6 +735,7 @@ def get_qst_ytd_data(employee, company, start_date, employee_doc=None):
 			ss.start_date,
 			ss.end_date,
 			ss.ch_qst_tariff_code,
+			ss.ch_qst_aperiodic,
 			(SELECT COALESCE(SUM(sd.amount), 0)
 			 FROM `tabSalary Detail` sd
 			 WHERE sd.parent = ss.name
@@ -750,6 +760,7 @@ def get_qst_ytd_data(employee, company, start_date, employee_doc=None):
 	return {
 		"ytd_gross": flt(sum(flt(slip.gross_pay) for slip in slips)),
 		"ytd_tax": flt(sum(flt(slip.slip_tax) for slip in slips)),
+		"ytd_aperiodic": flt(sum(flt(slip.ch_qst_aperiodic) for slip in slips)),
 		"ytd_days": ytd_days,
 		"slips": [
 			{

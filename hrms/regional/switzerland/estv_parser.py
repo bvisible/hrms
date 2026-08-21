@@ -24,6 +24,8 @@ File format (type 06 records, 62 chars):
 
 import io
 import zipfile
+
+import frappe
 from datetime import date
 
 
@@ -166,9 +168,27 @@ def download_estv_tariff(year, tariff_type="SAL", canton=None):
 
 	url = f"https://www.estv2.admin.ch/qst/{year}/{base_path}/{filename}"
 
-	response = requests.get(url, timeout=120)
-	response.raise_for_status()
+	# Canonical mirror on the fleet hub (ADR: official data comes from the
+	# source, the hub keeps the canonical archive) — used when the ESTV
+	# URL scheme moves or the download fails. Overridable per site.
+	mirror_base = (
+		frappe.conf.get("swiss_estv_mirror_url")
+		or "https://neoservice.neoffice.me/files/estv"
+	).rstrip("/")
+	mirror_url = f"{mirror_base}/{filename}"
 
+	try:
+		response = requests.get(url, timeout=120)
+		response.raise_for_status()
+		return response.content
+	except Exception:
+		frappe.log_error(
+			"ESTV download failed, trying the hub mirror",
+			f"{url} failed: {frappe.get_traceback()}\nFalling back to {mirror_url}",
+		)
+
+	response = requests.get(mirror_url, timeout=120)
+	response.raise_for_status()
 	return response.content
 
 

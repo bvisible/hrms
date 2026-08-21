@@ -46,3 +46,4 @@ hrms.patches.v15_0.remove_ac_solidarity_and_fix_ijm_mapping
 hrms.patches.v15_0.rename_certificate_position_2_fields
 hrms.patches.v15_0.add_qst_bracket_lookup_index
 hrms.patches.v15_0.add_qst_retro_correction_fields
+hrms.patches.v15_0.add_qst_aperiodic_field
