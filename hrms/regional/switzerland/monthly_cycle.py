@@ -141,10 +141,13 @@ def preflight(company, year, month):
 			code = build_tariff_code(
 				emp.ch_qst_tariff_letter, emp.ch_qst_num_children, emp.ch_qst_church_tax
 			)
+			model_label = (
+				_("annual model")
+				if get_calculation_model(canton or "") == "annual"
+				else _("monthly model")
+			)
 			row["notes"].append(
-				_("Source tax: {0} {1} ({2} model)").format(
-					canton or "?", code, get_calculation_model(canton or "")
-				)
+				_("Source tax: {0} {1} ({2})").format(canton or "?", code, model_label)
 			)
 			if not canton:
 				issues.append(
