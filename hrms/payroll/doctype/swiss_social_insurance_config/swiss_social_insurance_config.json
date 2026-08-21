@@ -1,514 +1,543 @@
 {
-	"actions": [],
-	"autoname": "format:CH-SIC-{company}-{canton}",
-	"creation": "2026-02-21 00:00:00.000000",
-	"doctype": "DocType",
-	"engine": "InnoDB",
-	"field_order": [
-		"company",
-		"canton",
-		"is_default",
-		"section_avs",
-		"avs_rate_employee",
-		"avs_rate_employer",
-		"column_break_avs",
-		"avs_employer_account",
-		"section_ac",
-		"ac_rate_employee",
-		"ac_rate_employer",
-		"ac_annual_ceiling",
-		"column_break_ac",
-		"ac_solidarity_rate_employee",
-		"ac_solidarity_rate_employer",
-		"ac_employer_account",
-		"section_laa",
-		"laa_professional_rate",
-		"laa_nonprofessional_rate",
-		"column_break_laa",
-		"laa_insurable_salary_cap",
-		"laa_employer_account",
-		"section_lpp",
-		"lpp_employer_share_pct",
-		"lpp_entry_threshold",
-		"lpp_coordination_deduction",
-		"column_break_lpp",
-		"lpp_minimum_insured_salary",
-		"lpp_maximum_coordinated_salary",
-		"lpp_employer_account",
-		"section_ijm",
-		"ijm_rate_employee",
-		"ijm_rate_employer",
-		"column_break_ijm",
-		"ijm_employer_account",
-		"section_family",
-		"family_allowance_rate",
-		"column_break_family",
-		"family_allowance_account",
-		"section_thirteenth_month",
-		"thirteenth_month_mode",
-		"section_qst",
-		"qst_enabled",
-		"qst_default_canton",
-		"column_break_qst",
-		"qst_ordinary_threshold",
-		"qst_gl_account",
-		"section_cb",
-		"cb_enabled",
-		"cb_german_flat_rate",
-		"column_break_cb",
-		"cb_italian_new_rate_factor",
-		"cb_french_telework_threshold",
-		"section_swissdec",
-		"swissdec_enabled",
-		"elm_version",
-		"column_break_sd",
-		"avs_branch_number",
-		"laa_insurer_id",
-		"ijm_insurer_id",
-		"lpp_institution_id",
-		"fak_canton",
-		"section_lohnausweis",
-		"lohnausweis_mapping",
-		"column_break_lohnausweis",
-		"lohnausweis_employer_name",
-		"lohnausweis_employer_address"
-	],
-	"fields": [
-		{
-			"fieldname": "company",
-			"fieldtype": "Link",
-			"in_list_view": 1,
-			"label": "Company",
-			"options": "Company",
-			"reqd": 1
-		},
-		{
-			"fieldname": "canton",
-			"fieldtype": "Select",
-			"in_list_view": 1,
-			"label": "Canton",
-			"options": "\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH",
-			"reqd": 1
-		},
-		{
-			"default": "0",
-			"fieldname": "is_default",
-			"fieldtype": "Check",
-			"label": "Is Default Configuration"
-		},
-		{
-			"fieldname": "section_avs",
-			"fieldtype": "Section Break",
-			"label": "AVS/AI/APG"
-		},
-		{
-			"default": "5.3",
-			"description": "Employee rate in %",
-			"fieldname": "avs_rate_employee",
-			"fieldtype": "Percent",
-			"label": "AVS Employee Rate (%)"
-		},
-		{
-			"default": "5.3",
-			"description": "Employer rate in %",
-			"fieldname": "avs_rate_employer",
-			"fieldtype": "Percent",
-			"label": "AVS Employer Rate (%)"
-		},
-		{
-			"fieldname": "column_break_avs",
-			"fieldtype": "Column Break"
-		},
-		{
-			"fieldname": "avs_employer_account",
-			"fieldtype": "Link",
-			"label": "AVS Employer GL Account",
-			"options": "Account"
-		},
-		{
-			"fieldname": "section_ac",
-			"fieldtype": "Section Break",
-			"label": "AC/ALV (Unemployment)"
-		},
-		{
-			"default": "1.1",
-			"fieldname": "ac_rate_employee",
-			"fieldtype": "Percent",
-			"label": "AC Employee Rate (%)"
-		},
-		{
-			"default": "1.1",
-			"fieldname": "ac_rate_employer",
-			"fieldtype": "Percent",
-			"label": "AC Employer Rate (%)"
-		},
-		{
-			"default": "148200",
-			"fieldname": "ac_annual_ceiling",
-			"fieldtype": "Currency",
-			"label": "AC Annual Ceiling (CHF)"
-		},
-		{
-			"fieldname": "column_break_ac",
-			"fieldtype": "Column Break"
-		},
-		{
-			"default": "0.5",
-			"fieldname": "ac_solidarity_rate_employee",
-			"fieldtype": "Percent",
-			"label": "AC Solidarity Employee Rate (%)"
-		},
-		{
-			"default": "0.5",
-			"fieldname": "ac_solidarity_rate_employer",
-			"fieldtype": "Percent",
-			"label": "AC Solidarity Employer Rate (%)"
-		},
-		{
-			"fieldname": "ac_employer_account",
-			"fieldtype": "Link",
-			"label": "AC Employer GL Account",
-			"options": "Account"
-		},
-		{
-			"fieldname": "section_laa",
-			"fieldtype": "Section Break",
-			"label": "LAA/UVG (Accident Insurance)"
-		},
-		{
-			"default": "0",
-			"description": "Employer-paid professional accident insurance rate in %. Set by your insurer.",
-			"fieldname": "laa_professional_rate",
-			"fieldtype": "Percent",
-			"label": "LAA Professional Rate - Employer (%)"
-		},
-		{
-			"default": "0",
-			"description": "Employee-paid non-professional accident insurance rate in %. Set by your insurer.",
-			"fieldname": "laa_nonprofessional_rate",
-			"fieldtype": "Percent",
-			"label": "LAA Non-Professional Rate - Employee (%)"
-		},
-		{
-			"fieldname": "column_break_laa",
-			"fieldtype": "Column Break"
-		},
-		{
-			"default": "148200",
-			"fieldname": "laa_insurable_salary_cap",
-			"fieldtype": "Currency",
-			"label": "LAA Insurable Salary Cap (CHF)"
-		},
-		{
-			"fieldname": "laa_employer_account",
-			"fieldtype": "Link",
-			"label": "LAA Employer GL Account",
-			"options": "Account"
-		},
-		{
-			"fieldname": "section_lpp",
-			"fieldtype": "Section Break",
-			"label": "LPP/BVG (Occupational Pension)"
-		},
-		{
-			"default": "50",
-			"description": "Employer share of LPP contribution in %. Minimum 50% by law.",
-			"fieldname": "lpp_employer_share_pct",
-			"fieldtype": "Percent",
-			"label": "LPP Employer Share (%)"
-		},
-		{
-			"default": "22680",
-			"fieldname": "lpp_entry_threshold",
-			"fieldtype": "Currency",
-			"label": "LPP Entry Threshold (CHF/year)"
-		},
-		{
-			"default": "26460",
-			"fieldname": "lpp_coordination_deduction",
-			"fieldtype": "Currency",
-			"label": "LPP Coordination Deduction (CHF/year)"
-		},
-		{
-			"fieldname": "column_break_lpp",
-			"fieldtype": "Column Break"
-		},
-		{
-			"default": "3780",
-			"fieldname": "lpp_minimum_insured_salary",
-			"fieldtype": "Currency",
-			"label": "LPP Minimum Insured Salary (CHF/year)"
-		},
-		{
-			"default": "64260",
-			"fieldname": "lpp_maximum_coordinated_salary",
-			"fieldtype": "Currency",
-			"label": "LPP Maximum Coordinated Salary (CHF/year)"
-		},
-		{
-			"fieldname": "lpp_employer_account",
-			"fieldtype": "Link",
-			"label": "LPP Employer GL Account",
-			"options": "Account"
-		},
-		{
-			"fieldname": "section_ijm",
-			"fieldtype": "Section Break",
-			"label": "IJM/KTG (Daily Sickness Allowance)"
-		},
-		{
-			"default": "0",
-			"description": "Employee rate in %. Set by your insurer.",
-			"fieldname": "ijm_rate_employee",
-			"fieldtype": "Percent",
-			"label": "IJM Employee Rate (%)"
-		},
-		{
-			"default": "0",
-			"description": "Employer rate in %. Set by your insurer.",
-			"fieldname": "ijm_rate_employer",
-			"fieldtype": "Percent",
-			"label": "IJM Employer Rate (%)"
-		},
-		{
-			"fieldname": "column_break_ijm",
-			"fieldtype": "Column Break"
-		},
-		{
-			"fieldname": "ijm_employer_account",
-			"fieldtype": "Link",
-			"label": "IJM Employer GL Account",
-			"options": "Account"
-		},
-		{
-			"fieldname": "section_family",
-			"fieldtype": "Section Break",
-			"label": "Family Allowances"
-		},
-		{
-			"default": "0",
-			"description": "Employer-only rate in %. Varies by canton.",
-			"fieldname": "family_allowance_rate",
-			"fieldtype": "Percent",
-			"label": "Family Allowance Rate - Employer (%)"
-		},
-		{
-			"fieldname": "column_break_family",
-			"fieldtype": "Column Break"
-		},
-		{
-			"fieldname": "family_allowance_account",
-			"fieldtype": "Link",
-			"label": "Family Allowance GL Account",
-			"options": "Account"
-		},
-		{
-			"fieldname": "section_thirteenth_month",
-			"fieldtype": "Section Break",
-			"label": "13th Month Salary"
-		},
-		{
-			"default": "Disabled",
-			"description": "Disabled: no 13th month. Annual: paid as lump sum in December (or on departure). Monthly: 1/12 added to each salary slip.",
-			"fieldname": "thirteenth_month_mode",
-			"fieldtype": "Select",
-			"label": "13th Month Mode",
-			"options": "Disabled\nAnnual\nMonthly"
-		},
-		{
-			"fieldname": "section_qst",
-			"fieldtype": "Section Break",
-			"label": "Source Tax (Quellensteuer)"
-		},
-		{
-			"default": "0",
-			"description": "Enable automatic source tax calculation for employees subject to withholding tax.",
-			"fieldname": "qst_enabled",
-			"fieldtype": "Check",
-			"label": "Enable Source Tax"
-		},
-		{
-			"depends_on": "eval:doc.qst_enabled",
-			"description": "Default taxation canton. Can be overridden per employee.",
-			"fieldname": "qst_default_canton",
-			"fieldtype": "Select",
-			"label": "Default Taxation Canton",
-			"options": "\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH"
-		},
-		{
-			"fieldname": "column_break_qst",
-			"fieldtype": "Column Break"
-		},
-		{
-			"default": "120000",
-			"depends_on": "eval:doc.qst_enabled",
-			"description": "Employees with projected annual income above this threshold must file an ordinary tax declaration. Informational flag only.",
-			"fieldname": "qst_ordinary_threshold",
-			"fieldtype": "Currency",
-			"label": "Ordinary Taxation Threshold (CHF)"
-		},
-		{
-			"depends_on": "eval:doc.qst_enabled",
-			"fieldname": "qst_gl_account",
-			"fieldtype": "Link",
-			"label": "Source Tax GL Account",
-			"options": "Account"
-		},
-		{
-			"fieldname": "section_cb",
-			"fieldtype": "Section Break",
-			"label": "Cross-Border Workers"
-		},
-		{
-			"default": "0",
-			"description": "Enable cross-border worker tax rules (German flat rate, Italian 80%, French exemptions).",
-			"fieldname": "cb_enabled",
-			"fieldtype": "Check",
-			"label": "Enable Cross-Border Rules"
-		},
-		{
-			"default": "4.5",
-			"depends_on": "eval:doc.cb_enabled",
-			"description": "German DTA flat withholding tax rate in %.",
-			"fieldname": "cb_german_flat_rate",
-			"fieldtype": "Percent",
-			"label": "German Flat Tax Rate (%)"
-		},
-		{
-			"fieldname": "column_break_cb",
-			"fieldtype": "Column Break"
-		},
-		{
-			"default": "80",
-			"depends_on": "eval:doc.cb_enabled",
-			"description": "Italian new frontalier rate factor in %. Standard rate is multiplied by this factor (e.g., 80 = 80% of standard rate).",
-			"fieldname": "cb_italian_new_rate_factor",
-			"fieldtype": "Percent",
-			"label": "Italian New Frontalier Rate Factor (%)"
-		},
-		{
-			"default": "40",
-			"depends_on": "eval:doc.cb_enabled",
-			"description": "Maximum telework percentage from France before source tax rules change.",
-			"fieldname": "cb_french_telework_threshold",
-			"fieldtype": "Percent",
-			"label": "French Telework Threshold (%)"
-		},
-		{
-			"fieldname": "section_swissdec",
-			"fieldtype": "Section Break",
-			"label": "Swissdec / ELM"
-		},
-		{
-			"default": "0",
-			"description": "Enable Swissdec ELM XML export for salary declarations.",
-			"fieldname": "swissdec_enabled",
-			"fieldtype": "Check",
-			"label": "Enable Swissdec Export"
-		},
-		{
-			"default": "5.0",
-			"depends_on": "eval:doc.swissdec_enabled",
-			"fieldname": "elm_version",
-			"fieldtype": "Select",
-			"label": "ELM Version",
-			"options": "5.0"
-		},
-		{
-			"fieldname": "column_break_sd",
-			"fieldtype": "Column Break"
-		},
-		{
-			"depends_on": "eval:doc.swissdec_enabled",
-			"description": "AVS branch number for multi-branch companies.",
-			"fieldname": "avs_branch_number",
-			"fieldtype": "Data",
-			"label": "AVS Branch Number"
-		},
-		{
-			"depends_on": "eval:doc.swissdec_enabled",
-			"description": "LAA insurer identification number.",
-			"fieldname": "laa_insurer_id",
-			"fieldtype": "Data",
-			"label": "LAA Insurer ID"
-		},
-		{
-			"depends_on": "eval:doc.swissdec_enabled",
-			"description": "IJM/KTG insurer identification number.",
-			"fieldname": "ijm_insurer_id",
-			"fieldtype": "Data",
-			"label": "IJM Insurer ID"
-		},
-		{
-			"depends_on": "eval:doc.swissdec_enabled",
-			"description": "LPP/BVG pension fund identification number.",
-			"fieldname": "lpp_institution_id",
-			"fieldtype": "Data",
-			"label": "LPP Institution ID"
-		},
-		{
-			"depends_on": "eval:doc.swissdec_enabled",
-			"description": "Canton for Family Allowances (FAK/CAF) reporting.",
-			"fieldname": "fak_canton",
-			"fieldtype": "Select",
-			"label": "FAK Canton",
-			"options": "\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH"
-		},
-		{
-			"fieldname": "section_lohnausweis",
-			"fieldtype": "Section Break",
-			"label": "Lohnausweis (Annual Salary Certificate)"
-		},
-		{
-			"description": "Map salary components to Lohnausweis Form 11 positions. Run setup to populate defaults.",
-			"fieldname": "lohnausweis_mapping",
-			"fieldtype": "Table",
-			"label": "Lohnausweis Mapping",
-			"options": "Swiss Lohnausweis Mapping"
-		},
-		{
-			"fieldname": "column_break_lohnausweis",
-			"fieldtype": "Column Break"
-		},
-		{
-			"description": "Employer name as it should appear on the Lohnausweis certificate.",
-			"fieldname": "lohnausweis_employer_name",
-			"fieldtype": "Data",
-			"label": "Employer Name (Certificate)"
-		},
-		{
-			"description": "Employer address for the Lohnausweis certificate header.",
-			"fieldname": "lohnausweis_employer_address",
-			"fieldtype": "Small Text",
-			"label": "Employer Address (Certificate)"
-		}
-	],
-	"links": [],
-	"modified": "2026-02-21 00:00:00.000000",
-	"modified_by": "Administrator",
-	"module": "Payroll",
-	"name": "Swiss Social Insurance Config",
-	"naming_rule": "Expression",
-	"owner": "Administrator",
-	"permissions": [
-		{
-			"create": 1,
-			"delete": 1,
-			"email": 1,
-			"export": 1,
-			"print": 1,
-			"read": 1,
-			"report": 1,
-			"role": "HR Manager",
-			"share": 1,
-			"write": 1
-		},
-		{
-			"read": 1,
-			"role": "HR User"
-		}
-	],
-	"sort_field": "modified",
-	"sort_order": "DESC",
-	"track_changes": 1
+ "actions": [],
+ "autoname": "format:CH-SIC-{company}-{canton}",
+ "creation": "2026-02-21 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "canton",
+  "is_default",
+  "section_avs",
+  "avs_rate_employee",
+  "avs_rate_employer",
+  "column_break_avs",
+  "avs_employer_account",
+  "section_ac",
+  "ac_rate_employee",
+  "ac_rate_employer",
+  "ac_annual_ceiling",
+  "column_break_ac",
+  "ac_solidarity_rate_employee",
+  "ac_solidarity_rate_employer",
+  "ac_employer_account",
+  "section_laa",
+  "laa_professional_rate",
+  "laa_nonprofessional_rate",
+  "column_break_laa",
+  "laa_insurable_salary_cap",
+  "laa_employer_account",
+  "section_lpp",
+  "lpp_employer_share_pct",
+  "lpp_entry_threshold",
+  "lpp_coordination_deduction",
+  "column_break_lpp",
+  "lpp_minimum_insured_salary",
+  "lpp_maximum_coordinated_salary",
+  "lpp_employer_account",
+  "section_ijm",
+  "ijm_rate_employee",
+  "ijm_rate_employer",
+  "column_break_ijm",
+  "ijm_employer_account",
+  "section_family",
+  "family_allowance_rate",
+  "column_break_family",
+  "family_allowance_account",
+  "section_thirteenth_month",
+  "thirteenth_month_mode",
+  "section_qst",
+  "qst_enabled",
+  "qst_default_canton",
+  "column_break_qst",
+  "qst_ordinary_threshold",
+  "qst_gl_account",
+  "section_cb",
+  "cb_enabled",
+  "cb_german_flat_rate",
+  "column_break_cb",
+  "cb_italian_new_rate_factor",
+  "cb_french_telework_threshold",
+  "section_swissdec",
+  "swissdec_enabled",
+  "elm_version",
+  "column_break_sd",
+  "avs_branch_number",
+  "laa_insurer_id",
+  "ijm_insurer_id",
+  "lpp_institution_id",
+  "fak_canton",
+  "section_lohnausweis",
+  "lohnausweis_mapping",
+  "column_break_lohnausweis",
+  "lohnausweis_employer_name",
+  "lohnausweis_employer_address",
+  "section_salary_payment",
+  "payment_iban",
+  "payment_bic",
+  "payment_account"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "canton",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Canton",
+   "options": "\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "label": "Is Default Configuration"
+  },
+  {
+   "fieldname": "section_avs",
+   "fieldtype": "Section Break",
+   "label": "AVS/AI/APG"
+  },
+  {
+   "default": "5.3",
+   "description": "Employee rate in %",
+   "fieldname": "avs_rate_employee",
+   "fieldtype": "Percent",
+   "label": "AVS Employee Rate (%)"
+  },
+  {
+   "default": "5.3",
+   "description": "Employer rate in %",
+   "fieldname": "avs_rate_employer",
+   "fieldtype": "Percent",
+   "label": "AVS Employer Rate (%)"
+  },
+  {
+   "fieldname": "column_break_avs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "avs_employer_account",
+   "fieldtype": "Link",
+   "label": "AVS Employer GL Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "section_ac",
+   "fieldtype": "Section Break",
+   "label": "AC/ALV (Unemployment)"
+  },
+  {
+   "default": "1.1",
+   "fieldname": "ac_rate_employee",
+   "fieldtype": "Percent",
+   "label": "AC Employee Rate (%)"
+  },
+  {
+   "default": "1.1",
+   "fieldname": "ac_rate_employer",
+   "fieldtype": "Percent",
+   "label": "AC Employer Rate (%)"
+  },
+  {
+   "default": "148200",
+   "fieldname": "ac_annual_ceiling",
+   "fieldtype": "Currency",
+   "label": "AC Annual Ceiling (CHF)"
+  },
+  {
+   "fieldname": "column_break_ac",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0.5",
+   "fieldname": "ac_solidarity_rate_employee",
+   "fieldtype": "Percent",
+   "label": "AC Solidarity Employee Rate (%)"
+  },
+  {
+   "default": "0.5",
+   "fieldname": "ac_solidarity_rate_employer",
+   "fieldtype": "Percent",
+   "label": "AC Solidarity Employer Rate (%)"
+  },
+  {
+   "fieldname": "ac_employer_account",
+   "fieldtype": "Link",
+   "label": "AC Employer GL Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "section_laa",
+   "fieldtype": "Section Break",
+   "label": "LAA/UVG (Accident Insurance)"
+  },
+  {
+   "default": "0",
+   "description": "Employer-paid professional accident insurance rate in %. Set by your insurer.",
+   "fieldname": "laa_professional_rate",
+   "fieldtype": "Percent",
+   "label": "LAA Professional Rate - Employer (%)"
+  },
+  {
+   "default": "0",
+   "description": "Employee-paid non-professional accident insurance rate in %. Set by your insurer.",
+   "fieldname": "laa_nonprofessional_rate",
+   "fieldtype": "Percent",
+   "label": "LAA Non-Professional Rate - Employee (%)"
+  },
+  {
+   "fieldname": "column_break_laa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "148200",
+   "fieldname": "laa_insurable_salary_cap",
+   "fieldtype": "Currency",
+   "label": "LAA Insurable Salary Cap (CHF)"
+  },
+  {
+   "fieldname": "laa_employer_account",
+   "fieldtype": "Link",
+   "label": "LAA Employer GL Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "section_lpp",
+   "fieldtype": "Section Break",
+   "label": "LPP/BVG (Occupational Pension)"
+  },
+  {
+   "default": "50",
+   "description": "Employer share of LPP contribution in %. Minimum 50% by law.",
+   "fieldname": "lpp_employer_share_pct",
+   "fieldtype": "Percent",
+   "label": "LPP Employer Share (%)"
+  },
+  {
+   "default": "22680",
+   "fieldname": "lpp_entry_threshold",
+   "fieldtype": "Currency",
+   "label": "LPP Entry Threshold (CHF/year)"
+  },
+  {
+   "default": "26460",
+   "fieldname": "lpp_coordination_deduction",
+   "fieldtype": "Currency",
+   "label": "LPP Coordination Deduction (CHF/year)"
+  },
+  {
+   "fieldname": "column_break_lpp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "3780",
+   "fieldname": "lpp_minimum_insured_salary",
+   "fieldtype": "Currency",
+   "label": "LPP Minimum Insured Salary (CHF/year)"
+  },
+  {
+   "default": "64260",
+   "fieldname": "lpp_maximum_coordinated_salary",
+   "fieldtype": "Currency",
+   "label": "LPP Maximum Coordinated Salary (CHF/year)"
+  },
+  {
+   "fieldname": "lpp_employer_account",
+   "fieldtype": "Link",
+   "label": "LPP Employer GL Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "section_ijm",
+   "fieldtype": "Section Break",
+   "label": "IJM/KTG (Daily Sickness Allowance)"
+  },
+  {
+   "default": "0",
+   "description": "Employee rate in %. Set by your insurer.",
+   "fieldname": "ijm_rate_employee",
+   "fieldtype": "Percent",
+   "label": "IJM Employee Rate (%)"
+  },
+  {
+   "default": "0",
+   "description": "Employer rate in %. Set by your insurer.",
+   "fieldname": "ijm_rate_employer",
+   "fieldtype": "Percent",
+   "label": "IJM Employer Rate (%)"
+  },
+  {
+   "fieldname": "column_break_ijm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ijm_employer_account",
+   "fieldtype": "Link",
+   "label": "IJM Employer GL Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "section_family",
+   "fieldtype": "Section Break",
+   "label": "Family Allowances"
+  },
+  {
+   "default": "0",
+   "description": "Employer-only rate in %. Varies by canton.",
+   "fieldname": "family_allowance_rate",
+   "fieldtype": "Percent",
+   "label": "Family Allowance Rate - Employer (%)"
+  },
+  {
+   "fieldname": "column_break_family",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "family_allowance_account",
+   "fieldtype": "Link",
+   "label": "Family Allowance GL Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "section_thirteenth_month",
+   "fieldtype": "Section Break",
+   "label": "13th Month Salary"
+  },
+  {
+   "default": "Disabled",
+   "description": "Disabled: no 13th month. Annual: paid as lump sum in December (or on departure). Monthly: 1/12 added to each salary slip.",
+   "fieldname": "thirteenth_month_mode",
+   "fieldtype": "Select",
+   "label": "13th Month Mode",
+   "options": "Disabled\nAnnual\nMonthly"
+  },
+  {
+   "fieldname": "section_qst",
+   "fieldtype": "Section Break",
+   "label": "Source Tax (Quellensteuer)"
+  },
+  {
+   "default": "0",
+   "description": "Enable automatic source tax calculation for employees subject to withholding tax.",
+   "fieldname": "qst_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Source Tax"
+  },
+  {
+   "depends_on": "eval:doc.qst_enabled",
+   "description": "Default taxation canton. Can be overridden per employee.",
+   "fieldname": "qst_default_canton",
+   "fieldtype": "Select",
+   "label": "Default Taxation Canton",
+   "options": "\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH"
+  },
+  {
+   "fieldname": "column_break_qst",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "120000",
+   "depends_on": "eval:doc.qst_enabled",
+   "description": "Employees with projected annual income above this threshold must file an ordinary tax declaration. Informational flag only.",
+   "fieldname": "qst_ordinary_threshold",
+   "fieldtype": "Currency",
+   "label": "Ordinary Taxation Threshold (CHF)"
+  },
+  {
+   "depends_on": "eval:doc.qst_enabled",
+   "fieldname": "qst_gl_account",
+   "fieldtype": "Link",
+   "label": "Source Tax GL Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "section_cb",
+   "fieldtype": "Section Break",
+   "label": "Cross-Border Workers"
+  },
+  {
+   "default": "0",
+   "description": "Enable cross-border worker tax rules (German flat rate, Italian 80%, French exemptions).",
+   "fieldname": "cb_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Cross-Border Rules"
+  },
+  {
+   "default": "4.5",
+   "depends_on": "eval:doc.cb_enabled",
+   "description": "German DTA flat withholding tax rate in %.",
+   "fieldname": "cb_german_flat_rate",
+   "fieldtype": "Percent",
+   "label": "German Flat Tax Rate (%)"
+  },
+  {
+   "fieldname": "column_break_cb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "80",
+   "depends_on": "eval:doc.cb_enabled",
+   "description": "Italian new frontalier rate factor in %. Standard rate is multiplied by this factor (e.g., 80 = 80% of standard rate).",
+   "fieldname": "cb_italian_new_rate_factor",
+   "fieldtype": "Percent",
+   "label": "Italian New Frontalier Rate Factor (%)"
+  },
+  {
+   "default": "40",
+   "depends_on": "eval:doc.cb_enabled",
+   "description": "Maximum telework percentage from France before source tax rules change.",
+   "fieldname": "cb_french_telework_threshold",
+   "fieldtype": "Percent",
+   "label": "French Telework Threshold (%)"
+  },
+  {
+   "fieldname": "section_swissdec",
+   "fieldtype": "Section Break",
+   "label": "Swissdec / ELM"
+  },
+  {
+   "default": "0",
+   "description": "Enable Swissdec ELM XML export for salary declarations.",
+   "fieldname": "swissdec_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Swissdec Export"
+  },
+  {
+   "default": "5.0",
+   "depends_on": "eval:doc.swissdec_enabled",
+   "fieldname": "elm_version",
+   "fieldtype": "Select",
+   "label": "ELM Version",
+   "options": "5.0"
+  },
+  {
+   "fieldname": "column_break_sd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.swissdec_enabled",
+   "description": "AVS branch number for multi-branch companies.",
+   "fieldname": "avs_branch_number",
+   "fieldtype": "Data",
+   "label": "AVS Branch Number"
+  },
+  {
+   "depends_on": "eval:doc.swissdec_enabled",
+   "description": "LAA insurer identification number.",
+   "fieldname": "laa_insurer_id",
+   "fieldtype": "Data",
+   "label": "LAA Insurer ID"
+  },
+  {
+   "depends_on": "eval:doc.swissdec_enabled",
+   "description": "IJM/KTG insurer identification number.",
+   "fieldname": "ijm_insurer_id",
+   "fieldtype": "Data",
+   "label": "IJM Insurer ID"
+  },
+  {
+   "depends_on": "eval:doc.swissdec_enabled",
+   "description": "LPP/BVG pension fund identification number.",
+   "fieldname": "lpp_institution_id",
+   "fieldtype": "Data",
+   "label": "LPP Institution ID"
+  },
+  {
+   "depends_on": "eval:doc.swissdec_enabled",
+   "description": "Canton for Family Allowances (FAK/CAF) reporting.",
+   "fieldname": "fak_canton",
+   "fieldtype": "Select",
+   "label": "FAK Canton",
+   "options": "\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH"
+  },
+  {
+   "fieldname": "section_lohnausweis",
+   "fieldtype": "Section Break",
+   "label": "Lohnausweis (Annual Salary Certificate)"
+  },
+  {
+   "description": "Map salary components to Lohnausweis Form 11 positions. Run setup to populate defaults.",
+   "fieldname": "lohnausweis_mapping",
+   "fieldtype": "Table",
+   "label": "Lohnausweis Mapping",
+   "options": "Swiss Lohnausweis Mapping"
+  },
+  {
+   "fieldname": "column_break_lohnausweis",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Employer name as it should appear on the Lohnausweis certificate.",
+   "fieldname": "lohnausweis_employer_name",
+   "fieldtype": "Data",
+   "label": "Employer Name (Certificate)"
+  },
+  {
+   "description": "Employer address for the Lohnausweis certificate header.",
+   "fieldname": "lohnausweis_employer_address",
+   "fieldtype": "Small Text",
+   "label": "Employer Address (Certificate)"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_salary_payment",
+   "fieldtype": "Section Break",
+   "label": "Salary Payments"
+  },
+  {
+   "description": "Employer account debited for salary payments (pain.001)",
+   "fieldname": "payment_iban",
+   "fieldtype": "Data",
+   "label": "Payment IBAN"
+  },
+  {
+   "description": "BIC of the paying bank",
+   "fieldname": "payment_bic",
+   "fieldtype": "Data",
+   "label": "Payment BIC"
+  },
+  {
+   "description": "Ledger account of the salary payment bank account (fallback source for IBAN/BIC)",
+   "fieldname": "payment_account",
+   "fieldtype": "Link",
+   "label": "Payment Account",
+   "options": "Account"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-21 14:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payroll",
+ "name": "Swiss Social Insurance Config",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "HR User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
 }

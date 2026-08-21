@@ -252,5 +252,68 @@ class SwissPayrollCycle {
 				() => this.run_submit()
 			);
 		}
+		if (pf.counts.submitted > 0) {
+			this.page.add_inner_button(__("Payment file (pain.001)"), () => this.download_payment_file());
+		}
+	}
+
+	async download_payment_file() {
+		const args = this.args();
+		// Preflight: show blocking issues before offering the download
+		const r = await frappe.call({
+			method: "hrms.regional.switzerland.payment_file.get_salary_payments",
+			args: args,
+			freeze: true,
+			freeze_message: __("Working..."),
+		});
+		const data = r.message;
+		const errors = (data.issues || []).filter((i) => i.level === "error");
+		if (data.debtor_error) {
+			errors.push({ message: data.debtor_error });
+		}
+		if (errors.length) {
+			frappe.msgprint({
+				title: __("Payment file"),
+				indicator: "red",
+				message: errors.map((i) => frappe.utils.escape_html(i.message)).join("<br>"),
+			});
+			return;
+		}
+		const warnings = (data.issues || []).filter((i) => i.level === "warning");
+		const summary =
+			__("{0} payment(s), total {1}", [
+				data.payments.length,
+				format_currency(data.total, "CHF"),
+			]) +
+			(warnings.length
+				? "<br>" + warnings.map((i) => frappe.utils.escape_html(i.message)).join("<br>")
+				: "");
+
+		frappe.prompt(
+			[
+				{
+					fieldname: "info",
+					fieldtype: "HTML",
+					options: `<div style="margin-bottom: 10px;">${summary}</div>`,
+				},
+				{
+					fieldname: "execution_date",
+					fieldtype: "Date",
+					label: __("Execution date"),
+					default: frappe.datetime.get_today(),
+					reqd: 1,
+				},
+			],
+			(values) => {
+				window.open(
+					"/api/method/hrms.regional.switzerland.payment_file.download_pain001" +
+						`?company=${encodeURIComponent(args.company)}` +
+						`&year=${encodeURIComponent(args.year)}&month=${encodeURIComponent(args.month)}` +
+						`&execution_date=${encodeURIComponent(values.execution_date)}`
+				);
+			},
+			__("Salary payment file (pain.001)"),
+			__("Download")
+		);
 	}
 }
