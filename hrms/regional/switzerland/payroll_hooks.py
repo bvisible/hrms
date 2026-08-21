@@ -420,6 +420,25 @@ def _update_source_tax(doc, config, employee, imp_base):
 	result = calculate_source_tax(employee, doc, config)
 	tax_amount = flt(result.get("tax_amount", 0), 2)
 
+	# Audit trail for retroactive corrections: the tariff code this slip
+	# was settled with, and the corrections applied in this run.
+	if result.get("tariff_code") and hasattr(doc, "ch_qst_tariff_code"):
+		doc.ch_qst_tariff_code = result["tariff_code"]
+	if hasattr(doc, "ch_qst_correction_details"):
+		corrections = result.get("corrections") or []
+		if corrections:
+			lines = []
+			for corr in corrections:
+				line = frappe._("{0} ({1}): {2} -> {3}").format(
+					corr["slip"], corr["period"], corr["old_code"], corr["new_code"]
+				)
+				if corr.get("delta") is not None:
+					line += f" ({flt(corr['delta']):+.2f})"
+				lines.append(line)
+			doc.ch_qst_correction_details = "\n".join(lines)
+		else:
+			doc.ch_qst_correction_details = None
+
 	# Resolve the component by wage type 5060 (names vary per instance)
 	component = _resolve_component_by_wage_type(5060, "Source Tax Employee")
 	if not component:

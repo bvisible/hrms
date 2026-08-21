@@ -464,6 +464,59 @@ def qst_days_in_period(employee_doc, period_start, period_end):
 	return max(0, d2 - d1 + 1)
 
 
+def find_retro_corrections(employee_doc, salary_slip_doc, current_code):
+	"""Submitted slips of the year settled under another tariff code, from
+	the employee's effective date on.
+
+	The HR user sets ch_qst_code_effective_from when a tariff change is
+	reported late (marriage, birth): every submitted slip whose period
+	starts on/after that date and whose stored ch_qst_tariff_code differs
+	from the current code gets re-settled in the current run. Corrections
+	stay within the tax year (cross-year corrections go through the
+	cantonal authority, Annex 1 M41/Y41).
+	"""
+	effective_from = employee_doc.get("ch_qst_code_effective_from")
+	if not effective_from or not current_code:
+		return []
+	effective_from = getdate(effective_from)
+	period_start = getdate(salary_slip_doc.start_date)
+	if effective_from >= period_start:
+		return []
+	year_start = period_start.replace(month=1, day=1)
+	if effective_from < year_start:
+		effective_from = year_start
+
+	slips = frappe.get_all(
+		"Salary Slip",
+		filters={
+			"employee": salary_slip_doc.employee,
+			"company": salary_slip_doc.company,
+			"docstatus": 1,
+			"start_date": (">=", effective_from),
+			"end_date": ("<", period_start),
+			"ch_qst_tariff_code": ("!=", current_code),
+		},
+		fields=["name", "start_date", "end_date", "gross_pay", "ch_qst_tariff_code"],
+		order_by="start_date",
+	)
+	corrections = []
+	for slip in slips:
+		if not slip.ch_qst_tariff_code:
+			# Slip predates the audit-trail field: skip rather than guess.
+			continue
+		corrections.append(
+			{
+				"slip": slip.name,
+				"start_date": slip.start_date,
+				"end_date": slip.end_date,
+				"gross": flt(slip.gross_pay),
+				"old_code": slip.ch_qst_tariff_code,
+				"qst_days": qst_days_in_period(employee_doc, slip.start_date, slip.end_date),
+			}
+		)
+	return corrections
+
+
 def calculate_source_tax(employee_doc, salary_slip_doc, config):
 	"""Main entry point: calculate source tax for a salary slip.
 
@@ -525,10 +578,40 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 		employee_doc, salary_slip_doc.start_date, salary_slip_doc.end_date
 	)
 
+	# Retroactive tariff-code change (marriage/birth reported late): slips
+	# already settled from the effective date under another code.
+	corrections = find_retro_corrections(employee_doc, salary_slip_doc, tariff_code)
+
 	if model == "monthly":
 		result = calculate_source_tax_monthly(
 			gross, canton, tariff_code, ref_date, qst_days=qst_days or 30
 		)
+		if corrections:
+			details = []
+			total_delta = 0.0
+			for corr in corrections:
+				delta = calculate_monthly_correction(
+					corr["gross"],
+					canton,
+					corr["old_code"],
+					tariff_code,
+					corr["end_date"],
+					qst_days=corr["qst_days"],
+				)
+				total_delta = round_half_up(total_delta + delta["delta"])
+				details.append(
+					{
+						"slip": corr["slip"],
+						"period": str(corr["start_date"]),
+						"old_code": corr["old_code"],
+						"new_code": tariff_code,
+						"old_tax": delta["old_tax"],
+						"new_tax": delta["new_tax"],
+						"delta": delta["delta"],
+					}
+				)
+			result["tax_amount"] = round_half_up(result["tax_amount"] + total_delta)
+			result["corrections"] = details
 	else:
 		# Annual model: need YTD data (gross, tax withheld, source-tax days)
 		ytd_data = get_qst_ytd_data(
@@ -538,17 +621,63 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 			employee_doc=employee_doc,
 		)
 		month_num = getdate(salary_slip_doc.end_date).month
-		result = calculate_source_tax_annual(
-			gross,
-			canton,
-			tariff_code,
-			ytd_data["ytd_gross"],
-			ytd_data["ytd_tax"],
-			month_num,
-			ref_date,
-			qst_days=qst_days or 30,
-			ytd_days=ytd_data.get("ytd_days"),
-		)
+		if corrections:
+			# Per-code settlement (Annex 1 Y40): move the corrected slips'
+			# gross to the current code's account; each code keeps the tax
+			# actually withheld under it. Refunds may be negative.
+			corrected_slips = {corr["slip"] for corr in corrections}
+			per_code = {}
+			for slip in ytd_data.get("slips") or []:
+				code = (
+					tariff_code
+					if slip["slip"] in corrected_slips
+					else (slip["code"] or tariff_code)
+				)
+				account = per_code.setdefault(code, {"cumulative_gross": 0.0, "ytd_tax": 0.0})
+				account["cumulative_gross"] = round(account["cumulative_gross"] + slip["gross"], 2)
+				withheld_account = per_code.setdefault(
+					slip["code"] or tariff_code, {"cumulative_gross": 0.0, "ytd_tax": 0.0}
+				)
+				withheld_account["ytd_tax"] = round(withheld_account["ytd_tax"] + slip["tax"], 2)
+			current = per_code.setdefault(
+				tariff_code, {"cumulative_gross": 0.0, "ytd_tax": 0.0}
+			)
+			current["cumulative_gross"] = round(current["cumulative_gross"] + gross, 2)
+
+			result = calculate_source_tax_annual_settlement(
+				canton,
+				ref_date,
+				total_periodic=flt(ytd_data["ytd_gross"]) + gross,
+				total_days=flt(ytd_data.get("ytd_days") or 0) + (qst_days or 30),
+				per_code=per_code,
+			)
+			result["corrections"] = [
+				{
+					"slip": corr["slip"],
+					"period": str(corr["start_date"]),
+					"old_code": corr["old_code"],
+					"new_code": tariff_code,
+				}
+				for corr in corrections
+			]
+			result["tax_rate"] = (result["by_code"].get(tariff_code) or {}).get("tax_rate", 0)
+			result["cumulative_due"] = (result["by_code"].get(tariff_code) or {}).get(
+				"cumulative_due", 0
+			)
+		else:
+			result = calculate_source_tax_annual(
+				gross,
+				canton,
+				tariff_code,
+				ytd_data["ytd_gross"],
+				ytd_data["ytd_tax"],
+				month_num,
+				ref_date,
+				qst_days=qst_days or 30,
+				ytd_days=ytd_data.get("ytd_days"),
+			)
+
+	result["tariff_code"] = tariff_code
 
 	# Apply cross-border rules if enabled
 	if config.get("cb_enabled") and employee_doc.get("ch_is_cross_border"):
@@ -592,9 +721,11 @@ def get_qst_ytd_data(employee, company, start_date, employee_doc=None):
 
 	slips = frappe.db.sql(
 		"""SELECT
+			ss.name,
 			ss.gross_pay,
 			ss.start_date,
 			ss.end_date,
+			ss.ch_qst_tariff_code,
 			(SELECT COALESCE(SUM(sd.amount), 0)
 			 FROM `tabSalary Detail` sd
 			 WHERE sd.parent = ss.name
@@ -620,6 +751,16 @@ def get_qst_ytd_data(employee, company, start_date, employee_doc=None):
 		"ytd_gross": flt(sum(flt(slip.gross_pay) for slip in slips)),
 		"ytd_tax": flt(sum(flt(slip.slip_tax) for slip in slips)),
 		"ytd_days": ytd_days,
+		"slips": [
+			{
+				"slip": slip.name,
+				"start_date": slip.start_date,
+				"gross": flt(slip.gross_pay),
+				"tax": flt(slip.slip_tax),
+				"code": slip.ch_qst_tariff_code,
+			}
+			for slip in slips
+		],
 	}
 
 

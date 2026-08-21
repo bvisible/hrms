@@ -56,6 +56,33 @@ def get_custom_fields():
 	permit_options = "\n".join(PERMIT_TYPES)
 
 	return {
+		"Salary Slip": [
+			{
+				"fieldname": "ch_qst_section",
+				"label": "Swiss Source Tax",
+				"fieldtype": "Section Break",
+				"insert_after": "total_deduction",
+				"collapsible": 1,
+				"depends_on": "eval:doc.ch_qst_tariff_code",
+			},
+			{
+				"fieldname": "ch_qst_tariff_code",
+				"label": "QST Tariff Code Used",
+				"fieldtype": "Data",
+				"insert_after": "ch_qst_section",
+				"read_only": 1,
+				"no_copy": 1,
+				"description": "Tariff code this slip was settled with — the audit trail retroactive corrections rely on.",
+			},
+			{
+				"fieldname": "ch_qst_correction_details",
+				"label": "QST Retroactive Corrections",
+				"fieldtype": "Small Text",
+				"insert_after": "ch_qst_tariff_code",
+				"read_only": 1,
+				"no_copy": 1,
+			},
+		],
 		"Salary Component": [
 			# --- Swiss Wage Type (top of form, after abbreviation) ---
 			{
@@ -279,9 +306,17 @@ def get_custom_fields():
 				"default": "0",
 			},
 			{
+				"fieldname": "ch_qst_code_effective_from",
+				"label": "Tariff Code Effective From",
+				"fieldtype": "Date",
+				"insert_after": "ch_qst_church_tax",
+				"depends_on": "eval:doc.ch_qst_subject",
+				"description": "Set when the tariff situation changes retroactively (marriage, birth reported late): submitted slips from this date on are re-settled on the next payroll run.",
+			},
+			{
 				"fieldname": "ch_qst_column_break",
 				"fieldtype": "Column Break",
-				"insert_after": "ch_qst_church_tax",
+				"insert_after": "ch_qst_code_effective_from",
 			},
 			{
 				"fieldname": "ch_qst_tariff_code",
