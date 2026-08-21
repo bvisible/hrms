@@ -144,11 +144,12 @@ class TestLPPContribution(unittest.TestCase):
 		# Coordinated: capped at 64'260
 		# Rate: 15% (age 45-54)
 		# Total annual: 64'260 * 0.15 = 9'639.00
-		# 50% split → 4'819.50/year → 401.625/month → 401.62 (banker's rounding)
+		# 50% split -> 4'819.50/year -> 401.625/month -> 401.63 (Swissdec commercial
+		# rounding, half away from zero — proven by the Annex 1 oracle)
 		self.assertEqual(result["coordinated_salary"], LPP_MAXIMUM_COORDINATED_SALARY)
 		self.assertEqual(result["total_rate"], 0.15)
-		self.assertAlmostEqual(result["employee_monthly"], 401.62, places=2)
-		self.assertAlmostEqual(result["employer_monthly"], 401.62, places=2)
+		self.assertAlmostEqual(result["employee_monthly"], 401.63, places=2)
+		self.assertAlmostEqual(result["employer_monthly"], 401.63, places=2)
 
 	def test_custom_employer_share(self):
 		"""Custom employer share (60% employer, 40% employee)."""

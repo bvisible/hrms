@@ -5,7 +5,7 @@ import frappe
 from frappe.utils import cint, flt
 
 from hrms.regional.switzerland.constants import RATE_BASED_COMPONENTS
-from hrms.regional.switzerland.source_tax import calculate_source_tax
+from hrms.regional.switzerland.source_tax import calculate_source_tax, round_half_up
 from hrms.regional.switzerland.utils import (
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
@@ -224,7 +224,7 @@ def _update_rate_based_components(doc, config, bases):
 			rate = flt(config.get(rate_field))
 			base_amount = flt(bases.get(base_type, bases["gross_total"]))
 			if rate:
-				full_amount = flt(base_amount * rate / 100, row.precision("amount"))
+				full_amount = round_half_up(base_amount * rate / 100, row.precision("amount") or 2)
 				prorated = _prorate_amount(doc, row, full_amount)
 				if prorated != flt(row.amount, row.precision("amount")):
 					row.default_amount = full_amount
@@ -320,7 +320,10 @@ def _prorate_amount(doc, row, amount):
 		and cint(doc.total_working_days)
 		and doc.payment_days != doc.total_working_days
 	):
-		return flt(amount * flt(doc.payment_days) / flt(doc.total_working_days), row.precision("amount"))
+		return round_half_up(
+			amount * flt(doc.payment_days) / flt(doc.total_working_days),
+			row.precision("amount") or 2,
+		)
 	return flt(amount, row.precision("amount"))
 
 

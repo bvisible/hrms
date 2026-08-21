@@ -5,6 +5,8 @@ import frappe
 from frappe import _
 from frappe.utils import flt, getdate, today
 
+from hrms.regional.switzerland.source_tax import round_half_up
+
 from hrms.regional.switzerland.constants import (
 	AC_ANNUAL_CEILING,
 	AC_RATE_EMPLOYEE,
@@ -137,8 +139,8 @@ def calculate_lpp_contribution(annual_salary, age, config=None):
 		"coordinated_salary": coordinated_salary,
 		"total_rate": total_rate,
 		"total_annual": total_annual,
-		"employee_monthly": round(employee_annual / 12, 2),
-		"employer_monthly": round(employer_annual / 12, 2),
+		"employee_monthly": round_half_up(employee_annual / 12),
+		"employer_monthly": round_half_up(employer_annual / 12),
 	}
 
 
@@ -177,8 +179,8 @@ def calculate_ac_contribution(monthly_gross, ytd_gross, config=None):
 		subject_to_ac = ceiling - ytd_gross
 
 	return {
-		"ac_employee": round(subject_to_ac * ac_rate_ee, 2),
-		"ac_employer": round(subject_to_ac * ac_rate_er, 2),
+		"ac_employee": round_half_up(subject_to_ac * ac_rate_ee),
+		"ac_employer": round_half_up(subject_to_ac * ac_rate_er),
 		"subject_to_ac": subject_to_ac,
 		"exempt_above_ceiling": monthly_gross - subject_to_ac,
 	}
@@ -266,7 +268,7 @@ def calculate_thirteenth_month(base_monthly, employee, slip_start, slip_end, con
 		return 0
 
 	if mode == "Monthly":
-		return round(base_monthly / 12, 2)
+		return round_half_up(base_monthly / 12)
 
 	# Annual mode: pay only in December or on the relieving month
 	slip_end_date = getdate(slip_end)
@@ -307,7 +309,7 @@ def calculate_thirteenth_month(base_monthly, employee, slip_start, slip_end, con
 	days_worked = (period_end - period_start).days + 1
 	pro_rata = days_worked / total_days_in_year
 
-	return round(base_monthly * pro_rata, 2)
+	return round_half_up(base_monthly * pro_rata)
 
 
 def get_component_rates_for_salary_slip(doc):
@@ -587,14 +589,14 @@ def _compute_determinant(comp_name, amount, rate_str, insurance_bases):
 	if "AC/ALV" in comp_name or "AC Solidarity" in comp_name:
 		rate = flt(rate_str)
 		if rate and amount:
-			return round(abs(amount) / (rate / 100), 2)
+			return round_half_up(abs(amount) / (rate / 100))
 		return insurance_bases.get("ac", 0)
 
 	# LPP/BVG: back-calculate from amount and rate (coordinated salary)
 	if "LPP/BVG" in comp_name:
 		rate = flt(rate_str)
 		if rate and amount:
-			return round(abs(amount) / (rate / 100), 2)
+			return round_half_up(abs(amount) / (rate / 100))
 		return 0
 
 	# Source Tax: use imp_base
