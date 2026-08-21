@@ -6,6 +6,13 @@
 
 ---
 
+> **Ajout 21.08.2026** — deux pages desk pilotent désormais le cycle :
+> - `/app/swiss-payroll-cycle` : cycle mensuel (préflight → génération → récap → soumission)
+> - `/app/swiss-year-end` : clôture annuelle (concordance → certificats en lot → décompte IS par canton)
+> Le moteur IS est validé contre l'oracle Swissdec annexe 1 (70 cas au centime, test_annexe1_oracle).
+
+---
+
 ## Vue d'ensemble
 
 Le module suisse couvre l'intégralité de la paie suisse pour une PME :
