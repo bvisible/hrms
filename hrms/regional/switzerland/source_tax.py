@@ -259,6 +259,43 @@ def ensure_tariff_available(canton, tariff_code, reference_date, tariff_type="SA
 	)
 
 
+def qst_days_in_period(employee_doc, period_start, period_end):
+	"""Source-tax days of an employee within a payroll period (30/360 base).
+
+	Each civil month counts 30 days: a start on the 1st or an end on the
+	last day of the month (Feb 28 included) yields a full 30. Entry and
+	exit dates (ch_entry_date/ch_exit_date, falling back to
+	date_of_joining/relieving_date) clip the period.
+
+	Args:
+		employee_doc: Employee document (or dict-like with date fields).
+		period_start: Payroll period start date.
+		period_end: Payroll period end date.
+
+	Returns:
+		int days in [0, 30].
+	"""
+	import calendar
+
+	start = getdate(period_start)
+	end = getdate(period_end)
+
+	joining = employee_doc.get("ch_entry_date") or employee_doc.get("date_of_joining")
+	if joining and getdate(joining) > start:
+		start = getdate(joining)
+	leaving = employee_doc.get("ch_exit_date") or employee_doc.get("relieving_date")
+	if leaving and getdate(leaving) < end:
+		end = getdate(leaving)
+
+	if end < start:
+		return 0
+
+	d1 = min(start.day, 30)
+	last_day_of_month = calendar.monthrange(end.year, end.month)[1]
+	d2 = 30 if end.day == last_day_of_month else min(end.day, 30)
+	return max(0, d2 - d1 + 1)
+
+
 def calculate_source_tax(employee_doc, salary_slip_doc, config):
 	"""Main entry point: calculate source tax for a salary slip.
 
@@ -295,8 +332,17 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 	if not tariff_code:
 		return {"tax_amount": 0, "error": "no_tariff_code"}
 
-	# Gross pay from the salary slip (sum of all earnings)
-	gross = sum(flt(row.default_amount) for row in salary_slip_doc.get("earnings"))
+	# Gross pay from the salary slip: the amounts actually paid. On a
+	# partial month row.amount is prorated while default_amount stays
+	# full — summing defaults overstated the taxable gross (and the
+	# progressive tariff makes that non-linear, unlike flat-rate
+	# insurances). Falls back to default_amount for rows built without
+	# an amount (unit-test fixtures).
+	gross = sum(
+		flt(row.default_amount if row.get("amount") is None else row.amount)
+		for row in salary_slip_doc.get("earnings")
+		if not row.get("do_not_include_in_total")
+	)
 
 	ref_date = salary_slip_doc.end_date or salary_slip_doc.start_date
 
@@ -306,12 +352,22 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 
 	model = get_calculation_model(canton)
 
+	# Partial entry/exit months extrapolate the rate-determining salary
+	qst_days = qst_days_in_period(
+		employee_doc, salary_slip_doc.start_date, salary_slip_doc.end_date
+	)
+
 	if model == "monthly":
-		result = calculate_source_tax_monthly(gross, canton, tariff_code, ref_date)
+		result = calculate_source_tax_monthly(
+			gross, canton, tariff_code, ref_date, qst_days=qst_days or 30
+		)
 	else:
-		# Annual model: need YTD data
+		# Annual model: need YTD data (gross, tax withheld, source-tax days)
 		ytd_data = get_qst_ytd_data(
-			salary_slip_doc.employee, salary_slip_doc.company, salary_slip_doc.start_date
+			salary_slip_doc.employee,
+			salary_slip_doc.company,
+			salary_slip_doc.start_date,
+			employee_doc=employee_doc,
 		)
 		month_num = getdate(salary_slip_doc.end_date).month
 		result = calculate_source_tax_annual(
@@ -322,6 +378,8 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 			ytd_data["ytd_tax"],
 			month_num,
 			ref_date,
+			qst_days=qst_days or 30,
+			ytd_days=ytd_data.get("ytd_days"),
 		)
 
 	# Apply cross-border rules if enabled
@@ -342,45 +400,59 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config):
 	return result
 
 
-def get_qst_ytd_data(employee, company, start_date):
-	"""Get year-to-date gross salary and source tax from submitted salary slips.
+def get_qst_ytd_data(employee, company, start_date, employee_doc=None):
+	"""Get year-to-date gross, source tax and source-tax days from submitted slips.
 
-	Used for the annual model calculation.
+	Used for the annual model calculation. The source-tax component is
+	resolved by Swissdec wage type 5060 (component names vary per
+	instance), falling back to the standard name.
 
 	Args:
 		employee: Employee ID.
 		company: Company name.
 		start_date: Start date of the current payroll period.
+		employee_doc: Optional Employee document; when given, ytd_days is
+			computed from each prior slip's period (30/360 base).
 
 	Returns:
-		dict with ytd_gross and ytd_tax.
+		dict with ytd_gross, ytd_tax and ytd_days (None without employee_doc).
 	"""
-	year_start = getdate(start_date).replace(month=1, day=1)
+	from hrms.regional.switzerland.payroll_hooks import _resolve_component_by_wage_type
 
-	result = frappe.db.sql(
+	year_start = getdate(start_date).replace(month=1, day=1)
+	component = _resolve_component_by_wage_type(5060, "Source Tax Employee")
+
+	slips = frappe.db.sql(
 		"""SELECT
-			COALESCE(SUM(ss.gross_pay), 0) as ytd_gross,
-			COALESCE(SUM(
-				(SELECT COALESCE(SUM(sd.amount), 0)
-				 FROM `tabSalary Detail` sd
-				 WHERE sd.parent = ss.name
-					AND sd.parentfield = 'deductions'
-					AND sd.salary_component = 'Source Tax Employee')
-			), 0) as ytd_tax
+			ss.gross_pay,
+			ss.start_date,
+			ss.end_date,
+			(SELECT COALESCE(SUM(sd.amount), 0)
+			 FROM `tabSalary Detail` sd
+			 WHERE sd.parent = ss.name
+				AND sd.parentfield = 'deductions'
+				AND sd.salary_component = %s) as slip_tax
 		FROM `tabSalary Slip` ss
 		WHERE ss.employee = %s
 			AND ss.company = %s
 			AND ss.start_date >= %s
 			AND ss.end_date < %s
 			AND ss.docstatus = 1""",
-		(employee, company, year_start, start_date),
+		(component or "Source Tax Employee", employee, company, year_start, start_date),
 		as_dict=True,
 	)
 
-	if result:
-		return {"ytd_gross": flt(result[0].ytd_gross), "ytd_tax": flt(result[0].ytd_tax)}
+	ytd_days = None
+	if employee_doc is not None:
+		ytd_days = sum(
+			qst_days_in_period(employee_doc, slip.start_date, slip.end_date) for slip in slips
+		)
 
-	return {"ytd_gross": 0, "ytd_tax": 0}
+	return {
+		"ytd_gross": flt(sum(flt(slip.gross_pay) for slip in slips)),
+		"ytd_tax": flt(sum(flt(slip.slip_tax) for slip in slips)),
+		"ytd_days": ytd_days,
+	}
 
 
 def check_120k_threshold(employee, company, current_gross, start_date, config):

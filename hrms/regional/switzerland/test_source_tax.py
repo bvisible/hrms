@@ -300,3 +300,57 @@ class TestTariffAvailabilityGuard(unittest.TestCase):
 			with self.assertRaises(Exception):
 				source_tax.ensure_tariff_available("GE", "B2Y", "2026-06-30")
 		self.assertIn("church tax", thrown["msg"])
+
+
+class TestQstDaysInPeriod(unittest.TestCase):
+	"""30/360 source-tax days of an employee within a payroll period."""
+
+	def _days(self, joining=None, leaving=None, start="2026-06-01", end="2026-06-30"):
+		from hrms.regional.switzerland.source_tax import qst_days_in_period
+
+		employee = {
+			"ch_entry_date": None,
+			"ch_exit_date": None,
+			"date_of_joining": joining,
+			"relieving_date": leaving,
+		}
+		return qst_days_in_period(employee, start, end)
+
+	def test_full_month(self):
+		self.assertEqual(self._days(), 30)
+
+	def test_full_31_day_month(self):
+		self.assertEqual(self._days(start="2026-07-01", end="2026-07-31"), 30)
+
+	def test_full_february(self):
+		self.assertEqual(self._days(start="2026-02-01", end="2026-02-28"), 30)
+
+	def test_entry_mid_month(self):
+		# Annex 1 partial-month convention: entry on the 16th -> 15 days
+		self.assertEqual(self._days(joining="2026-06-16"), 15)
+
+	def test_exit_mid_month(self):
+		# Annex 1 M17/M21: exit on the 15th -> 15 days
+		self.assertEqual(self._days(leaving="2026-06-15"), 15)
+
+	def test_exit_on_last_day_of_february(self):
+		self.assertEqual(
+			self._days(leaving="2026-02-28", start="2026-02-01", end="2026-02-28"), 30
+		)
+
+	def test_entry_and_exit_within_month(self):
+		self.assertEqual(self._days(joining="2026-06-10", leaving="2026-06-19"), 10)
+
+	def test_left_before_period(self):
+		self.assertEqual(self._days(leaving="2026-05-31"), 0)
+
+	def test_swiss_fields_take_priority(self):
+		from hrms.regional.switzerland.source_tax import qst_days_in_period
+
+		employee = {
+			"ch_entry_date": "2026-06-16",
+			"ch_exit_date": None,
+			"date_of_joining": "2026-01-01",
+			"relieving_date": None,
+		}
+		self.assertEqual(qst_days_in_period(employee, "2026-06-01", "2026-06-30"), 15)

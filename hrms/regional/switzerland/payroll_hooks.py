@@ -386,7 +386,10 @@ def _add_earning_row(doc, component_name, amount):
 	row.do_not_include_in_total = comp.do_not_include_in_total
 	row.depends_on_payment_days = comp.depends_on_payment_days
 	row.default_amount = flt(amount, row.precision("amount"))
-	row.amount = flt(amount, row.precision("amount"))
+	# The stored amount is the prorated one (like frappe's own rows and
+	# _add_deduction_row): the slip total prorates from default_amount, so
+	# an unprorated amount here shows a wrong line on a partial month.
+	row.amount = _prorate_amount(doc, row, row.default_amount)
 
 
 def _resolve_component_by_wage_type(code, fallback_name):
