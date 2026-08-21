@@ -205,3 +205,62 @@ FRENCH_ASSIGNMENT_DAY_LIMIT = 10  # days/year in France for business
 ITALIAN_NEW_FRONTALIER_CUTOFF = "2023-07-17"
 ITALIAN_FRONTALIER_CANTONS = frozenset({"TI", "GR", "VS"})
 ITALIAN_TARIFF_LETTERS = ["R", "S", "T", "U", "V"]
+
+# --- Yearly vintages ------------------------------------------------- #
+# Social insurance parameters are published per year (OFAS bulletins,
+# LPP ordinance). 2025 values were carried over unchanged to 2026
+# (OFAS Bulletin 167). The module-level constants above stay as the
+# current defaults; year-aware code goes through get_yearly_constants().
+YEARLY_CONSTANTS = {
+	2025: {
+		"avs_rate_employee": 0.053,
+		"avs_rate_employer": 0.053,
+		"ac_rate_employee": 0.011,
+		"ac_rate_employer": 0.011,
+		"ac_annual_ceiling": 148_200,
+		"laa_insurable_salary_cap": 148_200,
+		"lpp_entry_threshold": 22_680,
+		"lpp_coordination_deduction": 26_460,
+		"lpp_minimum_insured_salary": 3_780,
+		"lpp_maximum_coordinated_salary": 64_260,
+		"lpp_maximum_insurable_salary": 90_720,
+	},
+	2026: {
+		"avs_rate_employee": 0.053,
+		"avs_rate_employer": 0.053,
+		"ac_rate_employee": 0.011,
+		"ac_rate_employer": 0.011,
+		"ac_annual_ceiling": 148_200,
+		"laa_insurable_salary_cap": 148_200,
+		"lpp_entry_threshold": 22_680,
+		"lpp_coordination_deduction": 26_460,
+		"lpp_minimum_insured_salary": 3_780,
+		"lpp_maximum_coordinated_salary": 64_260,
+		"lpp_maximum_insurable_salary": 90_720,
+	},
+}
+
+
+def get_yearly_constants(year):
+	"""Social insurance parameters for a given year.
+
+	Falls back to the latest published vintage for future years (and
+	logs it once per process): payroll must not silently break every
+	January before the new values are entered here.
+	"""
+	year = int(year)
+	if year in YEARLY_CONSTANTS:
+		return YEARLY_CONSTANTS[year]
+	latest = max(YEARLY_CONSTANTS)
+	if year > latest:
+		import frappe
+
+		frappe.log_error(
+			"Swiss yearly constants missing",
+			f"No vintage for {year}; falling back to {latest}. "
+			"Update YEARLY_CONSTANTS in hrms/regional/switzerland/constants.py "
+			"with the published OFAS/LPP values.",
+		)
+		return YEARLY_CONSTANTS[latest]
+	return YEARLY_CONSTANTS[min(YEARLY_CONSTANTS)]
+

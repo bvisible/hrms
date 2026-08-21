@@ -252,7 +252,11 @@ def _update_ac_components(doc, config, ac_base):
 
 	ytd_gross = get_ytd_gross_for_employee(doc.employee, doc.company, doc.start_date, doc.end_date)
 
-	ac_result = calculate_ac_contribution(ac_base, ytd_gross, config)
+	from frappe.utils import getdate
+
+	ac_result = calculate_ac_contribution(
+		ac_base, ytd_gross, config, year=getdate(doc.end_date).year
+	)
 
 	ac_mapping = {
 		"AC/ALV Employee": ac_result["ac_employee"],
@@ -282,7 +286,11 @@ def _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee):
 	age = get_employee_age(doc.employee, doc.end_date)
 	annual_salary = base_monthly * lpp_multiplier  # 13 if 13th month enabled, 12 otherwise
 
-	lpp_result = calculate_lpp_contribution(annual_salary, age, config)
+	from frappe.utils import getdate
+
+	lpp_result = calculate_lpp_contribution(
+		annual_salary, age, config, year=getdate(doc.end_date).year
+	)
 
 	lpp_mapping = {
 		"LPP/BVG Employee": lpp_result["employee_monthly"],

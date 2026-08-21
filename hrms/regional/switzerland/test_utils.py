@@ -437,3 +437,31 @@ class TestComponentRates(unittest.TestCase):
 
 if __name__ == "__main__":
 	unittest.main()
+
+
+class TestYearlyConstants(unittest.TestCase):
+	"""Yearly vintages of the social insurance parameters."""
+
+	def test_known_years(self):
+		from hrms.regional.switzerland.constants import get_yearly_constants
+
+		for year in (2025, 2026):
+			yearly = get_yearly_constants(year)
+			self.assertEqual(yearly["ac_annual_ceiling"], 148_200)
+			self.assertEqual(yearly["lpp_coordination_deduction"], 26_460)
+
+	def test_future_year_falls_back_to_latest(self):
+		from unittest.mock import patch
+
+		from hrms.regional.switzerland import constants
+
+		with patch("frappe.log_error") as logged:
+			yearly = constants.get_yearly_constants(2027)
+		self.assertEqual(yearly, constants.YEARLY_CONSTANTS[2026])
+		logged.assert_called_once()
+
+	def test_year_flows_into_lpp(self):
+		from hrms.regional.switzerland.utils import calculate_lpp_coordinated_salary
+
+		# 90'000 gross, 2026 vintage: min(90'000, cap logic) - 26'460
+		self.assertEqual(calculate_lpp_coordinated_salary(90_000, year=2026), 63_540)

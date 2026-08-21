@@ -9,6 +9,7 @@ from hrms.regional.switzerland.source_tax import round_half_up
 
 from hrms.regional.switzerland.constants import (
 	AC_ANNUAL_CEILING,
+	get_yearly_constants,
 	AC_RATE_EMPLOYEE,
 	AC_RATE_EMPLOYER,
 	AVS_RATE_EMPLOYEE,
@@ -61,27 +62,41 @@ def get_lpp_rate_for_age(age):
 	return 0
 
 
-def calculate_lpp_coordinated_salary(annual_salary, config=None):
+def calculate_lpp_coordinated_salary(annual_salary, config=None, year=None):
 	"""Calculate the LPP/BVG coordinated (insured) salary.
 
 	Applies the coordination deduction and enforces minimum/maximum thresholds.
+	Priority: instance config -> yearly vintage (when year is given) ->
+	module-level defaults.
 
 	Args:
 		annual_salary: Gross annual salary in CHF
 		config: Optional SwissSocialInsuranceConfig dict with custom thresholds
+		year: Optional payroll year for the published vintage
 
 	Returns:
 		The annual coordinated salary (amount on which LPP contributions are calculated)
 	"""
-	entry_threshold = flt(config.get("lpp_entry_threshold") if config else 0) or LPP_ENTRY_THRESHOLD
+	yearly = get_yearly_constants(year) if year else {}
+	entry_threshold = (
+		flt(config.get("lpp_entry_threshold") if config else 0)
+		or yearly.get("lpp_entry_threshold")
+		or LPP_ENTRY_THRESHOLD
+	)
 	coordination_deduction = (
-		flt(config.get("lpp_coordination_deduction") if config else 0) or LPP_COORDINATION_DEDUCTION
+		flt(config.get("lpp_coordination_deduction") if config else 0)
+		or yearly.get("lpp_coordination_deduction")
+		or LPP_COORDINATION_DEDUCTION
 	)
 	minimum_insured = (
-		flt(config.get("lpp_minimum_insured_salary") if config else 0) or LPP_MINIMUM_INSURED_SALARY
+		flt(config.get("lpp_minimum_insured_salary") if config else 0)
+		or yearly.get("lpp_minimum_insured_salary")
+		or LPP_MINIMUM_INSURED_SALARY
 	)
 	maximum_coordinated = (
-		flt(config.get("lpp_maximum_coordinated_salary") if config else 0) or LPP_MAXIMUM_COORDINATED_SALARY
+		flt(config.get("lpp_maximum_coordinated_salary") if config else 0)
+		or yearly.get("lpp_maximum_coordinated_salary")
+		or LPP_MAXIMUM_COORDINATED_SALARY
 	)
 
 	annual_salary = flt(annual_salary)
@@ -104,7 +119,7 @@ def calculate_lpp_coordinated_salary(annual_salary, config=None):
 	return coordinated
 
 
-def calculate_lpp_contribution(annual_salary, age, config=None):
+def calculate_lpp_contribution(annual_salary, age, config=None, year=None):
 	"""Calculate monthly LPP/BVG contribution amounts for employee and employer.
 
 	Args:
@@ -116,7 +131,7 @@ def calculate_lpp_contribution(annual_salary, age, config=None):
 		dict with keys: coordinated_salary, total_rate, total_annual,
 		employee_monthly, employer_monthly
 	"""
-	coordinated_salary = calculate_lpp_coordinated_salary(annual_salary, config)
+	coordinated_salary = calculate_lpp_coordinated_salary(annual_salary, config, year=year)
 	total_rate = get_lpp_rate_for_age(age)
 
 	if not coordinated_salary or not total_rate:
@@ -144,7 +159,7 @@ def calculate_lpp_contribution(annual_salary, age, config=None):
 	}
 
 
-def calculate_ac_contribution(monthly_gross, ytd_gross, config=None):
+def calculate_ac_contribution(monthly_gross, ytd_gross, config=None, year=None):
 	"""Calculate AC/ALV contribution for a given month, respecting annual ceiling.
 
 	Salary above the annual ceiling (CHF 148'200) is fully exempt: the AC
@@ -159,7 +174,12 @@ def calculate_ac_contribution(monthly_gross, ytd_gross, config=None):
 	Returns:
 		dict with keys: ac_employee, ac_employer, subject_to_ac, exempt_above_ceiling
 	"""
-	ceiling = flt(config.get("ac_annual_ceiling") if config else 0) or AC_ANNUAL_CEILING
+	yearly = get_yearly_constants(year) if year else {}
+	ceiling = (
+		flt(config.get("ac_annual_ceiling") if config else 0)
+		or yearly.get("ac_annual_ceiling")
+		or AC_ANNUAL_CEILING
+	)
 	ac_rate_ee = flt(config.get("ac_rate_employee") if config else 0) / 100 or AC_RATE_EMPLOYEE
 	ac_rate_er = flt(config.get("ac_rate_employer") if config else 0) / 100 or AC_RATE_EMPLOYER
 
