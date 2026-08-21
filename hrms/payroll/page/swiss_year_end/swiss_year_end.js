@@ -208,5 +208,24 @@ class SwissYearEnd {
 				() => this.run_generate()
 			);
 		}
+		const exports = [
+			["qst", __("Source tax list (CSV)")],
+			["avs", __("AVS recap (CSV)")],
+			["laa", __("LAA recap (CSV)")],
+		];
+		exports.forEach(([kind, label]) => {
+			this.page.add_inner_button(
+				label,
+				() => {
+					const args = this.args();
+					window.open(
+						"/api/method/hrms.regional.switzerland.year_end.export_year_end_csv" +
+							`?company=${encodeURIComponent(args.company)}` +
+							`&fiscal_year=${encodeURIComponent(args.fiscal_year)}&kind=${kind}`
+					);
+				},
+				__("Exports")
+			);
+		});
 	}
 }

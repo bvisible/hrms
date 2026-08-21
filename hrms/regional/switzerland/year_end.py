@@ -314,3 +314,108 @@ def qst_summary(company, fiscal_year):
 		canton["withheld"] = round(canton["withheld"] + flt(row.withheld), 2)
 
 	return {"cantons": sorted(cantons.values(), key=lambda c: c["canton"])}
+
+@frappe.whitelist()
+def export_year_end_csv(company, fiscal_year, kind):
+	"""Download a year-end list as CSV (plan B for the cantonal portals).
+
+	kind:
+		"qst" — source-tax list per canton (employee, AVS, tariff code,
+			taxable gross, withheld) for the cantonal settlements.
+		"avs" — annual AVS recap (employee, AVS number, birth date,
+			period, gross, AVS and AC withheld) for the compensation fund.
+		"laa" — LAA payroll mass (employee, gross, LAA withheld) for the
+			accident insurer.
+	"""
+	import csv
+	import io
+
+	start, end = _fiscal_year_bounds(fiscal_year)
+	recap = reconcile(company, fiscal_year)
+	employees = {r["employee"]: r for r in recap["employees"]}
+	meta = {
+		e.name: e
+		for e in frappe.get_all(
+			"Employee",
+			filters={"name": ("in", list(employees))},
+			fields=["name", "employee_name", "ch_avs_number", "date_of_birth", "date_of_joining", "relieving_date"],
+		)
+	}
+
+	def component_total(row, needle):
+		return next(
+			(c["total"] for c in row["components"] if needle.lower() in c["component"].lower()),
+			0,
+		)
+
+	buffer = io.StringIO()
+	writer = csv.writer(buffer, delimiter=";")
+
+	if kind == "qst":
+		writer.writerow(
+			[
+				_("Canton"), _("Employee"), _("AVS Number"), _("Tariff code"),
+				_("Taxable gross"), _("Source tax withheld"),
+			]
+		)
+		for canton in qst_summary(company, fiscal_year)["cantons"]:
+			for emp in canton["employees"]:
+				writer.writerow(
+					[
+						canton["canton"],
+						emp["employee_name"],
+						(meta.get(emp["employee"]) or {}).get("ch_avs_number") or "",
+						emp["tariff_code"],
+						f"{emp['gross']:.2f}",
+						f"{emp['withheld']:.2f}",
+					]
+				)
+			writer.writerow([canton["canton"], _("Total"), "", "", f"{canton['gross']:.2f}", f"{canton['withheld']:.2f}"])
+		filename = f"IS_{fiscal_year}_{frappe.scrub(company)}.csv"
+
+	elif kind == "avs":
+		writer.writerow(
+			[
+				_("Employee"), _("AVS Number"), _("Date of Birth"), _("From"), _("To"),
+				_("Gross salary"), _("AVS withheld (employee)"), _("AC withheld (employee)"),
+			]
+		)
+		for employee, row in sorted(employees.items(), key=lambda kv: kv[1]["employee_name"]):
+			m = meta.get(employee) or frappe._dict()
+			period_from = max(getdate(m.date_of_joining or start), start)
+			period_to = min(getdate(m.relieving_date or end), end)
+			writer.writerow(
+				[
+					row["employee_name"],
+					m.get("ch_avs_number") or "",
+					m.get("date_of_birth") or "",
+					period_from,
+					period_to,
+					f"{row['gross']:.2f}",
+					f"{component_total(row, 'AVS'):.2f}",
+					f"{component_total(row, 'AC/'):.2f}",
+				]
+			)
+		filename = f"AVS_{fiscal_year}_{frappe.scrub(company)}.csv"
+
+	elif kind == "laa":
+		writer.writerow(
+			[_("Employee"), _("Gross salary"), _("LAA withheld (employee)"), _("IJM withheld (employee)")]
+		)
+		for _employee, row in sorted(employees.items(), key=lambda kv: kv[1]["employee_name"]):
+			writer.writerow(
+				[
+					row["employee_name"],
+					f"{row['gross']:.2f}",
+					f"{component_total(row, 'LAA'):.2f}",
+					f"{component_total(row, 'IJM'):.2f}",
+				]
+			)
+		filename = f"LAA_{fiscal_year}_{frappe.scrub(company)}.csv"
+
+	else:
+		frappe.throw(_("Unknown export kind: {0}").format(kind))
+
+	frappe.response["filename"] = filename
+	frappe.response["filecontent"] = "\ufeff" + buffer.getvalue()
+	frappe.response["type"] = "binary"
