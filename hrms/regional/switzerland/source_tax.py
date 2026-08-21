@@ -124,6 +124,111 @@ def calculate_source_tax_monthly(
 	}
 
 
+def calculate_monthly_correction(
+	gross, canton, old_code, new_code, ref_date, tariff_type="SAL", qst_days=30, aperiodic=0.0
+):
+	"""Retroactive tariff-code correction for one past month (monthly model).
+
+	When a code change (marriage, birth...) is reported late, months
+	already settled under the old code are re-settled in the payment
+	month: cancel the old withholding, recompute under the new code
+	(Annex 1 M40: April/May at A0N 475 each, corrected in June to B0N
+	205 each -> June total 205 - 540 = -335, refunded).
+
+	Args:
+		gross: Gross of the corrected (past) month.
+		canton: 2-letter canton code.
+		old_code: Tariff code originally applied.
+		new_code: Correct tariff code.
+		ref_date: Reference date of the corrected month.
+		tariff_type: "SAL" or "VSL".
+		qst_days: Source-tax days of the corrected month.
+		aperiodic: Aperiodic portion of that month's gross.
+
+	Returns:
+		dict with old_tax, new_tax and delta (new - old, may be negative).
+	"""
+	old = calculate_source_tax_monthly(
+		gross, canton, old_code, ref_date, tariff_type, qst_days=qst_days, aperiodic=aperiodic
+	)
+	new = calculate_source_tax_monthly(
+		gross, canton, new_code, ref_date, tariff_type, qst_days=qst_days, aperiodic=aperiodic
+	)
+	return {
+		"old_tax": old["tax_amount"],
+		"new_tax": new["tax_amount"],
+		"delta": round(new["tax_amount"] - old["tax_amount"], 2),
+	}
+
+
+def calculate_source_tax_annual_settlement(
+	canton,
+	ref_date,
+	tariff_type="SAL",
+	total_periodic=0.0,
+	total_aperiodic=0.0,
+	total_days=0.0,
+	per_code=None,
+):
+	"""Generalized annual-model settlement across all tariff codes of the year.
+
+	The Swissdec annual model (Annex 1 Y40) keeps one cumulative account
+	per tariff code but determines the rate on the GLOBAL determinant
+	(all income of the year annualized over source-tax days / 12). Every
+	month, every code's cumulative due is re-settled at the current
+	global determinant:
+
+		tax(month) = sum over codes [cum_gross_c x rate_c(det) - ytd_tax_c]
+
+	Retroactive code corrections reduce to moving the corrected months'
+	gross between code accounts before settling (Y40 June: A0N cum drops
+	25000->15000, B0N gets them -> -335 refund falls out naturally; in
+	December the frozen A0N account is re-settled at the final global
+	determinant: 15000 x (10.4% - 9.5%) = +135).
+
+	Args:
+		canton: 2-letter canton code.
+		ref_date: Reference date for tariff validity.
+		tariff_type: "SAL" or "VSL".
+		total_periodic: Cumulative periodic gross of the year (all codes).
+		total_aperiodic: Cumulative aperiodic gross of the year.
+		total_days: Cumulative source-tax days (base 360).
+		per_code: {code: {"cumulative_gross": x, "ytd_tax": y}}.
+
+	Returns:
+		dict with tax_amount (sum, may be negative), determinant,
+		projected_annual, by_code details, model.
+	"""
+	total_days = flt(total_days)
+	annualized = (
+		round(flt(total_periodic) / total_days * 360 + flt(total_aperiodic), 2)
+		if total_days
+		else 0
+	)
+	determinant = round(annualized / 12, 2)
+
+	by_code = {}
+	total = 0.0
+	for code, data in (per_code or {}).items():
+		cum_gross = flt(data.get("cumulative_gross"))
+		ytd_tax = flt(data.get("ytd_tax"))
+		if not cum_gross and not ytd_tax:
+			continue
+		rate = lookup_qst_rate(canton, code, determinant, ref_date, tariff_type)
+		due = round(cum_gross * rate, 2)
+		delta = round(due - ytd_tax, 2)
+		by_code[code] = {"tax_rate": rate, "cumulative_due": due, "tax_amount": delta}
+		total = round(total + delta, 2)
+
+	return {
+		"tax_amount": total,
+		"determinant": determinant,
+		"projected_annual": annualized,
+		"by_code": by_code,
+		"model": "annual",
+	}
+
+
 def calculate_source_tax_annual(
 	gross,
 	canton,
@@ -193,20 +298,19 @@ def calculate_source_tax_annual(
 
 	total_gross = ytd_gross + gross
 	total_aperiodic = flt(ytd_aperiodic) + flt(aperiodic)
-	total_periodic = total_gross - total_aperiodic
 
-	# Annualize periodic income over source-tax days; aperiodic added as is.
-	projected_annual = round(total_periodic / total_days * 360 + total_aperiodic, 2)
-
-	# Look up rate based on the monthly determinant (annual / 12)
-	determinant = round(projected_annual / 12, 2)
-	rate = lookup_qst_rate(canton, tariff_code, determinant, ref_date, tariff_type)
-
-	# Cumulative tax due on the actual cumulative gross
-	cumulative_due = round(total_gross * rate, 2)
-
-	# This month's tax = cumulative due - already deducted
-	this_month_tax = round(cumulative_due - ytd_tax, 2)
+	# Single-code case of the generalized per-code settlement.
+	settlement = calculate_source_tax_annual_settlement(
+		canton,
+		ref_date,
+		tariff_type,
+		total_periodic=total_gross - total_aperiodic,
+		total_aperiodic=total_aperiodic,
+		total_days=total_days,
+		per_code={tariff_code: {"cumulative_gross": total_gross, "ytd_tax": ytd_tax}},
+	)
+	code_result = settlement["by_code"].get(tariff_code) or {"tax_rate": 0, "cumulative_due": 0}
+	this_month_tax = settlement["tax_amount"]
 
 	# Never negative (in case of overpayment, it will correct in subsequent months)
 	# Exception: December can be negative for annual correction
@@ -215,10 +319,10 @@ def calculate_source_tax_annual(
 
 	return {
 		"tax_amount": this_month_tax,
-		"tax_rate": rate,
-		"determinant": determinant,
-		"projected_annual": projected_annual,
-		"cumulative_due": cumulative_due,
+		"tax_rate": code_result["tax_rate"],
+		"determinant": settlement["determinant"],
+		"projected_annual": settlement["projected_annual"],
+		"cumulative_due": code_result["cumulative_due"],
 		"model": "annual",
 	}
 

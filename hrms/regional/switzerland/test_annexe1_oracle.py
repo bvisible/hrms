@@ -9,11 +9,13 @@ embedded Swissdec test tariff and 113 cases with cent-exact expected
 withholding per month. The test tariff is identical for every canton in the
 oracle: the canton only selects the monthly vs annual model.
 
-Level-1 scope: plain bracket lookup on full months — no determinant
-extrapolation (partial months, multi-employer, hourly, foreign workdays),
-no retroactive corrections, no model/canton switch mid-year on the annual
-model. Out-of-scope cases are SKIPPED with a reason and reported in the
-summary; every playable case must match to the cent.
+Scope: bracket lookup with day-based determinants (partial months),
+retroactive Old/New code corrections (monthly deltas; annual per-code
+settlement at the global determinant), prospective code changes. Still
+out of scope: multi-employer/hourly/foreign-workday extrapolation,
+model or canton switch mid-year (annual), corrections settled the
+following year. Out-of-scope cases are SKIPPED with a reason; every
+playable case must match to the cent.
 """
 
 import json
@@ -27,7 +29,8 @@ from frappe.utils import now_datetime
 
 from hrms.regional.switzerland.constants import ANNUAL_MODEL_CANTONS
 from hrms.regional.switzerland.source_tax import (
-	calculate_source_tax_annual,
+	calculate_monthly_correction,
+	calculate_source_tax_annual_settlement,
 	calculate_source_tax_monthly,
 )
 
@@ -38,7 +41,6 @@ TOLERANCE = 0.005  # cent-exact
 
 # Capability flags that put a case out of scope.
 SKIP_FLAGS = (
-	("corrections", "retroactive corrections (Old/New)"),
 	("multi_employer", "multi-employer determinant extrapolation"),
 	("hourly", "hourly-wage determinant extrapolation"),
 	("foreign_days", "foreign workdays split"),
@@ -132,10 +134,14 @@ class TestAnnexe1Oracle(unittest.TestCase):
 				return reason
 		if case["expected_tax"] is None:
 			return "no expected amounts extracted"
-		if case["model"] == "annual" and case["flags"].get("code_change"):
-			return "annual model with tariff-code change (per-code settlement)"
 		if case["model"] == "annual" and case["flags"].get("canton_change"):
 			return "annual model with canton change mid-year"
+		for corr in case.get("corrections") or []:
+			if int(str(corr["origin"])[5:7]) > corr["payment_month"]:
+				return "correction settled in the following year"
+		# Cases whose only "correction" labels are Compensation rows are
+		# prospective code changes: the compensation is an OUTPUT of the
+		# per-code settlement, not an input — playable as-is.
 
 		active = self._active_months(case)
 		if not active:
@@ -171,46 +177,84 @@ class TestAnnexe1Oracle(unittest.TestCase):
 		gross = case["gross"] or [None] * 12
 		return [m for m in range(12) if gross[m] is not None]
 
+	def _corrections_by_month(self, case):
+		out = {}
+		for corr in case.get("corrections") or []:
+			out.setdefault(corr["payment_month"], []).append(
+				{**corr, "origin_month": int(str(corr["origin"])[5:7])}
+			)
+		return out
+
 	def _play_monthly(self, case):
+		corrections = self._corrections_by_month(case)
 		for m in self._active_months(case):
 			gross, days, aperiodic, canton, code = self._month_inputs(case, m)
 			result = calculate_source_tax_monthly(
 				gross, canton, code, date(YEAR, m + 1, 28), qst_days=days, aperiodic=aperiodic
 			)
+			tax = result["tax_amount"]
+			# Corrections settled this month: re-settle each origin month
+			# under its new code at the origin month's own determinant.
+			for corr in corrections.get(m + 1, []):
+				m0 = corr["origin_month"] - 1
+				g0, d0, a0, canton0, _ = self._month_inputs(case, m0)
+				delta = calculate_monthly_correction(
+					g0,
+					canton0,
+					corr["old_code"],
+					corr["new_code"],
+					date(YEAR, corr["origin_month"], 28),
+					qst_days=d0,
+					aperiodic=a0,
+				)["delta"]
+				tax = round(tax + delta, 2)
 			expected = round(float(case["expected_tax"][m]), 2)
 			self.assertAlmostEqual(
-				result["tax_amount"],
+				tax,
 				expected,
 				delta=TOLERANCE,
 				msg=(
 					f"{case['id']} month {m + 1}: gross {gross} days {days} "
-					f"aperiodic {aperiodic} code {code} -> got {result['tax_amount']} "
+					f"aperiodic {aperiodic} code {code} -> got {tax} "
 					f"(rate {result['tax_rate']}, det {result['determinant']}), "
 					f"oracle expects {expected}"
 				),
 			)
 
 	def _play_annual(self, case):
-		ytd_gross = 0.0
-		ytd_tax = 0.0
-		ytd_days = 0.0
-		ytd_aperiodic = 0.0
-		month_num = 0
+		"""Replay via the per-code settlement (Annex 1 Y40 mechanics).
+
+		One cumulative account per tariff code; the rate always reads at
+		the global determinant. Retroactive corrections move the origin
+		month's gross between code accounts before settling.
+		"""
+		corrections = self._corrections_by_month(case)
+		state = {}  # code -> {"cum": float, "ytd": float}
+		tot_periodic = tot_aperiodic = tot_days = 0.0
 		for m in self._active_months(case):
-			month_num += 1
+			month = m + 1
 			gross, days, aperiodic, canton, code = self._month_inputs(case, m)
-			result = calculate_source_tax_annual(
-				gross,
+			for corr in corrections.get(month, []):
+				g0, _, _, _, _ = self._month_inputs(case, corr["origin_month"] - 1)
+				old = state.setdefault(corr["old_code"], {"cum": 0.0, "ytd": 0.0})
+				new = state.setdefault(corr["new_code"], {"cum": 0.0, "ytd": 0.0})
+				old["cum"] = round(old["cum"] - g0, 2)
+				new["cum"] = round(new["cum"] + g0, 2)
+			st = state.setdefault(code, {"cum": 0.0, "ytd": 0.0})
+			st["cum"] = round(st["cum"] + gross, 2)
+			tot_periodic += gross - aperiodic
+			tot_aperiodic += aperiodic
+			tot_days += days
+			result = calculate_source_tax_annual_settlement(
 				canton,
-				code,
-				ytd_gross,
-				ytd_tax,
-				month_num,
-				date(YEAR, m + 1, 28),
-				qst_days=days,
-				ytd_days=ytd_days,
-				aperiodic=aperiodic,
-				ytd_aperiodic=ytd_aperiodic,
+				date(YEAR, month, 28),
+				total_periodic=tot_periodic,
+				total_aperiodic=tot_aperiodic,
+				total_days=tot_days,
+				per_code={
+					c: {"cumulative_gross": s["cum"], "ytd_tax": s["ytd"]}
+					for c, s in state.items()
+				},
 			)
 			expected = round(float(case["expected_tax"][m]), 2)
 			self.assertAlmostEqual(
@@ -218,16 +262,14 @@ class TestAnnexe1Oracle(unittest.TestCase):
 				expected,
 				delta=TOLERANCE,
 				msg=(
-					f"{case['id']} month {m + 1}: gross {gross} days {days} "
-					f"aperiodic {aperiodic} ytd {ytd_gross}/{ytd_days}d -> "
-					f"got {result['tax_amount']} (rate {result['tax_rate']}, "
-					f"det {result['determinant']}), oracle expects {expected}"
+					f"{case['id']} month {month}: gross {gross} days {days} "
+					f"aperiodic {aperiodic} state {state} -> "
+					f"got {result['tax_amount']} (det {result['determinant']}, "
+					f"by_code {result['by_code']}), oracle expects {expected}"
 				),
 			)
-			ytd_gross += gross
-			ytd_tax += result["tax_amount"]
-			ytd_days += days
-			ytd_aperiodic += aperiodic
+			for c, detail in result["by_code"].items():
+				state[c]["ytd"] = round(state[c]["ytd"] + detail["tax_amount"], 2)
 
 	def _run_cases(self, model):
 		for case in self.oracle["cases"]:
