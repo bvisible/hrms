@@ -77,8 +77,48 @@ def lookup_qst_rate(canton, tariff_code, income, reference_date, tariff_type="SA
 	return flt(result[0].tax_rate, 6) if result else 0
 
 
+def round_half_up(value, digits=2):
+	"""Commercial rounding (half away from zero), as Swissdec calculates.
+
+	Python's round() is banker's rounding: round(1063.125, 2) -> 1063.12,
+	while the Annex 1 oracle expects 1063.13 (Y14 month 3: cumulative due
+	13125 x 8.1%). Decimal(str(...)) avoids binary-float artefacts.
+	"""
+	from decimal import ROUND_HALF_UP, Decimal
+
+	quantum = Decimal(1).scaleb(-digits)
+	if not isinstance(value, Decimal):
+		value = Decimal(str(value))
+	return float(value.quantize(quantum, rounding=ROUND_HALF_UP))
+
+
+def _activity_extrapolation(activity_rate_own, activity_rate_total):
+	"""Multi-employer determinant factor: total occupation / own occupation.
+
+	Circ. 45 ch. 7.2.1: with several employers the rate-determining salary
+	is extrapolated to the person's TOTAL activity rate (Annex 1 M6: 4500
+	at 50% + another 50% job -> determinant 9000). When the other rate is
+	unknown, the total defaults to 100% (M10). Returns 1.0 when no own
+	rate is given (single employer).
+	"""
+	own = flt(activity_rate_own)
+	if not own:
+		return 1.0
+	total = flt(activity_rate_total) or 1.0
+	return total / own
+
+
 def calculate_source_tax_monthly(
-	gross, canton, tariff_code, ref_date, tariff_type="SAL", qst_days=30, aperiodic=0.0
+	gross,
+	canton,
+	tariff_code,
+	ref_date,
+	tariff_type="SAL",
+	qst_days=30,
+	aperiodic=0.0,
+	activity_rate_own=None,
+	activity_rate_total=None,
+	taxable=None,
 ):
 	"""Calculate source tax using the monthly model.
 
@@ -111,13 +151,20 @@ def calculate_source_tax_monthly(
 	qst_days = flt(qst_days) or 30
 	aperiodic = flt(aperiodic)
 	periodic = gross - aperiodic
-	determinant = round(periodic / qst_days * 30 + aperiodic, 2)
+	factor = _activity_extrapolation(activity_rate_own, activity_rate_total)
+	determinant = round_half_up((periodic / qst_days * 30 + aperiodic) * factor)
 
 	rate = lookup_qst_rate(canton, tariff_code, determinant, ref_date, tariff_type)
-	tax = round(gross * rate, 2)
+	# Foreign workdays: only the CH share (taxable) is withheld, at the
+	# rate of the full determinant (Annex 1 M31/M19.1).
+	from decimal import Decimal
+
+	base = flt(taxable) if taxable is not None else gross
+	tax_full = Decimal(str(base)) * Decimal(str(rate))
 
 	return {
-		"tax_amount": tax,
+		"tax_amount": round_half_up(tax_full),
+		"tax_amount_full": tax_full,
 		"tax_rate": rate,
 		"determinant": determinant,
 		"model": "monthly",
@@ -157,7 +204,7 @@ def calculate_monthly_correction(
 	return {
 		"old_tax": old["tax_amount"],
 		"new_tax": new["tax_amount"],
-		"delta": round(new["tax_amount"] - old["tax_amount"], 2),
+		"delta": round_half_up(new["tax_amount"] - old["tax_amount"]),
 	}
 
 
@@ -169,6 +216,8 @@ def calculate_source_tax_annual_settlement(
 	total_aperiodic=0.0,
 	total_days=0.0,
 	per_code=None,
+	activity_rate_own=None,
+	activity_rate_total=None,
 ):
 	"""Generalized annual-model settlement across all tariff codes of the year.
 
@@ -200,28 +249,43 @@ def calculate_source_tax_annual_settlement(
 		projected_annual, by_code details, model.
 	"""
 	total_days = flt(total_days)
+	factor = _activity_extrapolation(activity_rate_own, activity_rate_total)
 	annualized = (
-		round(flt(total_periodic) / total_days * 360 + flt(total_aperiodic), 2)
+		round_half_up((flt(total_periodic) / total_days * 360 + flt(total_aperiodic)) * factor)
 		if total_days
 		else 0
 	)
-	determinant = round(annualized / 12, 2)
+	determinant = round_half_up(annualized / 12)
+
+	from decimal import Decimal as _D
 
 	by_code = {}
-	total = 0.0
+	total = _D(0)
 	for code, data in (per_code or {}).items():
 		cum_gross = flt(data.get("cumulative_gross"))
 		ytd_tax = flt(data.get("ytd_tax"))
 		if not cum_gross and not ytd_tax:
 			continue
 		rate = lookup_qst_rate(canton, code, determinant, ref_date, tariff_type)
-		due = round(cum_gross * rate, 2)
-		delta = round(due - ytd_tax, 2)
-		by_code[code] = {"tax_rate": rate, "cumulative_due": due, "tax_amount": delta}
-		total = round(total + delta, 2)
+		# Exact decimal arithmetic: rates (6 dp) x amounts (2 dp) are exact
+		# in decimal, so cumulative dues never accumulate binary-float
+		# noise (Y14: 17850 x 0.083 must stay 1481.55, not ...0000002).
+		# Only the monthly output is rounded; cumulatives stay full.
+		from decimal import Decimal
+
+		due_full = Decimal(str(cum_gross)) * Decimal(str(rate))
+		delta_full = due_full - Decimal(str(ytd_tax))
+		by_code[code] = {
+			"tax_rate": rate,
+			"cumulative_due": round_half_up(due_full),
+			"cumulative_due_full": due_full,
+			"tax_amount": round_half_up(delta_full),
+			"tax_amount_full": delta_full,
+		}
+		total += delta_full
 
 	return {
-		"tax_amount": total,
+		"tax_amount": round_half_up(total),
 		"determinant": determinant,
 		"projected_annual": annualized,
 		"by_code": by_code,
