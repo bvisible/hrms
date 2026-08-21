@@ -354,3 +354,35 @@ class TestQstDaysInPeriod(unittest.TestCase):
 			"relieving_date": None,
 		}
 		self.assertEqual(qst_days_in_period(employee, "2026-06-01", "2026-06-30"), 15)
+
+
+class TestAvsChecksum(unittest.TestCase):
+	"""EAN-13 validation of Swiss AVS numbers (756.XXXX.XXXX.XX)."""
+
+	def _valid(self, avs):
+		from hrms.regional.switzerland.employee_wizard import is_valid_avs_number
+
+		return is_valid_avs_number(avs)
+
+	def test_official_example_is_valid(self):
+		# The classic documentation example 756.1234.5678.97
+		self.assertTrue(self._valid("756.1234.5678.97"))
+
+	def test_plain_digits_accepted(self):
+		self.assertTrue(self._valid("7561234567897"))
+
+	def test_wrong_check_digit_rejected(self):
+		self.assertFalse(self._valid("756.1234.5678.96"))
+
+	def test_wrong_prefix_rejected(self):
+		self.assertFalse(self._valid("757.1234.5678.90"))
+
+	def test_wrong_length_rejected(self):
+		self.assertFalse(self._valid("756.1234.5678"))
+		self.assertFalse(self._valid(""))
+		self.assertFalse(self._valid(None))
+
+	def test_formatting(self):
+		from hrms.regional.switzerland.employee_wizard import format_avs_number
+
+		self.assertEqual(format_avs_number("7561234567897"), "756.1234.5678.97")
