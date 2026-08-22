@@ -2211,3 +2211,43 @@ Employee wizard,Assistant employé,
 Payroll cycle,Cycle de paie,
 "Set up Swiss payroll (insurances, source tax, first cycle)","Configurer la paie suisse (assurances, impôt à la source, premier cycle)",
 Swiss Payroll,Paie suisse,
+"<h3>Swiss Social Insurances</h3>
+
+AVS, AC, LAA, LPP, IJM and family allowance rates for your company (per canton when needed) — plus the employer IBAN/BIC used to build the salary payment file. One config per company is enough to start.","<h3>Assurances sociales suisses</h3>
+
+Les taux AVS, AC, LAA, LPP, IJM et allocations familiales de votre société (par canton si besoin) — plus l'IBAN/BIC employeur utilisé pour le fichier de paiement des salaires. Une configuration par société suffit pour démarrer.",""
+"<h3>Source Tax Tariffs (ESTV)</h3>
+
+The setup assistant downloads the official federal tariff files and imports the brackets for the cantons where your employees are taxed at source. Import at least the cantons you need — the payroll cycle checks they are present.","<h3>Barèmes de l'impôt à la source (AFC)</h3>
+
+L'assistant de configuration télécharge les fichiers officiels fédéraux et importe les tranches pour les cantons où vos employés sont imposés à la source. Importez au moins vos cantons — le cycle de paie vérifie leur présence.",""
+"<h3>Swiss Wage Types</h3>
+
+The catalog of Swissdec wage kinds (base salary, 13th month, source tax…) is seeded on install and drives how each salary component is treated. Review it once — you rarely need to change it.","<h3>Types de salaire suisses</h3>
+
+Le catalogue des genres de salaire Swissdec (salaire de base, 13e, impôt à la source…) est installé d'office et détermine le traitement de chaque composant. Passez-le en revue une fois — il change rarement.",""
+"<h3>Salary Structure</h3>
+
+Assemble the Swiss components — AVS, AC, LAA, LPP, IJM, source tax — into the structure your employees will be paid with. The Swiss components are created on install; the structure just puts them together.","<h3>Grille des salaires</h3>
+
+Assemblez les composants suisses — AVS, AC, LAA, LPP, IJM, impôt à la source — dans la grille avec laquelle vos employés seront payés. Les composants sont créés à l'installation ; la grille ne fait que les réunir.",""
+"<h3>Swiss Employee Wizard</h3>
+
+Five steps: identity, contract, permit, source tax, review. The AVS number is checked as you type, and the source-tax code is suggested from the permit and canton.","<h3>Assistant employé suisse</h3>
+
+Cinq étapes : identité, contrat, permis, impôt à la source, récapitulatif. Le numéro AVS est vérifié pendant la saisie et le code tarifaire est proposé selon le permis et le canton.",""
+"<h3>Salary Structure Assignment</h3>
+
+Link each employee to the salary structure with their base salary and start date. The monthly cycle only generates slips for employees with a submitted assignment.","<h3>Attribution de la structure salariale</h3>
+
+Reliez chaque employé à la grille avec son salaire de base et sa date d'effet. Le cycle mensuel ne génère de fiche que pour les employés dont l'attribution est soumise.",""
+"<h3>Monthly Payroll Cycle</h3>
+
+Analyse the month (the preflight lists anything missing), generate the slips, submit them, then download the pain.001 bank file for your e-banking.","<h3>Cycle de paie mensuel</h3>
+
+Analysez le mois (les contrôles listent ce qui manque), générez les fiches, soumettez-les, puis téléchargez le fichier bancaire pain.001 pour votre e-banking.",""
+"<h3>Swiss Payroll</h3>
+
+Opens the Swiss payroll workspace: it carries its own checklist — social insurances, source-tax tariffs, salary structure and the first monthly cycle.","<h3>Paie suisse</h3>
+
+Ouvre le workspace Paie suisse : il porte sa propre liste de premiers pas — assurances sociales, barèmes IS, grille des salaires et premier cycle mensuel.",""
