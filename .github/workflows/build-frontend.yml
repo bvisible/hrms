@@ -1,9 +1,11 @@
 name: build-frontend
 
 on:
+  workflow_dispatch:
   push:
     branches: [version-15]
     paths:
+      - '.github/workflows/build-frontend.yml'
       - 'frontend/**'
       - 'roster/**'
       - 'package.json'
@@ -48,9 +50,12 @@ jobs:
           mkdir -p ../../sites
           echo '{"socketio_port": 9000}' > ../../sites/common_site_config.json
 
-      # Root build script: yarn build-pwa && yarn build-roster (both vite)
+      # Root build script: yarn build-pwa && yarn build-roster (both vite).
+      # build:force bypasses the artifacts-present gate — that gate protects
+      # 4GB client instances from OOM, but CI is exactly where a rebuild must
+      # happen when sources change (upstream merges included).
       - name: Build
-        run: yarn build
+        run: yarn build:force
 
       - name: Commit artifacts
         run: |
