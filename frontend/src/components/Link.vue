@@ -57,13 +57,23 @@ const options = createResource({
 	},
 	method: "POST",
 	transform: (data) => {
-		return data.map((doc) => {
-			const title = doc?.description?.split(",")?.[0]
+		const mapped = data.map((doc) => {
+			let title = null
+			if (doc.label && doc.label !== doc.value){
+				title = doc.label
+			} else if (doc.description) {
+				title = doc.description.split(",")[0]
+			}
 			return {
 				label: title ? `${title} : ${doc.value}` : doc.value,
 				value: doc.value,
 			}
 		})
+
+		if (props.modelValue && !mapped.find((o) => o.value === props.modelValue)) {
+			mapped.unshift({ label: props.modelValue, value: props.modelValue })
+		}
+		return mapped
 	},
 })
 
@@ -95,5 +105,25 @@ watch(
 		reloadOptions(props.modelValue)
 	},
 	{ immediate: true }
+)
+
+watch(
+	() => props.filters,
+	() => reloadOptions(''),
+)
+
+watch(
+	() => props.modelValue,
+	(newVal, oldVal) => {
+		if (!newVal && oldVal) {
+			// value cleared — reload so the dropdown shows the full default list
+			searchText.value = ""
+			reloadOptions("")
+		} else if (newVal && newVal !== oldVal) {
+			// reload so transform can inject it if it's outside the default page
+			const inOptions = (options.data || []).find((o) => o.value === newVal)
+			if (options.data && !inOptions) reloadOptions("")
+		}
+	}
 )
 </script>

@@ -429,6 +429,41 @@ class TestPayrollEntry(FrappeTestCase):
 		journal_entries = get_linked_journal_entries(payroll_entry.name, docstatus=2)
 		self.assertEqual(len(journal_entries), 2)
 
+	def test_payroll_entry_cancellation_with_hr_manager(self):
+		company_doc = frappe.get_doc("Company", "_Test Company")
+		employee = make_employee("test_hr_manager_employee@payroll.com", company=company_doc.name)
+
+		setup_salary_structure(employee, company_doc)
+		dates = get_start_end_dates("Monthly", nowdate())
+		payroll_entry = make_payroll_entry(
+			start_date=dates.start_date,
+			end_date=dates.end_date,
+			payable_account=company_doc.default_payroll_payable_account,
+			currency=company_doc.default_currency,
+			company=company_doc.name,
+			cost_center="Main - _TC",
+			payment_account="Cash - _TC",
+		)
+
+		hr_user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test_hr_manager@payroll.com",
+				"first_name": "Test HR Manager",
+				"enabled": 1,
+			}
+		).insert(ignore_if_duplicate=True)
+		hr_user.add_roles("HR Manager")
+		frappe.set_user(hr_user.name)
+
+		payroll_entry.submit()
+		self.assertEqual(payroll_entry.status, "Submitted")
+
+		payroll_entry.cancel()
+		self.assertEqual(payroll_entry.status, "Cancelled")
+
+		frappe.set_user("Administrator")
+
 	def test_payroll_entry_status(self):
 		company_doc = frappe.get_doc("Company", "_Test Company")
 		employee = make_employee("test_employee@payroll.com", company=company_doc.name)
