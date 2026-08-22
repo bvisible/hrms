@@ -41,3 +41,23 @@ def execute():
 			frappe.db.set_value(
 				"Workspace", name, {"parent_page": parent, "sequence_id": sequence}, update_modified=False
 			)
+
+	# Onboarding widgets: the workspace content sync and user-side edits can
+	# drop the onboarding block; re-assert it on both workspaces. Idempotent.
+	onboarding_blocks = {
+		"Swiss Payroll": ("swiss_onboarding", "Swiss Payroll"),
+		"HR": ("hr_onboarding", "Human Resource"),
+	}
+	for workspace, (block_id, onboarding_name) in onboarding_blocks.items():
+		if not frappe.db.exists("Workspace", workspace):
+			continue
+		ws_content = json.loads(frappe.db.get_value("Workspace", workspace, "content") or "[]")
+		if any(b.get("type") == "onboarding" for b in ws_content):
+			continue
+		ws_content.insert(
+			0,
+			{"id": block_id, "type": "onboarding", "data": {"onboarding_name": onboarding_name, "col": 12}},
+		)
+		frappe.db.set_value(
+			"Workspace", workspace, "content", json.dumps(ws_content), update_modified=False
+		)
