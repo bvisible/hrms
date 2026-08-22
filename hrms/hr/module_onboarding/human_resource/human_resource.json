@@ -13,7 +13,7 @@
  "documentation_url": "neoffice.io/help",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-08-22 12:30:00.000000",
+ "modified": "2026-08-22 16:50:00.000000",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "Human Resource",
@@ -26,10 +26,10 @@
    "step": "Create Holiday list"
   },
   {
-   "step": "Add Your First Swiss Employee"
+   "step": "Data import"
   },
   {
-   "step": "Data import"
+   "step": "Add Your First Swiss Employee"
   },
   {
    "step": "Create Leave Type"
