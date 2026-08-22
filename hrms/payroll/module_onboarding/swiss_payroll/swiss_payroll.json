@@ -1,0 +1,47 @@
+{
+ "allow_roles": [
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "HR User"
+  }
+ ],
+ "creation": "2026-08-22 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "documentation_url": "https://github.com/bvisible/hrms/blob/version-15/hrms/regional/switzerland/README.md",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2026-08-22 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payroll",
+ "name": "Swiss Payroll",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "step": "Configure Swiss Social Insurances"
+  },
+  {
+   "step": "Import Swiss Source Tax Tariffs"
+  },
+  {
+   "step": "Review Swiss Wage Types"
+  },
+  {
+   "step": "Create a Swiss Salary Structure"
+  },
+  {
+   "step": "Add Your First Swiss Employee"
+  },
+  {
+   "step": "Assign a Swiss Salary Structure"
+  },
+  {
+   "step": "Run Your First Swiss Payroll Cycle"
+  }
+ ],
+ "subtitle": "Social insurances, source tax, wage types, first payroll run.",
+ "success_message": "Swiss payroll is ready \u2014 slips, source tax, certificates and payment files all run from here!",
+ "title": "Let's set up Swiss payroll."
+}

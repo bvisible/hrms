@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Actions</b></span>\", \"col\": 12}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"New Employee (Wizard)\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Monthly Payroll Cycle\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Year-End & Certificates\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payroll Setup Assistant\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Employees\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salary Slips\", \"col\": 3}}, {\"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Menu</b></span>\", \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Employees & Source Tax\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Monthly Payroll\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Certificates & Year-End\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Swissdec\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Swiss Configuration\", \"col\": 4}}]",
+ "content": "[{\"id\": \"swiss_onboarding\", \"type\": \"onboarding\", \"data\": {\"onboarding_name\": \"Swiss Payroll\", \"col\": 12}}, {\"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Actions</b></span>\", \"col\": 12}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"New Employee (Wizard)\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Monthly Payroll Cycle\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Year-End & Certificates\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payroll Setup Assistant\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Employees\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Salary Slips\", \"col\": 3}}, {\"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Menu</b></span>\", \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Employees & Source Tax\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Monthly Payroll\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Certificates & Year-End\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Swissdec\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Swiss Configuration\", \"col\": 4}}]",
  "creation": "2026-08-21 16:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -219,7 +219,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-21 16:00:00.000000",
+ "modified": "2026-08-22 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "Swiss Payroll",

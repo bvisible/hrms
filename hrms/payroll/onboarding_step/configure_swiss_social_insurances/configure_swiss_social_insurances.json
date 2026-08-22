@@ -1,0 +1,19 @@
+{
+ "action": "Create Entry",
+ "creation": "2026-08-22 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-08-22 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Configure Swiss Social Insurances",
+ "owner": "Administrator",
+ "reference_document": "Swiss Social Insurance Config",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Configure the Swiss social insurances (AVS, AC, LAA, LPP)",
+ "validate_action": 1
+}

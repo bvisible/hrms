@@ -14,6 +14,27 @@ This creates:
 - Custom fields on Employee (permit type, fiscal canton, AVS number), Company (default config link, employer cost account), and Salary Component (is_employer_contribution, linked_component)
 - A default Salary Structure "Swiss Payroll - Standard" with all deduction components pre-configured
 
+## First-Time Setup
+
+The guided checklist lives in the product: open the **Swiss Payroll** workspace —
+the onboarding widget walks through the whole first-time flow, and each step
+opens the right screen:
+
+1. **Swiss Social Insurance Config** — AVS/AC/LAA/LPP/IJM rates per company
+   (+ canton), and the employer IBAN/BIC for salary payment files.
+2. **Import source tax tariffs** — the setup assistant downloads the ESTV
+   barèmes for the cantons you need.
+3. **Review the wage types catalog** (Swissdec kinds, seeded on install).
+4. **Create a salary structure** from the Swiss components.
+5. **Add employees** through the Swiss employee wizard (AVS checksum, permit,
+   suggested source-tax code).
+6. **Assign the salary structure**, then
+7. **Run the first monthly cycle** — preflight, slips, submission, pain.001.
+
+The HR workspace carries the generic HR onboarding (settings, holiday list,
+leaves) and ends with a bridge step into Swiss payroll. Interactive NORA Learn
+tutorials cover the same flow on the fleet.
+
 ## Configuration
 
 ### Swiss Social Insurance Config

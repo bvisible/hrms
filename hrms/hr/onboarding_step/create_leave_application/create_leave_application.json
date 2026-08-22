@@ -1,5 +1,5 @@
 {
- "action": "Show Form Tour",
+ "action": "Create Entry",
  "action_label": "Show Tour",
  "creation": "2020-05-14 11:49:45.400764",
  "description": "<h3>Leave Application</h3>\n\nLeave Application is a formal document created by an Employee to apply for Leaves for a particular time period based on there leave allocation and leave type according to there need.",
@@ -9,13 +9,13 @@
  "is_complete": 0,
  "is_single": 0,
  "is_skipped": 0,
- "modified": "2021-05-19 04:39:09.893474",
+ "modified": "2026-08-22 12:45:00.000000",
  "modified_by": "Administrator",
  "name": "Create Leave Application",
  "owner": "Administrator",
  "reference_document": "Leave Application",
  "show_form_tour": 0,
- "show_full_form": 0,
+ "show_full_form": 1,
  "title": "Create Leave Application",
  "validate_action": 0
 }

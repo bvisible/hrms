@@ -1,5 +1,5 @@
 {
- "action": "Show Form Tour",
+ "action": "Create Entry",
  "action_label": "Show Tour",
  "creation": "2020-05-27 11:17:31.119312",
  "description": "<h3>Leave Type</h3>\n\nLeave type is defined based on many factors and features like encashment, earned leaves, partially paid, without pay and, a lot more. To check other options and to define your leave type click on Show Tour.",
@@ -9,7 +9,7 @@
  "is_complete": 0,
  "is_single": 0,
  "is_skipped": 0,
- "modified": "2021-05-19 04:32:48.135406",
+ "modified": "2026-08-22 12:45:00.000000",
  "modified_by": "Administrator",
  "name": "Create Leave Type",
  "owner": "Administrator",
