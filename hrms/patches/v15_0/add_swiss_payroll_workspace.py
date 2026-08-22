@@ -24,11 +24,11 @@ def execute():
 		else:
 			frappe.get_doc(data).insert(ignore_permissions=True)
 
-	# Sidebar hierarchy: Swiss Payroll first, generic Payroll nested under
-	# it, secondary HR workspaces nested under HR.
+	# Sidebar hierarchy: ONE root (HR), Swiss Payroll nested right under it,
+	# generic Payroll under Swiss Payroll, secondary HR workspaces under HR.
 	moves = {
-		"Swiss Payroll": ("", 29),
-		"HR": ("", 30),
+		"HR": ("", 29),
+		"Swiss Payroll": ("HR", 30),
 		"Payroll": ("Swiss Payroll", 31),
 		"Leaves and Attendance": ("HR", 32),
 		"Expense Claims": ("HR", 33),

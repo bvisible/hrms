@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Quick Access</b></span>\", \"col\": 12}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"HR Dashboard\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Employee\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Leave Application\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Attendance\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Expense Claim\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Expense Claims Dashboard\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Recruitment Dashboard\", \"col\": 3}}, {\"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Menu</b></span>\", \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Employee\", \"col\": 4, \"items\": [{\"type\": \"Link\", \"link_type\": \"DocType\", \"link_to\": \"Employee Health Insurance\", \"label\": \"Employee Health Insurance\"}, {\"type\": \"Link\", \"link_type\": \"DocType\", \"link_to\": \"Identification Document Type\", \"label\": \"Identification Document Type\"}]}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Leaves\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Attendance\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Expense Claim\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Lifecycle\", \"col\": 4, \"items\": [{\"type\": \"Link\", \"link_type\": \"DocType\", \"link_to\": \"Skill\", \"label\": \"Skill\"}, {\"type\": \"Link\", \"link_type\": \"DocType\", \"link_to\": \"Interest\", \"label\": \"Interest\"}]}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Daily Work Summary\", \"col\": 4}}]",
+ "content": "[{\"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Quick Access</b></span>\", \"col\": 12}}, {\"id\": \"sc_swiss_payroll\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Swiss Payroll\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"HR Dashboard\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Employee\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Leave Application\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Attendance\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Expense Claim\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Expense Claims Dashboard\", \"col\": 3}}, {\"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Recruitment Dashboard\", \"col\": 3}}, {\"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Menu</b></span>\", \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Employee\", \"col\": 4, \"items\": [{\"type\": \"Link\", \"link_type\": \"DocType\", \"link_to\": \"Employee Health Insurance\", \"label\": \"Employee Health Insurance\"}, {\"type\": \"Link\", \"link_type\": \"DocType\", \"link_to\": \"Identification Document Type\", \"label\": \"Identification Document Type\"}]}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Leaves\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Attendance\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Expense Claim\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Lifecycle\", \"col\": 4, \"items\": [{\"type\": \"Link\", \"link_type\": \"DocType\", \"link_to\": \"Skill\", \"label\": \"Skill\"}, {\"type\": \"Link\", \"link_type\": \"DocType\", \"link_to\": \"Interest\", \"label\": \"Interest\"}]}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Daily Work Summary\", \"col\": 4}}]",
  "creation": "2026-02-03 15:35:05.970922",
  "custom_blocks": [],
  "docstatus": 0,
@@ -336,7 +336,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-22 12:30:00.000000",
+ "modified": "2026-08-22 15:20:00.000000",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "HR",
@@ -348,6 +348,16 @@
  "roles": [],
  "sequence_id": 30.0,
  "shortcuts": [
+  {
+   "color": "Red",
+   "doc_view": "",
+   "label": "Swiss Payroll",
+   "parent": "HR",
+   "parentfield": "shortcuts",
+   "parenttype": "Workspace",
+   "type": "URL",
+   "url": "/app/swiss-payroll"
+  },
   {
    "doc_view": "",
    "label": "HR Dashboard",
