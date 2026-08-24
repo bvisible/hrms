@@ -2197,7 +2197,7 @@ Cannot generate the payment file:,Impossible de générer le fichier de paiement
 No submitted salary slip found for {0}-{1}.,Aucune fiche de salaire soumise trouvée pour {0}-{1}.,
 Let's set up Swiss payroll.,Configurons la paie suisse.,
 "Social insurances, source tax, wage types, first payroll run.","Assurances sociales, impôt à la source, types de salaire, premier cycle de paie.",
-Swiss payroll is ready — slips, source tax, certificates and payment files all run from here!,La paie suisse est prête — fiches, impôt à la source, certificats et fichiers de paiement se pilotent d'ici !,
+"Swiss payroll is ready — slips, source tax, certificates and payment files all run from here!","La paie suisse est prête — fiches, impôt à la source, certificats et fichiers de paiement se pilotent d'ici !",
 "Configure the Swiss social insurances (AVS, AC, LAA, LPP)","Configurer les assurances sociales suisses (AVS, AC, LAA, LPP)",
 Import the source tax tariffs (ESTV barèmes),Importer les barèmes de l'impôt à la source (AFC),
 Review the Swiss wage types catalog,Passer en revue le catalogue des types de salaire suisses,
