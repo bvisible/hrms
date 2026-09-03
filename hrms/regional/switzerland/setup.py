@@ -17,8 +17,17 @@ from hrms.setup import delete_custom_fields
 
 #//// Neoffice — frappe calls setup_wizard_complete hooks with the wizard's args; setup() takes none (TypeError in the wizard, CI). This wrapper takes them (7501dab6e "fix(install): the setup_wizard_complete hook receives the wizard args")
 def setup_after_wizard(args=None):
-	"""setup_wizard_complete hook: frappe passes the wizard's args, setup() takes none."""
-	setup()
+	"""setup_wizard_complete hook: provision the Swiss payroll for a Swiss company only.
+
+	frappe passes the wizard's args. The wage types, salary components and salary structure
+	are Swiss by nature (like erpnext's regional setups, keyed on the company country); a
+	company set up elsewhere — the test wizard creates an Indian one — must not get them.
+	"""
+	country = (args or {}).get("country") if isinstance(args, dict) else getattr(args, "country", None)
+	if not country:
+		country = frappe.db.get_value("Company", frappe.defaults.get_global_default("company"), "country")
+	if country == "Switzerland":
+		setup()
 
 
 def setup():
