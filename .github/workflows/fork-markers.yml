@@ -1,0 +1,31 @@
+name: Fork markers
+# Every push to version-15 is checked for `//// Neoffice` markers: a hunk that changes
+# code we did not write without saying why gets its marker written by Sonnet from the
+# commit message (comment-only, verified, pushed back by neoffice-fork-bot), and what
+# stays unmarked turns the run red. Mechanics: bvisible/neoffice-ci fork-markers.yml.
+on:
+  push:
+    branches: [version-15]
+  workflow_dispatch:
+    inputs:
+      base:
+        description: "older commit of the range (default: the push's before)"
+        required: false
+        default: ""
+      head:
+        description: "newer commit (default: the pushed sha)"
+        required: false
+        default: ""
+permissions:
+  contents: write
+concurrency:
+  group: fork-markers-${{ github.ref }}
+jobs:
+  markers:
+    # the bots' own pushes (built assets, translations, the marker commits) are never marked
+    if: github.actor != 'neoffice-fork-bot' && github.actor != 'neoffice-i18n-bot' && github.actor != 'github-actions[bot]'
+    uses: bvisible/neoffice-ci/.github/workflows/fork-markers.yml@main
+    with:
+      base: ${{ inputs.base || '' }}
+      head: ${{ inputs.head || '' }}
+    secrets: inherit
