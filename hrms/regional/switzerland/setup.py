@@ -15,6 +15,7 @@ from hrms.regional.switzerland.constants import (
 from hrms.setup import delete_custom_fields
 
 
+#//// Neoffice — frappe calls setup_wizard_complete hooks with the wizard's args; setup() takes none (TypeError in the wizard, CI). This wrapper takes them (7501dab6e "fix(install): the setup_wizard_complete hook receives the wizard args")
 def setup_after_wizard(args=None):
 	"""setup_wizard_complete hook: frappe passes the wizard's args, setup() takes none."""
 	setup()
