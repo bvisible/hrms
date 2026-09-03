@@ -1,0 +1,21 @@
+name: Upstream preview
+# Weekly measurement for the fork upgrade (tracker #138): the SAME tests, but the
+# bench is initialised on UPSTREAM frappe/frappe + frappe/erpnext (version-15)
+# instead of our forks. Failures land in a separate [CI amont] issue (key
+# ci-upstream::) and never touch the normal [CI] issue of this repo.
+on:
+  schedule:
+    - cron: "59 5 * * 1"
+  workflow_dispatch:
+concurrency:
+  group: upstream-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ci:
+    uses: bvisible/neoffice-ci/.github/workflows/frappe-app-ci.yml@main
+    with:
+      app: hrms
+      install_apps: erpnext
+      skip_build: true
+      upstream_preview: true
+    secrets: inherit
