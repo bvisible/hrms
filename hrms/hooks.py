@@ -100,20 +100,25 @@ jinja = {
 # ------------
 
 # before_install = "hrms.install.before_install"
-#//// Neoffice — the Swiss payroll module (regional/switzerland) creates its Custom Fields, wage
-#//// types, salary components and structure in setup(); until 2026-09-03 nothing called it at
-#//// install (only patches, which install-app marks as done without running), so a fresh site had
-#//// no Salary Component.is_employer_contribution and every payroll query died (CI). Idempotent.
+#//// Neoffice — the Swiss payroll module (regional/switzerland) used to be provisioned by patches
+#//// only, which install-app marks as done without running: a fresh site had no
+#//// Salary Component.is_employer_contribution and every payroll query died (CI, 2026-09-03).
+#//// The Custom Fields need nothing and are created at install; the wage types, salary
+#//// components and salary structure need a company and are created when the setup wizard
+#//// completes (setup_wizard_complete below). Both are idempotent.
 after_install = [
 	"hrms.install.after_install",
-	"hrms.regional.switzerland.setup.setup",
+	"hrms.regional.switzerland.setup.make_custom_fields",
 ]
 after_migrate = [
 	"hrms.setup.update_select_perm_after_install",
 	"hrms.regional.switzerland.setup.ensure_swiss_workspace_hierarchy",
 ]
 
-setup_wizard_complete = "hrms.subscription_utils.update_erpnext_access"
+setup_wizard_complete = [
+	"hrms.subscription_utils.update_erpnext_access",
+	"hrms.regional.switzerland.setup.setup",  #//// Neoffice — see after_install above
+]
 
 # Uninstallation
 # ------------
