@@ -15,6 +15,11 @@ from hrms.regional.switzerland.constants import (
 from hrms.setup import delete_custom_fields
 
 
+def setup_after_wizard(args=None):
+	"""setup_wizard_complete hook: frappe passes the wizard's args, setup() takes none."""
+	setup()
+
+
 def setup():
 	make_custom_fields()
 	create_swiss_wage_types()

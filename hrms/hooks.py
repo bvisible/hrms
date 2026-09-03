@@ -117,7 +117,7 @@ after_migrate = [
 
 setup_wizard_complete = [
 	"hrms.subscription_utils.update_erpnext_access",
-	"hrms.regional.switzerland.setup.setup",  #//// Neoffice — see after_install above
+	"hrms.regional.switzerland.setup.setup_after_wizard",  #//// Neoffice — see after_install above
 ]
 
 # Uninstallation
