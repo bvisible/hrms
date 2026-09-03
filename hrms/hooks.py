@@ -100,7 +100,14 @@ jinja = {
 # ------------
 
 # before_install = "hrms.install.before_install"
-after_install = "hrms.install.after_install"
+#//// Neoffice — the Swiss payroll module (regional/switzerland) creates its Custom Fields, wage
+#//// types, salary components and structure in setup(); until 2026-09-03 nothing called it at
+#//// install (only patches, which install-app marks as done without running), so a fresh site had
+#//// no Salary Component.is_employer_contribution and every payroll query died (CI). Idempotent.
+after_install = [
+	"hrms.install.after_install",
+	"hrms.regional.switzerland.setup.setup",
+]
 after_migrate = [
 	"hrms.setup.update_select_perm_after_install",
 	"hrms.regional.switzerland.setup.ensure_swiss_workspace_hierarchy",
