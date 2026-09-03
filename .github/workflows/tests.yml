@@ -5,8 +5,8 @@ name: Tests
 # Nightly + PR + on demand — not on push: the upstream CI and the build bot
 # already run there, a second run per bot commit would only add noise.
 on:
-  schedule:
-    - cron: "59 4 * * *"
+  # nightly paused on 2026-09-03 until #203 is treated (known red: every night mailed a failure);
+  # run on demand or on a PR meanwhile, and put the cron back when the issue closes.
   pull_request:
   workflow_dispatch:
     inputs:
