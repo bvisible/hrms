@@ -48,6 +48,8 @@ def before_tests():
 
 		for rec in frappe.get_test_records("Company")[:2]:
 			try:
+				#//// Neoffice — use the v15 savepoint API in this diagnostic
+				#//// (b186bfc3b "test: v15 savepoint API in the before_tests diagnostic")
 				frappe.db.savepoint("diag_company")
 				d = frappe.get_doc(rec)
 				d.insert(ignore_if_duplicate=True)
@@ -55,6 +57,8 @@ def before_tests():
 			except Exception:
 				print("HRMS diag: test company FAILED ->", rec.get("company_name"), "\n", traceback.format_exc()[-2500:])
 			finally:
+				#//// Neoffice — v15 savepoint API in the before_tests diagnostic
+				#//// (b186bfc3b "test: v15 savepoint API in the before_tests diagnostic")
 				frappe.db.rollback(save_point="diag_company")
 
 	enable_all_roles_and_domains()
