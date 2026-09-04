@@ -15,6 +15,7 @@ from hrms.regional.switzerland.constants import (
 )
 from hrms.regional.switzerland.utils import (
 	_build_rate_dict,
+	get_employee_age,  #//// Neoffice — added with TestGetEmployeeAge at the end of the file.
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
 	calculate_lpp_coordinated_salary,
@@ -468,3 +469,28 @@ class TestYearlyConstants(unittest.TestCase):
 
 		# 90'000 gross, 2026 vintage: min(90'000, cap logic) - 26'460
 		self.assertEqual(calculate_lpp_coordinated_salary(90_000, year=2026), 63_540)
+
+
+#//// Neoffice — tests of an added file (no upstream equivalent).
+class TestGetEmployeeAge(unittest.TestCase):
+	"""The BVG projection used to pass the year as an int; getdate() answers None to that."""
+
+	EMPLOYEE = {"date_of_birth": "1985-03-10"}
+
+	def test_age_at_the_end_of_the_year(self):
+		self.assertEqual(get_employee_age(self.EMPLOYEE, "2026-12-31"), 41)
+
+	def test_age_before_the_birthday(self):
+		self.assertEqual(get_employee_age(self.EMPLOYEE, "2026-01-31"), 40)
+
+	def test_age_on_the_birthday(self):
+		self.assertEqual(get_employee_age(self.EMPLOYEE, "2026-03-10"), 41)
+
+	def test_no_date_of_birth(self):
+		self.assertEqual(get_employee_age({}, "2026-12-31"), 0)
+
+	def test_an_unusable_reference_date_says_so(self):
+		"""An int year used to reach reference_date.year as None: AttributeError, pointing at
+		the wrong line. It names the value it was given now."""
+		with self.assertRaises(ValueError):
+			get_employee_age(self.EMPLOYEE, 2026)

@@ -227,7 +227,13 @@ def get_employee_age(employee, reference_date=None):
 	if not date_of_birth:
 		return 0
 
-	reference_date = getdate(reference_date) if reference_date else getdate(today())
+	#//// Neoffice — getdate() answers None for anything it cannot parse — an int year, say —
+	#//// and reference_date.year below then died with an AttributeError pointing at this line
+	#//// instead of at the caller that passed the wrong thing. Name what was passed.
+	parsed = getdate(reference_date) if reference_date else getdate(today())
+	if parsed is None:
+		raise ValueError(f"get_employee_age: unusable reference date {reference_date!r}")
+	reference_date = parsed
 	date_of_birth = getdate(date_of_birth)
 
 	age = reference_date.year - date_of_birth.year

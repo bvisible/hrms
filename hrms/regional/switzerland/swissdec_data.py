@@ -592,7 +592,12 @@ def get_bvg_projection_data(employee, company, year, base_month=1, has_thirteent
 		projected_annual = override
 
 	# Calculate LPP coordinated salary from projected annual
-	employee_age = get_employee_age(employee, year)
+	#//// Neoffice — was get_employee_age(employee, year), with year an int: getdate(2026)
+	#//// returns None and the age computation raised AttributeError, so the BVG Jahresmeldung
+	#//// projection died for every employee with a date of birth. 31 December is the LPP
+	#//// convention — the age class is the age reached during the calendar year — and it is
+	#//// what the other two call sites of this module already pass.
+	employee_age = get_employee_age(employee, f"{cint(year)}-12-31")
 	lpp_coordinated = calculate_lpp_coordinated_salary(projected_annual, config)
 
 	# Build a projection summary (compatible with standard salary data format)
