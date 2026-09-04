@@ -31,6 +31,15 @@ from hrms.regional.switzerland.source_tax import (
 from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
 
 
+#//// Neoffice — added. Every endpoint below reads payroll through frappe.get_all, which bypasses
+#//// the permission layer entirely: without this gate any authenticated account — a portal
+#//// Website User included — could list the employees, their gross and their net for a period.
+#//// Hiding the desk page is not a permission; the whitelisted API is the boundary.
+def _check_payroll_read_permission():
+	"""Refuse anyone who may not read Salary Slips (frappe.get_all ignores permissions)."""
+	frappe.has_permission("Salary Slip", "read", throw=True)
+
+
 def _period_bounds(year, month):
 	year, month = int(year), int(month)
 	start = date(year, month, 1)
@@ -73,6 +82,8 @@ def preflight(company, year, month):
 
 	Issue levels: "error" blocks generation, "warning" is informational.
 	"""
+	#//// Neoffice — permission gate, see _check_payroll_read_permission.
+	_check_payroll_read_permission()
 	start, end = _period_bounds(year, month)
 	issues = []
 	employees = []
@@ -222,6 +233,11 @@ def generate(company, year, month, employees=None):
 	Args:
 		employees: optional JSON list of employee IDs to restrict to.
 	"""
+	#//// Neoffice — permission gate: this one WRITES slips, so it asks for create on Salary Slip.
+	#//// slip.insert() would have refused anyway, but not before _active_employees() had already
+	#//// leaked the staff list and the failures had named every employee.
+	_check_payroll_read_permission()
+	frappe.has_permission("Salary Slip", "create", throw=True)
 	import json
 
 	start, end = _period_bounds(year, month)
@@ -275,6 +291,8 @@ def generate(company, year, month, employees=None):
 @frappe.whitelist()
 def summary(company, year, month):
 	"""Period totals per employee and per component, for the review step."""
+	#//// Neoffice — permission gate, see _check_payroll_read_permission.
+	_check_payroll_read_permission()
 	start, _end = _period_bounds(year, month)
 
 	slips = frappe.get_all(
@@ -316,6 +334,9 @@ def summary(company, year, month):
 @frappe.whitelist()
 def submit_cycle(company, year, month):
 	"""Submit every draft Salary Slip of the period."""
+	#//// Neoffice — permission gate: submitting is a write, so it asks for submit on Salary Slip.
+	_check_payroll_read_permission()
+	frappe.has_permission("Salary Slip", "submit", throw=True)
 	start, _end = _period_bounds(year, month)
 
 	drafts = frappe.get_all(

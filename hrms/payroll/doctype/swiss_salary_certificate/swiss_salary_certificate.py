@@ -202,6 +202,14 @@ def get_barcode_data_for_print(name):
 
 	Module-level whitelisted function callable from Jinja print formats.
 	"""
+	#//// Neoffice — permission check added. This is reachable as
+	#//// /api/method/...get_barcode_data_for_print?name=CH-CERT-2026-HR-EMP-00001: unlike the
+	#//// document method above (run_doc_method checks read), a module-level whitelist gets no
+	#//// check at all, and frappe.get_doc never applies one. The payload it returns is the raw
+	#//// TxAB record — AVS number, date of birth, address, every Form 11 position — and the
+	#//// names are enumerable (format:CH-CERT-{fiscal_year}-{employee}). Printing is unaffected:
+	#//// rendering a print format already requires read on the document.
+	frappe.has_permission("Swiss Salary Certificate", "read", doc=name, throw=True)
 	doc = frappe.get_doc("Swiss Salary Certificate", name)
 	return doc.get_barcode_data()
 

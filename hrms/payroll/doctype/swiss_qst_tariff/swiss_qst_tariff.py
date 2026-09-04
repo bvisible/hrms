@@ -10,7 +10,20 @@ from frappe.utils import now_datetime
 
 
 class SwissQSTTariff(Document):
+	#//// Neoffice — moved to before_naming. autoname is format:QST-{canton}-{year}-{tariff_type_abbr}
+	#//// and Document.insert() runs set_new_name() BEFORE run_before_save_methods(), so a tariff
+	#//// created from the desk was named "QST-ZH-2026-" — the abbreviation only landed after the
+	#//// name was frozen. before_naming is invoked from set_new_name(), i.e. early enough.
+	#//// Kept on before_save too so an edited tariff_type still refreshes the field.
+	def before_naming(self):
+		self.set_tariff_type_abbr()
+
 	def before_save(self):
+		self.set_tariff_type_abbr()
+
+	#//// Neoffice — extracted from before_save so before_naming can call it too (see above).
+	def set_tariff_type_abbr(self):
+		"""ESTV abbreviation of the tariff type: SAL for salary, VSL for other income."""
 		self.tariff_type_abbr = "SAL" if self.tariff_type == "Salaires" else "VSL"
 
 	def on_trash(self):
@@ -20,6 +33,11 @@ class SwissQSTTariff(Document):
 	@frappe.whitelist()
 	def import_from_file(self):
 		"""Parse attached file and bulk-insert bracket rows."""
+		#//// Neoffice — write check added. frappe.handler.run_doc_method only asserts READ before
+		#//// calling a whitelisted document method, and the frappe.db.delete of the brackets below
+		#//// runs before self.save() — so a read-only HR User could destroy a canton's tariff and
+		#//// only then hit the write error. Same reason on fetch_from_estv and activate.
+		self.check_permission("write")
 		if not self.source_file:
 			frappe.throw(_("Please attach a source file first."))
 
@@ -79,6 +97,8 @@ class SwissQSTTariff(Document):
 	@frappe.whitelist()
 	def fetch_from_estv(self):
 		"""Download tariff file from ESTV and import brackets."""
+		#//// Neoffice — write check added, see import_from_file: run_doc_method only checks read.
+		self.check_permission("write")
 		from hrms.regional.switzerland.estv_parser import (
 			bulk_import_tariff_brackets,
 			download_estv_tariff,
@@ -144,6 +164,9 @@ class SwissQSTTariff(Document):
 	@frappe.whitelist()
 	def activate(self):
 		"""Set this tariff as Active and archive previous ones for the same canton/year/type."""
+		#//// Neoffice — write check added, see import_from_file: the db.set_value archiving the
+		#//// sibling tariffs below bypasses permissions, run_doc_method only checks read.
+		self.check_permission("write")
 		tariff_type_abbr = "SAL" if self.tariff_type == "Salaires" else "VSL"
 
 		# Archive any other active tariff for same canton+year+type
@@ -175,6 +198,13 @@ def fetch_all_cantons(year, tariff_type="Salaires"):
 
 	Runs as a background job via frappe.enqueue().
 	"""
+	#//// Neoffice — permission check added. Whitelisted and it enqueued straight away: any
+	#//// authenticated account (a portal Website User included) could wipe and re-import the
+	#//// ESTV brackets of all 26 cantons — the table the payroll withholds from. The job itself
+	#//// runs with ignore_permissions, so the entry point is the only gate. create (not write):
+	#//// the job inserts tariffs. Administrator short-circuits, so the daily scheduled
+	#//// auto_fetch_new_tariffs() still passes.
+	frappe.has_permission("Swiss QST Tariff", "create", throw=True)
 	frappe.enqueue(
 		_fetch_all_cantons_job,
 		queue="long",
