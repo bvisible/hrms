@@ -39,6 +39,8 @@ def before_tests():
 			for row in frappe.get_all("Error Log", fields=["method", "error"], order_by="creation desc", limit=3):
 				print("SETUP WIZARD ERROR LOG:", row.method, "\n", (row.error or "")[-1500:])
 			raise RuntimeError("setup_complete left no Company — see the Error Log lines above")
+		print("HRMS before_tests: companies =", frappe.get_all("Company", fields=["name", "abbr", "country", "default_currency"]))
+		print("HRMS before_tests: default company =", frappe.db.get_single_value("Global Defaults", "default_company"), "| user default =", frappe.defaults.get_user_default("Company"))
 
 	enable_all_roles_and_domains()
 	set_defaults()
