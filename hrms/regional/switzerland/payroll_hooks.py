@@ -6,7 +6,9 @@
 import frappe
 from frappe.utils import cint, flt
 
-from hrms.regional.switzerland.constants import RATE_BASED_COMPONENTS
+#//// Neoffice — BASE_SALARY_WAGE_TYPE_CODES added: hourly, per-lesson and weekly pay are
+#//// base pay too, see _is_base_wage_type.
+from hrms.regional.switzerland.constants import BASE_SALARY_WAGE_TYPE_CODES, RATE_BASED_COMPONENTS
 from hrms.regional.switzerland.source_tax import calculate_source_tax, round_half_up
 from hrms.regional.switzerland.utils import (
 	calculate_ac_contribution,
@@ -39,10 +41,13 @@ def update_swiss_social_contributions(doc, method):
 	# Add 13th month earning if applicable (before computing gross)
 	updated = _add_thirteenth_month_earning(doc, config)
 
-	# Base monthly salary from "Basic" component (used for LPP annualization)
+	#//// Neoffice — the early return that stood here aborted the WHOLE hook whenever no base
+	#//// salary component was found on the slip: an employee paid by the hour (wage type 1005)
+	#//// got no AVS, no AC, no LAA, no IJM and no source tax at all — silently under-deducted,
+	#//// and under-declared. The base is only needed to ANNUALIZE LPP, so only LPP may be
+	#//// skipped for want of it (see below).
+	# Base salary of the month (used for LPP annualization)
 	base_monthly = _get_base_from_earnings(doc)
-	if not base_monthly:
-		return
 
 	# Compute per-insurance-base totals from earnings.
 	# Each earning's Salary Component has ch_subject_to_* flags that determine
@@ -59,7 +64,17 @@ def update_swiss_social_contributions(doc, method):
 	# Update LPP/BVG: annualize using base_monthly * multiplier (13 if 13th enabled)
 	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
 	lpp_multiplier = 13 if thirteenth_mode != "Disabled" else 12
-	updated = _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee) or updated
+	#//// Neoffice — an employee paid by the hour has no fixed monthly base: annualize the
+	#//// LPP-subject earnings actually paid this month, which is what the annualization
+	#//// approximates for a monthly salary anyway. With nothing to annualize at all, skip LPP
+	#//// alone and SAY so — never drop the other contributions, as the early return used to.
+	lpp_base_monthly = base_monthly or flt(bases["lpp_base"])
+	if lpp_base_monthly:
+		updated = (
+			_update_lpp_components(doc, config, lpp_base_monthly, lpp_multiplier, employee) or updated
+		)
+	elif flt(bases["gross_total"]):
+		_warn_no_lpp_base(doc)
 
 	# Update Source Tax (Quellensteuer) if enabled
 	if config.get("qst_enabled") and employee.get("ch_qst_subject"):
@@ -185,14 +200,31 @@ def _get_component_insurance_flags(component_name):
 	return {"avs": avs, "ac": ac, "laa": laa, "ijm": ijm, "lpp": lpp, "imp": imp, "has_flags": has_flags}
 
 
-def _get_base_from_earnings(doc):
-	"""Get the base monthly salary from the slip's earnings.
+def _warn_no_lpp_base(doc):
+	#//// Neoffice — added with the fix above: a contribution that cannot be computed has to be
+	#//// visible. Silence is what let the hourly-employee bug survive — the slip simply came out
+	#//// without LPP and looked normal.
+	"""Report that LPP was skipped for want of a base, instead of dropping it silently."""
+	message = frappe._(
+		"LPP/BVG was not computed for {0}: no base salary could be determined on this slip "
+		"(no earning carries a base wage type, and none is subject to LPP). The other Swiss "
+		"contributions were computed normally."
+	).format(doc.employee)
+	frappe.log_error(
+		"Swiss payroll: no LPP base on a salary slip", f"{doc.name or doc.employee}: {message}"
+	)
+	frappe.msgprint(message, title=frappe._("LPP/BVG skipped"), indicator="orange")
 
-	The base component is identified by its Swissdec wage type (code 1000,
-	monthly salary) rather than by a hard-coded name: the component may be
-	called "Basic", "Salaire mensuel", "Monatslohn"… depending on the
-	instance's wage type catalog. Falls back to the historical name/abbr
-	match for setups without the catalog.
+
+#//// Neoffice — docstring updated with the fix below: the base is no longer the monthly
+#//// salary alone.
+def _get_base_from_earnings(doc):
+	"""Get the base salary of the month from the slip's earnings.
+	The base component is identified by its Swissdec wage type (1000 monthly,
+	1005 hourly, 1006 per lesson, 1007 weekly) rather than by a hard-coded
+	name: the component may be called "Basic", "Salaire mensuel",
+	"Monatslohn"… depending on the instance's wage type catalog. Falls back
+	to the historical name/abbr match for setups without the catalog.
 	"""
 	for row in doc.get("earnings"):
 		if _is_base_wage_type(row.salary_component):
@@ -204,14 +236,17 @@ def _get_base_from_earnings(doc):
 
 
 def _is_base_wage_type(component_name):
-	"""True when the salary component is linked to Swissdec wage type 1000."""
+	#//// Neoffice — was `== 1000` (monthly salary only). Every other form of base pay — hourly,
+	#//// per lesson, weekly — then looked like "no salary at all" to the caller.
+	"""True when the salary component carries a Swissdec base-pay wage type."""
 	if not component_name:
 		return False
 	wage_type = frappe.get_cached_value("Salary Component", component_name, "ch_wage_type")
 	if not wage_type:
 		return False
 	code = frappe.get_cached_value("Swiss Wage Type", wage_type, "code")
-	return cint(code) == 1000
+	#//// Neoffice — was `== 1000`, see above.
+	return cint(code) in BASE_SALARY_WAGE_TYPE_CODES
 
 
 def _update_rate_based_components(doc, config, bases):
