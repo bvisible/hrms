@@ -43,23 +43,21 @@ def before_tests():
 		#//// (eabdea0d4 "test: before_tests prints the companies it leaves behind (CI diagnostic)")
 		print("HRMS before_tests: companies =", frappe.get_all("Company", fields=["name", "abbr", "country", "default_currency"]))
 		print("HRMS before_tests: default company =", frappe.db.get_single_value("Global Defaults", "default_company"), "| user default =", frappe.defaults.get_user_default("Company"))
-		# Diagnostic: erpnext's Company test records fail silently in make_test_objects; show why.
+		#//// Neoffice — CI diagnostic (2026-09-04): run the real test-record machinery for Company,
+		#//// dependencies included, exactly as the runner does, and surface its exception instead
+		#//// of the distant "missing test company" the suite dies on. Rolled back: the runner will
+		#//// redo it for real. Remove once the root cause is fixed.
 		import traceback
+		from frappe.test_runner import make_test_records
 
-		for rec in frappe.get_test_records("Company")[:2]:
-			try:
-				#//// Neoffice — use the v15 savepoint API in this diagnostic
-				#//// (b186bfc3b "test: v15 savepoint API in the before_tests diagnostic")
-				frappe.db.savepoint("diag_company")
-				d = frappe.get_doc(rec)
-				d.insert(ignore_if_duplicate=True)
-				print("HRMS diag: test company created ->", d.name, d.abbr)
-			except Exception:
-				print("HRMS diag: test company FAILED ->", rec.get("company_name"), "\n", traceback.format_exc()[-2500:])
-			finally:
-				#//// Neoffice — v15 savepoint API in the before_tests diagnostic
-				#//// (b186bfc3b "test: v15 savepoint API in the before_tests diagnostic")
-				frappe.db.rollback(save_point="diag_company")
+		frappe.db.savepoint("diag_company")
+		try:
+			make_test_records("Company", verbose=1, force=True)
+			print("HRMS diag: make_test_records(Company) OK ->", frappe.get_all("Company", pluck="name"))
+		except Exception:
+			print("HRMS diag: make_test_records(Company) FAILED\n", traceback.format_exc()[-3500:])
+		finally:
+			frappe.db.rollback(save_point="diag_company")
 
 	enable_all_roles_and_domains()
 	set_defaults()
