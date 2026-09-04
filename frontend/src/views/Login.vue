@@ -33,6 +33,10 @@
 
 			<div v-else class="flex h-screen w-screen flex-col justify-center bg-white">
 				<div class="flex flex-col mx-auto gap-3 items-center">
+					<!-- //// Neoffice - branding of the PWA login screen: upstream draws the Frappe HR -->
+					<!-- //// logo and the translated heading "Login to Frappe HR"; ours draws the product -->
+					<!-- //// name (fa53a8d10, bVisible 2024-03-04, "Trad and redirect"). Beware at a merge: -->
+					<!-- //// the replacement is a bare literal, so this heading is no longer translated. -->
 					<!-- //// <FrappeHRLogo class="h-8 w-8" /> -->
 					<div class="text-3xl font-semibold text-gray-900 text-center">Neoffice</div>
 				</div>

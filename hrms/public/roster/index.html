@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+		<!-- //// Neoffice - source of two artifacts this fork COMMITS: hrms/public/roster/index.html -->
+		<!-- //// (vite outDir) and its copy hrms/www/roster.html (roster/package.json, copy-html-entry). -->
+		<!-- //// Upstream gitignores both and lets every bench rebuild them; our client instances have -->
+		<!-- //// 4 GB of RAM and vite OOMs there, so build-frontend.yml builds in CI and commits the -->
+		<!-- //// output - see the .gitignore and package.json markers. Vite copies these comments -->
+		<!-- //// verbatim, which is how both artifacts stay marked with no hand-edited build output. -->
 		<meta charset="UTF-8" />
 		<link rel="icon" href="/assets/hrms/roster/favicon.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
