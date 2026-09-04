@@ -32,6 +32,14 @@ def before_tests():
 			}
 		)
 
+		#//// Neoffice — the wizard swallows its own exceptions (setup_complete logs them and
+		#//// returns a failure dict), and the test run then dies far away on a missing test
+		#//// company. Surface the real error instead (CI diagnostic, 2026-09-04).
+		if not frappe.get_list("Company"):
+			for row in frappe.get_all("Error Log", fields=["method", "error"], order_by="creation desc", limit=3):
+				print("SETUP WIZARD ERROR LOG:", row.method, "\n", (row.error or "")[-1500:])
+			raise RuntimeError("setup_complete left no Company — see the Error Log lines above")
+
 	enable_all_roles_and_domains()
 	set_defaults()
 	frappe.db.commit()  # nosemgrep
