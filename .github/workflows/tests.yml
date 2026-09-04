@@ -25,6 +25,13 @@ jobs:
       install_apps: erpnext,payments,neoffice_theme   # the fork's tests reach Payment Gateway (payments app)
       erpnext_bootstrap: false   # hrms.tests.test_utils.before_tests does the whole setup itself (_Test Company); erpnext's wizard on top fought it (Wind Power LLC)
       skip_build: true   # SPA commit-the-build: assets committed, never built on instances
+      # 904 tests in ONE process: `run-tests --app` never resets frappe.session.user between
+      # files (a test ending on set_user(x) killed the next file's setUpClass) and builds every
+      # test record in one uncommitted transaction that make_test_objects() rolls back the
+      # moment a record already exists (Employee _T-Employee-00002, Shift Type "Day Shift"
+      # vanished that way). The parallel runner isolates per file; --total-builds 2 is what
+      # upstream frappe/hrms validates this suite with.
+      parallel_runner: true
       test_args: ${{ inputs.test_args || '' }}
     # inherit: CI_REPORT_SECRET (deps are public forks: no read token needed)
     secrets: inherit
