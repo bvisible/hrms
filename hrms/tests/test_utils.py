@@ -48,14 +48,14 @@ def before_tests():
 
 		for rec in frappe.get_test_records("Company")[:2]:
 			try:
-				frappe.savepoint("diag_company")
+				frappe.db.savepoint("diag_company")
 				d = frappe.get_doc(rec)
 				d.insert(ignore_if_duplicate=True)
 				print("HRMS diag: test company created ->", d.name, d.abbr)
 			except Exception:
 				print("HRMS diag: test company FAILED ->", rec.get("company_name"), "\n", traceback.format_exc()[-2500:])
 			finally:
-				frappe.rollback(save_point="diag_company")
+				frappe.db.rollback(save_point="diag_company")
 
 	enable_all_roles_and_domains()
 	set_defaults()
