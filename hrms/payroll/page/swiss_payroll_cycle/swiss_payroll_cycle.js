@@ -107,7 +107,10 @@ class SwissPayrollCycle {
 		if (res.failed.length) {
 			message += "<br><b>" + __("{0} failed", [res.failed.length]) + "</b>";
 			res.failed.forEach((f) => {
-				message += `<br>${frappe.utils.escape_html(f.employee)}: ${f.error}`;
+				//// Neoffice — f.error was interpolated raw into an HTML msgprint. It is the last
+				//// line of a server traceback, which quotes document content (an employee name, a
+				//// validation message) — i.e. text a user can influence. Escaped like f.employee.
+				message += `<br>${frappe.utils.escape_html(f.employee)}: ${frappe.utils.escape_html(f.error)}`;
 			});
 		}
 		frappe.msgprint({ title: __("Cycle generation"), message: message, indicator: res.failed.length ? "orange" : "green" });
@@ -126,7 +129,9 @@ class SwissPayrollCycle {
 				if (res.failed.length) {
 					message += "<br><b>" + __("{0} failed", [res.failed.length]) + "</b>";
 					res.failed.forEach((f) => {
-						message += `<br>${frappe.utils.escape_html(f.slip)}: ${f.error}`;
+						//// Neoffice — f.error escaped too, see run_generate above: it is a raw
+						//// server traceback line going into an HTML msgprint.
+						message += `<br>${frappe.utils.escape_html(f.slip)}: ${frappe.utils.escape_html(f.error)}`;
 					});
 				}
 				frappe.msgprint({
