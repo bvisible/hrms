@@ -39,6 +39,12 @@ def before_tests():
 			for row in frappe.get_all("Error Log", fields=["method", "error"], order_by="creation desc", limit=3):
 				print("SETUP WIZARD ERROR LOG:", row.method, "\n", (row.error or "")[-1500:])
 			raise RuntimeError("setup_complete left no Company — see the Error Log lines above")
+		#//// Neoffice — removed the CI diagnostic block (companies print + manual
+		#//// make_test_records("Company") savepoint/rollback dry run) (3638cec52 "test(payroll):
+		#//// break the Company -> Swiss Social Insurance Config -> Account cycle in test records"):
+		#//// root cause found (Company -> Swiss Social Insurance Config -> Account/Salary Component
+		#//// cycle in test records) and fixed by ignoring those doctypes in the Swiss config test
+		#//// module too, so the diagnostics are no longer needed.
 
 	enable_all_roles_and_domains()
 	set_defaults()
