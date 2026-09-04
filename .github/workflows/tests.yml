@@ -5,7 +5,7 @@ name: Tests
 # Nightly + PR + on demand — not on push: the upstream CI and the build bot
 # already run there, a second run per bot commit would only add noise.
 on:
-  # nightly back on 2026-09-04: #203 closed on a green run of version-15 (916 tests,
+  # nightly back on 2026-09-04: #203 closed on a green run of version-15 (932 tests,
   # 0 failures, 0 errors) — it had been paused on 2026-09-03 while the suite was red.
   schedule:
     - cron: "59 4 * * *"
