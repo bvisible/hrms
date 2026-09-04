@@ -50,6 +50,7 @@ def before_tests():
 		import traceback
 		from frappe.test_runner import make_test_records
 
+		#//// Neoffice — CI diagnostic, see the block header above (fork_markers looks 3 lines up).
 		frappe.db.savepoint("diag_company")
 		try:
 			make_test_records("Company", verbose=1, force=True)
