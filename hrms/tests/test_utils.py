@@ -49,6 +49,85 @@ def before_tests():
 	enable_all_roles_and_domains()
 	set_defaults()
 	frappe.db.commit()  # nosemgrep
+	_diag_records()
+
+
+def _instrumented_make_test_objects(doctype, test_records=None, verbose=None, reset=False, commit=False):
+	from frappe.model.naming import revert_series_if_last
+
+	records = []
+	if test_records is None:
+		test_records = frappe.get_test_records(doctype)
+	print(f"RECSPY {doctype}: {len(test_records or [])} record(s), commit={commit} reset={reset}", flush=True)
+	for doc in test_records:
+		if not doc.get("doctype"):
+			doc["doctype"] = doctype
+		d = frappe.copy_doc(doc)
+		if d.meta.get_field("naming_series") and not d.naming_series:
+			d.naming_series = "_T-" + d.doctype + "-"
+		if doc.get("name"):
+			d.name = doc.get("name")
+		else:
+			d.set_new_name()
+		exists = frappe.db.exists(d.doctype, d.name)
+		print(f"RECSPY   {doctype} candidate={d.name} exists={bool(exists)}", flush=True)
+		if exists and not reset:
+			print(f"RECSPY   {doctype} SKIP + ROLLBACK on {d.name}", flush=True)
+			frappe.db.rollback()
+			continue
+		docstatus = d.docstatus
+		d.docstatus = 0
+		try:
+			d.run_method("before_test_insert")
+			d.insert(ignore_if_duplicate=True)
+			if docstatus == 1:
+				d.submit()
+			print(f"RECSPY   {doctype} INSERTED {d.name}", flush=True)
+		except frappe.NameError as exc:
+			print(f"RECSPY   {doctype} NameError on {d.name}: {exc}", flush=True)
+			if getattr(d, "naming_series", None):
+				revert_series_if_last(d.naming_series, d.name)
+		except Exception as exc:
+			swallowed = bool(d.flags.ignore_these_exceptions_in_test) and exc.__class__ in (
+				d.flags.ignore_these_exceptions_in_test or []
+			)
+			print(
+				f"RECSPY   {doctype} {type(exc).__name__} on {d.name} swallowed={swallowed}: {str(exc)[:400]}",
+				flush=True,
+			)
+			if swallowed:
+				if getattr(d, "naming_series", None):
+					revert_series_if_last(d.naming_series, d.name)
+			else:
+				raise
+		records.append(d.name)
+		if commit:
+			frappe.db.commit()
+	return records
+
+
+def _diag_records():
+	# DIAGNOSTIC ONLY (branch ci/diag-commit-spy)
+	import frappe.test_runner as tr
+
+	original = tr.make_test_objects
+
+	def spy(doctype, test_records=None, verbose=None, reset=False, commit=False):
+		if doctype in ("Employee", "Shift Type"):
+			return _instrumented_make_test_objects(
+				doctype, test_records=test_records, verbose=verbose, reset=reset, commit=commit
+			)
+		return original(doctype, test_records=test_records, verbose=verbose, reset=reset, commit=commit)
+
+	tr.make_test_objects = spy
+
+	print("DIAG users:", frappe.get_all("User", pluck="name"), flush=True)
+	tr.make_test_records("Employee", verbose=0, commit=True)
+	tr.make_test_records_for_doctype("Employee", verbose=0, commit=True)
+	print("DIAG employees:", frappe.get_all("Employee", pluck="name"), flush=True)
+	tr.make_test_records("Shift Type", verbose=0, commit=True)
+	tr.make_test_records_for_doctype("Shift Type", verbose=0, commit=True)
+	print("DIAG shift types:", frappe.get_all("Shift Type", pluck="name"), flush=True)
 
 
 def set_defaults():
