@@ -43,6 +43,19 @@ def before_tests():
 		#//// (eabdea0d4 "test: before_tests prints the companies it leaves behind (CI diagnostic)")
 		print("HRMS before_tests: companies =", frappe.get_all("Company", fields=["name", "abbr", "country", "default_currency"]))
 		print("HRMS before_tests: default company =", frappe.db.get_single_value("Global Defaults", "default_company"), "| user default =", frappe.defaults.get_user_default("Company"))
+		# Diagnostic: erpnext's Company test records fail silently in make_test_objects; show why.
+		import traceback
+
+		for rec in frappe.get_test_records("Company")[:2]:
+			try:
+				frappe.savepoint("diag_company")
+				d = frappe.get_doc(rec)
+				d.insert(ignore_if_duplicate=True)
+				print("HRMS diag: test company created ->", d.name, d.abbr)
+			except Exception:
+				print("HRMS diag: test company FAILED ->", rec.get("company_name"), "\n", traceback.format_exc()[-2500:])
+			finally:
+				frappe.rollback(save_point="diag_company")
 
 	enable_all_roles_and_domains()
 	set_defaults()
