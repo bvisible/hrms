@@ -34,6 +34,8 @@ import "./theme/variables.css"
 import "./main.css"
 
 const app = createApp(App)
+//// Neoffice — upstream builds the socket at module scope (`const socket = initSocket()`).
+//// initSocket is async here (socket.js), so it is created once the router is ready.
 let socket = null
 
 setConfig("resourceFetcher", frappeRequest)
@@ -107,6 +109,8 @@ router.isReady().then(async () => {
 
 	await translationsPlugin.isReady();
 	registerServiceWorker()
+	//// Neoffice — added with the async initSocket above: exposed as $socket because the
+	//// module-scope const upstream relied on is gone.
 	socket = await initSocket()
 	app.config.globalProperties.$socket = socket
 	app.mount("#app")

@@ -190,4 +190,6 @@ const authProviders = createResource({
 	url: "hrms.api.oauth.oauth_providers",
 	auto: true,
 })
+//// Neoffice — this file lost its trailing newline (9c61c153e, 2025-02-25); the hunk git
+//// reports at the end of this file is that missing \n, not a code change.
 </script>

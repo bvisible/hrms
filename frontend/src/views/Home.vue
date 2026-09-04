@@ -1,6 +1,8 @@
 <template>
 	<BaseLayout>
 		<template #body>
+			<!-- //// Neoffice — added: large collapsing "HR" title on the mobile home screen -->
+			<!-- //// (upstream starts straight at the panels). Cosmetic — droppable at a merge. -->
 			<ion-header collapse="condense">
 				<ion-toolbar style=" margin-top: 10px; ">
 					<ion-title size="large">HR</ion-title>

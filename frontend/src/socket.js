@@ -24,6 +24,9 @@ export async function initSocket() {
 
 	let host = window.location.hostname
 	let siteName = window.site_name
+	//// Neoffice — port resolution kept explicit through the 2026-08-22 upstream merge
+	//// (fb3dcf4eb): boot.socketio_port first (upstream 15.63), then window.socketio_port,
+	//// then the DEV value read from common_site_config above.
 	let port = window.location.port
 		? `:${window.frappe?.boot?.socketio_port || window.socketio_port || socketio_port}`
 		: ""

@@ -70,8 +70,12 @@ export default defineConfig({
 		commonjsOptions: {
 			include: [/tailwind.config.js/, /node_modules/],
 		},
+		//// Neoffice — upstream ships sourcemap: true. The build is committed on this branch
+		//// (commit-the-build), and the maps tripled the weight of the committed assets.
 		sourcemap: false,
 		rollupOptions: {
+			//// Neoffice — added: rollup's default parallelism exhausted the CI runner. The
+			//// `external` list below keeps the bench-only imports out of a standalone build.
 			maxParallelFileOps: 2,
 			// Ignore Frappe bench-specific imports that don't exist in standalone builds
 			external: [

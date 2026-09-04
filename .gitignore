@@ -16,6 +16,10 @@ __pycache__/
 node_modules
 *debug.log
 hrms/docs/current
+#//// Neoffice — commit-the-build: upstream ignores the two SPA builds and lets each
+#//// bench rebuild them; our instances pull the compiled assets instead, so the four
+#//// ignore lines below are neutralised (kept, commented, to show what upstream
+#//// ignores). Restoring them at a merge silently un-ships both SPAs.
 # 2026-05-07 (NORA #28) — frontend build outputs are committed on this branch.
 # See docs/COMMIT-BUILD-PATTERN.md in neoffice-devops.
 # (HRMS ships TWO SPAs : hrms (employee self-service) from frontend/, and
