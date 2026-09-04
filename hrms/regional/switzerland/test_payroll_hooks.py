@@ -9,7 +9,11 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import flt, getdate, nowdate
 
-from hrms.regional.switzerland.payroll_hooks import update_swiss_social_contributions
+#//// Neoffice — tests of an added file (no upstream equivalent).
+from hrms.regional.switzerland.payroll_hooks import (
+	_resolve_component_by_wage_type,
+	update_swiss_social_contributions,
+)
 
 # A canton nobody configures in the demo data: the canton-specific config lookup wins over the
 # company default, so the rates asserted below are ours and not the site's.
@@ -253,3 +257,115 @@ class TestHourlyEmployeeContributions(SwissPayrollHookCase):
 
 		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 318.00)
 		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 66.00)
+
+
+#//// Neoffice — tests of an added file (no upstream equivalent).
+class TestPartialMonthIsProratedOnce(SwissPayrollHookCase):
+	"""A base already built from the amounts paid must not be prorated a second time."""
+
+	def _half_month_slip(self, deduction_rows):
+		slip = self._make_slip([], payment_days=10, total_working_days=20, deduction_rows=deduction_rows)
+		row = slip.append("earnings", {})
+		row.salary_component = MONTHLY_COMPONENT
+		row.abbr = frappe.db.get_value("Salary Component", MONTHLY_COMPONENT, "salary_component_abbr")
+		row.depends_on_payment_days = 1
+		# What frappe itself writes on a half month: the full salary in default_amount, the
+		# amount actually paid in amount.
+		row.default_amount = 6000
+		row.amount = 3000
+		return slip
+
+	def test_row_added_by_the_hook(self):
+		"""The path that ADDS a missing row — where the second proration used to happen."""
+		slip = self._half_month_slip(deduction_rows=False)
+		update_swiss_social_contributions(slip, "validate")
+		# 3000 paid x 5.3%, NOT 3000 x 5.3% x 10/20
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 159.00)
+		self.assertEqual(self._amount(slip, "IJM/KTG Employee"), 21.00)
+
+	def test_row_already_on_the_slip(self):
+		"""The witness: the update path was already right, so the two must agree."""
+		slip = self._half_month_slip(deduction_rows=True)
+		update_swiss_social_contributions(slip, "validate")
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 159.00)
+		self.assertEqual(self._amount(slip, "IJM/KTG Employee"), 21.00)
+
+
+class TestSourceTaxBase(SwissPayrollHookCase):
+	"""Source tax is withheld on the components subject to it, not on the whole gross."""
+
+	QST_CANTON = "ZH"
+	QST_CODE = "Z9N"  # a code no canton publishes: the fixture below is alone on it
+	QST_RATE = 0.10
+	EXEMPT_COMPONENT = "_Test CH Expense Refund"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# An earning explicitly NOT subject to source tax (an expense refund is the real case).
+		_ensure_component(cls.EXEMPT_COMPONENT, "Earning", subject_to=0)
+		frappe.db.set_value("Salary Component", cls.EXEMPT_COMPONENT, "ch_subject_to_avs", 1)
+		_ensure_component("Source Tax Employee", "Deduction")
+
+		frappe.db.set_value("Swiss Social Insurance Config", cls.config, "qst_enabled", 1)
+		frappe.db.set_value(
+			"Employee",
+			cls.employee,
+			{
+				"ch_qst_subject": 1,
+				"ch_qst_taxation_canton": cls.QST_CANTON,
+				"ch_qst_tariff_code": cls.QST_CODE,
+			},
+		)
+		cls.tariff = cls._make_tariff()
+
+	@classmethod
+	def _make_tariff(cls):
+		name = f"QST-{cls.QST_CANTON}-2099-SAL"
+		if frappe.db.exists("Swiss QST Tariff", name):
+			frappe.delete_doc("Swiss QST Tariff", name, force=True)
+		tariff = frappe.get_doc(
+			{
+				"doctype": "Swiss QST Tariff",
+				"canton": cls.QST_CANTON,
+				"year": 2099,
+				"tariff_type": "Salaires",
+				"status": "Active",
+			}
+		).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "Swiss QST Tariff Bracket",
+				"parent_tariff": tariff.name,
+				"canton": cls.QST_CANTON,
+				"tariff_code": cls.QST_CODE,
+				"tariff_type": "SAL",
+				"valid_from": "2020-01-01",
+				"income_from": 0,
+				"income_step": 100,
+				"tax_rate": cls.QST_RATE,
+			}
+		).insert(ignore_permissions=True)
+		return tariff.name
+
+	def _source_tax_amount(self, slip):
+		component = _resolve_component_by_wage_type(5060, "Source Tax Employee")
+		return self._amount(slip, component)
+
+	def test_exempt_earning_is_not_taxed(self):
+		slip = self._make_slip([(MONTHLY_COMPONENT, 5000), (self.EXEMPT_COMPONENT, 2000)])
+		update_swiss_social_contributions(slip, "validate")
+		# 5000 subject to source tax x 10%, not 7000 x 10%
+		self.assertEqual(self._source_tax_amount(slip), 500.00)
+
+	def test_subject_earnings_are_taxed_in_full(self):
+		"""Witness: without an exempt component the base is the whole gross, as before."""
+		slip = self._make_slip([(MONTHLY_COMPONENT, 5000)])
+		update_swiss_social_contributions(slip, "validate")
+		self.assertEqual(self._source_tax_amount(slip), 500.00)
+
+	def test_exempt_earning_still_feeds_avs(self):
+		"""The flags are per insurance: the refund is out of the source-tax base only."""
+		slip = self._make_slip([(MONTHLY_COMPONENT, 5000), (self.EXEMPT_COMPONENT, 2000)])
+		update_swiss_social_contributions(slip, "validate")
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 371.00)  # 7000 x 5.3%

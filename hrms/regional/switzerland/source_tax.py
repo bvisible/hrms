@@ -561,7 +561,10 @@ def find_retro_corrections(employee_doc, salary_slip_doc, current_code):
 	return corrections
 
 
-def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0):
+#//// Neoffice — gross added: the payroll hook computes the source-tax base from the
+#//// ch_subject_to_imp flags and this function used to recompute its own from every earning,
+#//// ignoring it. None keeps the historical behaviour for the callers that have no base.
+def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, gross=None):
 	"""Main entry point: calculate source tax for a salary slip.
 
 	Determines the calculation model (monthly/annual) based on canton,
@@ -597,17 +600,24 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0):
 	if not tariff_code:
 		return {"tax_amount": 0, "error": "no_tariff_code"}
 
+	#//// Neoffice — the caller's base wins when it gives one (see the signature): it is the
+	#//// only one that knows which components are subject to source tax. Without it, the
+	#//// fallback below is the historical sum.
 	# Gross pay from the salary slip: the amounts actually paid. On a
 	# partial month row.amount is prorated while default_amount stays
 	# full — summing defaults overstated the taxable gross (and the
 	# progressive tariff makes that non-linear, unlike flat-rate
 	# insurances). Falls back to default_amount for rows built without
 	# an amount (unit-test fixtures).
-	gross = sum(
-		flt(row.default_amount if row.get("amount") is None else row.amount)
-		for row in salary_slip_doc.get("earnings")
-		if not row.get("do_not_include_in_total")
-	)
+	#//// Neoffice — the fallback: only when the caller gave no base.
+	if gross is None:
+		gross = sum(
+			flt(row.default_amount if row.get("amount") is None else row.amount)
+			for row in salary_slip_doc.get("earnings")
+			if not row.get("do_not_include_in_total")
+		)
+	else:
+		gross = flt(gross)
 
 	ref_date = salary_slip_doc.end_date or salary_slip_doc.start_date
 

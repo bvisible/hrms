@@ -281,9 +281,15 @@ def _update_rate_based_components(doc, config, bases):
 		rate = flt(config.get(rate_field))
 		base_amount = flt(bases.get(base_type, bases["gross_total"]))
 		if rate and base_amount:
-			amount = flt(base_amount * rate / 100, 2)
+			#//// Neoffice — prorate=False, and round_half_up like the loop above. The base is
+			#//// built from the amounts ACTUALLY PAID, so it already carries the proration of a
+			#//// partial month; _add_deduction_row used to apply payment_days/total_working_days
+			#//// on top of it. An employee paid half the month had this contribution deducted at
+			#//// a quarter — and only on the components the structure did not carry, so the same
+			#//// slip mixed correct and quartered lines.
+			amount = round_half_up(base_amount * rate / 100, 2)
 			if amount:
-				_add_deduction_row(doc, comp_name, amount)
+				_add_deduction_row(doc, comp_name, amount, prorate=False)
 				updated = True
 
 	return updated
@@ -385,8 +391,13 @@ def _has_component(doc, component_name):
 	return False
 
 
-def _add_deduction_row(doc, component_name, amount):
-	"""Add a new deduction row to the salary slip."""
+#//// Neoffice — prorate added. Proration is not idempotent: an amount computed on a base
+#//// that is already prorated must be stored as it is. See the call in
+#//// _update_rate_based_components.
+def _add_deduction_row(doc, component_name, amount, prorate=True):
+	"""Add a new deduction row to the salary slip.
+
+	prorate=False when the amount was computed on an already-prorated base."""
 	comp = frappe.get_cached_doc("Salary Component", component_name)
 
 	row = doc.append("deductions", {})
@@ -395,7 +406,8 @@ def _add_deduction_row(doc, component_name, amount):
 	row.do_not_include_in_total = comp.do_not_include_in_total
 	row.depends_on_payment_days = comp.depends_on_payment_days
 	row.default_amount = flt(amount, row.precision("amount"))
-	row.amount = _prorate_amount(doc, row, row.default_amount)
+	#//// Neoffice — see the prorate parameter above.
+	row.amount = _prorate_amount(doc, row, row.default_amount) if prorate else row.default_amount
 
 
 def _add_thirteenth_month_earning(doc, config):
@@ -485,12 +497,19 @@ def _is_aperiodic_component(component_name, thirteenth_mode):
 	return False
 
 
+#//// Neoffice — restricted to the source-tax base with the imp_base fix below: the caller
+#//// subtracts this total from that base to get the periodic part, so an aperiodic row that is
+#//// NOT subject to source tax would make the periodic part too small — negative, even.
 def _get_aperiodic_total(doc, config):
-	"""Sum of the aperiodic earnings actually paid on this slip."""
+	"""Sum of the aperiodic earnings actually paid on this slip and subject to source tax."""
 	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
 	total = 0.0
 	for row in doc.get("earnings"):
 		if cint(row.get("do_not_include_in_total")):
+			continue
+		#//// Neoffice — see the note above the function: only the source-tax base counts here.
+		flags = _get_component_insurance_flags(row.salary_component)
+		if flags["has_flags"] and not flags["imp"]:
 			continue
 		if _is_aperiodic_component(row.salary_component, thirteenth_mode):
 			total += flt(row.default_amount if row.get("amount") is None else row.amount)
@@ -502,7 +521,12 @@ def _update_source_tax(doc, config, employee, imp_base):
 	updated = False
 
 	aperiodic = _get_aperiodic_total(doc, config)
-	result = calculate_source_tax(employee, doc, config, aperiodic=aperiodic)
+	#//// Neoffice — imp_base is passed on now. The caller computed it from the
+	#//// ch_subject_to_imp flag of every component and this function dropped it:
+	#//// calculate_source_tax summed ALL the earnings instead, so a component explicitly
+	#//// marked as not subject to source tax was taxed like any other — and the tariff being
+	#//// progressive, it also pushed the rate of everything else up.
+	result = calculate_source_tax(employee, doc, config, aperiodic=aperiodic, gross=imp_base)
 	tax_amount = flt(result.get("tax_amount", 0), 2)
 
 	# Audit trail for retroactive corrections: the tariff code this slip
@@ -552,13 +576,10 @@ def _update_source_tax(doc, config, employee, imp_base):
 			break
 
 	if not found and tax_amount:
-		_add_deduction_row(doc, component, tax_amount)
-		# Source tax is not prorated — override the default proration
-		for row in doc.get("deductions"):
-			if row.salary_component == component:
-				row.default_amount = tax_amount
-				row.amount = tax_amount
-				break
+		#//// Neoffice — prorate=False replaces the loop that used to undo the proration right
+		#//// after _add_deduction_row applied it. Source tax is computed on the salary actually
+		#//// paid and on the source-tax days of the period; it is never prorated again.
+		_add_deduction_row(doc, component, tax_amount, prorate=False)
 		updated = True
 
 	return updated
