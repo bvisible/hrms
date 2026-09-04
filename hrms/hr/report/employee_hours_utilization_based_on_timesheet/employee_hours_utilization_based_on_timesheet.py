@@ -5,6 +5,9 @@
 import frappe
 from frappe import _
 from frappe.utils import flt, getdate
+#//// Neoffice — added import, used by the two blocks below (7da51ade7, bvisible
+#//// 2024-01-29, "update to get a real usable report on timesheet"): upstream counts
+#//// calendar days, ours counts business days minus holidays.
 from datetime import datetime, timedelta #//// added
 
 
@@ -17,6 +20,9 @@ class EmployeeHoursReport:
 
 	def __init__(self, filters=None):
 		self.filters = frappe._dict(filters or {})
+		#//// Neoffice — DISABLED block: it sits inside a ''' string, so it never runs.
+		#//// It pushed to_date one day forward to catch the last day's entries; superseded
+		#//// by the DATE_ADD(..., INTERVAL 1 DAY) of the query below. Same commit 7da51ade7.
 		'''#//// added block
 		if self.filters.to_date:
 			date_obj = datetime.strptime(self.filters.to_date, "%Y-%m-%d")
@@ -143,6 +149,12 @@ class EmployeeHoursReport:
 					additional_filters += f" AND ttd.{field} = {self.filters.get(field)!r}"
 				else:
 					additional_filters += f" AND tt.{field} = {self.filters.get(field)!r}"
+		#//// Neoffice — upstream's query, kept but DISABLED inside the ''' string below.
+		#//// Ours (further down) also selects ttd.from_time / ttd.to_time, and tests for an
+		#//// OVERLAP with the period instead of requiring both tt.start_date and tt.end_date
+		#//// to fall inside it — a timesheet straddling a boundary was dropped entirely.
+		#//// AT A MERGE: upstream's `# nosemgrep` line went into the string with the query,
+		#//// so our replacement below carries no nosemgrep annotation. Commit 7da51ade7.
 		#//// commented
 		'''# nosemgrep: frappe-semgrep-rules.rules.frappe-using-db-sql
 		self.filtered_time_logs = frappe.db.sql(
@@ -158,6 +170,9 @@ class EmployeeHoursReport:
 		"""'''
 		#////
 
+		#//// Neoffice — our replacement for the query disabled above: start/end times plus
+		#//// the overlap test. Interpolated with .format() exactly as upstream interpolated
+		#//// its f-string; the values come from the report filters. Commit 7da51ade7.
 		#//// added
 		self.filtered_time_logs = frappe.db.sql(
 			"""
@@ -202,6 +217,8 @@ class EmployeeHoursReport:
 	def generate_stats_by_employee(self):
 		self.stats_by_employee = frappe._dict()
 
+		#//// Neoffice — two extra columns to unpack (start_time, end_time) because the query
+		#//// above selects them; upstream unpacks four. Commit 7da51ade7.
 		for emp, hours, is_billable, __, start_time, end_time in self.filtered_time_logs: #//// added start_time, end_time
 			self.stats_by_employee.setdefault(emp, frappe._dict()).setdefault("billed_hours", 0.0)
 
@@ -221,6 +238,12 @@ class EmployeeHoursReport:
 	def calculate_utilizations(self):
 		TOTAL_HOURS = flt(self.standard_working_hours * self.day_span, 2)
 		for emp, data in self.stats_by_employee.items():
+			#//// Neoffice — added: upstream's denominator is standard_working_hours * day_span,
+			#//// i.e. calendar days at 100 %. Ours counts business days minus the employee and
+			#//// company holidays, prorated by the employment degree over the period.
+			#//// AT A MERGE: this depends on Employee.employment_degrees, a child table hrms
+			#//// does NOT ship (it comes from another Neoffice app), and on frappe.neolog, a
+			#//// helper that exists only in our frappe fork. Commit 7da51ade7.
 			#//// added block
 			try:
 				employee = frappe.get_doc("Employee", emp)
