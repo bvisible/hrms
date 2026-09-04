@@ -100,14 +100,23 @@ class TestAnnexe1Oracle(unittest.TestCase):
 						)
 					)
 
+		#//// Neoffice — `Swiss QST Tariff Bracket` is an autoincrement doctype: frappe
+		#//// backs it with a MariaDB sequence, not with auto_increment, so `name` has no
+		#//// default and a raw INSERT that omits it dies on error 1364. Take the ids from
+		#//// the same sequence the ORM uses, so these rows can never collide with a real
+		#//// ESTV vintage already in the table.
+		sequence = frappe.scrub("Swiss QST Tariff Bracket_id_seq")
 		for i in range(0, len(rows), 2000):
 			batch = rows[i : i + 2000]
+			#//// Neoffice — leading placeholder = the sequence value for `name` (see above).
 			placeholders = ", ".join(
-				["(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"] * len(batch)
+				[f"(nextval(`{sequence}`), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"]
+				* len(batch)
 			)
+			#//// Neoffice — `name` added to the column list (see above).
 			frappe.db.sql(
 				f"""INSERT INTO `tabSwiss QST Tariff Bracket`
-				(parent_tariff, canton, tariff_code, tariff_type, valid_from,
+				(name, parent_tariff, canton, tariff_code, tariff_type, valid_from,
 				 income_from, income_step, num_children, tax_amount, tax_rate,
 				 creation, modified, owner, modified_by)
 				VALUES {placeholders}""",
