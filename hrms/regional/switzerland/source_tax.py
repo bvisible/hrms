@@ -66,17 +66,47 @@ def lookup_qst_rate(canton, tariff_code, income, reference_date, tariff_type="SA
 	if income <= 0:
 		return 0
 
+	#//// Neoffice — archived vintages excluded. Swiss QST Tariff.status (Active/Archived) was
+	#//// written by activate() and never read here: the brackets of a superseded import stay in
+	#//// the table, and ORDER BY valid_from DESC could serve them. Excluding the Archived parents
+	#//// (rather than requiring Active) keeps brackets whose parent tariff is not a document —
+	#//// the Annex 1 oracle fixture inserts under a synthetic parent.
+	archived = _archived_tariff_names(canton, tariff_type)
+	exclusion = ""
+	params = [canton.upper(), tariff_code, tariff_type, reference_date, income]
+	if archived:
+		exclusion = " AND parent_tariff NOT IN (%s)" % ", ".join(["%s"] * len(archived))
+		params.extend(archived)
+
 	result = frappe.db.sql(
-		"""SELECT tax_rate FROM `tabSwiss QST Tariff Bracket`
+		#//// Neoffice — {exclusion} and the params list: archived vintages are kept out of the
+		#//// lookup (see above). The query itself is unchanged otherwise.
+		f"""SELECT tax_rate FROM `tabSwiss QST Tariff Bracket`
 		WHERE canton = %s AND tariff_code = %s AND tariff_type = %s
-			AND valid_from <= %s AND income_from <= %s
+			AND valid_from <= %s AND income_from <= %s{exclusion}
 		ORDER BY valid_from DESC, income_from DESC
 		LIMIT 1""",
-		(canton.upper(), tariff_code, tariff_type, reference_date, income),
+		#//// Neoffice — a list, so the archived names can be appended to it.
+		params,
 		as_dict=True,
 	)
 
 	return flt(result[0].tax_rate, 6) if result else 0
+
+
+#//// Neoffice — added with the two lookups above (no upstream equivalent).
+def _archived_tariff_names(canton, tariff_type="SAL"):
+	"""Names of the Archived Swiss QST Tariffs for this canton and tariff type.
+
+	Almost always empty: activate() only archives a sibling when a newer import
+	of the same canton/year/type is activated. Cheap either way — the tariff
+	table holds tens of rows against millions of brackets.
+	"""
+	return frappe.get_all(
+		"Swiss QST Tariff",
+		filters={"canton": (canton or "").upper(), "tariff_type_abbr": tariff_type, "status": "Archived"},
+		pluck="name",
+	)
 
 
 def round_half_up(value, digits=2):
@@ -395,12 +425,24 @@ def calculate_source_tax_annual(
 
 def tariff_code_exists(canton, tariff_code, reference_date, tariff_type="SAL"):
 	"""Return True if at least one bracket exists for this canton/code/type/date."""
+	#//// Neoffice — archived vintages excluded here too, so existence and rate lookup agree:
+	#//// a code that only lives in an archived import must not pass ensure_tariff_available().
+	archived = _archived_tariff_names(canton, tariff_type)
+	exclusion = ""
+	params = [canton.upper(), tariff_code, tariff_type, reference_date]
+	if archived:
+		exclusion = " AND parent_tariff NOT IN (%s)" % ", ".join(["%s"] * len(archived))
+		params.extend(archived)
+
 	result = frappe.db.sql(
-		"""SELECT 1 FROM `tabSwiss QST Tariff Bracket`
+		#//// Neoffice — {exclusion} and the params list: existence must agree with the rate
+		#//// lookup, or ensure_tariff_available() passes on an archived-only code.
+		f"""SELECT 1 FROM `tabSwiss QST Tariff Bracket`
 		WHERE canton = %s AND tariff_code = %s AND tariff_type = %s
-			AND valid_from <= %s
+			AND valid_from <= %s{exclusion}
 		LIMIT 1""",
-		(canton.upper(), tariff_code, tariff_type, reference_date),
+		#//// Neoffice — a list, so the archived names can be appended to it.
+		params,
 	)
 	return bool(result)
 
