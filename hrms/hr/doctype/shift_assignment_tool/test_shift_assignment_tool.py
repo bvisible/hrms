@@ -18,6 +18,14 @@ class TestShiftAssignmentTool(FrappeTestCase):
 	def setUp(self):
 		create_company()
 		create_company("_Test Company2")
+		#//// Neoffice — make_shift_request() (test_shift_request) hardcodes the "Day Shift"
+		#//// Shift Type, which is a GLOBAL test record that three other files delete in their
+		#//// setUp (shift_assignment, shift_type, employee_checkin); once any of them commits,
+		#//// it never comes back and .test_log stops it being recreated. Upstream never sees
+		#//// it: its CI splits the files over two containers (--total-builds 2), we run them
+		#//// in one. Create the fixture here, as test_shift_request and
+		#//// test_monthly_attendance_sheet already do, so this file stops depending on order.
+		setup_shift_type(shift_type="Day Shift")
 		self.shift1 = setup_shift_type(shift_type="Shift 1", start_time="08:00:00", end_time="12:00:00")
 		self.shift2 = setup_shift_type(shift_type="Shift 2", start_time="11:00:00", end_time="15:00:00")
 		self.shift3 = setup_shift_type(shift_type="Shift 3", start_time="14:00:00", end_time="18:00:00")
