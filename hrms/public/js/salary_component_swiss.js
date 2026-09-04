@@ -1,3 +1,6 @@
+//// Neoffice — added file (no upstream equivalent): Salary Component form script — selecting a
+//// Swiss Wage Type fills the ch_subject_to_* insurance-base flags. Wired by the
+//// doctype_js entry we added in hooks.py.
 // Swiss Wage Type integration for Salary Component
 // Auto-populates social insurance base flags when a Swiss Wage Type is selected.
 

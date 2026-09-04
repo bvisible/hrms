@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): server side of the Swiss employee wizard
+#//// (AVS checksum, source-tax subjection and tariff suggestion, employee creation).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): installs the retroactive-correction audit
+#//// fields (Employee.ch_qst_code_effective_from, Salary Slip.ch_qst_tariff_code and
+#//// ch_qst_correction_details) — a late tariff-code change must be traceable per slip.
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 

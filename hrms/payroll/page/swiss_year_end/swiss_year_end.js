@@ -1,3 +1,5 @@
+//// Neoffice — added file (no upstream equivalent): desk page driving the Swiss year-end closing
+//// (reconcile, batch certificates, per-canton source-tax recap).
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // License: GNU General Public License v3. See license.txt
 

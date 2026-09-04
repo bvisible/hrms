@@ -1,3 +1,5 @@
+//// Neoffice — added file (no upstream equivalent): desk form of the Swissdec declaration
+//// (generate the ELM XML, transmit, follow the status).
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // License: GNU General Public License v3. See license.txt
 

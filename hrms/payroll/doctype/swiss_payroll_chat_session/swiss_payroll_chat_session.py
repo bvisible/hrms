@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): controller of the guided Swiss payroll setup
+#//// assistant — a stepwise conversation that fills the Swiss config for an HR manager
+#//// who does not know the doctypes.
 import json
 
 import frappe

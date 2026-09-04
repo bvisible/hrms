@@ -1,3 +1,5 @@
+//// Neoffice — added file (no upstream equivalent): desk page driving the Swiss employee creation
+//// wizard (AVS number, permit, canton, source-tax tariff suggestion).
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // License: GNU General Public License v3. See license.txt
 

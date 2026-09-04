@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): controller of the Swiss Salary Certificate
+#//// (Lohnausweis / certificat de salaire, official Form 11) — a legal yearly document
+#//// no upstream hrms doctype covers.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

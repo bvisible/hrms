@@ -1,3 +1,7 @@
+<!-- //// Neoffice — added file (no upstream equivalent): repo guide for Claude Code on THIS fork. -->
+<!-- //// Upstream ships no CLAUDE.md; ours documents the commit-the-build pipeline (the -->
+<!-- //// frontend/roster SPA builds are committed here, see .gitignore) and the Swiss -->
+<!-- //// payroll module. Drop it only if the fork itself goes away. -->
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.

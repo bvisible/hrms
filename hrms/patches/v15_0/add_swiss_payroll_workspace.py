@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): imports the Swiss Payroll workspace and
+#//// repairs the HR sidebar hierarchy. Frappe's workspace sync skips records whose DB
+#//// copy is newer than the JSON, so consolidated fleets would never see it.
 import json
 import os
 

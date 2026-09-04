@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): controller of the per-company Swiss social
+#//// insurance configuration (AVS/AC/LAA/IJM/LPP rates, ceilings, Lohnausweis header,
+#//// payment account).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

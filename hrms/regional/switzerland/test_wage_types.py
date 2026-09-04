@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): unit tests of the wage type catalog integrity
+#//// and of the per-component insurance bases.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

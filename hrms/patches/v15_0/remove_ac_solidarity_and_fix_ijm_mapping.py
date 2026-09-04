@@ -1,3 +1,7 @@
+#//// Neoffice — added file (no upstream equivalent): legal-compliance cleanup of the Swiss module.
+#//// The AC solidarity contribution was abolished on 2023-01-01 and the IJM retention
+#//// does not belong in position 9 of the salary certificate; existing sites are fixed
+#//// in place, historical slips left untouched.
 """Legal-compliance cleanup for the Swiss payroll module (review of 2026-08-20).
 
 1. The AC solidarity contribution (1% above the AC ceiling) was abolished on

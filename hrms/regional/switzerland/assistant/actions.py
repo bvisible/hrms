@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): the writes the Swiss setup assistant performs
+#//// (insurance config, employee, salary structure) once a step is validated.
 import frappe
 from frappe import _
 from frappe.utils import getdate, nowdate

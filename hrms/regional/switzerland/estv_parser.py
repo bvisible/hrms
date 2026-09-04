@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): parser for the fixed-width ASCII source-tax
+#//// tariff files published by the ESTV for the 26 cantons.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

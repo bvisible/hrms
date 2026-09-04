@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): unit tests of the social-contribution helpers
+#//// (AVS/AC/LPP/13th month). Sits next to the module it tests, unlike the fork-wide
+#//// hrms/tests/test_utils.py.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

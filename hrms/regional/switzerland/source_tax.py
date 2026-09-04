@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): source tax (Quellensteuer / impot a la source)
+#//// engine — monthly model (21 cantons) and annual model (FR, GE, TI, VD, VS).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

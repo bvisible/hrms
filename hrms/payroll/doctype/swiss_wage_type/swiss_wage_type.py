@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): controller of the Swissdec wage type catalog
+#//// entry (code + which social insurance bases it feeds).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

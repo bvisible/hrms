@@ -1,3 +1,5 @@
+<!-- //// Neoffice — added file (no upstream equivalent): what the Swiss payroll module installs and how -->
+<!-- //// to set it up. -->
 # Swiss Payroll Module
 
 Regional module for Swiss social contributions in Frappe HRMS.

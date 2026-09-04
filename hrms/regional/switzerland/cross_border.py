@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): cross-border worker (frontalier) tax engine
+#//// for the DE/FR/IT bilateral agreements.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

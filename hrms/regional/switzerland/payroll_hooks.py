@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): Salary Slip validate hook computing the Swiss
+#//// social contributions and source tax. Wired in hooks.py doc_events.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

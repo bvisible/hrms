@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): back-fills ch_subject_to_* and
+#//// ch_lohnausweis_position on Salary Components created before the wage type catalog.
 import frappe
 
 

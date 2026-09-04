@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): the Swiss contribution helpers themselves
+#//// (AVS/AC/LAA/IJM/LPP, 13th month, commercial rounding) plus the jinja helpers the
+#//// Swiss print formats call.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

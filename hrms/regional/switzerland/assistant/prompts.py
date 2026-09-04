@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): system prompts of the Swiss setup assistant.
+#//// The prompt text is what the assistant SPEAKS to the customer, hence its own
+#//// language rules — it is not code identifiers.
 # System prompts for the Swiss Payroll Chat Assistant
 # Each step has its own prompt with context and extraction instructions
 

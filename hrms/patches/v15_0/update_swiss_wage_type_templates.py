@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): refreshes the Swiss Wage Type rows with the
+#//// template fields (abbreviation, formula, ...) added after the first catalog import.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

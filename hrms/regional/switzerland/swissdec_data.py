@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): aggregates the salary slips into the shape the
+#//// Swissdec XML builder and validator expect.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

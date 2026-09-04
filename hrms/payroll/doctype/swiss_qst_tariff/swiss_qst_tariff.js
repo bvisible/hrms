@@ -1,3 +1,5 @@
+//// Neoffice — added file (no upstream equivalent): desk form of Swiss QST Tariff (import the
+//// ESTV tariff file, browse brackets).
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // License: GNU General Public License v3. See license.txt
 

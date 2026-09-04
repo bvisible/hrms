@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): ISO 20022 pain.001.001.09 salary payment file
+#//// (Swiss Payment Standard), generated straight from the submitted slips.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

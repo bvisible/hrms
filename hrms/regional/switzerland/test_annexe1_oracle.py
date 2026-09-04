@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): validates the source-tax engine against the
+#//// official Swissdec Annex 1 oracle (cent-exact expected withholding).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

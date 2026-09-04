@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): pre-export validation of the ELM declaration
+#//// (employee, company and salary completeness) — the transmitter rejects late.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

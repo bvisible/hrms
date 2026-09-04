@@ -1,3 +1,5 @@
+//// Neoffice — added file (no upstream equivalent): desk form of the Swiss Salary Certificate
+//// (populate from salary slips, print Form 11).
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // License: GNU General Public License v3. See license.txt
 

@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): controller of the Cross Border Telework Log.
+#//// Frontalier status (DE/FR/IT) is lost beyond a telework/non-return threshold, so the
+#//// days have to be logged per employee and year.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

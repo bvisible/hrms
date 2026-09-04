@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): composite index on Swiss QST Tariff Bracket.
+#//// Without it every source-tax lookup full-scans the imported ESTV brackets (457 s
+#//// per query measured on 2.8M rows).
 import frappe
 
 

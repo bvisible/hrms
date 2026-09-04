@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): Swiss social insurance constants (rates,
+#//// ceilings, LPP thresholds, Lohnausweis position map), with the legal source of each
+#//// value and its yearly vintages.
 # Swiss social insurance constants (2025 rates)
 # Reference: Federal Social Insurance Office (OFAS/BSV)
 

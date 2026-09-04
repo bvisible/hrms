@@ -1,3 +1,5 @@
+//// Neoffice — added file (no upstream equivalent): desk page of the guided Swiss payroll setup
+//// assistant (chat-driven configuration).
 frappe.pages["swiss-payroll-setup"].on_page_load = function (wrapper) {
 	frappe.swiss_payroll_setup = new frappe.ui.SwissPayrollSetup(wrapper);
 };

@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): migrates the Swiss Salary Certificate expense
+#//// fields from our first simplified layout to the granular Form 11 positions
+#//// (13.1.1 travel, 13.2.2 car, 13.2.3 other flat rate).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

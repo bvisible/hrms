@@ -1,3 +1,5 @@
+//// Neoffice — added file (no upstream equivalent): desk form of Swiss Wage Type — creates the
+//// matching Salary Component(s) from a catalog code.
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // License: GNU General Public License v3. See license.txt
 

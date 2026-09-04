@@ -1,3 +1,5 @@
+//// Neoffice — added file (no upstream equivalent): desk form of the EMA notification
+//// (Eintritt/Mutation/Austritt) sent to the Swiss insurers.
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // License: GNU General Public License v3. See license.txt
 

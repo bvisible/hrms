@@ -1,3 +1,6 @@
+#//// Neoffice — added file (no upstream equivalent): controller of the EMA notification — Swiss
+#//// law requires arrival/change/departure to be announced independently of the yearly
+#//// declaration.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

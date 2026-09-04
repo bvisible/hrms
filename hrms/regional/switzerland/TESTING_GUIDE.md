@@ -1,3 +1,6 @@
+<!-- //// Neoffice — added file (no upstream equivalent): manual test plan of the Swiss payroll module -->
+<!-- //// on osiris. French on purpose — it is read by the person doing the test run, not by -->
+<!-- //// the code. -->
 # Guide de Test — Module de Paie Suisse HRMS
 
 > **Instance de test** : https://osiris.neoffice.me

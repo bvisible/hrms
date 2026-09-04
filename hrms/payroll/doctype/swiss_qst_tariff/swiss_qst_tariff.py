@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): controller of Swiss QST Tariff — one imported
+#//// ESTV source-tax tariff (canton, year, salary vs other income).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

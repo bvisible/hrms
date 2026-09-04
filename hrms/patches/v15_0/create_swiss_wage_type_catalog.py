@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): populates the Swiss Wage Type catalog
+#//// (~170 Swissdec standard codes) from wage_type_data.py on existing sites.
 import frappe
 
 

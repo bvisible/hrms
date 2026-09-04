@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): single holding the Swissdec Gateway endpoint
+#//// and credentials used to transmit declarations.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

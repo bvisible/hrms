@@ -1,3 +1,5 @@
+#//// Neoffice — added file (no upstream equivalent): controller of the Swissdec ELM salary
+#//// declaration (year-end / monthly / correction) sent to the Swiss insurers.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

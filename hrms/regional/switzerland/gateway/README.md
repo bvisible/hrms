@@ -1,3 +1,5 @@
+<!-- //// Neoffice — added file (no upstream equivalent): how to deploy the Swissdec Gateway on the -->
+<!-- //// SwissDecTX Windows VM. -->
 # Swissdec Gateway
 
 Lightweight Flask service running directly on the SwissDecTX Windows VM.

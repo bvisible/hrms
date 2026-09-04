@@ -1,3 +1,5 @@
+//// Neoffice — added file (no upstream equivalent): desk page driving the monthly Swiss payroll
+//// cycle (preflight, generate, summary, submit).
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // License: GNU General Public License v3. See license.txt
 
