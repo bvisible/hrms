@@ -76,10 +76,22 @@ def get_ytd_telework_totals(employee, year, current_month, exclude=None):
 		dict with total_telework_days, total_work_days, total_assignment_days,
 		total_non_return_days.
 	"""
+	#//// Neoffice — was `("<", str(cint(current_month)))`. month is a Select, so the column is
+	#//// a VARCHAR and MariaDB compared the STRINGS: from October on, "2".."9" are greater than
+	#//// "10" and every month from February to September fell out of the year-to-date total.
+	#//// The telework percentage it feeds is what decides whether a frontalier keeps his status,
+	#//// so an employee over the threshold looked well under it for the last quarter of the year.
+	#//// An explicit list of the prior months instead of a comparison — it also survives a
+	#//// Postgres site, which refuses to compare a text column to a number at all.
+	prior_months = [str(month) for month in range(1, cint(current_month))]
+	if not prior_months:
+		return _empty_totals()
+
 	filters = {
 		"employee": employee,
 		"year": cint(year),
-		"month": ("<", str(cint(current_month))),
+		#//// Neoffice — an explicit list, see above: "<" on this Select compared strings.
+		"month": ("in", prior_months),
 		"docstatus": 1,
 	}
 
@@ -105,6 +117,13 @@ def get_ytd_telework_totals(employee, year, current_month, exclude=None):
 			"total_non_return_days": cint(result[0].get("total_non_return_days")),
 		}
 
+	return _empty_totals()
+
+
+#//// Neoffice — extracted with the month-comparison fix above, so the early return for January
+#//// gives the same shape as the query.
+def _empty_totals():
+	"""The zero totals, for a month with nothing before it."""
 	return {
 		"total_telework_days": 0,
 		"total_work_days": 0,
