@@ -51,5 +51,8 @@ hrms.patches.v15_0.add_qst_bracket_lookup_index
 hrms.patches.v15_0.add_qst_retro_correction_fields
 hrms.patches.v15_0.add_qst_aperiodic_field
 hrms.patches.v15_0.add_swiss_payroll_workspace
+#//// Neoffice — re-run: the guard read table_exists("tabSwiss Salary Certificate"), which
+#//// is never true, so the migration returned on its first line and was logged as done.
+hrms.patches.v15_0.migrate_salary_certificate_expense_fields #2026-09-05
 #//// Neoffice — TLS verification default for Swissdec settings stored before the field.
 hrms.patches.v15_0.set_swissdec_verify_tls_default
