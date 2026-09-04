@@ -338,8 +338,12 @@ class SwissdecDeclaration(Document):
 		self.transmission_id = result.get("transmission_id")
 		self.transmitted_on = now_datetime()
 		self.declaration_id = result.get("declaration_id")
+		#//// Neoffice — response_message no longer mirrors response_status. response_status is a
+		#//// Data field (varchar 140) and now carries the outcome word; the gateway's reason is
+		#//// free text and can be long, so it goes to response_message (Small Text) where it fits
+		#//// — and is no longer lost.
 		self.response_status = result.get("response_status")
-		self.response_message = result.get("response_status")
+		self.response_message = result.get("response_message")
 		self.transmission_log = result.get("transmission_log")
 
 		if result.get("result_file_url"):
@@ -364,7 +368,8 @@ class SwissdecDeclaration(Document):
 			)
 		else:
 			frappe.msgprint(
-				_("Transmission rejected: {0}").format(self.response_status),
+				#//// Neoffice — shows the reason: response_status is now the outcome word.
+				_("Transmission rejected: {0}").format(self.response_message or self.response_status),
 				indicator="red",
 			)
 
@@ -385,7 +390,9 @@ class SwissdecDeclaration(Document):
 		new_status = result.get("status")
 		if new_status in ("Accepted", "Rejected"):
 			self.status = new_status
-			self.response_status = result.get("message")
+			#//// Neoffice — outcome in response_status, reason in response_message (see transmit).
+			self.response_status = new_status
+			self.response_message = result.get("message")
 			if result.get("declaration_id"):
 				self.declaration_id = result["declaration_id"]
 

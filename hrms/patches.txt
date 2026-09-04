@@ -51,3 +51,5 @@ hrms.patches.v15_0.add_qst_bracket_lookup_index
 hrms.patches.v15_0.add_qst_retro_correction_fields
 hrms.patches.v15_0.add_qst_aperiodic_field
 hrms.patches.v15_0.add_swiss_payroll_workspace
+#//// Neoffice — TLS verification default for Swissdec settings stored before the field.
+hrms.patches.v15_0.set_swissdec_verify_tls_default

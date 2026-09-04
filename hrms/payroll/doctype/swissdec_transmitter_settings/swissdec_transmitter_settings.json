@@ -9,6 +9,7 @@
 		"gateway_url",
 		"api_key",
 		"instance_id",
+		"verify_tls",
 		"section_status",
 		"last_ping",
 		"last_ping_status",
@@ -48,6 +49,13 @@
 			"mandatory_depends_on": "eval:doc.enabled"
 		},
 		{
+			"default": "1",
+			"description": "Verify the gateway's TLS certificate. Leave enabled: the request carries the API key and the ELM payload (AVS numbers, every employee's salary). Only turn this off against a test gateway using a self-signed certificate.",
+			"fieldname": "verify_tls",
+			"fieldtype": "Check",
+			"label": "Verify TLS Certificate"
+		},
+		{
 			"fieldname": "section_status",
 			"fieldtype": "Section Break",
 			"label": "Connection Status"
@@ -78,7 +86,7 @@
 	],
 	"issingle": 1,
 	"links": [],
-	"modified": "2026-02-23 00:00:00.000000",
+	"modified": "2026-09-04 12:00:00.000000",
 	"modified_by": "Administrator",
 	"module": "Payroll",
 	"name": "Swissdec Transmitter Settings",

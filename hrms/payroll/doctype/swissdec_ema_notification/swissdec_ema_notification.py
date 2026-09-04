@@ -116,8 +116,11 @@ class SwissdecEMANotification(frappe.model.document.Document):
 		self.transmission_id = result.get("transmission_id")
 		self.transmitted_on = now_datetime()
 		self.declaration_id = result.get("declaration_id")
+		#//// Neoffice — response_message no longer mirrors response_status: the outcome word goes
+		#//// in the Data field, the gateway's free-text reason in the Small Text field where it
+		#//// fits instead of being truncated away.
 		self.response_status = result.get("response_status")
-		self.response_message = result.get("response_status")
+		self.response_message = result.get("response_message")
 		self.transmission_log = result.get("transmission_log")
 
 		self.status = result.get("final_status", "Transmitted")
@@ -135,7 +138,8 @@ class SwissdecEMANotification(frappe.model.document.Document):
 			)
 		else:
 			frappe.msgprint(
-				_("EMA rejected: {0}").format(self.response_status),
+				#//// Neoffice — shows the reason: response_status is now the outcome word.
+				_("EMA rejected: {0}").format(self.response_message or self.response_status),
 				indicator="red",
 			)
 
@@ -156,7 +160,9 @@ class SwissdecEMANotification(frappe.model.document.Document):
 		new_status = result.get("status")
 		if new_status in ("Accepted", "Rejected"):
 			self.status = new_status
-			self.response_status = result.get("message")
+			#//// Neoffice — outcome in response_status, reason in response_message (see transmit).
+			self.response_status = new_status
+			self.response_message = result.get("message")
 			if result.get("declaration_id"):
 				self.declaration_id = result["declaration_id"]
 
