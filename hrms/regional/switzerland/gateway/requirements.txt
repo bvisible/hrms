@@ -1,4 +1,4 @@
-#//// Neoffice — added file (no upstream equivalent): dependencies of the gateway VM only — they are
-#//// deliberately NOT in the app's pyproject.toml.
+# //// Neoffice — added file (no upstream equivalent): dependencies of the gateway VM only — they are
+# //// deliberately NOT in the app's pyproject.toml.
 flask>=3.0
 waitress>=3.0

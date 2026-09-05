@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): Swiss social insurance constants (rates,
-#//// ceilings, LPP thresholds, Lohnausweis position map), with the legal source of each
-#//// value and its yearly vintages.
+# //// Neoffice — added file (no upstream equivalent): Swiss social insurance constants (rates,
+# //// ceilings, LPP thresholds, Lohnausweis position map), with the legal source of each
+# //// value and its yearly vintages.
 # Swiss social insurance constants (2025 rates)
 # Reference: Federal Social Insurance Office (OFAS/BSV)
 
@@ -72,9 +72,9 @@ SWISS_CANTONS = [
 # Map of component names to config rate fields
 # (component_name: (config_field, is_employer_component, base_type))
 # base_type maps to the key in the dict returned by _get_insurance_base_totals()
-#//// Neoffice — the Swissdec wage types that carry the BASE PAY of an employee, whatever the
-#//// form of the contract: 1000 monthly, 1005 hourly, 1006 per lesson, 1007 weekly. Reading
-#//// only 1000 made the payroll hook treat every non-monthly employee as having no salary.
+# //// Neoffice — the Swissdec wage types that carry the BASE PAY of an employee, whatever the
+# //// form of the contract: 1000 monthly, 1005 hourly, 1006 per lesson, 1007 weekly. Reading
+# //// only 1000 made the payroll hook treat every non-monthly employee as having no salary.
 BASE_SALARY_WAGE_TYPE_CODES = (1000, 1005, 1006, 1007)
 
 RATE_BASED_COMPONENTS = {

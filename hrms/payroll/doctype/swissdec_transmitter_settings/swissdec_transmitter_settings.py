@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): single holding the Swissdec Gateway endpoint
-#//// and credentials used to transmit declarations.
+# //// Neoffice — added file (no upstream equivalent): single holding the Swissdec Gateway endpoint
+# //// and credentials used to transmit declarations.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -21,9 +21,9 @@ class SwissdecTransmitterSettings(Document):
 	@frappe.whitelist()
 	def test_connection(self):
 		"""Test connectivity to the Swissdec Gateway by calling its PING endpoint."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it saves the ping result on the Single and sends the stored API key to whatever URL the settings hold.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it saves the ping result on the Single and sends the stored API key to whatever URL the settings hold.
 		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_transmitter import call_gateway
 

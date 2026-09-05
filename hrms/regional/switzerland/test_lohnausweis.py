@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): unit tests of the Lohnausweis position mapping
-#//// and of the aggregation from salary slips.
+# //// Neoffice — added file (no upstream equivalent): unit tests of the Lohnausweis position mapping
+# //// and of the aggregation from salary slips.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent): the Salary Slip validate hook that computes
-#//// the Swiss contributions decides how much is withheld from a real payslip. Its defects are
-#//// silent — a slip comes out looking normal with a contribution missing or halved — so each
-#//// one is pinned here by the amount it must produce, not by the code path it takes.
+# //// Neoffice — added file (no upstream equivalent): the Salary Slip validate hook that computes
+# //// the Swiss contributions decides how much is withheld from a real payslip. Its defects are
+# //// silent — a slip comes out looking normal with a contribution missing or halved — so each
+# //// one is pinned here by the amount it must produce, not by the code path it takes.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -9,7 +9,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import flt, getdate, nowdate
 
-#//// Neoffice — tests of an added file (no upstream equivalent).
+# //// Neoffice — tests of an added file (no upstream equivalent).
 from hrms.regional.switzerland.payroll_hooks import (
 	_resolve_component_by_wage_type,
 	update_swiss_social_contributions,
@@ -259,7 +259,7 @@ class TestHourlyEmployeeContributions(SwissPayrollHookCase):
 		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 66.00)
 
 
-#//// Neoffice — tests of an added file (no upstream equivalent).
+# //// Neoffice — tests of an added file (no upstream equivalent).
 class TestPartialMonthIsProratedOnce(SwissPayrollHookCase):
 	"""A base already built from the amounts paid must not be prorated a second time."""
 
@@ -371,10 +371,10 @@ class TestSourceTaxBase(SwissPayrollHookCase):
 		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 371.00)  # 7000 x 5.3%
 
 
-#//// Neoffice — added: the annual AC ceiling is the only contribution here whose amount depends
-#//// on the MONTHS BEFORE the slip, so it is the only one a unit test on a single slip cannot
-#//// catch. These tests put real submitted slips behind the current one and read the amount
-#//// withheld in the month that crosses the ceiling.
+# //// Neoffice — added: the annual AC ceiling is the only contribution here whose amount depends
+# //// on the MONTHS BEFORE the slip, so it is the only one a unit test on a single slip cannot
+# //// catch. These tests put real submitted slips behind the current one and read the amount
+# //// withheld in the month that crosses the ceiling.
 class TestAcCeilingTracksTheAcBase(SwissPayrollHookCase):
 	"""The ceiling is measured against the AC-SUBJECT cumulative, not against gross pay.
 

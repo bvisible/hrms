@@ -1,4 +1,4 @@
-#//// Neoffice — added file (no upstream equivalent): the Swiss social insurance config is ours.
+# //// Neoffice — added file (no upstream equivalent): the Swiss social insurance config is ours.
 # Copyright (c) 2026, Neoffice and Contributors
 # See license.txt
 

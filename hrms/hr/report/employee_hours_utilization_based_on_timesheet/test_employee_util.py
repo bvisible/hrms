@@ -1,16 +1,16 @@
-from unittest.mock import patch  #//// Neoffice — added, used by the class at the end of the file.
+from unittest.mock import patch  # //// Neoffice — added, used by the class at the end of the file.
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import getdate  #//// Neoffice — added, same class.
+from frappe.utils import getdate  # //// Neoffice — added, same class.
 from frappe.utils.make_random import get_random
 
 from erpnext.projects.doctype.project.test_project import make_project
 from erpnext.setup.doctype.employee.test_employee import make_employee
 
 from hrms.hr.report.employee_hours_utilization_based_on_timesheet.employee_hours_utilization_based_on_timesheet import (
-	#//// Neoffice — EmployeeHoursReport added to the import: the class at the end of the file
-	#//// drives calculate_utilizations directly, which execute() does not expose.
+	# //// Neoffice — EmployeeHoursReport added to the import: the class at the end of the file
+	# //// drives calculate_utilizations directly, which execute() does not expose.
 	EmployeeHoursReport,
 	execute,
 )
@@ -206,10 +206,10 @@ class TestEmployeeUtilization(FrappeTestCase):
 		]
 
 
-#//// Neoffice — added: the block that prorates the hours by business days and employment degree
-#//// is ours (commit 7da51ade7); upstream divides by calendar days and cannot reach either of the
-#//// two defects covered here. The report is read as a billing and capacity figure, so a
-#//// percentage that belongs to somebody else is worse than no percentage at all.
+# //// Neoffice — added: the block that prorates the hours by business days and employment degree
+# //// is ours (commit 7da51ade7); upstream divides by calendar days and cannot reach either of the
+# //// two defects covered here. The report is read as a billing and capacity figure, so a
+# //// percentage that belongs to somebody else is worse than no percentage at all.
 class TestUtilizationPerEmployeeTotals(FrappeTestCase):
 	"""Two defects of the prorated block: a total carried over, and a division by zero."""
 

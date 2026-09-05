@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): installs Salary Slip.ch_qst_aperiodic and
-#//// ch_qst_correction_details on existing sites. Swiss source tax splits periodic
-#//// from aperiodic pay; upstream hrms has no Swiss regional module at all.
+# //// Neoffice — added file (no upstream equivalent): installs Salary Slip.ch_qst_aperiodic and
+# //// ch_qst_correction_details on existing sites. Swiss source tax splits periodic
+# //// from aperiodic pay; upstream hrms has no Swiss regional module at all.
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 

@@ -5,15 +5,15 @@ app_description = "Modern HR and Payroll Software"
 app_email = "contact@frappe.io"
 app_license = "GNU General Public License (v3)"
 required_apps = ["frappe/erpnext"]
-#//// Neoffice — our fork (upstream: http://github.com/frappe/hrms), so the desk source
-#//// link and the version check point at the code the instances actually run.
+# //// Neoffice — our fork (upstream: http://github.com/frappe/hrms), so the desk source
+# //// link and the version check point at the code the instances actually run.
 source_link = "https://github.com/bvisible/hrms"
 
 add_to_apps_screen = [
 	{
 		"name": "hrms",
-		#//// Neoffice — Neoffice branding on the apps screen (upstream: frappe-hr-logo.svg and
-		#//// the title "Frappe HR"). Customer-facing strings follow the product, not upstream.
+		# //// Neoffice — Neoffice branding on the apps screen (upstream: frappe-hr-logo.svg and
+		# //// the title "Frappe HR"). Customer-facing strings follow the product, not upstream.
 		"logo": "/assets/hrms/images/icon-humain-ressource-gestion.jpg",
 		"title": "HR",
 		"route": "/app/hr",
@@ -57,8 +57,8 @@ doctype_js = {
 	"Journal Entry": "public/js/erpnext/journal_entry.js",
 	"Delivery Trip": "public/js/erpnext/delivery_trip.js",
 	"Bank Transaction": "public/js/erpnext/bank_transaction.js",
-	#//// Neoffice — added: the Salary Component form fills its Swiss insurance-base flags
-	#//// from the selected Swiss Wage Type (public/js/salary_component_swiss.js).
+	# //// Neoffice — added: the Salary Component form fills its Swiss insurance-base flags
+	# //// from the selected Swiss Wage Type (public/js/salary_component_swiss.js).
 	"Salary Component": "public/js/salary_component_swiss.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
@@ -95,8 +95,8 @@ website_route_rules = [
 jinja = {
 	"methods": [
 		"hrms.utils.get_country",
-		#//// Neoffice — added: the Swiss print formats (pay slip, Form 11 certificate) call
-		#//// these three from Jinja; upstream exposes get_country only.
+		# //// Neoffice — added: the Swiss print formats (pay slip, Form 11 certificate) call
+		# //// these three from Jinja; upstream exposes get_country only.
 		"hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.get_barcode_data_for_print",
 		"hrms.regional.switzerland.utils.get_component_rates_for_salary_slip",
 		"hrms.regional.switzerland.utils.get_salary_slip_print_data",
@@ -108,12 +108,12 @@ jinja = {
 # ------------
 
 # before_install = "hrms.install.before_install"
-#//// Neoffice — the Swiss payroll module (regional/switzerland) used to be provisioned by patches
-#//// only, which install-app marks as done without running: a fresh site had no
-#//// Salary Component.is_employer_contribution and every payroll query died (CI, 2026-09-03).
-#//// The Custom Fields need nothing and are created at install; the wage types, salary
-#//// components and salary structure need a company and are created when the setup wizard
-#//// completes (setup_wizard_complete below). Both are idempotent.
+# //// Neoffice — the Swiss payroll module (regional/switzerland) used to be provisioned by patches
+# //// only, which install-app marks as done without running: a fresh site had no
+# //// Salary Component.is_employer_contribution and every payroll query died (CI, 2026-09-03).
+# //// The Custom Fields need nothing and are created at install; the wage types, salary
+# //// components and salary structure need a company and are created when the setup wizard
+# //// completes (setup_wizard_complete below). Both are idempotent.
 after_install = [
 	"hrms.install.after_install",
 	"hrms.regional.switzerland.setup.make_custom_fields",
@@ -125,7 +125,7 @@ after_migrate = [
 
 setup_wizard_complete = [
 	"hrms.subscription_utils.update_erpnext_access",
-	"hrms.regional.switzerland.setup.setup_after_wizard",  #//// Neoffice — see after_install above
+	"hrms.regional.switzerland.setup.setup_after_wizard",  # //// Neoffice — see after_install above
 ]
 
 # Uninstallation
@@ -234,8 +234,8 @@ doc_events = {
 		"on_update": [
 			"hrms.overrides.employee_master.update_approver_role",
 			"hrms.overrides.employee_master.publish_update",
-			#//// Neoffice — added: Swiss law has arrivals/changes/departures announced to the
-			#//// insurers (EMA), so an Employee change opens the notification.
+			# //// Neoffice — added: Swiss law has arrivals/changes/departures announced to the
+			# //// insurers (EMA), so an Employee change opens the notification.
 			"hrms.regional.switzerland.ema_hooks.detect_ema_changes",
 		],
 		"after_insert": "hrms.overrides.employee_master.update_job_applicant_and_offer",
@@ -244,8 +244,8 @@ doc_events = {
 	},
 	"Project": {"validate": "hrms.controllers.employee_boarding_controller.update_employee_boarding_status"},
 	"Task": {"on_update": "hrms.controllers.employee_boarding_controller.update_task"},
-	#//// Neoffice — added: upstream has no Salary Slip doc_event. Ours computes the Swiss
-	#//// social contributions and the source tax at validate, before the totals are frozen.
+	# //// Neoffice — added: upstream has no Salary Slip doc_event. Ours computes the Swiss
+	# //// social contributions and the source tax at validate, before the totals are frozen.
 	"Salary Slip": {
 		"validate": "hrms.regional.switzerland.payroll_hooks.update_swiss_social_contributions",
 	},
@@ -260,8 +260,8 @@ scheduler_events = {
 	],
 	"hourly": [
 		"hrms.hr.doctype.daily_work_summary_group.daily_work_summary_group.trigger_emails",
-		#//// Neoffice — added: Swissdec transmissions are asynchronous; this polls the gateway
-		#//// for the ones still pending.
+		# //// Neoffice — added: Swissdec transmissions are asynchronous; this polls the gateway
+		# //// for the ones still pending.
 		"hrms.regional.switzerland.swissdec_transmitter.poll_pending_transmissions",
 	],
 	"hourly_long": [
@@ -276,8 +276,8 @@ scheduler_events = {
 		"hrms.hr.doctype.interview.interview.send_daily_feedback_reminder",
 		"hrms.hr.doctype.shift_assignment.shift_assignment.mark_expired_shift_assignments_as_inactive",
 		"hrms.hr.doctype.job_opening.job_opening.close_expired_job_openings",
-		#//// Neoffice — added: fetches the new ESTV source-tax tariffs when the cantons publish
-		#//// them — a stale tariff silently withholds the wrong amount.
+		# //// Neoffice — added: fetches the new ESTV source-tax tariffs when the cantons publish
+		# //// them — a stale tariff silently withholds the wrong amount.
 		"hrms.regional.switzerland.source_tax.auto_fetch_new_tariffs",
 	],
 	"daily_long": [
@@ -324,8 +324,8 @@ regional_overrides = {
 		"hrms.hr.utils.calculate_hra_exemption_for_period": "hrms.regional.india.utils.calculate_hra_exemption_for_period",
 		"hrms.hr.utils.calculate_tax_with_marginal_relief": "hrms.regional.india.utils.calculate_tax_with_marginal_relief",
 	},
-	#//// Neoffice — added: upstream ships the "India" overrides only. Ours route the LPP and
-	#//// AC computations to the Swiss module.
+	# //// Neoffice — added: upstream ships the "India" overrides only. Ours route the LPP and
+	# //// AC computations to the Swiss module.
 	"Switzerland": {
 		"hrms.regional.switzerland.utils.get_lpp_contribution": "hrms.regional.switzerland.utils.calculate_lpp_contribution",
 		"hrms.regional.switzerland.utils.get_ac_contribution": "hrms.regional.switzerland.utils.calculate_ac_contribution",

@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): the Swiss contribution helpers themselves
-#//// (AVS/AC/LAA/IJM/LPP, 13th month, commercial rounding) plus the jinja helpers the
-#//// Swiss print formats call.
+# //// Neoffice — added file (no upstream equivalent): the Swiss contribution helpers themselves
+# //// (AVS/AC/LAA/IJM/LPP, 13th month, commercial rounding) plus the jinja helpers the
+# //// Swiss print formats call.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -227,9 +227,9 @@ def get_employee_age(employee, reference_date=None):
 	if not date_of_birth:
 		return 0
 
-	#//// Neoffice — getdate() answers None for anything it cannot parse — an int year, say —
-	#//// and reference_date.year below then died with an AttributeError pointing at this line
-	#//// instead of at the caller that passed the wrong thing. Name what was passed.
+	# //// Neoffice — getdate() answers None for anything it cannot parse — an int year, say —
+	# //// and reference_date.year below then died with an AttributeError pointing at this line
+	# //// instead of at the caller that passed the wrong thing. Name what was passed.
 	parsed = getdate(reference_date) if reference_date else getdate(today())
 	if parsed is None:
 		raise ValueError(f"get_employee_age: unusable reference date {reference_date!r}")
@@ -280,17 +280,17 @@ def get_ytd_gross_for_employee(employee, company, start_date, end_date):
 	return flt(result[0].ytd_gross) if result else 0
 
 
-#//// Neoffice — added. The AC ceiling has to be tracked against the AC-SUBJECT cumulative, not
-#//// against gross pay: _update_ac_components measures this month with bases["ac_base"] (the
-#//// earnings whose Salary Component carries ch_subject_to_ac) and used to compare it to
-#//// get_ytd_gross_for_employee(), which sums gross_pay — everything, subject or not. Mixing the
-#//// two moves the ceiling: an employee paid 12'000 a month of which 1'000 is not AC-subject
-#//// reaches 144'000 of gross by December while owing AC on 132'000, and the ceiling of 148'200
-#//// cuts December's base to 4'200 instead of 11'000. Employee and employer are both undercharged
-#//// and the AVS settlement no longer matches. Same rule as _get_insurance_base_totals, applied
-#//// to the slips already submitted: flagged components count where flagged, a component with no
-#//// flag at all counts everywhere, and a slip on which nothing is flagged falls back to its whole
-#//// earnings total (the backward-compatibility case of installations that never set the flags).
+# //// Neoffice — added. The AC ceiling has to be tracked against the AC-SUBJECT cumulative, not
+# //// against gross pay: _update_ac_components measures this month with bases["ac_base"] (the
+# //// earnings whose Salary Component carries ch_subject_to_ac) and used to compare it to
+# //// get_ytd_gross_for_employee(), which sums gross_pay — everything, subject or not. Mixing the
+# //// two moves the ceiling: an employee paid 12'000 a month of which 1'000 is not AC-subject
+# //// reaches 144'000 of gross by December while owing AC on 132'000, and the ceiling of 148'200
+# //// cuts December's base to 4'200 instead of 11'000. Employee and employer are both undercharged
+# //// and the AVS settlement no longer matches. Same rule as _get_insurance_base_totals, applied
+# //// to the slips already submitted: flagged components count where flagged, a component with no
+# //// flag at all counts everywhere, and a slip on which nothing is flagged falls back to its whole
+# //// earnings total (the backward-compatibility case of installations that never set the flags).
 def get_ytd_ac_base_for_employee(employee, company, start_date, end_date):
 	"""Year-to-date AC-subject salary for an employee, excluding the current period.
 

@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): server side of the year-end closing
-#//// (reconcile, batch certificates, per-canton source-tax recap).
+# //// Neoffice — added file (no upstream equivalent): server side of the year-end closing
+# //// (reconcile, batch certificates, per-canton source-tax recap).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -24,10 +24,10 @@ from hrms.regional.switzerland.payroll_hooks import _resolve_component_by_wage_t
 from hrms.regional.switzerland.source_tax import build_tariff_code
 
 
-#//// Neoffice — added. Every endpoint below reads payroll with frappe.get_all / frappe.db.sql,
-#//// both of which bypass the permission layer: without this gate any authenticated account —
-#//// a portal Website User included — could read the gross, the net and the source tax withheld
-#//// for the whole company. The desk page is not the boundary; the API is.
+# //// Neoffice — added. Every endpoint below reads payroll with frappe.get_all / frappe.db.sql,
+# //// both of which bypass the permission layer: without this gate any authenticated account —
+# //// a portal Website User included — could read the gross, the net and the source tax withheld
+# //// for the whole company. The desk page is not the boundary; the API is.
 def _check_payroll_read_permission():
 	"""Refuse anyone who may not read Salary Slips (frappe.get_all ignores permissions)."""
 	frappe.has_permission("Salary Slip", "read", throw=True)
@@ -59,7 +59,7 @@ def _slips_of_year(company, start, end):
 @frappe.whitelist()
 def reconcile(company, fiscal_year):
 	"""Per-employee year recap: coverage, cumulatives, certificate status."""
-	#//// Neoffice — permission gate, see _check_payroll_read_permission.
+	# //// Neoffice — permission gate, see _check_payroll_read_permission.
 	_check_payroll_read_permission()
 	start, end = _fiscal_year_bounds(fiscal_year)
 	slips = _slips_of_year(company, start, end)
@@ -213,8 +213,8 @@ def reconcile(company, fiscal_year):
 @frappe.whitelist()
 def generate_certificates(company, fiscal_year, employees=None):
 	"""Create and populate missing certificates (draft) from submitted slips."""
-	#//// Neoffice — permission gate: this one WRITES (it inserts certificates carrying the AVS
-	#//// number and the yearly totals), so it asks for create on the certificate, not just read.
+	# //// Neoffice — permission gate: this one WRITES (it inserts certificates carrying the AVS
+	# //// number and the yearly totals), so it asks for create on the certificate, not just read.
 	_check_payroll_read_permission()
 	frappe.has_permission("Swiss Salary Certificate", "create", throw=True)
 	import json
@@ -278,8 +278,8 @@ def generate_certificates(company, fiscal_year, employees=None):
 @frappe.whitelist()
 def qst_summary(company, fiscal_year):
 	"""Source-tax recap per canton for the cantonal settlements."""
-	#//// Neoffice — permission gate, see _check_payroll_read_permission. The raw SQL below joins
-	#//// Salary Slip to Employee and returns AVS numbers and withheld tax for every employee.
+	# //// Neoffice — permission gate, see _check_payroll_read_permission. The raw SQL below joins
+	# //// Salary Slip to Employee and returns AVS numbers and withheld tax for every employee.
 	_check_payroll_read_permission()
 	start, end = _fiscal_year_bounds(fiscal_year)
 	qst_component = _resolve_component_by_wage_type(5060, "Source Tax Employee")
@@ -347,8 +347,8 @@ def export_year_end_csv(company, fiscal_year, kind):
 		"laa" — LAA payroll mass (employee, gross, LAA withheld) for the
 			accident insurer.
 	"""
-	#//// Neoffice — permission gate, see _check_payroll_read_permission. This one downloads
-	#//// the whole payroll year as a CSV (AVS numbers, birth dates, gross, withheld).
+	# //// Neoffice — permission gate, see _check_payroll_read_permission. This one downloads
+	# //// the whole payroll year as a CSV (AVS numbers, birth dates, gross, withheld).
 	_check_payroll_read_permission()
 	import csv
 	import io

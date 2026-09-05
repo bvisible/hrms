@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent): a re-imported cantonal tariff leaves the
-#//// brackets of the superseded import in the table. Swiss QST Tariff.status says which vintage is
-#//// current, and the rate lookup used to ignore it — so a slip could be withheld from a bracket
-#//// the payroll officer archived on purpose. Pinned here on the rate itself.
+# //// Neoffice — added file (no upstream equivalent): a re-imported cantonal tariff leaves the
+# //// brackets of the superseded import in the table. Swiss QST Tariff.status says which vintage is
+# //// current, and the rate lookup used to ignore it — so a slip could be withheld from a bracket
+# //// the payroll officer archived on purpose. Pinned here on the rate itself.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

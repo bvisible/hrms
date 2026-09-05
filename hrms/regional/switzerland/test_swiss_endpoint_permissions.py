@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent): the whitelisted endpoints of the Swiss
-#//// payroll module answer the API, not only the desk page. Every one of them reads or writes
-#//// payroll through frappe.get_all / frappe.db.sql / ignore_permissions, all of which bypass
-#//// the permission layer — so the check has to live in the endpoint, and it has to be tested
-#//// from a session that is NOT Administrator (who passes everything by construction).
+# //// Neoffice — added file (no upstream equivalent): the whitelisted endpoints of the Swiss
+# //// payroll module answer the API, not only the desk page. Every one of them reads or writes
+# //// payroll through frappe.get_all / frappe.db.sql / ignore_permissions, all of which bypass
+# //// the permission layer — so the check has to live in the endpoint, and it has to be tested
+# //// from a session that is NOT Administrator (who passes everything by construction).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -180,10 +180,10 @@ class TestChatSessionOwnership(SwissEndpointPermissionCase):
 		self.assertEqual(data["session_id"], self.session.name)
 
 
-#//// Neoffice — added: the two classes below cover the whitelisted DOCUMENT methods, which the
-#//// classes above do not reach. They take a different route into the app (run_doc_method
-#//// instead of a module-level whitelist) and that route asserts read only, so they need their
-#//// own proof that a portal session is refused and Administrator is not.
+# //// Neoffice — added: the two classes below cover the whitelisted DOCUMENT methods, which the
+# //// classes above do not reach. They take a different route into the app (run_doc_method
+# //// instead of a module-level whitelist) and that route asserts read only, so they need their
+# //// own proof that a portal session is refused and Administrator is not.
 class TestWhitelistedDocumentMethodsRefuseWebsiteUser(SwissEndpointPermissionCase):
 	"""run_doc_method asserts READ and nothing else before calling a whitelisted document
 	method (frappe/handler.py: `if not doc or not doc.has_permission("read")`). Every method

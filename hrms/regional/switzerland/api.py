@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): whitelisted endpoints of the Swiss module
-#//// (create Salary Components from a wage type, and the desk-side helpers).
+# //// Neoffice — added file (no upstream equivalent): whitelisted endpoints of the Swiss module
+# //// (create Salary Components from a wage type, and the desk-side helpers).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -21,10 +21,10 @@ def create_salary_component_from_wage_type(wage_type_code, company=None):
 	Returns:
 		dict with created component name(s).
 	"""
-	#//// Neoffice — permission check added. _create_component_from_wage_type inserts with
-	#//// ignore_permissions=True and commits, so this whitelisted entry point was the only gate
-	#//// and it had none: any authenticated account could create Salary Components (which the
-	#//// payroll hook then feeds insurance bases from) and rewrite the linked_component pairs.
+	# //// Neoffice — permission check added. _create_component_from_wage_type inserts with
+	# //// ignore_permissions=True and commits, so this whitelisted entry point was the only gate
+	# //// and it had none: any authenticated account could create Salary Components (which the
+	# //// payroll hook then feeds insurance bases from) and rewrite the linked_component pairs.
 	frappe.has_permission("Salary Component", "create", throw=True)
 	wt_name = f"CH-WT-{wage_type_code}"
 	if not frappe.db.exists("Swiss Wage Type", wt_name):
@@ -124,11 +124,11 @@ def _create_component_from_wage_type(wt):
 # ─── Swiss Payroll Chat Assistant API ─────────────────────────────────
 
 
-#//// Neoffice — added. chat_get_session already verified ownership; chat_send_message and
-#//// chat_apply_step took the same caller-supplied session_id and verified nothing. A third
-#//// party could therefore drive somebody else's assistant session and, through apply_step,
-#//// have setup_company / create_insurance_config write the company's AVS/AC/LAA/LPP rates —
-#//// those actions save with ignore_permissions=True. One helper, used by all three.
+# //// Neoffice — added. chat_get_session already verified ownership; chat_send_message and
+# //// chat_apply_step took the same caller-supplied session_id and verified nothing. A third
+# //// party could therefore drive somebody else's assistant session and, through apply_step,
+# //// have setup_company / create_insurance_config write the company's AVS/AC/LAA/LPP rates —
+# //// those actions save with ignore_permissions=True. One helper, used by all three.
 def _get_owned_chat_session(session_id):
 	"""Return the chat session only if it belongs to the caller (or a System Manager)."""
 	session = frappe.get_doc("Swiss Payroll Chat Session", session_id)
@@ -154,7 +154,7 @@ def chat_send_message(session_id, message):
 	if not session_id or not message:
 		frappe.throw(_("Session ID and message are required"))
 
-	#//// Neoffice — ownership check added, see _get_owned_chat_session.
+	# //// Neoffice — ownership check added, see _get_owned_chat_session.
 	_get_owned_chat_session(session_id)
 
 	service = SwissPayrollChatService()
@@ -169,8 +169,8 @@ def chat_apply_step(session_id):
 	if not session_id:
 		frappe.throw(_("Session ID is required"))
 
-	#//// Neoffice — ownership check added, see _get_owned_chat_session. apply_step writes company
-	#//// and insurance configuration with ignore_permissions=True.
+	# //// Neoffice — ownership check added, see _get_owned_chat_session. apply_step writes company
+	# //// and insurance configuration with ignore_permissions=True.
 	_get_owned_chat_session(session_id)
 
 	service = SwissPayrollChatService()
@@ -185,9 +185,9 @@ def chat_get_session(session_id):
 
 	import json
 
-	#//// Neoffice — the inline ownership check moved to _get_owned_chat_session so the three
-	#//// session endpoints share one rule, and raises PermissionError (403) rather than a plain
-	#//// ValidationError (417) — a denial must read as a denial to the caller and to the tests.
+	# //// Neoffice — the inline ownership check moved to _get_owned_chat_session so the three
+	# //// session endpoints share one rule, and raises PermissionError (403) rather than a plain
+	# //// ValidationError (417) — a denial must read as a denial to the caller and to the tests.
 	session = _get_owned_chat_session(session_id)
 
 	return {

@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): fixes the semantics of salary certificate
-#//// positions 2.1/2.2 (board and lodging vs private car share) — amounts were landing
-#//// in the wrong boxes of the printed Form 11 and of its barcode.
+# //// Neoffice — added file (no upstream equivalent): fixes the semantics of salary certificate
+# //// positions 2.1/2.2 (board and lodging vs private car share) — amounts were landing
+# //// in the wrong boxes of the printed Form 11 and of its barcode.
 """Fix the semantics of salary certificate positions 2.1 / 2.2.
 
 On the official Form 11 (guide 605.040.18.1f): 2.1 = board and lodging

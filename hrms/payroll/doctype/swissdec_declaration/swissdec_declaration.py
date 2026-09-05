@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): controller of the Swissdec ELM salary
-#//// declaration (year-end / monthly / correction) sent to the Swiss insurers.
+# //// Neoffice — added file (no upstream equivalent): controller of the Swissdec ELM salary
+# //// declaration (year-end / monthly / correction) sent to the Swiss insurers.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -69,9 +69,9 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def populate_employees(self):
 		"""Fetch all employees with salary slips for the declaration period."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it rewrites the employee table of the declaration and saves.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it rewrites the employee table of the declaration and saves.
 		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_data import get_employees_for_declaration
 		from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
@@ -163,9 +163,9 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def run_validation(self):
 		"""Run pre-export validation on all included employees."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it writes the validation results and the status, and saves.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it writes the validation results and the status, and saves.
 		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_validation import (
 			get_validation_summary,
@@ -237,9 +237,9 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def export_xml(self):
 		"""Generate and attach the ELM XML file."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it attaches the ELM file — the AVS number and the salary of every employee — and saves.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it attaches the ELM file — the AVS number and the salary of every employee — and saves.
 		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_xml import generate_salary_declaration
 		from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
@@ -336,9 +336,9 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def transmit(self):
 		"""Transmit the exported XML via the Swissdec Gateway."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it FILES the salary declaration with the authorities and saves the transmission id.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it FILES the salary declaration with the authorities and saves the transmission id.
 		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_transmitter import transmit_declaration
 
@@ -354,10 +354,10 @@ class SwissdecDeclaration(Document):
 		self.transmission_id = result.get("transmission_id")
 		self.transmitted_on = now_datetime()
 		self.declaration_id = result.get("declaration_id")
-		#//// Neoffice — response_message no longer mirrors response_status. response_status is a
-		#//// Data field (varchar 140) and now carries the outcome word; the gateway's reason is
-		#//// free text and can be long, so it goes to response_message (Small Text) where it fits
-		#//// — and is no longer lost.
+		# //// Neoffice — response_message no longer mirrors response_status. response_status is a
+		# //// Data field (varchar 140) and now carries the outcome word; the gateway's reason is
+		# //// free text and can be long, so it goes to response_message (Small Text) where it fits
+		# //// — and is no longer lost.
 		self.response_status = result.get("response_status")
 		self.response_message = result.get("response_message")
 		self.transmission_log = result.get("transmission_log")
@@ -384,7 +384,7 @@ class SwissdecDeclaration(Document):
 			)
 		else:
 			frappe.msgprint(
-				#//// Neoffice — shows the reason: response_status is now the outcome word.
+				# //// Neoffice — shows the reason: response_status is now the outcome word.
 				_("Transmission rejected: {0}").format(self.response_message or self.response_status),
 				indicator="red",
 			)
@@ -392,9 +392,9 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def check_status(self):
 		"""Check the status of a pending (async) transmission."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it saves the status the gateway reports.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it saves the status the gateway reports.
 		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_transmitter import check_transmission_status
 
@@ -410,7 +410,7 @@ class SwissdecDeclaration(Document):
 		new_status = result.get("status")
 		if new_status in ("Accepted", "Rejected"):
 			self.status = new_status
-			#//// Neoffice — outcome in response_status, reason in response_message (see transmit).
+			# //// Neoffice — outcome in response_status, reason in response_message (see transmit).
 			self.response_status = new_status
 			self.response_message = result.get("message")
 			if result.get("declaration_id"):
@@ -441,9 +441,9 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def retransmit(self):
 		"""Reset a rejected declaration to Exported status and re-transmit."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it re-files a rejected declaration and saves.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it re-files a rejected declaration and saves.
 		self.check_permission("write")
 		if self.status != "Rejected":
 			frappe.throw(
@@ -479,9 +479,9 @@ class SwissdecDeclaration(Document):
 		Args:
 			contributions: list of dicts with employee and bvg_response_contribution.
 		"""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it writes the pension-fund contributions back onto the employee rows and saves.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it writes the pension-fund contributions back onto the employee rows and saves.
 		self.check_permission("write")
 		if self.declaration_type != "BVG-Projection":
 			frappe.throw(_("BVG response import is only available for BVG-Projection declarations."))

@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): field validators of the Swiss setup assistant
-#//// (AVS number EAN-13 checksum, UID/BFS, canton, rates).
+# //// Neoffice — added file (no upstream equivalent): field validators of the Swiss setup assistant
+# //// (AVS number EAN-13 checksum, UID/BFS, canton, rates).
 import re
 
 from frappe import _

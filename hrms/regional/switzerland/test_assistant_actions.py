@@ -1,8 +1,8 @@
-#//// Neoffice — added file (no upstream equivalent): the Swiss setup assistant performs real
-#//// writes once a step is validated, and one of its actions had been calling a function that
-#//// does not exist — silently, because the import sat inside a try whose except returned a
-#//// failure dict. A step that always fails looks exactly like a step that failed for a reason,
-#//// which is why it went unnoticed. Each action is pinned here to the capability it must reach.
+# //// Neoffice — added file (no upstream equivalent): the Swiss setup assistant performs real
+# //// writes once a step is validated, and one of its actions had been calling a function that
+# //// does not exist — silently, because the import sat inside a try whose except returned a
+# //// failure dict. A step that always fails looks exactly like a step that failed for a reason,
+# //// which is why it went unnoticed. Each action is pinned here to the capability it must reach.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

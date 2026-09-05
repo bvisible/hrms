@@ -1,7 +1,7 @@
-#//// Neoffice — added file (no upstream equivalent): the year-to-date telework total decides
-#//// whether a cross-border worker keeps his frontalier status. It is summed over the months
-#//// before the current one, and "month" is a Select — a VARCHAR — so the comparison that
-#//// selects them is a string comparison. Pinned here on the days actually summed.
+# //// Neoffice — added file (no upstream equivalent): the year-to-date telework total decides
+# //// whether a cross-border worker keeps his frontalier status. It is summed over the months
+# //// before the current one, and "month" is a Select — a VARCHAR — so the comparison that
+# //// selects them is a string comparison. Pinned here on the days actually summed.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

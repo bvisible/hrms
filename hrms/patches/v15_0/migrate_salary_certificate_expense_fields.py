@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): migrates the Swiss Salary Certificate expense
-#//// fields from our first simplified layout to the granular Form 11 positions
-#//// (13.1.1 travel, 13.2.2 car, 13.2.3 other flat rate).
+# //// Neoffice — added file (no upstream equivalent): migrates the Swiss Salary Certificate expense
+# //// fields from our first simplified layout to the granular Form 11 positions
+# //// (13.1.1 travel, 13.2.2 car, 13.2.3 other flat rate).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -15,10 +15,10 @@ def execute():
 	- position_13_2_flat_rate_car -> position_13_2_2_car
 	- position_13_3_other_flat_expenses -> position_13_2_3_other_flat
 	"""
-	#//// Neoffice — was table_exists("tabSwiss Salary Certificate"). frappe.db.table_exists
-	#//// prepends "tab" itself, so it looked for "tabtabSwiss Salary Certificate", never found
-	#//// it, and this patch returned on its first line on every instance of the fleet. It was
-	#//// logged as executed all the same, hence the re-run entry in patches.txt.
+	# //// Neoffice — was table_exists("tabSwiss Salary Certificate"). frappe.db.table_exists
+	# //// prepends "tab" itself, so it looked for "tabtabSwiss Salary Certificate", never found
+	# //// it, and this patch returned on its first line on every instance of the fleet. It was
+	# //// logged as executed all the same, hence the re-run entry in patches.txt.
 	if not frappe.db.table_exists("Swiss Salary Certificate"):
 		return
 
@@ -26,9 +26,9 @@ def execute():
 	if "position_13_1_actual_expenses" not in old_columns:
 		return
 
-	#//// Neoffice — each column only fills where nothing was entered. The patch never ran (see
-	#//// above), so it runs today on certificates that have lived months in the new layout: an
-	#//// unconditional copy would overwrite an amount somebody typed with the stale old column.
+	# //// Neoffice — each column only fills where nothing was entered. The patch never ran (see
+	# //// above), so it runs today on certificates that have lived months in the new layout: an
+	# //// unconditional copy would overwrite an amount somebody typed with the stale old column.
 	# Migrate data from old fields to new fields
 	frappe.db.sql("""
 		UPDATE `tabSwiss Salary Certificate`

@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): the gateway client decides whether a Swissdec
-#//// declaration was accepted. Reading "unsuccessful" as a success files a rejected declaration as
-#//// Accepted, and nobody ever resends it — so the wording of the answer is pinned here.
+# //// Neoffice — added file (no upstream equivalent): the gateway client decides whether a Swissdec
+# //// declaration was accepted. Reading "unsuccessful" as a success files a rejected declaration as
+# //// Accepted, and nobody ever resends it — so the wording of the answer is pinned here.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

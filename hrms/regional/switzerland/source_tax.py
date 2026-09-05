@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): source tax (Quellensteuer / impot a la source)
-#//// engine — monthly model (21 cantons) and annual model (FR, GE, TI, VD, VS).
+# //// Neoffice — added file (no upstream equivalent): source tax (Quellensteuer / impot a la source)
+# //// engine — monthly model (21 cantons) and annual model (FR, GE, TI, VD, VS).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -66,11 +66,11 @@ def lookup_qst_rate(canton, tariff_code, income, reference_date, tariff_type="SA
 	if income <= 0:
 		return 0
 
-	#//// Neoffice — archived vintages excluded. Swiss QST Tariff.status (Active/Archived) was
-	#//// written by activate() and never read here: the brackets of a superseded import stay in
-	#//// the table, and ORDER BY valid_from DESC could serve them. Excluding the Archived parents
-	#//// (rather than requiring Active) keeps brackets whose parent tariff is not a document —
-	#//// the Annex 1 oracle fixture inserts under a synthetic parent.
+	# //// Neoffice — archived vintages excluded. Swiss QST Tariff.status (Active/Archived) was
+	# //// written by activate() and never read here: the brackets of a superseded import stay in
+	# //// the table, and ORDER BY valid_from DESC could serve them. Excluding the Archived parents
+	# //// (rather than requiring Active) keeps brackets whose parent tariff is not a document —
+	# //// the Annex 1 oracle fixture inserts under a synthetic parent.
 	archived = _archived_tariff_names(canton, tariff_type)
 	exclusion = ""
 	params = [canton.upper(), tariff_code, tariff_type, reference_date, income]
@@ -79,14 +79,14 @@ def lookup_qst_rate(canton, tariff_code, income, reference_date, tariff_type="SA
 		params.extend(archived)
 
 	result = frappe.db.sql(
-		#//// Neoffice — {exclusion} and the params list: archived vintages are kept out of the
-		#//// lookup (see above). The query itself is unchanged otherwise.
+		# //// Neoffice — {exclusion} and the params list: archived vintages are kept out of the
+		# //// lookup (see above). The query itself is unchanged otherwise.
 		f"""SELECT tax_rate FROM `tabSwiss QST Tariff Bracket`
 		WHERE canton = %s AND tariff_code = %s AND tariff_type = %s
 			AND valid_from <= %s AND income_from <= %s{exclusion}
 		ORDER BY valid_from DESC, income_from DESC
 		LIMIT 1""",
-		#//// Neoffice — a list, so the archived names can be appended to it.
+		# //// Neoffice — a list, so the archived names can be appended to it.
 		params,
 		as_dict=True,
 	)
@@ -94,7 +94,7 @@ def lookup_qst_rate(canton, tariff_code, income, reference_date, tariff_type="SA
 	return flt(result[0].tax_rate, 6) if result else 0
 
 
-#//// Neoffice — added with the two lookups above (no upstream equivalent).
+# //// Neoffice — added with the two lookups above (no upstream equivalent).
 def _archived_tariff_names(canton, tariff_type="SAL"):
 	"""Names of the Archived Swiss QST Tariffs for this canton and tariff type.
 
@@ -425,8 +425,8 @@ def calculate_source_tax_annual(
 
 def tariff_code_exists(canton, tariff_code, reference_date, tariff_type="SAL"):
 	"""Return True if at least one bracket exists for this canton/code/type/date."""
-	#//// Neoffice — archived vintages excluded here too, so existence and rate lookup agree:
-	#//// a code that only lives in an archived import must not pass ensure_tariff_available().
+	# //// Neoffice — archived vintages excluded here too, so existence and rate lookup agree:
+	# //// a code that only lives in an archived import must not pass ensure_tariff_available().
 	archived = _archived_tariff_names(canton, tariff_type)
 	exclusion = ""
 	params = [canton.upper(), tariff_code, tariff_type, reference_date]
@@ -435,13 +435,13 @@ def tariff_code_exists(canton, tariff_code, reference_date, tariff_type="SAL"):
 		params.extend(archived)
 
 	result = frappe.db.sql(
-		#//// Neoffice — {exclusion} and the params list: existence must agree with the rate
-		#//// lookup, or ensure_tariff_available() passes on an archived-only code.
+		# //// Neoffice — {exclusion} and the params list: existence must agree with the rate
+		# //// lookup, or ensure_tariff_available() passes on an archived-only code.
 		f"""SELECT 1 FROM `tabSwiss QST Tariff Bracket`
 		WHERE canton = %s AND tariff_code = %s AND tariff_type = %s
 			AND valid_from <= %s{exclusion}
 		LIMIT 1""",
-		#//// Neoffice — a list, so the archived names can be appended to it.
+		# //// Neoffice — a list, so the archived names can be appended to it.
 		params,
 	)
 	return bool(result)
@@ -561,9 +561,9 @@ def find_retro_corrections(employee_doc, salary_slip_doc, current_code):
 	return corrections
 
 
-#//// Neoffice — gross added: the payroll hook computes the source-tax base from the
-#//// ch_subject_to_imp flags and this function used to recompute its own from every earning,
-#//// ignoring it. None keeps the historical behaviour for the callers that have no base.
+# //// Neoffice — gross added: the payroll hook computes the source-tax base from the
+# //// ch_subject_to_imp flags and this function used to recompute its own from every earning,
+# //// ignoring it. None keeps the historical behaviour for the callers that have no base.
 def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, gross=None):
 	"""Main entry point: calculate source tax for a salary slip.
 
@@ -600,16 +600,16 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 	if not tariff_code:
 		return {"tax_amount": 0, "error": "no_tariff_code"}
 
-	#//// Neoffice — the caller's base wins when it gives one (see the signature): it is the
-	#//// only one that knows which components are subject to source tax. Without it, the
-	#//// fallback below is the historical sum.
+	# //// Neoffice — the caller's base wins when it gives one (see the signature): it is the
+	# //// only one that knows which components are subject to source tax. Without it, the
+	# //// fallback below is the historical sum.
 	# Gross pay from the salary slip: the amounts actually paid. On a
 	# partial month row.amount is prorated while default_amount stays
 	# full — summing defaults overstated the taxable gross (and the
 	# progressive tariff makes that non-linear, unlike flat-rate
 	# insurances). Falls back to default_amount for rows built without
 	# an amount (unit-test fixtures).
-	#//// Neoffice — the fallback: only when the caller gave no base.
+	# //// Neoffice — the fallback: only when the caller gave no base.
 	if gross is None:
 		gross = sum(
 			flt(row.default_amount if row.get("amount") is None else row.amount)

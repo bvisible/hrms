@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): unit tests of the social-contribution helpers
-#//// (AVS/AC/LPP/13th month). Sits next to the module it tests, unlike the fork-wide
-#//// hrms/tests/test_utils.py.
+# //// Neoffice — added file (no upstream equivalent): unit tests of the social-contribution helpers
+# //// (AVS/AC/LPP/13th month). Sits next to the module it tests, unlike the fork-wide
+# //// hrms/tests/test_utils.py.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -15,7 +15,7 @@ from hrms.regional.switzerland.constants import (
 )
 from hrms.regional.switzerland.utils import (
 	_build_rate_dict,
-	get_employee_age,  #//// Neoffice — added with TestGetEmployeeAge at the end of the file.
+	get_employee_age,  # //// Neoffice — added with TestGetEmployeeAge at the end of the file.
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
 	calculate_lpp_coordinated_salary,
@@ -471,7 +471,7 @@ class TestYearlyConstants(unittest.TestCase):
 		self.assertEqual(calculate_lpp_coordinated_salary(90_000, year=2026), 63_540)
 
 
-#//// Neoffice — tests of an added file (no upstream equivalent).
+# //// Neoffice — tests of an added file (no upstream equivalent).
 class TestGetEmployeeAge(unittest.TestCase):
 	"""The BVG projection used to pass the year as an int; getdate() answers None to that."""
 

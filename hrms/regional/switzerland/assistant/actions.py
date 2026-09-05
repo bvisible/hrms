@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): the writes the Swiss setup assistant performs
-#//// (insurance config, employee, salary structure) once a step is validated.
+# //// Neoffice — added file (no upstream equivalent): the writes the Swiss setup assistant performs
+# //// (insurance config, employee, salary structure) once a step is validated.
 import frappe
 from frappe import _
 from frappe.utils import cint, getdate, nowdate
@@ -212,29 +212,29 @@ def create_salary_assignment(employee_name, base_salary, company=None):
 	return ssa.name
 
 
-#//// Neoffice — rewritten. The body was
-#////     from hrms.regional.switzerland.source_tax import fetch_qst_tariffs
-#////     result = fetch_qst_tariffs(canton=canton, year=year)
-#//// and fetch_qst_tariffs does not exist — not in source_tax, not anywhere in hrms. The import
-#//// raised ImportError on the first line of the try, the except swallowed it, and the function
-#//// returned {"success": False} every single time. The assistant's "qst_tariffs" step therefore
-#//// answered "Failed to fetch QST tariffs" for every canton the user picked, while the setup it
-#//// was meant to finish — the cantonal withholding tables the payroll reads from — was never
-#//// even attempted. Routed to the capability that does exist: the Swiss QST Tariff document and
-#//// its fetch_from_estv(), the same path as the desk button.
+# //// Neoffice — rewritten. The body was
+# ////     from hrms.regional.switzerland.source_tax import fetch_qst_tariffs
+# ////     result = fetch_qst_tariffs(canton=canton, year=year)
+# //// and fetch_qst_tariffs does not exist — not in source_tax, not anywhere in hrms. The import
+# //// raised ImportError on the first line of the try, the except swallowed it, and the function
+# //// returned {"success": False} every single time. The assistant's "qst_tariffs" step therefore
+# //// answered "Failed to fetch QST tariffs" for every canton the user picked, while the setup it
+# //// was meant to finish — the cantonal withholding tables the payroll reads from — was never
+# //// even attempted. Routed to the capability that does exist: the Swiss QST Tariff document and
+# //// its fetch_from_estv(), the same path as the desk button.
 def trigger_qst_fetch(canton, year=None):
 	"""Download and import the ESTV source-tax tariff of one canton for one year."""
 	if not year:
 		year = getdate(nowdate()).year
 
-	#//// Neoffice — added: refuse an empty canton here, before a tariff is created for it.
+	# //// Neoffice — added: refuse an empty canton here, before a tariff is created for it.
 	canton = (canton or "").strip().upper()
 	if not canton:
 		return {"success": False, "message": _("No canton was given for the tariff import.")}
 
 	try:
-		#//// Neoffice — the whole body below replaces the call to the missing fetch_qst_tariffs:
-		#//// get or create the Swiss QST Tariff, then use its own ESTV import.
+		# //// Neoffice — the whole body below replaces the call to the missing fetch_qst_tariffs:
+		# //// get or create the Swiss QST Tariff, then use its own ESTV import.
 		year = int(year)
 		tariff_name = f"QST-{canton}-{year}-SAL"
 		if frappe.db.exists("Swiss QST Tariff", tariff_name):
@@ -247,24 +247,24 @@ def trigger_qst_fetch(canton, year=None):
 			tariff.tariff_type = "Salaires"
 			tariff.insert(ignore_permissions=True)
 
-		#//// Neoffice — the capability that exists, and the one the desk button calls.
+		# //// Neoffice — the capability that exists, and the one the desk button calls.
 		tariff.fetch_from_estv()
 
 		return {
 			"success": True,
 			"message": _("QST tariffs fetched for {0} {1}").format(canton, year),
-			#//// Neoffice — a real count now: the old code had no result to count.
+			# //// Neoffice — a real count now: the old code had no result to count.
 			"count": cint(tariff.record_count),
 		}
 	except Exception as e:
-		#//// Neoffice — was str(e), which for a PermissionError is the empty string: the log said
-		#//// a fetch had failed and nothing else. Keep the traceback in the log; the user still
-		#//// gets the short reason.
+		# //// Neoffice — was str(e), which for a PermissionError is the empty string: the log said
+		# //// a fetch had failed and nothing else. Keep the traceback in the log; the user still
+		# //// gets the short reason.
 		frappe.log_error("QST Tariff Fetch Failed", frappe.get_traceback())
 		return {
 			"success": False,
-			#//// Neoffice — name the canton and fall back to the exception class when str(e)
-			#//// is empty, so the message says something.
+			# //// Neoffice — name the canton and fall back to the exception class when str(e)
+			# //// is empty, so the message says something.
 			"message": _("Failed to fetch QST tariffs for {0}: {1}").format(
 				canton, str(e) or type(e).__name__
 			),

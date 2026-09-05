@@ -7,9 +7,9 @@ description = "Open Source HR & Payroll Software"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
-#//// Neoffice — added. Upstream hrms declares no runtime dependency; the Swiss salary
-#//// certificate needs its Swissdec annex-5 2D barcode (pdf417gen + python-barcode).
-#//// Keep this block at a merge — the rest of the table is upstream's.
+# //// Neoffice — added. Upstream hrms declares no runtime dependency; the Swiss salary
+# //// certificate needs its Swissdec annex-5 2D barcode (pdf417gen + python-barcode).
+# //// Keep this block at a merge — the rest of the table is upstream's.
 dependencies = [
     "pdf417gen>=0.8.0",
     "python-barcode>=0.15.1",

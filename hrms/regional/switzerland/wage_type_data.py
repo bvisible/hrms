@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): the Swissdec standard wage type catalog data
-#//// (~170 codes and the insurance bases each one feeds).
+# //// Neoffice — added file (no upstream equivalent): the Swissdec standard wage type catalog data
+# //// (~170 codes and the insurance bases each one feeds).
 # Swiss standard wage type catalog (rubriques de salaire)
 # Reference: Daniel Moret Informatique Service, 08.05.2024
 # Based on Swissdec standard wage type definitions

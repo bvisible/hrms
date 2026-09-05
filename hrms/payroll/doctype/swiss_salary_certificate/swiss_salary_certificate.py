@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): controller of the Swiss Salary Certificate
-#//// (Lohnausweis / certificat de salaire, official Form 11) — a legal yearly document
-#//// no upstream hrms doctype covers.
+# //// Neoffice — added file (no upstream equivalent): controller of the Swiss Salary Certificate
+# //// (Lohnausweis / certificat de salaire, official Form 11) — a legal yearly document
+# //// no upstream hrms doctype covers.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -60,11 +60,11 @@ class SwissSalaryCertificate(Document):
 		loads the Lohnausweis mapping from Swiss Social Insurance Config,
 		and aggregates amounts by position.
 		"""
-		#//// Neoffice — two checks added. frappe.handler.run_doc_method asserts read on the
-		#//// certificate and nothing else, and the aggregation below reads EVERY submitted Salary
-		#//// Slip of the employee for the year through frappe.get_all, which bypasses the
-		#//// permission layer: read on one certificate was enough to extract a whole payroll year.
-		#//// write on the certificate too — this rewrites every Form 11 position on the document.
+		# //// Neoffice — two checks added. frappe.handler.run_doc_method asserts read on the
+		# //// certificate and nothing else, and the aggregation below reads EVERY submitted Salary
+		# //// Slip of the employee for the year through frappe.get_all, which bypasses the
+		# //// permission layer: read on one certificate was enough to extract a whole payroll year.
+		# //// write on the certificate too — this rewrites every Form 11 position on the document.
 		self.check_permission("write")
 		frappe.has_permission("Salary Slip", "read", throw=True)
 		if not self.employee or not self.fiscal_year:
@@ -209,13 +209,13 @@ def get_barcode_data_for_print(name):
 
 	Module-level whitelisted function callable from Jinja print formats.
 	"""
-	#//// Neoffice — permission check added. This is reachable as
-	#//// /api/method/...get_barcode_data_for_print?name=CH-CERT-2026-HR-EMP-00001: unlike the
-	#//// document method above (run_doc_method checks read), a module-level whitelist gets no
-	#//// check at all, and frappe.get_doc never applies one. The payload it returns is the raw
-	#//// TxAB record — AVS number, date of birth, address, every Form 11 position — and the
-	#//// names are enumerable (format:CH-CERT-{fiscal_year}-{employee}). Printing is unaffected:
-	#//// rendering a print format already requires read on the document.
+	# //// Neoffice — permission check added. This is reachable as
+	# //// /api/method/...get_barcode_data_for_print?name=CH-CERT-2026-HR-EMP-00001: unlike the
+	# //// document method above (run_doc_method checks read), a module-level whitelist gets no
+	# //// check at all, and frappe.get_doc never applies one. The payload it returns is the raw
+	# //// TxAB record — AVS number, date of birth, address, every Form 11 position — and the
+	# //// names are enumerable (format:CH-CERT-{fiscal_year}-{employee}). Printing is unaffected:
+	# //// rendering a print format already requires read on the document.
 	frappe.has_permission("Swiss Salary Certificate", "read", doc=name, throw=True)
 	doc = frappe.get_doc("Swiss Salary Certificate", name)
 	return doc.get_barcode_data()

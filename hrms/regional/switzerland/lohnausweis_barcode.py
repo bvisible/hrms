@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): the salary certificate 2D barcode (Swissdec
-#//// annex 5: TxAB XML, deflate, PDF417).
+# //// Neoffice — added file (no upstream equivalent): the salary certificate 2D barcode (Swissdec
+# //// annex 5: TxAB XML, deflate, PDF417).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

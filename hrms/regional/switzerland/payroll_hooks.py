@@ -1,13 +1,13 @@
-#//// Neoffice — added file (no upstream equivalent): Salary Slip validate hook computing the Swiss
-#//// social contributions and source tax. Wired in hooks.py doc_events.
+# //// Neoffice — added file (no upstream equivalent): Salary Slip validate hook computing the Swiss
+# //// social contributions and source tax. Wired in hooks.py doc_events.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
 import frappe
 from frappe.utils import cint, flt
 
-#//// Neoffice — BASE_SALARY_WAGE_TYPE_CODES added: hourly, per-lesson and weekly pay are
-#//// base pay too, see _is_base_wage_type.
+# //// Neoffice — BASE_SALARY_WAGE_TYPE_CODES added: hourly, per-lesson and weekly pay are
+# //// base pay too, see _is_base_wage_type.
 from hrms.regional.switzerland.constants import BASE_SALARY_WAGE_TYPE_CODES, RATE_BASED_COMPONENTS
 from hrms.regional.switzerland.source_tax import calculate_source_tax, round_half_up
 from hrms.regional.switzerland.utils import (
@@ -16,8 +16,8 @@ from hrms.regional.switzerland.utils import (
 	calculate_thirteenth_month,
 	get_employee_age,
 	get_swiss_social_insurance_config,
-	#//// Neoffice — was get_ytd_gross_for_employee; the AC ceiling tracks the AC-subject
-	#//// cumulative, not gross pay. See _update_ac_components.
+	# //// Neoffice — was get_ytd_gross_for_employee; the AC ceiling tracks the AC-subject
+	# //// cumulative, not gross pay. See _update_ac_components.
 	get_ytd_ac_base_for_employee,
 )
 
@@ -43,11 +43,11 @@ def update_swiss_social_contributions(doc, method):
 	# Add 13th month earning if applicable (before computing gross)
 	updated = _add_thirteenth_month_earning(doc, config)
 
-	#//// Neoffice — the early return that stood here aborted the WHOLE hook whenever no base
-	#//// salary component was found on the slip: an employee paid by the hour (wage type 1005)
-	#//// got no AVS, no AC, no LAA, no IJM and no source tax at all — silently under-deducted,
-	#//// and under-declared. The base is only needed to ANNUALIZE LPP, so only LPP may be
-	#//// skipped for want of it (see below).
+	# //// Neoffice — the early return that stood here aborted the WHOLE hook whenever no base
+	# //// salary component was found on the slip: an employee paid by the hour (wage type 1005)
+	# //// got no AVS, no AC, no LAA, no IJM and no source tax at all — silently under-deducted,
+	# //// and under-declared. The base is only needed to ANNUALIZE LPP, so only LPP may be
+	# //// skipped for want of it (see below).
 	# Base salary of the month (used for LPP annualization)
 	base_monthly = _get_base_from_earnings(doc)
 
@@ -66,10 +66,10 @@ def update_swiss_social_contributions(doc, method):
 	# Update LPP/BVG: annualize using base_monthly * multiplier (13 if 13th enabled)
 	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
 	lpp_multiplier = 13 if thirteenth_mode != "Disabled" else 12
-	#//// Neoffice — an employee paid by the hour has no fixed monthly base: annualize the
-	#//// LPP-subject earnings actually paid this month, which is what the annualization
-	#//// approximates for a monthly salary anyway. With nothing to annualize at all, skip LPP
-	#//// alone and SAY so — never drop the other contributions, as the early return used to.
+	# //// Neoffice — an employee paid by the hour has no fixed monthly base: annualize the
+	# //// LPP-subject earnings actually paid this month, which is what the annualization
+	# //// approximates for a monthly salary anyway. With nothing to annualize at all, skip LPP
+	# //// alone and SAY so — never drop the other contributions, as the early return used to.
 	lpp_base_monthly = base_monthly or flt(bases["lpp_base"])
 	if lpp_base_monthly:
 		updated = (
@@ -203,9 +203,9 @@ def _get_component_insurance_flags(component_name):
 
 
 def _warn_no_lpp_base(doc):
-	#//// Neoffice — added with the fix above: a contribution that cannot be computed has to be
-	#//// visible. Silence is what let the hourly-employee bug survive — the slip simply came out
-	#//// without LPP and looked normal.
+	# //// Neoffice — added with the fix above: a contribution that cannot be computed has to be
+	# //// visible. Silence is what let the hourly-employee bug survive — the slip simply came out
+	# //// without LPP and looked normal.
 	"""Report that LPP was skipped for want of a base, instead of dropping it silently."""
 	message = frappe._(
 		"LPP/BVG was not computed for {0}: no base salary could be determined on this slip "
@@ -218,8 +218,8 @@ def _warn_no_lpp_base(doc):
 	frappe.msgprint(message, title=frappe._("LPP/BVG skipped"), indicator="orange")
 
 
-#//// Neoffice — docstring updated with the fix below: the base is no longer the monthly
-#//// salary alone.
+# //// Neoffice — docstring updated with the fix below: the base is no longer the monthly
+# //// salary alone.
 def _get_base_from_earnings(doc):
 	"""Get the base salary of the month from the slip's earnings.
 	The base component is identified by its Swissdec wage type (1000 monthly,
@@ -238,8 +238,8 @@ def _get_base_from_earnings(doc):
 
 
 def _is_base_wage_type(component_name):
-	#//// Neoffice — was `== 1000` (monthly salary only). Every other form of base pay — hourly,
-	#//// per lesson, weekly — then looked like "no salary at all" to the caller.
+	# //// Neoffice — was `== 1000` (monthly salary only). Every other form of base pay — hourly,
+	# //// per lesson, weekly — then looked like "no salary at all" to the caller.
 	"""True when the salary component carries a Swissdec base-pay wage type."""
 	if not component_name:
 		return False
@@ -247,7 +247,7 @@ def _is_base_wage_type(component_name):
 	if not wage_type:
 		return False
 	code = frappe.get_cached_value("Swiss Wage Type", wage_type, "code")
-	#//// Neoffice — was `== 1000`, see above.
+	# //// Neoffice — was `== 1000`, see above.
 	return cint(code) in BASE_SALARY_WAGE_TYPE_CODES
 
 
@@ -283,12 +283,12 @@ def _update_rate_based_components(doc, config, bases):
 		rate = flt(config.get(rate_field))
 		base_amount = flt(bases.get(base_type, bases["gross_total"]))
 		if rate and base_amount:
-			#//// Neoffice — prorate=False, and round_half_up like the loop above. The base is
-			#//// built from the amounts ACTUALLY PAID, so it already carries the proration of a
-			#//// partial month; _add_deduction_row used to apply payment_days/total_working_days
-			#//// on top of it. An employee paid half the month had this contribution deducted at
-			#//// a quarter — and only on the components the structure did not carry, so the same
-			#//// slip mixed correct and quartered lines.
+			# //// Neoffice — prorate=False, and round_half_up like the loop above. The base is
+			# //// built from the amounts ACTUALLY PAID, so it already carries the proration of a
+			# //// partial month; _add_deduction_row used to apply payment_days/total_working_days
+			# //// on top of it. An employee paid half the month had this contribution deducted at
+			# //// a quarter — and only on the components the structure did not carry, so the same
+			# //// slip mixed correct and quartered lines.
 			amount = round_half_up(base_amount * rate / 100, 2)
 			if amount:
 				_add_deduction_row(doc, comp_name, amount, prorate=False)
@@ -301,17 +301,17 @@ def _update_ac_components(doc, config, ac_base):
 	"""Update AC/ALV components with annual ceiling tracking."""
 	updated = False
 
-	#//// Neoffice — was get_ytd_gross_for_employee (SUM of gross_pay). The ceiling was measuring
-	#//// an AC-SUBJECT month against an ALL-EARNINGS year, so any earning that is not subject to
-	#//// AC still pushed the employee towards the ceiling and cut the AC base of the month that
-	#//// crosses it. See get_ytd_ac_base_for_employee for the worked example.
+	# //// Neoffice — was get_ytd_gross_for_employee (SUM of gross_pay). The ceiling was measuring
+	# //// an AC-SUBJECT month against an ALL-EARNINGS year, so any earning that is not subject to
+	# //// AC still pushed the employee towards the ceiling and cut the AC base of the month that
+	# //// crosses it. See get_ytd_ac_base_for_employee for the worked example.
 	ytd_ac_base = get_ytd_ac_base_for_employee(doc.employee, doc.company, doc.start_date, doc.end_date)
 
 	from frappe.utils import getdate
 
 	ac_result = calculate_ac_contribution(
-		#//// Neoffice — second argument was ytd_gross; it is the AC-subject cumulative that the
-		#//// ceiling is measured against, see get_ytd_ac_base_for_employee.
+		# //// Neoffice — second argument was ytd_gross; it is the AC-subject cumulative that the
+		# //// ceiling is measured against, see get_ytd_ac_base_for_employee.
 		ac_base, ytd_ac_base, config, year=getdate(doc.end_date).year
 	)
 
@@ -399,9 +399,9 @@ def _has_component(doc, component_name):
 	return False
 
 
-#//// Neoffice — prorate added. Proration is not idempotent: an amount computed on a base
-#//// that is already prorated must be stored as it is. See the call in
-#//// _update_rate_based_components.
+# //// Neoffice — prorate added. Proration is not idempotent: an amount computed on a base
+# //// that is already prorated must be stored as it is. See the call in
+# //// _update_rate_based_components.
 def _add_deduction_row(doc, component_name, amount, prorate=True):
 	"""Add a new deduction row to the salary slip.
 
@@ -414,7 +414,7 @@ def _add_deduction_row(doc, component_name, amount, prorate=True):
 	row.do_not_include_in_total = comp.do_not_include_in_total
 	row.depends_on_payment_days = comp.depends_on_payment_days
 	row.default_amount = flt(amount, row.precision("amount"))
-	#//// Neoffice — see the prorate parameter above.
+	# //// Neoffice — see the prorate parameter above.
 	row.amount = _prorate_amount(doc, row, row.default_amount) if prorate else row.default_amount
 
 
@@ -505,9 +505,9 @@ def _is_aperiodic_component(component_name, thirteenth_mode):
 	return False
 
 
-#//// Neoffice — restricted to the source-tax base with the imp_base fix below: the caller
-#//// subtracts this total from that base to get the periodic part, so an aperiodic row that is
-#//// NOT subject to source tax would make the periodic part too small — negative, even.
+# //// Neoffice — restricted to the source-tax base with the imp_base fix below: the caller
+# //// subtracts this total from that base to get the periodic part, so an aperiodic row that is
+# //// NOT subject to source tax would make the periodic part too small — negative, even.
 def _get_aperiodic_total(doc, config):
 	"""Sum of the aperiodic earnings actually paid on this slip and subject to source tax."""
 	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
@@ -515,7 +515,7 @@ def _get_aperiodic_total(doc, config):
 	for row in doc.get("earnings"):
 		if cint(row.get("do_not_include_in_total")):
 			continue
-		#//// Neoffice — see the note above the function: only the source-tax base counts here.
+		# //// Neoffice — see the note above the function: only the source-tax base counts here.
 		flags = _get_component_insurance_flags(row.salary_component)
 		if flags["has_flags"] and not flags["imp"]:
 			continue
@@ -529,11 +529,11 @@ def _update_source_tax(doc, config, employee, imp_base):
 	updated = False
 
 	aperiodic = _get_aperiodic_total(doc, config)
-	#//// Neoffice — imp_base is passed on now. The caller computed it from the
-	#//// ch_subject_to_imp flag of every component and this function dropped it:
-	#//// calculate_source_tax summed ALL the earnings instead, so a component explicitly
-	#//// marked as not subject to source tax was taxed like any other — and the tariff being
-	#//// progressive, it also pushed the rate of everything else up.
+	# //// Neoffice — imp_base is passed on now. The caller computed it from the
+	# //// ch_subject_to_imp flag of every component and this function dropped it:
+	# //// calculate_source_tax summed ALL the earnings instead, so a component explicitly
+	# //// marked as not subject to source tax was taxed like any other — and the tariff being
+	# //// progressive, it also pushed the rate of everything else up.
 	result = calculate_source_tax(employee, doc, config, aperiodic=aperiodic, gross=imp_base)
 	tax_amount = flt(result.get("tax_amount", 0), 2)
 
@@ -584,9 +584,9 @@ def _update_source_tax(doc, config, employee, imp_base):
 			break
 
 	if not found and tax_amount:
-		#//// Neoffice — prorate=False replaces the loop that used to undo the proration right
-		#//// after _add_deduction_row applied it. Source tax is computed on the salary actually
-		#//// paid and on the source-tax days of the period; it is never prorated again.
+		# //// Neoffice — prorate=False replaces the loop that used to undo the proration right
+		# //// after _add_deduction_row applied it. Source tax is computed on the salary actually
+		# //// paid and on the source-tax days of the period; it is never prorated again.
 		_add_deduction_row(doc, component, tax_amount, prorate=False)
 		updated = True
 

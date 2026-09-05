@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): first version of the QST bracket index
-#//// (superseded by add_qst_bracket_lookup_index, kept because it is already logged in
-#//// Patch Log on deployed sites).
+# //// Neoffice — added file (no upstream equivalent): first version of the QST bracket index
+# //// (superseded by add_qst_bracket_lookup_index, kept because it is already logged in
+# //// Patch Log on deployed sites).
 import frappe
 
 

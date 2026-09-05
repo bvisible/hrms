@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): the Swissdec Gateway itself — a small Flask
-#//// service deployed on the Windows VM that owns the certified SwissDecTX CLI. It is
-#//// NOT loaded by the hrms app; it is deployed separately.
+# //// Neoffice — added file (no upstream equivalent): the Swissdec Gateway itself — a small Flask
+# //// service deployed on the Windows VM that owns the certified SwissDecTX CLI. It is
+# //// NOT loaded by the hrms app; it is deployed separately.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): step machine + LLM call of the Swiss payroll
-#//// setup assistant (extracts the data from the conversation and validates it).
+# //// Neoffice — added file (no upstream equivalent): step machine + LLM call of the Swiss payroll
+# //// setup assistant (extracts the data from the conversation and validates it).
 import json
 import re
 

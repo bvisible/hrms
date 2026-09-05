@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): Flask test client suite of the gateway. Named
-#//// app_test.py, not test_app.py, so that frappe's bench runner does not import it —
-#//// it needs Flask, which instances do not have.
+# //// Neoffice — added file (no upstream equivalent): Flask test client suite of the gateway. Named
+# //// app_test.py, not test_app.py, so that frappe's bench runner does not import it —
+# //// it needs Flask, which instances do not have.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

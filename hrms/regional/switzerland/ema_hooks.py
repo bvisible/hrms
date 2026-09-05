@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): Employee on_update hook detecting the changes
-#//// that must be announced to the insurers (EMA). Wired in hooks.py doc_events.
+# //// Neoffice — added file (no upstream equivalent): Employee on_update hook detecting the changes
+# //// that must be announced to the insurers (EMA). Wired in hooks.py doc_events.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 

@@ -1,9 +1,9 @@
-#//// Neoffice — added file (no upstream equivalent): unit tests of the ESTV fixed-width parser.
+# //// Neoffice — added file (no upstream equivalent): unit tests of the ESTV fixed-width parser.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
 import unittest
-from unittest.mock import patch  #//// Neoffice — added, used by the last class of the file.
+from unittest.mock import patch  # //// Neoffice — added, used by the last class of the file.
 
 from hrms.regional.switzerland.estv_parser import parse_estv_tariff_file, parse_line
 
@@ -111,8 +111,8 @@ class TestParseFile(unittest.TestCase):
 		self.assertEqual(brackets, [])
 
 
-#//// Neoffice — added: the fields below used to fall back to 0.0 when they could not be read,
-#//// which in this file is not a fallback but a wrong tariff — a bracket that withholds nothing.
+# //// Neoffice — added: the fields below used to fall back to 0.0 when they could not be read,
+# //// which in this file is not a fallback but a wrong tariff — a bracket that withholds nothing.
 class TestCorruptRecordsAreNotImportedAsZero(unittest.TestCase):
 	"""A bracket we cannot read is dropped, never imported as a bracket worth zero."""
 

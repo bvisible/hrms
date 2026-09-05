@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent): controller of the EMA notification — Swiss
-#//// law requires arrival/change/departure to be announced independently of the yearly
-#//// declaration.
+# //// Neoffice — added file (no upstream equivalent): controller of the EMA notification — Swiss
+# //// law requires arrival/change/departure to be announced independently of the yearly
+# //// declaration.
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -38,9 +38,9 @@ class SwissdecEMANotification(frappe.model.document.Document):
 	@frappe.whitelist()
 	def populate_from_employee(self):
 		"""Manually refresh snapshot from current employee data."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it overwrites the employee snapshot and saves.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it overwrites the employee snapshot and saves.
 		self.check_permission("write")
 		self._snapshot_employee()
 		self.save()
@@ -49,9 +49,9 @@ class SwissdecEMANotification(frappe.model.document.Document):
 	@frappe.whitelist()
 	def export_xml(self):
 		"""Generate and attach the EMA XML file."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it attaches the EMA file (AVS number, permit, dates) and saves.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it attaches the EMA file (AVS number, permit, dates) and saves.
 		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_xml import generate_ema_notification
 		from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
@@ -110,9 +110,9 @@ class SwissdecEMANotification(frappe.model.document.Document):
 	@frappe.whitelist()
 	def transmit(self):
 		"""Transmit the EMA notification via the Swissdec Gateway."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it FILES the notification with the institutions and saves the transmission id.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it FILES the notification with the institutions and saves the transmission id.
 		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_transmitter import transmit_declaration
 
@@ -128,9 +128,9 @@ class SwissdecEMANotification(frappe.model.document.Document):
 		self.transmission_id = result.get("transmission_id")
 		self.transmitted_on = now_datetime()
 		self.declaration_id = result.get("declaration_id")
-		#//// Neoffice — response_message no longer mirrors response_status: the outcome word goes
-		#//// in the Data field, the gateway's free-text reason in the Small Text field where it
-		#//// fits instead of being truncated away.
+		# //// Neoffice — response_message no longer mirrors response_status: the outcome word goes
+		# //// in the Data field, the gateway's free-text reason in the Small Text field where it
+		# //// fits instead of being truncated away.
 		self.response_status = result.get("response_status")
 		self.response_message = result.get("response_message")
 		self.transmission_log = result.get("transmission_log")
@@ -150,7 +150,7 @@ class SwissdecEMANotification(frappe.model.document.Document):
 			)
 		else:
 			frappe.msgprint(
-				#//// Neoffice — shows the reason: response_status is now the outcome word.
+				# //// Neoffice — shows the reason: response_status is now the outcome word.
 				_("EMA rejected: {0}").format(self.response_message or self.response_status),
 				indicator="red",
 			)
@@ -158,9 +158,9 @@ class SwissdecEMANotification(frappe.model.document.Document):
 	@frappe.whitelist()
 	def check_status(self):
 		"""Check the status of a pending EMA transmission."""
-		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
-		#//// nothing else before calling a whitelisted document method, so this one was open to
-		#//// any account holding read: it saves the status the gateway reports.
+		# //// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		# //// nothing else before calling a whitelisted document method, so this one was open to
+		# //// any account holding read: it saves the status the gateway reports.
 		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_transmitter import check_transmission_status
 
@@ -176,7 +176,7 @@ class SwissdecEMANotification(frappe.model.document.Document):
 		new_status = result.get("status")
 		if new_status in ("Accepted", "Rejected"):
 			self.status = new_status
-			#//// Neoffice — outcome in response_status, reason in response_message (see transmit).
+			# //// Neoffice — outcome in response_status, reason in response_message (see transmit).
 			self.response_status = new_status
 			self.response_message = result.get("message")
 			if result.get("declaration_id"):

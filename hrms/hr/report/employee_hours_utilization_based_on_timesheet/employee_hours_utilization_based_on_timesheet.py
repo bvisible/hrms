@@ -5,10 +5,10 @@
 import frappe
 from frappe import _
 from frappe.utils import flt, getdate
-#//// Neoffice — added import, used by the two blocks below (7da51ade7, bvisible
-#//// 2024-01-29, "update to get a real usable report on timesheet"): upstream counts
-#//// calendar days, ours counts business days minus holidays.
-from datetime import datetime, timedelta #//// added
+# //// Neoffice — added import, used by the two blocks below (7da51ade7, bvisible
+# //// 2024-01-29, "update to get a real usable report on timesheet"): upstream counts
+# //// calendar days, ours counts business days minus holidays.
+from datetime import datetime, timedelta # //// added
 
 
 def execute(filters=None):
@@ -20,9 +20,9 @@ class EmployeeHoursReport:
 
 	def __init__(self, filters=None):
 		self.filters = frappe._dict(filters or {})
-		#//// Neoffice — DISABLED block: it sits inside a ''' string, so it never runs.
-		#//// It pushed to_date one day forward to catch the last day's entries; superseded
-		#//// by the DATE_ADD(..., INTERVAL 1 DAY) of the query below. Same commit 7da51ade7.
+		# //// Neoffice — DISABLED block: it sits inside a ''' string, so it never runs.
+		# //// It pushed to_date one day forward to catch the last day's entries; superseded
+		# //// by the DATE_ADD(..., INTERVAL 1 DAY) of the query below. Same commit 7da51ade7.
 		'''#//// added block
 		if self.filters.to_date:
 			date_obj = datetime.strptime(self.filters.to_date, "%Y-%m-%d")
@@ -149,13 +149,13 @@ class EmployeeHoursReport:
 					additional_filters += f" AND ttd.{field} = {self.filters.get(field)!r}"
 				else:
 					additional_filters += f" AND tt.{field} = {self.filters.get(field)!r}"
-		#//// Neoffice — upstream's query, kept but DISABLED inside the ''' string below.
-		#//// Ours (further down) also selects ttd.from_time / ttd.to_time, and tests for an
-		#//// OVERLAP with the period instead of requiring both tt.start_date and tt.end_date
-		#//// to fall inside it — a timesheet straddling a boundary was dropped entirely.
-		#//// AT A MERGE: upstream's `# nosemgrep` line went into the string with the query,
-		#//// so our replacement below carries no nosemgrep annotation. Commit 7da51ade7.
-		#//// commented
+		# //// Neoffice — upstream's query, kept but DISABLED inside the ''' string below.
+		# //// Ours (further down) also selects ttd.from_time / ttd.to_time, and tests for an
+		# //// OVERLAP with the period instead of requiring both tt.start_date and tt.end_date
+		# //// to fall inside it — a timesheet straddling a boundary was dropped entirely.
+		# //// AT A MERGE: upstream's `# nosemgrep` line went into the string with the query,
+		# //// so our replacement below carries no nosemgrep annotation. Commit 7da51ade7.
+		# //// commented
 		'''# nosemgrep: frappe-semgrep-rules.rules.frappe-using-db-sql
 		self.filtered_time_logs = frappe.db.sql(
 		f"""
@@ -168,12 +168,12 @@ class EmployeeHoursReport:
 			AND tt.end_date BETWEEN '{self.filters.from_date}' AND '{self.filters.to_date}'
 			{additional_filters}
 		"""'''
-		#////
+		# ////
 
-		#//// Neoffice — our replacement for the query disabled above: start/end times plus
-		#//// the overlap test. Interpolated with .format() exactly as upstream interpolated
-		#//// its f-string; the values come from the report filters. Commit 7da51ade7.
-		#//// added
+		# //// Neoffice — our replacement for the query disabled above: start/end times plus
+		# //// the overlap test. Interpolated with .format() exactly as upstream interpolated
+		# //// its f-string; the values come from the report filters. Commit 7da51ade7.
+		# //// added
 		self.filtered_time_logs = frappe.db.sql(
 			"""
 			SELECT tt.employee AS employee, ttd.hours AS hours, ttd.is_billable AS is_billable, ttd.project AS project,
@@ -212,14 +212,14 @@ class EmployeeHoursReport:
 				record[5] = to_date_datetime
 				record[1] = flt(record[1] - hours_diff, 2)
 		self.filtered_time_logs = [tuple(record) for record in data_list]'''
-		#////
+		# ////
 
 	def generate_stats_by_employee(self):
 		self.stats_by_employee = frappe._dict()
 
-		#//// Neoffice — two extra columns to unpack (start_time, end_time) because the query
-		#//// above selects them; upstream unpacks four. Commit 7da51ade7.
-		for emp, hours, is_billable, __, start_time, end_time in self.filtered_time_logs: #//// added start_time, end_time
+		# //// Neoffice — two extra columns to unpack (start_time, end_time) because the query
+		# //// above selects them; upstream unpacks four. Commit 7da51ade7.
+		for emp, hours, is_billable, __, start_time, end_time in self.filtered_time_logs: # //// added start_time, end_time
 			self.stats_by_employee.setdefault(emp, frappe._dict()).setdefault("billed_hours", 0.0)
 
 			self.stats_by_employee[emp].setdefault("non_billed_hours", 0.0)
@@ -236,26 +236,26 @@ class EmployeeHoursReport:
 			)
 
 	def calculate_utilizations(self):
-		#//// Neoffice — DEFAULT_TOTAL_HOURS was named TOTAL_HOURS and was the ONLY assignment
-		#//// outside the loop, so the per-employee block below reassigned the same name. An
-		#//// employee whose block raised — the try swallowed everything — kept the hours of the
-		#//// employee computed just before, and the report showed a utilisation figure that was
-		#//// simply somebody else's. Renamed so the per-employee value cannot be carried over,
-		#//// and every employee now starts from the upstream calendar-day figure.
+		# //// Neoffice — DEFAULT_TOTAL_HOURS was named TOTAL_HOURS and was the ONLY assignment
+		# //// outside the loop, so the per-employee block below reassigned the same name. An
+		# //// employee whose block raised — the try swallowed everything — kept the hours of the
+		# //// employee computed just before, and the report showed a utilisation figure that was
+		# //// simply somebody else's. Renamed so the per-employee value cannot be carried over,
+		# //// and every employee now starts from the upstream calendar-day figure.
 		DEFAULT_TOTAL_HOURS = flt(self.standard_working_hours * self.day_span, 2)
-		#//// Neoffice — added: the failures are collected and reported once per run, instead of
-		#//// vanishing into frappe.neolog (a debug helper of our frappe fork, not a log anybody
-		#//// reads). A wrong utilisation percentage has to be traceable to the employee it came from.
+		# //// Neoffice — added: the failures are collected and reported once per run, instead of
+		# //// vanishing into frappe.neolog (a debug helper of our frappe fork, not a log anybody
+		# //// reads). A wrong utilisation percentage has to be traceable to the employee it came from.
 		failed_employees = []
 		for emp, data in self.stats_by_employee.items():
 			TOTAL_HOURS = DEFAULT_TOTAL_HOURS
-			#//// Neoffice — added: upstream's denominator is standard_working_hours * day_span,
-			#//// i.e. calendar days at 100 %. Ours counts business days minus the employee and
-			#//// company holidays, prorated by the employment degree over the period.
-			#//// AT A MERGE: this depends on Employee.employment_degrees, a child table hrms
-			#//// does NOT ship (it comes from another Neoffice app), and on frappe.neolog, a
-			#//// helper that exists only in our frappe fork. Commit 7da51ade7.
-			#//// added block
+			# //// Neoffice — added: upstream's denominator is standard_working_hours * day_span,
+			# //// i.e. calendar days at 100 %. Ours counts business days minus the employee and
+			# //// company holidays, prorated by the employment degree over the period.
+			# //// AT A MERGE: this depends on Employee.employment_degrees, a child table hrms
+			# //// does NOT ship (it comes from another Neoffice app), and on frappe.neolog, a
+			# //// helper that exists only in our frappe fork. Commit 7da51ade7.
+			# //// added block
 			try:
 				employee = frappe.get_doc("Employee", emp)
 				holidays = []
@@ -311,15 +311,15 @@ class EmployeeHoursReport:
 					#frappe.neolog("TOTAL_HOURS {}".format(TOTAL_HOURS))
 					#frappe.neolog("supposed TOTAL_HOURS  {}".format(flt(working_days_count * self.standard_working_hours, 2)))
 			except Exception:
-				#//// Neoffice — was `frappe.neolog("Error", e)`, which loses the traceback and
-				#//// writes where nobody looks. Worse, TOTAL_HOURS was left at whatever the block
-				#//// had reached — 0 if it raised after the reset — so the divisions below either
-				#//// used the previous employee's total or killed the whole report on a
-				#//// ZeroDivisionError. Fall back explicitly to the calendar-day figure and name
-				#//// the employee.
+				# //// Neoffice — was `frappe.neolog("Error", e)`, which loses the traceback and
+				# //// writes where nobody looks. Worse, TOTAL_HOURS was left at whatever the block
+				# //// had reached — 0 if it raised after the reset — so the divisions below either
+				# //// used the previous employee's total or killed the whole report on a
+				# //// ZeroDivisionError. Fall back explicitly to the calendar-day figure and name
+				# //// the employee.
 				TOTAL_HOURS = DEFAULT_TOTAL_HOURS
 				failed_employees.append((emp, frappe.get_traceback()))
-			#////
+			# ////
 			data["total_hours"] = TOTAL_HOURS
 			data["untracked_hours"] = flt(TOTAL_HOURS - data["billed_hours"] - data["non_billed_hours"], 2)
 
@@ -327,12 +327,12 @@ class EmployeeHoursReport:
 			if data["untracked_hours"] < 0:
 				data["untracked_hours"] = 0.0
 
-			#//// Neoffice — zero guard added. Both divisions were unguarded, and TOTAL_HOURS is
-			#//// legitimately 0 whenever the period holds no working day for the employee: a range
-			#//// made of weekends and holidays, or an employment degree of 0 % over it. One such
-			#//// employee raised ZeroDivisionError and the report died for the whole company —
-			#//// outside the try above, so nothing caught it. No worked hours to account for
-			#//// means no utilisation to show, which is 0, not a crash.
+			# //// Neoffice — zero guard added. Both divisions were unguarded, and TOTAL_HOURS is
+			# //// legitimately 0 whenever the period holds no working day for the employee: a range
+			# //// made of weekends and holidays, or an employment degree of 0 % over it. One such
+			# //// employee raised ZeroDivisionError and the report died for the whole company —
+			# //// outside the try above, so nothing caught it. No worked hours to account for
+			# //// means no utilisation to show, which is 0, not a crash.
 			if TOTAL_HOURS:
 				data["per_util"] = flt(((data["billed_hours"] + data["non_billed_hours"]) / TOTAL_HOURS) * 100, 2)
 				data["per_util_billed_only"] = flt((data["billed_hours"] / TOTAL_HOURS) * 100, 2)
@@ -340,8 +340,8 @@ class EmployeeHoursReport:
 				data["per_util"] = 0.0
 				data["per_util_billed_only"] = 0.0
 
-		#//// Neoffice — added, see failed_employees above: one Error Log per run, never one per
-		#//// employee, and never silence.
+		# //// Neoffice — added, see failed_employees above: one Error Log per run, never one per
+		# //// employee, and never silence.
 		if failed_employees:
 			frappe.log_error(
 				"Employee utilization report: fell back to calendar days",

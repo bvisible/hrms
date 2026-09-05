@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): HRMS-side client of the Swissdec Gateway
-#//// (transmit, parse result.xml, poll pending transmissions from the scheduler).
+# //// Neoffice — added file (no upstream equivalent): HRMS-side client of the Swissdec Gateway
+# //// (transmit, parse result.xml, poll pending transmissions from the scheduler).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -40,11 +40,11 @@ def get_transmitter_settings():
 		"gateway_url": settings.gateway_url,
 		"api_key": settings.get_password("api_key"),
 		"instance_id": settings.instance_id or "default",
-		#//// Neoffice — added: TLS verification is now an explicit setting, default on. The calls
-		#//// below used to pass verify=False unconditionally, so the API key and the ELM payload
-		#//// (AVS numbers and the salary of every employee) left the instance without any check
-		#//// that the peer was the gateway. The flag only exists for a test gateway holding a
-		#//// self-signed certificate; on a fresh Single the field is unset, hence the "is None".
+		# //// Neoffice — added: TLS verification is now an explicit setting, default on. The calls
+		# //// below used to pass verify=False unconditionally, so the API key and the ELM payload
+		# //// (AVS numbers and the salary of every employee) left the instance without any check
+		# //// that the peer was the gateway. The flag only exists for a test gateway holding a
+		# //// self-signed certificate; on a fresh Single the field is unset, hence the "is None".
 		"verify_tls": True if settings.get("verify_tls") is None else bool(settings.verify_tls),
 	}
 
@@ -72,16 +72,16 @@ def call_gateway(endpoint, method="GET", files=None, data=None):
 
 	timeout = 180  # generous timeout for TX operations
 
-	#//// Neoffice — verify=False replaced by the verify_tls setting (default True). Disabling
-	#//// verification let anything holding the route impersonate the gateway: it would receive
-	#//// the X-API-Key header and the full ELM declaration. Only a test gateway with a
-	#//// self-signed certificate should ever clear the flag.
+	# //// Neoffice — verify=False replaced by the verify_tls setting (default True). Disabling
+	# //// verification let anything holding the route impersonate the gateway: it would receive
+	# //// the X-API-Key header and the full ELM declaration. Only a test gateway with a
+	# //// self-signed certificate should ever clear the flag.
 	verify = settings.get("verify_tls", True)
 	if method.upper() == "GET":
 		response = requests.get(url, headers=headers, timeout=timeout, verify=verify)
 	elif method.upper() == "POST":
-		#//// Neoffice — same verify flag on POST, see above: this is the request that carries
-		#//// the declaration itself.
+		# //// Neoffice — same verify flag on POST, see above: this is the request that carries
+		# //// the declaration itself.
 		response = requests.post(url, headers=headers, files=files, data=data, timeout=timeout, verify=verify)
 	else:
 		frappe.throw(_("Unsupported HTTP method: {0}").format(method))
@@ -157,10 +157,10 @@ def parse_tx_result(result_xml_content):
 	except ElementTree.ParseError:
 		# Not valid XML — try to extract info from raw text
 		result["status_message"] = _extract_status_from_text(result_xml_content)
-		#//// Neoffice — was `"success" in content.lower()`, which "unsuccessful" satisfies: a
-		#//// rejected transmission whose result was not valid XML came back success=True and
-		#//// transmit_declaration filed it as Accepted — a declaration nobody would ever resend.
-		#//// Match whole words, and let an explicit failure word win over a success word.
+		# //// Neoffice — was `"success" in content.lower()`, which "unsuccessful" satisfies: a
+		# //// rejected transmission whose result was not valid XML came back success=True and
+		# //// transmit_declaration filed it as Accepted — a declaration nobody would ever resend.
+		# //// Match whole words, and let an explicit failure word win over a success word.
 		result["success"] = _text_reports_success(result_xml_content)
 		return result
 
@@ -208,9 +208,9 @@ def parse_tx_result(result_xml_content):
 	return result
 
 
-#//// Neoffice — added, see parse_tx_result: substring matching on "success" turned every
-#//// "unsuccessful", "Transmission was not successful" and "failure" into an accepted
-#//// declaration. Whole words only, and a failure word vetoes a success word.
+# //// Neoffice — added, see parse_tx_result: substring matching on "success" turned every
+# //// "unsuccessful", "Transmission was not successful" and "failure" into an accepted
+# //// declaration. Whole words only, and a failure word vetoes a success word.
 _SUCCESS_WORDS = re.compile(r"\b(success|successful|successfully|accepted|ok)\b", re.IGNORECASE)
 _FAILURE_WORDS = re.compile(
 	r"\b(unsuccessful|failed|failure|error|errors|rejected|refused|denied|invalid|not\s+successful)\b",
@@ -326,11 +326,11 @@ def transmit_declaration(declaration_name, doctype="Swissdec Declaration"):
 	return {
 		"transmission_id": response.get("tx_id"),
 		"declaration_id": result.get("declaration_id"),
-		#//// Neoffice — split in two. response_status is a Data field (varchar 140) and it was
-		#//// receiving the gateway's free-text reason: a long rejection message made the save
-		#//// itself fail (CharacterLengthExceededError), losing the outcome altogether, and the
-		#//// callers then mirrored the same value into response_message so the reason had no
-		#//// field of its own. Outcome word in response_status, reason in response_message.
+		# //// Neoffice — split in two. response_status is a Data field (varchar 140) and it was
+		# //// receiving the gateway's free-text reason: a long rejection message made the save
+		# //// itself fail (CharacterLengthExceededError), losing the outcome altogether, and the
+		# //// callers then mirrored the same value into response_message so the reason had no
+		# //// field of its own. Outcome word in response_status, reason in response_message.
 		"response_status": final_status,
 		"response_message": result.get("status_message"),
 		"final_status": final_status,
@@ -422,9 +422,9 @@ def poll_pending_transmissions():
 				if result["status"] in ("Accepted", "Rejected"):
 					doc = frappe.get_doc(dt, decl.name)
 					doc.status = result["status"]
-					#//// Neoffice — outcome in response_status (Data), reason in response_message
-					#//// (Small Text): see transmit_declaration. output[:200] does not fit a Data
-					#//// field, so this save used to die and the poll never recorded the answer.
+					# //// Neoffice — outcome in response_status (Data), reason in response_message
+					# //// (Small Text): see transmit_declaration. output[:200] does not fit a Data
+					# //// field, so this save used to die and the poll never recorded the answer.
 					doc.response_status = result["status"]
 					doc.response_message = result.get("message", "")
 					if result.get("declaration_id"):
