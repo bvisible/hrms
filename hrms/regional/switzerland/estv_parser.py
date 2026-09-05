@@ -31,6 +31,17 @@ import frappe
 from datetime import date
 
 
+#//// Neoffice — added helper: one place to decide what an unreadable ESTV number means. It
+#//// means "unknown", which is None — never 0.0, which in this file is a real amount that the
+#//// payroll would go on to withhold (or not withhold).
+def _parse_rappen(raw, divisor=100.0):
+	"""Fixed-width ESTV integer field -> float, or None when it cannot be read."""
+	try:
+		return int(raw) / divisor
+	except (ValueError, TypeError):
+		return None
+
+
 def parse_line(line):
 	"""Parse one fixed-width line from an ESTV tariff file.
 
@@ -73,34 +84,41 @@ def parse_line(line):
 		except (ValueError, IndexError):
 			pass
 
+	#//// Neoffice — each of the five numbers below used to be wrapped in
+	#//// `except (ValueError, TypeError): <field> = 0.0`. A record whose amount or rate could
+	#//// not be read was therefore imported as a bracket that withholds NOTHING, and one whose
+	#//// income_from could not be read was imported as a bracket starting at 0, which shadows
+	#//// the real first bracket of the tariff. Both are silent: the import reports its usual
+	#//// count, the table looks complete, and the employees in that income band are simply
+	#//// under-withheld until somebody reconciles with the canton. A bracket we cannot read is
+	#//// not a bracket worth zero — the record is dropped and counted, see parse_estv_tariff_file.
 	# Convert Rappen to CHF
-	try:
-		income_from = int(income_from_rappen) / 100.0
-	except (ValueError, TypeError):
-		income_from = 0.0
+	income_from = _parse_rappen(income_from_rappen)
+	income_step = _parse_rappen(step_rappen)
 
-	try:
-		income_step = int(step_rappen) / 100.0
-	except (ValueError, TypeError):
-		income_step = 0.0
-
-	# Parse number of children
-	try:
-		num_children = int(num_children_str)
-	except (ValueError, TypeError):
+	#//// Neoffice — was `except (ValueError, TypeError): num_children = 0`, see the block at
+	#//// the top of this function. Blank is a legitimate absence (a tariff with no children
+	#//// dimension); anything else means the record is not what we think it is.
+	if not num_children_str:
 		num_children = 0
+	else:
+		try:
+			num_children = int(num_children_str)
+		except (ValueError, TypeError):
+			#//// Neoffice — drop the record instead of calling it zero children.
+			return None
 
 	# Convert tax amount from Rappen to CHF
-	try:
-		tax_amount = int(tax_amount_rappen) / 100.0
-	except (ValueError, TypeError):
-		tax_amount = 0.0
+	#//// Neoffice — _parse_rappen, not a try/except that ends on 0.0. See the top of this function.
+	tax_amount = _parse_rappen(tax_amount_rappen)
 
 	# Convert tax rate from 0.01% units to decimal (e.g., 0025 → 0.0025 = 0.25%)
-	try:
-		tax_rate = int(tax_rate_hundredths) / 10000.0
-	except (ValueError, TypeError):
-		tax_rate = 0.0
+	#//// Neoffice — _parse_rappen, not a try/except that ends on 0.0 (a zero RATE).
+	tax_rate = _parse_rappen(tax_rate_hundredths, divisor=10000.0)
+
+	#//// Neoffice — added: any of the four unreadable means the bracket is not usable at all.
+	if income_from is None or income_step is None or tax_amount is None or tax_rate is None:
+		return None
 
 	return {
 		"canton": canton.upper(),
@@ -130,13 +148,29 @@ def parse_estv_tariff_file(file_content, canton=None):
 		file_content = file_content.decode("latin-1")
 
 	brackets = []
+	#//// Neoffice — added: a type 06 record that parse_line refuses is a bracket of the cantonal
+	#//// withholding table that we did NOT import. Dropping it silently leaves a hole in the
+	#//// tariff that only shows up as an under-withheld employee months later, so say it once
+	#//// per file. Non-06 records (headers, footers) are not counted: they are not brackets.
+	skipped = 0
 	for line in file_content.splitlines():
 		parsed = parse_line(line)
 		if parsed is None:
+			#//// Neoffice — added: count the BRACKETS we refused, not the headers and footers.
+			if line.rstrip("\n\r")[0:2] == "06":
+				skipped += 1
 			continue
 		if canton and parsed["canton"] != canton.upper():
 			continue
 		brackets.append(parsed)
+
+	#//// Neoffice — added, see the comment above the counter: one line per file, never silence.
+	if skipped:
+		frappe.log_error(
+			"ESTV tariff: unreadable bracket records skipped",
+			f"{skipped} type 06 record(s) could not be parsed and were NOT imported "
+			f"(canton filter: {canton or 'none'}). The tariff table is incomplete.",
+		)
 
 	return brackets
 
