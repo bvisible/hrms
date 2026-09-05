@@ -69,6 +69,10 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def populate_employees(self):
 		"""Fetch all employees with salary slips for the declaration period."""
+		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		#//// nothing else before calling a whitelisted document method, so this one was open to
+		#//// any account holding read: it rewrites the employee table of the declaration and saves.
+		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_data import get_employees_for_declaration
 		from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
 
@@ -159,6 +163,10 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def run_validation(self):
 		"""Run pre-export validation on all included employees."""
+		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		#//// nothing else before calling a whitelisted document method, so this one was open to
+		#//// any account holding read: it writes the validation results and the status, and saves.
+		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_validation import (
 			get_validation_summary,
 			validate_declaration,
@@ -229,6 +237,10 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def export_xml(self):
 		"""Generate and attach the ELM XML file."""
+		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		#//// nothing else before calling a whitelisted document method, so this one was open to
+		#//// any account holding read: it attaches the ELM file — the AVS number and the salary of every employee — and saves.
+		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_xml import generate_salary_declaration
 		from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
 
@@ -324,6 +336,10 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def transmit(self):
 		"""Transmit the exported XML via the Swissdec Gateway."""
+		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		#//// nothing else before calling a whitelisted document method, so this one was open to
+		#//// any account holding read: it FILES the salary declaration with the authorities and saves the transmission id.
+		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_transmitter import transmit_declaration
 
 		if self.status != "Exported":
@@ -376,6 +392,10 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def check_status(self):
 		"""Check the status of a pending (async) transmission."""
+		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		#//// nothing else before calling a whitelisted document method, so this one was open to
+		#//// any account holding read: it saves the status the gateway reports.
+		self.check_permission("write")
 		from hrms.regional.switzerland.swissdec_transmitter import check_transmission_status
 
 		if self.status != "Transmitted":
@@ -421,6 +441,10 @@ class SwissdecDeclaration(Document):
 	@frappe.whitelist()
 	def retransmit(self):
 		"""Reset a rejected declaration to Exported status and re-transmit."""
+		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		#//// nothing else before calling a whitelisted document method, so this one was open to
+		#//// any account holding read: it re-files a rejected declaration and saves.
+		self.check_permission("write")
 		if self.status != "Rejected":
 			frappe.throw(
 				_("Only rejected declarations can be re-transmitted. Current status: {0}").format(
@@ -455,6 +479,10 @@ class SwissdecDeclaration(Document):
 		Args:
 			contributions: list of dicts with employee and bvg_response_contribution.
 		"""
+		#//// Neoffice — write permission check added. frappe.handler.run_doc_method asserts read and
+		#//// nothing else before calling a whitelisted document method, so this one was open to
+		#//// any account holding read: it writes the pension-fund contributions back onto the employee rows and saves.
+		self.check_permission("write")
 		if self.declaration_type != "BVG-Projection":
 			frappe.throw(_("BVG response import is only available for BVG-Projection declarations."))
 

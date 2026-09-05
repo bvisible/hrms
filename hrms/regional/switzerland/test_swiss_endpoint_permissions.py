@@ -178,3 +178,130 @@ class TestChatSessionOwnership(SwissEndpointPermissionCase):
 		"""The gate must not lock the owner out of their own session."""
 		data = api.chat_get_session(self.session.name)
 		self.assertEqual(data["session_id"], self.session.name)
+
+
+#//// Neoffice — added: the two classes below cover the whitelisted DOCUMENT methods, which the
+#//// classes above do not reach. They take a different route into the app (run_doc_method
+#//// instead of a module-level whitelist) and that route asserts read only, so they need their
+#//// own proof that a portal session is refused and Administrator is not.
+class TestWhitelistedDocumentMethodsRefuseWebsiteUser(SwissEndpointPermissionCase):
+	"""run_doc_method asserts READ and nothing else before calling a whitelisted document
+	method (frappe/handler.py: `if not doc or not doc.has_permission("read")`). Every method
+	below writes — transmit() files the declaration with the authorities — so read was the
+	only thing standing between a portal account and a filed salary declaration.
+
+	Each method is called on an in-memory document: the check is the first statement of the
+	body, so a refusal here is the gate and nothing else. The companion test in
+	TestWhitelistedDocumentMethodsStillPassAdministrator proves the gate is what refuses,
+	by showing Administrator reaching the body's own validation error instead.
+	"""
+
+	def setUp(self):
+		self.declaration = frappe.get_doc({"doctype": "Swissdec Declaration"})
+		self.ema = frappe.get_doc({"doctype": "Swissdec EMA Notification"})
+		self.certificate = frappe.get_doc({"doctype": "Swiss Salary Certificate"})
+
+	def test_declaration_populate_employees_refuses(self):
+		frappe.set_user(self.website_user)
+		self.assertRefused(self.declaration.populate_employees)
+
+	def test_declaration_run_validation_refuses(self):
+		frappe.set_user(self.website_user)
+		self.assertRefused(self.declaration.run_validation)
+
+	def test_declaration_export_xml_refuses(self):
+		frappe.set_user(self.website_user)
+		self.assertRefused(self.declaration.export_xml)
+
+	def test_declaration_transmit_refuses(self):
+		"""The one that files the declaration with the authorities."""
+		frappe.set_user(self.website_user)
+		with patch(
+			"hrms.regional.switzerland.swissdec_transmitter.transmit_declaration"
+		) as transmit:
+			self.assertRefused(self.declaration.transmit)
+		transmit.assert_not_called()
+
+	def test_declaration_check_status_refuses(self):
+		frappe.set_user(self.website_user)
+		self.assertRefused(self.declaration.check_status)
+
+	def test_declaration_retransmit_refuses(self):
+		frappe.set_user(self.website_user)
+		self.assertRefused(self.declaration.retransmit)
+
+	def test_declaration_import_bvg_response_refuses(self):
+		frappe.set_user(self.website_user)
+		self.assertRefused(self.declaration.import_bvg_response, [])
+
+	def test_ema_populate_from_employee_refuses(self):
+		frappe.set_user(self.website_user)
+		self.assertRefused(self.ema.populate_from_employee)
+
+	def test_ema_export_xml_refuses(self):
+		frappe.set_user(self.website_user)
+		self.assertRefused(self.ema.export_xml)
+
+	def test_ema_transmit_refuses(self):
+		frappe.set_user(self.website_user)
+		with patch(
+			"hrms.regional.switzerland.swissdec_transmitter.transmit_declaration"
+		) as transmit:
+			self.assertRefused(self.ema.transmit)
+		transmit.assert_not_called()
+
+	def test_ema_check_status_refuses(self):
+		frappe.set_user(self.website_user)
+		self.assertRefused(self.ema.check_status)
+
+	def test_certificate_populate_from_salary_slips_refuses(self):
+		"""It aggregates every submitted Salary Slip of the year through frappe.get_all."""
+		frappe.set_user(self.website_user)
+		self.assertRefused(self.certificate.populate_from_salary_slips)
+
+	def test_transmitter_settings_test_connection_refuses(self):
+		"""It saves the Single and sends the stored API key to the configured URL."""
+		settings = frappe.get_doc("Swissdec Transmitter Settings")
+		frappe.set_user(self.website_user)
+		# call_gateway is stubbed on purpose: should the gate regress, this test must not be
+		# the thing that opens a connection carrying the instance's gateway API key.
+		with patch(
+			"hrms.regional.switzerland.swissdec_transmitter.call_gateway"
+		) as call_gateway:
+			self.assertRefused(settings.test_connection)
+		call_gateway.assert_not_called()
+
+
+class TestWhitelistedDocumentMethodsStillPassAdministrator(SwissEndpointPermissionCase):
+	"""The gates must refuse the portal user, not everybody.
+
+	Administrator short-circuits frappe.has_permission, so each method must get PAST the new
+	check and fail on its own precondition instead — which is what tells a real gate apart
+	from a method that would refuse anyone.
+	"""
+
+	def test_declaration_transmit_reaches_its_own_status_check(self):
+		declaration = frappe.get_doc({"doctype": "Swissdec Declaration", "status": "Draft"})
+		with self.assertRaises(frappe.ValidationError) as caught:
+			declaration.transmit()
+		self.assertNotIsInstance(caught.exception, frappe.PermissionError)
+		self.assertIn("Exported", str(caught.exception))
+
+	def test_declaration_populate_employees_reaches_its_own_field_check(self):
+		declaration = frappe.get_doc({"doctype": "Swissdec Declaration"})
+		with self.assertRaises(frappe.ValidationError) as caught:
+			declaration.populate_employees()
+		self.assertNotIsInstance(caught.exception, frappe.PermissionError)
+
+	def test_ema_transmit_reaches_its_own_status_check(self):
+		ema = frappe.get_doc({"doctype": "Swissdec EMA Notification", "status": "Draft"})
+		with self.assertRaises(frappe.ValidationError) as caught:
+			ema.transmit()
+		self.assertNotIsInstance(caught.exception, frappe.PermissionError)
+		self.assertIn("Exported", str(caught.exception))
+
+	def test_certificate_populate_reaches_its_own_field_check(self):
+		certificate = frappe.get_doc({"doctype": "Swiss Salary Certificate"})
+		with self.assertRaises(frappe.ValidationError) as caught:
+			certificate.populate_from_salary_slips()
+		self.assertNotIsInstance(caught.exception, frappe.PermissionError)

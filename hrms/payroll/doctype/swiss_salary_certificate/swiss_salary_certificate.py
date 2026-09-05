@@ -60,6 +60,13 @@ class SwissSalaryCertificate(Document):
 		loads the Lohnausweis mapping from Swiss Social Insurance Config,
 		and aggregates amounts by position.
 		"""
+		#//// Neoffice — two checks added. frappe.handler.run_doc_method asserts read on the
+		#//// certificate and nothing else, and the aggregation below reads EVERY submitted Salary
+		#//// Slip of the employee for the year through frappe.get_all, which bypasses the
+		#//// permission layer: read on one certificate was enough to extract a whole payroll year.
+		#//// write on the certificate too — this rewrites every Form 11 position on the document.
+		self.check_permission("write")
+		frappe.has_permission("Salary Slip", "read", throw=True)
 		if not self.employee or not self.fiscal_year:
 			frappe.throw(_("Employee and Fiscal Year are required."))
 
