@@ -236,8 +236,19 @@ class EmployeeHoursReport:
 			)
 
 	def calculate_utilizations(self):
-		TOTAL_HOURS = flt(self.standard_working_hours * self.day_span, 2)
+		#//// Neoffice — DEFAULT_TOTAL_HOURS was named TOTAL_HOURS and was the ONLY assignment
+		#//// outside the loop, so the per-employee block below reassigned the same name. An
+		#//// employee whose block raised — the try swallowed everything — kept the hours of the
+		#//// employee computed just before, and the report showed a utilisation figure that was
+		#//// simply somebody else's. Renamed so the per-employee value cannot be carried over,
+		#//// and every employee now starts from the upstream calendar-day figure.
+		DEFAULT_TOTAL_HOURS = flt(self.standard_working_hours * self.day_span, 2)
+		#//// Neoffice — added: the failures are collected and reported once per run, instead of
+		#//// vanishing into frappe.neolog (a debug helper of our frappe fork, not a log anybody
+		#//// reads). A wrong utilisation percentage has to be traceable to the employee it came from.
+		failed_employees = []
 		for emp, data in self.stats_by_employee.items():
+			TOTAL_HOURS = DEFAULT_TOTAL_HOURS
 			#//// Neoffice — added: upstream's denominator is standard_working_hours * day_span,
 			#//// i.e. calendar days at 100 %. Ours counts business days minus the employee and
 			#//// company holidays, prorated by the employment degree over the period.
@@ -299,8 +310,15 @@ class EmployeeHoursReport:
 					TOTAL_HOURS += flt(working_days_count * self.standard_working_hours / 100 * split["percentage"], 2)
 					#frappe.neolog("TOTAL_HOURS {}".format(TOTAL_HOURS))
 					#frappe.neolog("supposed TOTAL_HOURS  {}".format(flt(working_days_count * self.standard_working_hours, 2)))
-			except Exception as e:
-				frappe.neolog("Error", e)
+			except Exception:
+				#//// Neoffice — was `frappe.neolog("Error", e)`, which loses the traceback and
+				#//// writes where nobody looks. Worse, TOTAL_HOURS was left at whatever the block
+				#//// had reached — 0 if it raised after the reset — so the divisions below either
+				#//// used the previous employee's total or killed the whole report on a
+				#//// ZeroDivisionError. Fall back explicitly to the calendar-day figure and name
+				#//// the employee.
+				TOTAL_HOURS = DEFAULT_TOTAL_HOURS
+				failed_employees.append((emp, frappe.get_traceback()))
 			#////
 			data["total_hours"] = TOTAL_HOURS
 			data["untracked_hours"] = flt(TOTAL_HOURS - data["billed_hours"] - data["non_billed_hours"], 2)
@@ -309,8 +327,30 @@ class EmployeeHoursReport:
 			if data["untracked_hours"] < 0:
 				data["untracked_hours"] = 0.0
 
-			data["per_util"] = flt(((data["billed_hours"] + data["non_billed_hours"]) / TOTAL_HOURS) * 100, 2)
-			data["per_util_billed_only"] = flt((data["billed_hours"] / TOTAL_HOURS) * 100, 2)
+			#//// Neoffice — zero guard added. Both divisions were unguarded, and TOTAL_HOURS is
+			#//// legitimately 0 whenever the period holds no working day for the employee: a range
+			#//// made of weekends and holidays, or an employment degree of 0 % over it. One such
+			#//// employee raised ZeroDivisionError and the report died for the whole company —
+			#//// outside the try above, so nothing caught it. No worked hours to account for
+			#//// means no utilisation to show, which is 0, not a crash.
+			if TOTAL_HOURS:
+				data["per_util"] = flt(((data["billed_hours"] + data["non_billed_hours"]) / TOTAL_HOURS) * 100, 2)
+				data["per_util_billed_only"] = flt((data["billed_hours"] / TOTAL_HOURS) * 100, 2)
+			else:
+				data["per_util"] = 0.0
+				data["per_util_billed_only"] = 0.0
+
+		#//// Neoffice — added, see failed_employees above: one Error Log per run, never one per
+		#//// employee, and never silence.
+		if failed_employees:
+			frappe.log_error(
+				"Employee utilization report: fell back to calendar days",
+				"The working-days computation raised for {0} employee(s); their total hours are "
+				"the calendar-day figure, not the prorated one.\n\n{1}".format(
+					len(failed_employees),
+					"\n\n".join(f"{emp}:\n{tb}" for emp, tb in failed_employees),
+				),
+			)
 
 	def generate_report_summary(self):
 		self.report_summary = []
