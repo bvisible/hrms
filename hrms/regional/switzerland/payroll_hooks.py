@@ -16,7 +16,9 @@ from hrms.regional.switzerland.utils import (
 	calculate_thirteenth_month,
 	get_employee_age,
 	get_swiss_social_insurance_config,
-	get_ytd_gross_for_employee,
+	#//// Neoffice — was get_ytd_gross_for_employee; the AC ceiling tracks the AC-subject
+	#//// cumulative, not gross pay. See _update_ac_components.
+	get_ytd_ac_base_for_employee,
 )
 
 
@@ -299,12 +301,18 @@ def _update_ac_components(doc, config, ac_base):
 	"""Update AC/ALV components with annual ceiling tracking."""
 	updated = False
 
-	ytd_gross = get_ytd_gross_for_employee(doc.employee, doc.company, doc.start_date, doc.end_date)
+	#//// Neoffice — was get_ytd_gross_for_employee (SUM of gross_pay). The ceiling was measuring
+	#//// an AC-SUBJECT month against an ALL-EARNINGS year, so any earning that is not subject to
+	#//// AC still pushed the employee towards the ceiling and cut the AC base of the month that
+	#//// crosses it. See get_ytd_ac_base_for_employee for the worked example.
+	ytd_ac_base = get_ytd_ac_base_for_employee(doc.employee, doc.company, doc.start_date, doc.end_date)
 
 	from frappe.utils import getdate
 
 	ac_result = calculate_ac_contribution(
-		ac_base, ytd_gross, config, year=getdate(doc.end_date).year
+		#//// Neoffice — second argument was ytd_gross; it is the AC-subject cumulative that the
+		#//// ceiling is measured against, see get_ytd_ac_base_for_employee.
+		ac_base, ytd_ac_base, config, year=getdate(doc.end_date).year
 	)
 
 	ac_mapping = {

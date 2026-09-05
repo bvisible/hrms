@@ -246,7 +246,10 @@ def get_employee_age(employee, reference_date=None):
 def get_ytd_gross_for_employee(employee, company, start_date, end_date):
 	"""Get year-to-date gross salary for an employee, excluding the current period.
 
-	Used for AC ceiling tracking.
+	#//// Neoffice — this said "Used for AC ceiling tracking". It is NOT: the ceiling is measured
+	#//// against the AC-SUBJECT cumulative, which is get_ytd_ac_base_for_employee below. Summing
+	#//// gross_pay counts earnings that owe no AC and moves the ceiling. Left in place because a
+	#//// plain year-to-date gross is a legitimate figure of its own — just not this one.
 
 	Args:
 		employee: Employee ID
@@ -275,6 +278,80 @@ def get_ytd_gross_for_employee(employee, company, start_date, end_date):
 	)
 
 	return flt(result[0].ytd_gross) if result else 0
+
+
+#//// Neoffice — added. The AC ceiling has to be tracked against the AC-SUBJECT cumulative, not
+#//// against gross pay: _update_ac_components measures this month with bases["ac_base"] (the
+#//// earnings whose Salary Component carries ch_subject_to_ac) and used to compare it to
+#//// get_ytd_gross_for_employee(), which sums gross_pay — everything, subject or not. Mixing the
+#//// two moves the ceiling: an employee paid 12'000 a month of which 1'000 is not AC-subject
+#//// reaches 144'000 of gross by December while owing AC on 132'000, and the ceiling of 148'200
+#//// cuts December's base to 4'200 instead of 11'000. Employee and employer are both undercharged
+#//// and the AVS settlement no longer matches. Same rule as _get_insurance_base_totals, applied
+#//// to the slips already submitted: flagged components count where flagged, a component with no
+#//// flag at all counts everywhere, and a slip on which nothing is flagged falls back to its whole
+#//// earnings total (the backward-compatibility case of installations that never set the flags).
+def get_ytd_ac_base_for_employee(employee, company, start_date, end_date):
+	"""Year-to-date AC-subject salary for an employee, excluding the current period.
+
+	The cumulative the annual AC ceiling is measured against. Mirrors
+	payroll_hooks._get_insurance_base_totals over the slips already submitted.
+
+	Args:
+		employee: Employee ID
+		company: Company name
+		start_date: Start date of the current payroll period
+		end_date: End date of the current payroll period (unused, kept for symmetry
+			with get_ytd_gross_for_employee)
+
+	Returns:
+		YTD AC-subject salary in CHF (float)
+	"""
+	year_start = getdate(start_date).replace(month=1, day=1)
+
+	rows = frappe.db.sql(
+		"""
+		SELECT
+			sd.parent AS slip,
+			COALESCE(sd.amount, sd.default_amount, 0) AS amount,
+			COALESCE(sc.ch_subject_to_ac, 0) AS ac,
+			(
+				COALESCE(sc.ch_subject_to_avs, 0) OR COALESCE(sc.ch_subject_to_ac, 0)
+				OR COALESCE(sc.ch_subject_to_laa, 0) OR COALESCE(sc.ch_subject_to_ijm, 0)
+				OR COALESCE(sc.ch_subject_to_lpp, 0) OR COALESCE(sc.ch_subject_to_imp, 0)
+			) AS has_flags
+		FROM `tabSalary Detail` sd
+		INNER JOIN `tabSalary Slip` ss ON ss.name = sd.parent
+		LEFT JOIN `tabSalary Component` sc ON sc.name = sd.salary_component
+		WHERE ss.employee = %s
+			AND ss.company = %s
+			AND ss.start_date >= %s
+			AND ss.end_date < %s
+			AND ss.docstatus = 1
+			AND sd.parenttype = 'Salary Slip'
+			AND sd.parentfield = 'earnings'
+			AND COALESCE(sd.do_not_include_in_total, 0) = 0
+		""",
+		(employee, company, year_start, start_date),
+		as_dict=True,
+	)
+
+	# Group per slip: the "no flag configured anywhere" fallback is decided slip by slip,
+	# exactly as _get_insurance_base_totals decides it for the slip being computed.
+	per_slip = {}
+	for row in rows:
+		slip = per_slip.setdefault(row.slip, {"total": 0.0, "ac": 0.0, "any_flag": False})
+		amount = flt(row.amount)
+		slip["total"] += amount
+		if row.has_flags:
+			slip["any_flag"] = True
+			if row.ac:
+				slip["ac"] += amount
+		else:
+			# A component with no flag at all feeds every base, AC included.
+			slip["ac"] += amount
+
+	return flt(sum(s["ac"] if s["any_flag"] else s["total"] for s in per_slip.values()))
 
 
 def calculate_thirteenth_month(base_monthly, employee, slip_start, slip_end, config):

@@ -369,3 +369,177 @@ class TestSourceTaxBase(SwissPayrollHookCase):
 		slip = self._make_slip([(MONTHLY_COMPONENT, 5000), (self.EXEMPT_COMPONENT, 2000)])
 		update_swiss_social_contributions(slip, "validate")
 		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 371.00)  # 7000 x 5.3%
+
+
+#//// Neoffice — added: the annual AC ceiling is the only contribution here whose amount depends
+#//// on the MONTHS BEFORE the slip, so it is the only one a unit test on a single slip cannot
+#//// catch. These tests put real submitted slips behind the current one and read the amount
+#//// withheld in the month that crosses the ceiling.
+class TestAcCeilingTracksTheAcBase(SwissPayrollHookCase):
+	"""The ceiling is measured against the AC-SUBJECT cumulative, not against gross pay.
+
+	It used to be compared to SUM(gross_pay) of the prior slips. Any earning that owes no AC
+	still pushed the employee towards the ceiling, so the month that crosses it had its AC base
+	cut short and employee and employer were both undercharged.
+	"""
+
+	NON_AC_COMPONENT = "_Test CH Meal Allowance"
+	CEILING = 25000  # a ceiling the fixture reaches in three months, not in eleven
+	AC_PER_MONTH = 11000
+	NON_AC_PER_MONTH = 1000
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# An earning subject to AVS but explicitly NOT to AC — a meal allowance is the real case.
+		_ensure_component(cls.NON_AC_COMPONENT, "Earning", subject_to=0)
+		frappe.db.set_value("Salary Component", cls.NON_AC_COMPONENT, "ch_subject_to_avs", 1)
+		frappe.db.set_value(
+			"Swiss Social Insurance Config", cls.config, "ac_annual_ceiling", cls.CEILING
+		)
+
+	def setUp(self):
+		self.year = getdate(nowdate()).year
+		self.slips = []
+
+	def tearDown(self):
+		# The class shares one transaction across its tests, so the history one test builds
+		# would still be there for the next — and the fixed names would collide. Delete exactly
+		# the rows this test created, nothing broader.
+		for name in self.slips:
+			frappe.db.delete("Salary Detail", {"parent": name, "parenttype": "Salary Slip"})
+			frappe.db.delete("Salary Slip", {"name": name})
+		super().tearDown()
+
+	def _submitted_slip(self, month, earnings):
+		"""A submitted Salary Slip written straight to the tables.
+
+		db_insert() skips validate() on purpose: the subject under test is what the YTD reader
+		SEES in the database, and running the Swiss hook while building the history would make
+		the fixture depend on the very code being measured. FrappeTestCase rolls it all back.
+		"""
+		last_day = 31 if month in (1, 3, 5, 7, 8, 10, 12) else (28 if month == 2 else 30)
+		name = f"_T-Swiss-AC-{self.year}-{month:02d}"
+		slip = frappe.get_doc(
+			{
+				"doctype": "Salary Slip",
+				"employee": self.employee,
+				"company": self.company,
+				"currency": "CHF",
+				"exchange_rate": 1,
+				"payroll_frequency": "Monthly",
+				"start_date": f"{self.year}-{month:02d}-01",
+				"end_date": f"{self.year}-{month:02d}-{last_day}",
+				"posting_date": f"{self.year}-{month:02d}-{last_day}",
+				"docstatus": 1,
+				"gross_pay": sum(amount for _c, amount in earnings),
+			}
+		)
+		slip.name = name
+		slip.db_insert()
+		for idx, (component, amount) in enumerate(earnings, 1):
+			row = frappe.get_doc(
+				{
+					"doctype": "Salary Detail",
+					"parent": name,
+					"parenttype": "Salary Slip",
+					"parentfield": "earnings",
+					"idx": idx,
+					"salary_component": component,
+					"abbr": frappe.db.get_value(
+						"Salary Component", component, "salary_component_abbr"
+					),
+					"amount": amount,
+					"default_amount": amount,
+					"do_not_include_in_total": 0,
+				}
+			)
+			row.name = f"{name}-{idx}"
+			row.db_insert()
+		self.slips.append(name)
+		return name
+
+	def _two_months_of_history(self):
+		"""January and February: 12'000 gross each, of which 11'000 is subject to AC."""
+		for month in (1, 2):
+			self._submitted_slip(
+				month,
+				[
+					(MONTHLY_COMPONENT, self.AC_PER_MONTH),
+					(self.NON_AC_COMPONENT, self.NON_AC_PER_MONTH),
+				],
+			)
+
+	def test_ytd_ac_base_is_not_the_ytd_gross(self):
+		"""The two figures must differ — that difference is the whole defect."""
+		from hrms.regional.switzerland.utils import (
+			get_ytd_ac_base_for_employee,
+			get_ytd_gross_for_employee,
+		)
+
+		self._two_months_of_history()
+		march = f"{self.year}-03-01"
+
+		ytd_gross = get_ytd_gross_for_employee(self.employee, self.company, march, march)
+		ytd_ac = get_ytd_ac_base_for_employee(self.employee, self.company, march, march)
+
+		self.assertEqual(flt(ytd_gross, 2), 24000.00)  # 2 x 12'000, everything
+		self.assertEqual(flt(ytd_ac, 2), 22000.00)  # 2 x 11'000, AC-subject only
+
+	def test_the_month_that_crosses_the_ceiling_is_not_cut_short(self):
+		"""March: 11'000 of AC base against a 25'000 ceiling and 22'000 already accumulated.
+
+		Subject to AC = 25'000 - 22'000 = 3'000, so 33.00 at 1.1 %.
+		Read against the gross cumulative it was 25'000 - 24'000 = 1'000, so 11.00 — the
+		employee and the employer were each undercharged on 2'000 of salary.
+		"""
+		self._two_months_of_history()
+		slip = self._make_slip(
+			[
+				(MONTHLY_COMPONENT, self.AC_PER_MONTH),
+				(self.NON_AC_COMPONENT, self.NON_AC_PER_MONTH),
+			]
+		)
+		update_swiss_social_contributions(slip, "validate")
+
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 33.00)  # 3000 x 1.1%
+		self.assertEqual(self._amount(slip, "AC/ALV Employer"), 33.00)
+
+	def test_below_the_ceiling_nothing_changes(self):
+		"""Witness: with no history the whole AC base is charged, ceiling or not."""
+		slip = self._make_slip([(MONTHLY_COMPONENT, self.AC_PER_MONTH)])
+		update_swiss_social_contributions(slip, "validate")
+
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 121.00)  # 11000 x 1.1%
+
+	def test_a_slip_with_no_flag_at_all_counts_in_full(self):
+		"""Backward compatibility: an installation that never configured the flags.
+
+		_get_insurance_base_totals falls back to the whole earnings total when NO component of
+		the slip carries a flag; the cumulative has to fall back the same way, slip by slip, or
+		the history of such an installation would read as zero and the ceiling would never bite.
+		"""
+		from hrms.regional.switzerland.utils import get_ytd_ac_base_for_employee
+
+		unflagged = "_Test CH Unflagged Earning"
+		_ensure_component(unflagged, "Earning", subject_to=0)
+		self._submitted_slip(1, [(unflagged, 9000)])
+
+		ytd_ac = get_ytd_ac_base_for_employee(
+			self.employee, self.company, f"{self.year}-03-01", f"{self.year}-03-01"
+		)
+		self.assertEqual(flt(ytd_ac, 2), 9000.00)
+
+	def test_a_row_excluded_from_the_total_is_excluded_from_the_cumulative(self):
+		"""do_not_include_in_total is skipped when the month is computed; so it must be here."""
+		from hrms.regional.switzerland.utils import get_ytd_ac_base_for_employee
+
+		self._submitted_slip(1, [(MONTHLY_COMPONENT, 11000)])
+		frappe.db.set_value(
+			"Salary Detail", f"_T-Swiss-AC-{self.year}-01-1", "do_not_include_in_total", 1
+		)
+
+		ytd_ac = get_ytd_ac_base_for_employee(
+			self.employee, self.company, f"{self.year}-03-01", f"{self.year}-03-01"
+		)
+		self.assertEqual(flt(ytd_ac, 2), 0.00)
