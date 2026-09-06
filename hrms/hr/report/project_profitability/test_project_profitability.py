@@ -60,9 +60,14 @@ class TestProjectProfitability(FrappeTestCase):
 		self.assertEqual(self.salary_slip.total_working_days, row.total_working_days)
 
 		standard_working_hours = frappe.db.get_single_value("HR Settings", "standard_working_hours")
-		utilization = timesheet.total_billed_hours / (
-			self.salary_slip.total_working_days * standard_working_hours
-		)
+		# //// Neoffice — mirror the report's guard instead of repeating the unguarded
+		# //// division. The fixture window is relative to today, so on a weekend the
+		# //// salary slip holds 0 working days and this line raised ZeroDivisionError —
+		# //// the suite went red on a Saturday for a calendar reason, not a code one.
+		# //// Upstream carries the same fragility. The other assertions still run, and
+		# //// the real arithmetic is still exercised every working day.
+		available_hours = self.salary_slip.total_working_days * standard_working_hours
+		utilization = timesheet.total_billed_hours / available_hours if available_hours else 0.0
 		self.assertEqual(utilization, row.utilization)
 
 		profit = self.sales_invoice.base_grand_total - self.salary_slip.base_gross_pay * utilization
