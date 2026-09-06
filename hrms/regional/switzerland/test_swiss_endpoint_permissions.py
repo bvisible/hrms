@@ -121,6 +121,8 @@ class TestQstTariffImportRefusesWebsiteUser(SwissEndpointPermissionCase):
 		# of bracket rows the payroll withholds from.
 		frappe.set_user(self.website_user)
 		with patch("frappe.enqueue") as enqueue:
+			# //// Neoffice — was the French "Salaires" (b62d7bdeb "fix(swiss-payroll): the tariff
+			# //// type, the field labels and the payslip wording leave French behind")
 			self.assertRefused(fetch_all_cantons, 2026, "Salary")
 		enqueue.assert_not_called()
 

@@ -104,6 +104,8 @@ class SwissQSTTariff(Document):
 
 		# Parse and import
 		brackets = parse_estv_tariff_file(file_content, canton=self.canton)
+		# //// Neoffice — see tariff_type_abbr mapping above: SAL/VSL now comes from the mapping,
+		# //// not a French-string comparison (b62d7bdeb "fix(swiss-payroll): ...")
 		abbr = tariff_type_abbr(self.tariff_type)
 		bulk_import_tariff_brackets(self.name, brackets, abbr)
 
@@ -138,6 +140,8 @@ class SwissQSTTariff(Document):
 			parse_estv_tariff_file,
 		)
 
+		# //// Neoffice — see tariff_type_abbr mapping above: SAL/VSL now comes from the mapping,
+		# //// not a French-string comparison (b62d7bdeb "fix(swiss-payroll): ...")
 		abbr = tariff_type_abbr(self.tariff_type)
 
 		frappe.publish_realtime(
@@ -146,6 +150,8 @@ class SwissQSTTariff(Document):
 			user=frappe.session.user,
 		)
 
+		# //// Neoffice — see tariff_type_abbr mapping above: abbr feeds the ESTV download URL
+		# //// (b62d7bdeb "fix(swiss-payroll): ...")
 		zip_bytes = download_estv_tariff(self.year, abbr, canton=self.canton)
 		txt_files = extract_txt_from_zip(zip_bytes)
 
@@ -160,6 +166,8 @@ class SwissQSTTariff(Document):
 			frappe.throw(_("No file found for canton {0} in downloaded archive.").format(self.canton))
 
 		# Store source URL
+		# //// Neoffice — see tariff_type_abbr mapping above: abbr (SAL/VSL) drives the URL branching
+		# //// (b62d7bdeb "fix(swiss-payroll): ...")
 		self.source_url = (
 			f"https://www.estv2.admin.ch/qst/{self.year}/"
 			f"{'loehne' if abbr == 'SAL' else 'uebrige-einkuenfte'}/"
@@ -172,6 +180,8 @@ class SwissQSTTariff(Document):
 
 		# Parse and import
 		brackets = parse_estv_tariff_file(file_content, canton=self.canton)
+		# //// Neoffice — see tariff_type_abbr mapping above: SAL/VSL now comes from the mapping
+		# //// (b62d7bdeb "fix(swiss-payroll): ...")
 		bulk_import_tariff_brackets(self.name, brackets, abbr)
 
 		# Update stats
@@ -199,6 +209,8 @@ class SwissQSTTariff(Document):
 		# //// Neoffice — write check added, see import_from_file: the db.set_value archiving the
 		# //// sibling tariffs below bypasses permissions, run_doc_method only checks read.
 		self.check_permission("write")
+		# //// Neoffice — see tariff_type_abbr mapping above: SAL/VSL now comes from the mapping,
+		# //// not a French-string comparison (b62d7bdeb "fix(swiss-payroll): ...")
 		abbr = tariff_type_abbr(self.tariff_type)
 
 		# Archive any other active tariff for same canton+year+type
@@ -224,6 +236,8 @@ class SwissQSTTariff(Document):
 		)
 
 
+# //// Neoffice — default tariff_type is "Salary" now, was the French "Salaires"
+# //// (b62d7bdeb "fix(swiss-payroll): the tariff type, the field labels and the payslip wording leave French behind")
 @frappe.whitelist()
 def fetch_all_cantons(year, tariff_type="Salary"):
 	"""Download the national ZIP and create tariffs for all 26 cantons.
@@ -259,9 +273,13 @@ def _fetch_all_cantons_job(year, tariff_type):
 		parse_estv_tariff_file,
 	)
 
+	# //// Neoffice — see tariff_type_abbr mapping above: SAL/VSL now comes from the mapping,
+	# //// not a French-string comparison (b62d7bdeb "fix(swiss-payroll): ...")
 	abbr = tariff_type_abbr(tariff_type)
 
 	try:
+		# //// Neoffice — see tariff_type_abbr mapping above: abbr feeds the ESTV download URL
+		# //// (b62d7bdeb "fix(swiss-payroll): ...")
 		zip_bytes = download_estv_tariff(year, abbr)
 		txt_files = extract_txt_from_zip(zip_bytes)
 	except Exception as e:
@@ -271,10 +289,14 @@ def _fetch_all_cantons_job(year, tariff_type):
 	imported = 0
 	for filename, content in txt_files.items():
 		# Extract canton from filename (e.g., "tar26zh.txt" → "ZH")
+		# //// Neoffice — see tariff_type_abbr mapping above: abbr (SAL/VSL) drives the filename parsing
+		# //// (b62d7bdeb "fix(swiss-payroll): ...")
 		canton = _extract_canton_from_filename(filename, abbr)
 		if not canton:
 			continue
 
+		# //// Neoffice — see tariff_type_abbr mapping above: abbr (SAL/VSL) names the tariff
+		# //// (b62d7bdeb "fix(swiss-payroll): ...")
 		tariff_name = f"QST-{canton}-{year}-{abbr}"
 
 		# Create or update tariff record
@@ -285,6 +307,8 @@ def _fetch_all_cantons_job(year, tariff_type):
 			tariff.canton = canton
 			tariff.year = year
 			tariff.tariff_type = tariff_type
+			# //// Neoffice — see tariff_type_abbr mapping above: SAL/VSL now comes from the mapping
+			# //// (b62d7bdeb "fix(swiss-payroll): ...")
 			tariff.tariff_type_abbr = abbr
 			tariff.insert(ignore_permissions=True)
 
@@ -292,6 +316,8 @@ def _fetch_all_cantons_job(year, tariff_type):
 		frappe.db.delete("Swiss QST Tariff Bracket", {"parent_tariff": tariff.name})
 
 		brackets = parse_estv_tariff_file(content, canton=canton)
+		# //// Neoffice — see tariff_type_abbr mapping above: SAL/VSL now comes from the mapping
+		# //// (b62d7bdeb "fix(swiss-payroll): ...")
 		bulk_import_tariff_brackets(tariff.name, brackets, abbr)
 
 		# Update stats
@@ -299,6 +325,8 @@ def _fetch_all_cantons_job(year, tariff_type):
 		codes = {b["tariff_code"] for b in brackets}
 		tariff.tariff_codes = len(codes)
 		tariff.imported_on = now_datetime()
+		# //// Neoffice — see tariff_type_abbr mapping above: abbr (SAL/VSL) drives the URL branching
+		# //// (b62d7bdeb "fix(swiss-payroll): ...")
 		tariff.source_url = (
 			f"https://www.estv2.admin.ch/qst/{year}/"
 			f"{'loehne' if abbr == 'SAL' else 'uebrige-einkuenfte'}/"

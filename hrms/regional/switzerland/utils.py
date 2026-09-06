@@ -6,6 +6,8 @@
 
 import frappe
 from frappe import _
+# //// Neoffice — formatdate added: the payslip period label now goes through the framework's
+# //// date formatting instead of a hardcoded French month list (issue #239)
 from frappe.utils import flt, formatdate, getdate, today
 
 from hrms.regional.switzerland.source_tax import round_half_up
@@ -521,6 +523,7 @@ def get_salary_slip_print_data(doc):
 	if gender == "Female":
 		salutation = _("Mrs")
 	elif gender == "Male":
+		# //// Neoffice — see the block marker above: translated, was hardcoded French
 		salutation = _("Mr")
 	else:
 		salutation = ""

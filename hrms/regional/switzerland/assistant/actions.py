@@ -244,6 +244,8 @@ def trigger_qst_fetch(canton, year=None):
 			tariff.canton = canton
 			tariff.year = year
 			# before_naming derives tariff_type_abbr, so the name comes out as QST-XX-YYYY-SAL.
+			# //// Neoffice — label is "Salary" now, was the French "Salaires"
+			# //// (b62d7bdeb "fix(swiss-payroll): the tariff type, the field labels and the payslip wording leave French behind")
 			tariff.tariff_type = "Salary"
 			tariff.insert(ignore_permissions=True)
 

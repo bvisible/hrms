@@ -121,6 +121,8 @@ def get_custom_fields():
 				"fieldtype": "Link",
 				"options": "Swiss Wage Type",
 				"insert_after": "ch_wage_type_section",
+				# //// Neoffice — description translated from French; a patch migrates the existing Custom
+				# //// Field rows, filtered on the exact old value (b62d7bdeb "fix(swiss-payroll): the tariff type, the field labels and the payslip wording leave French behind")
 				"description": "Select a standard wage type to fill in the insurance bases and the Lohnausweis position automatically.",
 				"fetch_from": "",
 			},
@@ -136,6 +138,7 @@ def get_custom_fields():
 			# --- Swiss Employer Contribution ---
 			{
 				"fieldname": "ch_employer_section",
+				# //// Neoffice — see above: label translated from French
 				"label": "Employer / Employee Share",
 				"fieldtype": "Section Break",
 				"insert_after": "ch_wage_type_code",
@@ -143,29 +146,35 @@ def get_custom_fields():
 			},
 			{
 				"fieldname": "is_employer_contribution",
+				# //// Neoffice — see above: label translated from French
 				"label": "Employer Share",
 				"fieldtype": "Check",
 				"insert_after": "ch_employer_section",
 				"default": "0",
+				# //// Neoffice — see above: description translated from French
 				"description": "When ticked, this component is the employer's share and is hidden from the payslip.",
 			},
 			{
 				"fieldname": "linked_component",
+				# //// Neoffice — see above: label translated from French
 				"label": "Linked Component (Employee/Employer)",
 				"fieldtype": "Link",
 				"options": "Salary Component",
 				"insert_after": "is_employer_contribution",
+				# //// Neoffice — see above: description translated from French
 				"description": "Link to the paired component (employee or employer) of this social charge.",
 			},
 			# --- Swiss Social Insurance Bases ---
 			{
 				"fieldname": "ch_insurance_base_section",
+				# //// Neoffice — see above: label translated from French
 				"label": "Swiss Social Insurance Bases",
 				"fieldtype": "Section Break",
 				"insert_after": "linked_component",
 			},
 			{
 				"fieldname": "ch_subject_to_avs",
+				# //// Neoffice — see above: label translated from French
 				"label": "Subject to AVS",
 				"fieldtype": "Check",
 				"insert_after": "ch_insurance_base_section",
@@ -173,6 +182,7 @@ def get_custom_fields():
 			},
 			{
 				"fieldname": "ch_subject_to_ac",
+				# //// Neoffice — see above: label translated from French
 				"label": "Subject to AC",
 				"fieldtype": "Check",
 				"insert_after": "ch_subject_to_avs",
@@ -180,6 +190,7 @@ def get_custom_fields():
 			},
 			{
 				"fieldname": "ch_subject_to_laa",
+				# //// Neoffice — see above: label translated from French
 				"label": "Subject to LAA",
 				"fieldtype": "Check",
 				"insert_after": "ch_subject_to_ac",
@@ -192,6 +203,7 @@ def get_custom_fields():
 			},
 			{
 				"fieldname": "ch_subject_to_ijm",
+				# //// Neoffice — see above: label translated from French
 				"label": "Subject to IJM",
 				"fieldtype": "Check",
 				"insert_after": "ch_column_break_insurance",
@@ -199,6 +211,7 @@ def get_custom_fields():
 			},
 			{
 				"fieldname": "ch_subject_to_lpp",
+				# //// Neoffice — see above: label translated from French
 				"label": "Subject to LPP",
 				"fieldtype": "Check",
 				"insert_after": "ch_subject_to_ijm",
@@ -206,10 +219,12 @@ def get_custom_fields():
 			},
 			{
 				"fieldname": "ch_subject_to_imp",
+				# //// Neoffice — see above: label translated from French
 				"label": "Subject to Withholding Tax",
 				"fieldtype": "Check",
 				"insert_after": "ch_subject_to_lpp",
 				"default": "1",
+				# //// Neoffice — see above: description translated from French
 				"description": "When ticked, this component counts towards the withholding-tax base.",
 			},
 			{

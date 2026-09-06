@@ -74,6 +74,9 @@ frappe.listview_settings["Swiss QST Tariff"] = {
 						label: __("Tariff Type"),
 						fieldname: "tariff_type",
 						fieldtype: "Select",
+						// //// Neoffice — labels changed from French ("Salaires"/"Autres revenus") to
+						// //// "Salary"/"Other Income" (b62d7bdeb "fix(swiss-payroll): the tariff type, the field
+						// //// labels and the payslip wording leave French behind")
 						options: "Salary\nOther Income",
 						default: "Salary",
 						reqd: 1,
