@@ -81,10 +81,15 @@ def calculate_cost_and_profit(data):
 	precision = cint(frappe.db.get_default("float_precision")) or 2
 
 	for row in data:
-		row.utilization = flt(
-			flt(row.total_billed_hours) / (flt(row.total_working_days) * flt(standard_working_hours)),
-			precision,
-		)
+		# //// Neoffice — guard the division. `total_working_days` is 0 whenever the
+		# //// payroll period holds no working day (a window falling on a weekend or a
+		# //// full holiday), and `standard_working_hours` is 0 on a company that never
+		# //// set it: the report then died with ZeroDivisionError instead of showing a
+		# //// line. Utilisation is undefined without working time — 0 is the honest
+		# //// answer, and it keeps the rest of the row (cost, profit) readable.
+		# //// Upstream divides unguarded; the nightly caught it on a Saturday.
+		available_hours = flt(row.total_working_days) * flt(standard_working_hours)
+		row.utilization = flt(flt(row.total_billed_hours) / available_hours, precision) if available_hours else 0.0
 		row.fractional_cost = flt(flt(row.base_gross_pay) * flt(row.utilization), precision)
 
 		row.profit = flt(
