@@ -60,7 +60,7 @@ class TestTriggerQstFetch(FrappeTestCase):
 				"doctype": "Swiss QST Tariff",
 				"canton": self.CANTON,
 				"year": self.YEAR,
-				"tariff_type": "Salaires",
+				"tariff_type": "Salary",
 			}
 		).insert(ignore_permissions=True)
 

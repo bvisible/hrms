@@ -38,7 +38,7 @@ class TestArchivedTariffIsNotConsulted(FrappeTestCase):
 				"doctype": "Swiss QST Tariff",
 				"canton": CANTON,
 				"year": year,
-				"tariff_type": "Salaires",
+				"tariff_type": "Salary",
 				"status": status,
 			}
 		)

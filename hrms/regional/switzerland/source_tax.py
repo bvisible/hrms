@@ -898,7 +898,7 @@ def auto_fetch_new_tariffs():
 	# Determine target year
 	target_year = today.year if today.month <= 6 else today.year + 1
 
-	for tariff_type_abbr, tariff_type_label in (("SAL", "Salaires"), ("VSL", "Autres revenus")):
+	for tariff_type_abbr, tariff_type_label in (("SAL", "Salary"), ("VSL", "Other Income")):
 		existing = frappe.db.count(
 			"Swiss QST Tariff",
 			{"year": target_year, "tariff_type_abbr": tariff_type_abbr, "status": "Active"},

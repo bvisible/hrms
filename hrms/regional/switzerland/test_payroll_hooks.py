@@ -329,7 +329,7 @@ class TestSourceTaxBase(SwissPayrollHookCase):
 				"doctype": "Swiss QST Tariff",
 				"canton": cls.QST_CANTON,
 				"year": 2099,
-				"tariff_type": "Salaires",
+				"tariff_type": "Salary",
 				"status": "Active",
 			}
 		).insert(ignore_permissions=True)

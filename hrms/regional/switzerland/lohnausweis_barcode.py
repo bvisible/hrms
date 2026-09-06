@@ -201,6 +201,12 @@ def generate_txab_xml(certificate_data):
 			ET.SubElement(other, f"{_NS}Text").text = descriptions.get("2.3") or "Autres"
 			ET.SubElement(other, f"{_NS}Sum").text = f"{amount('2.3'):.2f}"
 
+	# //// Neoffice — the French wording of these sort labels is DATA, not a UI string:
+	# //// it is the text the tax authority reads back from the 2D barcode of the salary
+	# //// certificate, and the Lohnausweis specification prescribes the wording per
+	# //// language. RULE #00 does not apply — do NOT translate them to English, and do
+	# //// not route them through `_()`: the certificate's language is the employee's,
+	# //// not the reader's. Same reason for "Autres" above (issue #239).
 	# 3-7
 	if amount("3"):
 		add_sort_sum(s, "SporadicBenefits", "3", "Prestations non périodiques")

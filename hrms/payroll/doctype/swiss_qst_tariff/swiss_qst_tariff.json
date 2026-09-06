@@ -40,12 +40,12 @@
 			"reqd": 1
 		},
 		{
-			"default": "Salaires",
+			"default": "Salary",
 			"fieldname": "tariff_type",
 			"fieldtype": "Select",
 			"in_list_view": 1,
 			"label": "Tariff Type",
-			"options": "Salaires\nAutres revenus",
+			"options": "Salary\nOther Income",
 			"reqd": 1
 		},
 		{
