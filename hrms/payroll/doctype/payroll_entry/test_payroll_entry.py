@@ -913,7 +913,18 @@ def get_payroll_entry(**args):
 	args = frappe._dict(args)
 
 	payroll_entry: PayrollEntry = frappe.new_doc("Payroll Entry")
-	payroll_entry.company = args.company or erpnext.get_default_company()
+	# //// Neoffice — `_Test Company` instead of `erpnext.get_default_company()`.
+	# //// Global Defaults is ambient state that no test in this file sets, while
+	# //// the file's own assertions name `_TC` -- `"Salary - _TC"`,
+	# //// `"ESIC Payable - _TC"` -- which is `_Test Company`'s abbreviation, and
+	# //// every employee these tests create lives there. Reading the company off
+	# //// Global Defaults therefore built the entry in whichever company the
+	# //// fixtures happened to leave behind: it matched on our erpnext fork (pinned
+	# //// at 15.89) and not on the upstream v15 tip, where `fill_employee_details`
+	# //// then threw "No employees found for the mentioned criteria"
+	# //// (neoffice-maintenance#344, chantier #138). An explicit `company=` still
+	# //// wins, so the multi-company tests are untouched.
+	payroll_entry.company = args.company or "_Test Company"
 	payroll_entry.start_date = args.start_date or "2016-11-01"
 	payroll_entry.end_date = args.end_date or "2016-11-30"
 	payroll_entry.payment_account = get_payment_account()
