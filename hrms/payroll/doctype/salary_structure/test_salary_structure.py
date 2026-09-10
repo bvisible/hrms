@@ -175,6 +175,23 @@ def make_salary_structure(
 	if frappe.db.exists("Salary Structure", salary_structure):
 		frappe.db.delete("Salary Structure", salary_structure)
 
+	# //// Neoffice — the company now follows the EMPLOYEE when one is given.
+	# //// Upstream falls straight back to `erpnext.get_default_company()`, i.e. to
+	# //// Global Defaults, which no test here sets: the structure landed in whatever
+	# //// company the ambient fixtures happened to leave behind. Our erpnext fork
+	# //// (pinned at 15.89) leaves `_Test Company`, so it matched by luck; on the
+	# //// upstream v15 tip it leaves another one, and 13 tests died on
+	# //// `validate_company`: "Salary Structure <X> does not belong to company
+	# //// _Test Company" -- while the employee, the leave period, the holiday list
+	# //// and the salary components were all built in `_Test Company`
+	# //// (neoffice-maintenance#344, chantier #138).
+	# ////
+	# //// An explicit `company=` still wins, so a test that deliberately crosses
+	# //// companies is unaffected; this only replaces "whatever is lying around"
+	# //// with the one company the caller already named.
+	if not company and employee:
+		company = frappe.db.get_value("Employee", employee, "company")
+
 	details = {
 		"doctype": "Salary Structure",
 		"name": salary_structure,
