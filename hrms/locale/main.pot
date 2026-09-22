@@ -15302,6 +15302,18 @@ msgstr ""
 msgid "Total Employer Cost"
 msgstr ""
 
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:199
+msgid "Work days"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:200
+msgid "Pay days"
+msgstr ""
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:296
+msgid "Employer Contributions"
+msgstr ""
+
 #. Label of a Currency field in DocType 'Staffing Plan'
 #: hrms/hr/doctype/staffing_plan/staffing_plan.json
 msgid "Total Estimated Budget"
