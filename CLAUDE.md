@@ -173,3 +173,38 @@ FORCE_REBUILD=1 yarn build
 - 2 SPAs : `hrms` (employee self-service, dans `frontend/`) + `roster` (shift planner, dans `roster/`).
 - 2 builds vite séparés. Le gate du package.json check les 2 paths d'artefacts.
 - **socket.js**: pattern drive (async + DEV-only import dynamique, commit `3a8bd5c90`).
+
+## Downstream consumer: the Neoffice mobile app (read before touching `hrms/api`)
+
+**`hrms/api/__init__.py` is a public contract, not internal code.** The Neoffice
+mobile app (private repo `neoffice-mobile`, React Native / Expo monorepo) ships a
+full HR module built on it — leaves, attendance (check-in, attendance & shift
+requests), expense claims, employee advances and salary slips, under
+`apps/mobile/app/[site_id]/hrms/`. Breaking an endpoint there ships a broken app
+to phones, and a phone app is not fixed by a `bench migrate`.
+
+Audited 2026-09-22 against v15.64.1: the app calls **21** of the ~36 whitelisted
+`hrms.api.*` functions. Before changing any of them — and after every upstream
+merge — re-run the cross-check:
+
+```bash
+# endpoints the app calls
+grep -rhoE "hrms\.api\.[a-zA-Z0-9_]+" ~/GitHub/neoffice-mobile/apps ~/GitHub/neoffice-mobile/packages \
+  --include="*.ts" --include="*.tsx" | sort -u
+```
+
+and confirm each one still exists **with a compatible signature and HTTP method**.
+
+**The trap is the HTTP method, not the name.** Upstream hardens endpoints in
+place: v15.64.1 turned `mark_all_notifications_as_read`, `upload_base64_file` and
+`delete_attachment` into `@frappe.whitelist(methods=["POST"])`. None of the three
+was called by the app, so nothing broke — but the same edit on a GET the app uses
+would have been a silent production break, invisible to every test in this repo.
+A renamed or removed endpoint is loud; a method-restricted one is not.
+
+Two more couplings worth knowing:
+- The app downloads payslip PDFs through `frappe.utils.print_format.download_pdf`,
+  so the **Swiss print format and its default-format setting are part of the
+  mobile experience**, not just the desk.
+- Swiss payroll fields (source tax, AVS/LPP lines) are not modelled in the app
+  yet: it renders the generic earnings/deductions tables of the slip.
