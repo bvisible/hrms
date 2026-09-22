@@ -5,15 +5,18 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
+import json
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import flt, getdate, nowdate
+from frappe.utils import flt, getdate, money_in_words, nowdate
 
 # //// Neoffice — tests of an added file (no upstream equivalent).
 from hrms.regional.switzerland.payroll_hooks import (
 	_resolve_component_by_wage_type,
 	update_swiss_social_contributions,
 )
+from hrms.regional.switzerland.utils import get_salary_slip_print_data
 
 # A canton nobody configures in the demo data: the canton-specific config lookup wins over the
 # company default, so the rates asserted below are ours and not the site's.
@@ -48,7 +51,9 @@ def _ensure_custom_fields():
 	"""The ch_* fields live in Custom Fields created by the Swiss setup, which only runs for a
 	Swiss company. A test site set up in India (hrms.tests.test_utils.before_tests) has none, and
 	every lookup below would fail on an unknown column."""
-	if not frappe.db.has_column("Salary Component", "ch_subject_to_avs"):
+	if not frappe.db.has_column("Salary Component", "ch_subject_to_avs") or not frappe.db.has_column(
+		"Salary Slip", "ch_contribution_bases"
+	):
 		from hrms.regional.switzerland.setup import make_custom_fields
 
 		make_custom_fields()
@@ -378,16 +383,17 @@ class TestSourceTaxBase(SwissPayrollHookCase):
 # //// catch. These tests put real submitted slips behind the current one and read the amount
 # //// withheld in the month that crosses the ceiling.
 class TestAcCeilingTracksTheAcBase(SwissPayrollHookCase):
-	"""The ceiling is measured against the AC-SUBJECT cumulative, not against gross pay.
+	"""The ceiling is measured against the AC-SUBJECT cumulative, not against gross pay — and
+	cumulated over the year, prorated to the contribution days (Swissdec guidelines 7.12.3).
 
-	It used to be compared to SUM(gross_pay) of the prior slips. Any earning that owes no AC
-	still pushed the employee towards the ceiling, so the month that crosses it had its AC base
-	cut short and employee and employer were both undercharged.
+	It used to be compared to SUM(gross_pay) of the prior slips: any earning that owes no AC
+	still pushed the employee towards the ceiling. And it used to be the whole yearly ceiling
+	from January, never prorated to the months elapsed.
 	"""
 
 	NON_AC_COMPONENT = "_Test CH Meal Allowance"
-	CEILING = 25000  # a ceiling the fixture reaches in three months, not in eleven
-	AC_PER_MONTH = 11000
+	CEILING = 36000  # 3'000 a month, 100 a day: every room below reads at a glance
+	AC_PER_MONTH = 2000
 	NON_AC_PER_MONTH = 1000
 
 	@classmethod
@@ -396,9 +402,7 @@ class TestAcCeilingTracksTheAcBase(SwissPayrollHookCase):
 		# An earning subject to AVS but explicitly NOT to AC — a meal allowance is the real case.
 		_ensure_component(cls.NON_AC_COMPONENT, "Earning", subject_to=0)
 		frappe.db.set_value("Salary Component", cls.NON_AC_COMPONENT, "ch_subject_to_avs", 1)
-		frappe.db.set_value(
-			"Swiss Social Insurance Config", cls.config, "ac_annual_ceiling", cls.CEILING
-		)
+		frappe.db.set_value("Swiss Social Insurance Config", cls.config, "ac_annual_ceiling", cls.CEILING)
 
 	def setUp(self):
 		self.year = getdate(nowdate()).year
@@ -448,9 +452,7 @@ class TestAcCeilingTracksTheAcBase(SwissPayrollHookCase):
 					"parentfield": "earnings",
 					"idx": idx,
 					"salary_component": component,
-					"abbr": frappe.db.get_value(
-						"Salary Component", component, "salary_component_abbr"
-					),
+					"abbr": frappe.db.get_value("Salary Component", component, "salary_component_abbr"),
 					"amount": amount,
 					"default_amount": amount,
 					"do_not_include_in_total": 0,
@@ -462,7 +464,7 @@ class TestAcCeilingTracksTheAcBase(SwissPayrollHookCase):
 		return name
 
 	def _two_months_of_history(self):
-		"""January and February: 12'000 gross each, of which 11'000 is subject to AC."""
+		"""January and February: 3'000 gross each, of which 2'000 is subject to AC."""
 		for month in (1, 2):
 			self._submitted_slip(
 				month,
@@ -472,8 +474,16 @@ class TestAcCeilingTracksTheAcBase(SwissPayrollHookCase):
 				],
 			)
 
+	def _slip_for(self, month, earnings):
+		slip = self._make_slip(earnings)
+		last_day = 31 if month in (1, 3, 5, 7, 8, 10, 12) else (28 if month == 2 else 30)
+		slip.start_date = f"{self.year}-{month:02d}-01"
+		slip.end_date = slip.posting_date = f"{self.year}-{month:02d}-{last_day}"
+		update_swiss_social_contributions(slip, "validate")
+		return slip
+
 	def test_ytd_ac_base_is_not_the_ytd_gross(self):
-		"""The two figures must differ — that difference is the whole defect."""
+		"""The two figures must differ — that difference is the first defect."""
 		from hrms.regional.switzerland.utils import (
 			get_ytd_ac_base_for_employee,
 			get_ytd_gross_for_employee,
@@ -485,34 +495,53 @@ class TestAcCeilingTracksTheAcBase(SwissPayrollHookCase):
 		ytd_gross = get_ytd_gross_for_employee(self.employee, self.company, march, march)
 		ytd_ac = get_ytd_ac_base_for_employee(self.employee, self.company, march, march)
 
-		self.assertEqual(flt(ytd_gross, 2), 24000.00)  # 2 x 12'000, everything
-		self.assertEqual(flt(ytd_ac, 2), 22000.00)  # 2 x 11'000, AC-subject only
+		self.assertEqual(flt(ytd_gross, 2), 6000.00)  # 2 x 3'000, everything
+		self.assertEqual(flt(ytd_ac, 2), 4000.00)  # 2 x 2'000, AC-subject only
 
-	def test_the_month_that_crosses_the_ceiling_is_not_cut_short(self):
-		"""March: 11'000 of AC base against a 25'000 ceiling and 22'000 already accumulated.
+	def test_a_big_month_uses_the_room_the_year_left(self):
+		"""March, with a bonus: 8'000 of AC base after two months at 2'000.
 
-		Subject to AC = 25'000 - 22'000 = 3'000, so 33.00 at 1.1 %.
-		Read against the gross cumulative it was 25'000 - 24'000 = 1'000, so 11.00 — the
-		employee and the employer were each undercharged on 2'000 of salary.
+		End of February, 60 days: room 6'000, insured 4'000. End of March, 90 days: room 9'000,
+		cumulated base 12'000 — insured 9'000. March insures 9'000 - 4'000 = 5'000: 55.00.
+		Read against the gross cumulative, February would already have filled its room (6'000)
+		and March insured 3'000 only: 33.00, employee and employer each undercharged.
 		"""
 		self._two_months_of_history()
-		slip = self._make_slip(
-			[
-				(MONTHLY_COMPONENT, self.AC_PER_MONTH),
-				(self.NON_AC_COMPONENT, self.NON_AC_PER_MONTH),
-			]
-		)
-		update_swiss_social_contributions(slip, "validate")
+		slip = self._slip_for(3, [(MONTHLY_COMPONENT, 8000), (self.NON_AC_COMPONENT, self.NON_AC_PER_MONTH)])
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 55.00)  # 5000 x 1.1%
+		self.assertEqual(self._amount(slip, "AC/ALV Employer"), 55.00)
 
+	def test_the_first_month_paid_here_has_one_month_of_room(self):
+		"""No history: the months of the year paid elsewhere are unknown, so they lend no room.
+
+		11'000 in March against 3'000 of room: 33.00. The old rule charged the whole 11'000 —
+		121.00 — to a company onboarded in March, whatever it had paid before.
+		"""
+		slip = self._slip_for(3, [(MONTHLY_COMPONENT, 11000)])
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 33.00)
+
+	def test_six_months_insure_six_months_of_room(self):
+		"""Six months at 6'000 against 3'000 of room a month: every month insures 3'000.
+
+		The old rule measured the whole 36'000 yearly ceiling from January: June still had
+		6'000 of room left and was charged in full, 66.00. A leaver at the end of June had
+		paid AC on 36'000 — twice what six months of employment allow.
+		"""
+		for month in (1, 2, 3, 4, 5):
+			self._submitted_slip(month, [(MONTHLY_COMPONENT, 6000)])
+		slip = self._slip_for(6, [(MONTHLY_COMPONENT, 6000)])
 		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 33.00)  # 3000 x 1.1%
-		self.assertEqual(self._amount(slip, "AC/ALV Employer"), 33.00)
 
-	def test_below_the_ceiling_nothing_changes(self):
-		"""Witness: with no history the whole AC base is charged, ceiling or not."""
-		slip = self._make_slip([(MONTHLY_COMPONENT, self.AC_PER_MONTH)])
-		update_swiss_social_contributions(slip, "validate")
+	def test_a_13th_month_in_december_keeps_the_laa_room_of_the_year(self):
+		"""11'000 a month, and the 13th month on top in December: 22'000.
 
-		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 121.00)  # 11000 x 1.1%
+		The year insures 143'000, under the 148'200 LAA ceiling: December is insured in full,
+		220.00 of non-occupational premium at 1 %. Capped at 12'350 on its own, it was 123.50.
+		"""
+		for month in range(1, 12):
+			self._submitted_slip(month, [(MONTHLY_COMPONENT, 11000)])
+		slip = self._slip_for(12, [(MONTHLY_COMPONENT, 22000)])
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employee"), 220.00)
 
 	def test_a_slip_with_no_flag_at_all_counts_in_full(self):
 		"""Backward compatibility: an installation that never configured the flags.
@@ -537,9 +566,7 @@ class TestAcCeilingTracksTheAcBase(SwissPayrollHookCase):
 		from hrms.regional.switzerland.utils import get_ytd_ac_base_for_employee
 
 		self._submitted_slip(1, [(MONTHLY_COMPONENT, 11000)])
-		frappe.db.set_value(
-			"Salary Detail", f"_T-Swiss-AC-{self.year}-01-1", "do_not_include_in_total", 1
-		)
+		frappe.db.set_value("Salary Detail", f"_T-Swiss-AC-{self.year}-01-1", "do_not_include_in_total", 1)
 
 		ytd_ac = get_ytd_ac_base_for_employee(
 			self.employee, self.company, f"{self.year}-03-01", f"{self.year}-03-01"
@@ -564,9 +591,9 @@ class TestInsuranceSolutionsThroughTheHook(SwissPayrollHookCase):
 		# would leave the rates-by-sex path unverified, so the record is created instead.
 		cls.female = frappe.db.get_value("Gender", {"name": ["in", ["Female", "Féminin"]]}, "name")
 		if not cls.female:
-			cls.female = frappe.get_doc({"doctype": "Gender", "gender": "Female"}).insert(
-				ignore_permissions=True
-			).name
+			cls.female = (
+				frappe.get_doc({"doctype": "Gender", "gender": "Female"}).insert(ignore_permissions=True).name
+			)
 
 	def setUp(self):
 		self._gender = frappe.db.get_value("Employee", self.employee, "gender")
@@ -627,7 +654,14 @@ class TestInsuranceSolutionsThroughTheHook(SwissPayrollHookCase):
 	def test_business_unit_rates(self):
 		"""The guidelines' own example rates for business unit B."""
 		self._set_solutions(
-			[{"insurance": "LAA", "solution_code": "B", "rate_employer_male": 0.34, "rate_employee_male": 1.701}]
+			[
+				{
+					"insurance": "LAA",
+					"solution_code": "B",
+					"rate_employer_male": 0.34,
+					"rate_employee_male": 1.701,
+				}
+			]
 		)
 		self._employee(ch_laa_code="B1")
 		slip = self._run(10000)
@@ -668,8 +702,114 @@ class TestInsuranceSolutionsThroughTheHook(SwissPayrollHookCase):
 		# The bracket starts at 12'350 a month: 20'000 - 12'350 = 7'650 insured, at 1 %.
 		self.assertEqual(self._amount(self._run(20000), "LAAC Employee"), 76.50)
 
+	def _printed(self, slip):
+		data = get_salary_slip_print_data(slip)
+		return data, {row["name"]: row for row in data["deductions_ee"] + data["deductions_er"]}
+
+	def test_the_payslip_prints_the_capped_laa_base(self):
+		"""The amount is computed on 12'350; the payslip used to print 20'000 next to it."""
+		data, rows = self._printed(self._run(20000))
+		self.assertEqual(rows["LAA Non-Professional Employee"]["determinant"], 12350.0)
+		self.assertEqual(data["insurance_bases"]["laa"], 12350.0)
+
+	def test_the_payslip_prints_the_business_unit_rate(self):
+		"""Not the configuration's flat rate: the rate the amount was computed with."""
+		self._set_solutions(
+			[
+				{
+					"insurance": "LAA",
+					"solution_code": "B",
+					"rate_employer_male": 0.34,
+					"rate_employee_male": 1.701,
+				}
+			]
+		)
+		self._employee(ch_laa_code="B1")
+		_data, rows = self._printed(self._run(10000))
+		self.assertEqual(rows["LAA Non-Professional Employee"]["rate"], "1.701")
+		self.assertEqual(rows["LAA Non-Professional Employee"]["determinant"], 10000.0)
+
+	def test_no_single_rate_is_printed_for_two_brackets(self):
+		self._set_solutions(
+			[
+				{
+					"insurance": "LAAC",
+					"solution_code": "A1",
+					"wage_to": 148200,
+					"rate_employee_male": 0.5,
+					"rate_employer_male": 0.5,
+				},
+				{
+					"insurance": "LAAC",
+					"solution_code": "A1",
+					"wage_from": 148200,
+					"wage_to": 300000,
+					"rate_employee_male": 1.0,
+					"rate_employer_male": 1.0,
+				},
+			]
+		)
+		self._employee(ch_laac_code="A1")
+		slip = self._run(20000)
+		# 12'350 x 0.5 % + 7'650 x 1 % = 61.75 + 76.50
+		self.assertEqual(self._amount(slip, "LAAC Employee"), 138.25)
+		_data, rows = self._printed(slip)
+		self.assertEqual(rows["LAAC Employee"]["rate"], "")
+		self.assertEqual(rows["LAAC Employee"]["determinant"], 20000.0)
+
 	def test_an_unconfigured_code_stops_the_slip(self):
 		"""A guessed rate would produce a payslip that is accepted and wrong."""
 		self._employee(ch_ijm_code="Z9")
 		with self.assertRaises(frappe.ValidationError):
 			self._run(6000)
+
+
+# //// Neoffice — tests of an added file (no upstream equivalent).
+class TestFiveCentimesAndWhatThePayslipStates(SwissPayrollHookCase):
+	"""Every amount computed rounds to 5 centimes (Swissdec guidelines 4.1.1), the slip records
+	the base and rate each contribution was computed with, and the net it announces is the net
+	paid."""
+
+	SALARY = 5001.10  # no contribution of it falls on a 5-centime step by itself
+
+	def _slip(self):
+		slip = self._make_slip([(MONTHLY_COMPONENT, self.SALARY)])
+		update_swiss_social_contributions(slip, "validate")
+		return slip
+
+	def test_contributions_round_to_5_centimes(self):
+		slip = self._slip()
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 265.05)  # 265.0583
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 55.00)  # 55.0121
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employee"), 50.00)  # 50.011
+		self.assertEqual(self._amount(slip, "IJM/KTG Employee"), 35.00)  # 35.0077
+
+	def test_the_bases_used_are_recorded_on_the_slip(self):
+		bases = json.loads(self._slip().ch_contribution_bases)
+		self.assertEqual(bases["AVS/AI/APG Employee"], {"base": self.SALARY, "rate": AVS_RATE_EE})
+		# 55.00 / 1.1 % reads back as 5'000.00: the recorded base is the one computed with.
+		self.assertEqual(bases["AC/ALV Employee"]["base"], self.SALARY)
+		self.assertGreater(bases["LPP/BVG Employee"]["base"], 0)  # the coordinated salary
+
+	def test_the_payslip_prints_the_recorded_base(self):
+		data = get_salary_slip_print_data(self._slip())
+		rows = {row["name"]: row for row in data["deductions_ee"] + data["deductions_er"]}
+		self.assertEqual(rows["AC/ALV Employee"]["determinant"], self.SALARY)
+
+	def test_the_net_announced_is_the_net_paid(self):
+		"""Upstream rounded rounded_total to the whole franc and wrote it out in words."""
+		frappe.db.set_single_value("Payroll Settings", "disable_rounded_total", 0)
+		slip = self._slip()
+		self.assertNotEqual(flt(slip.net_pay, 2), round(flt(slip.net_pay)), "the case needs centimes")
+		self.assertEqual(flt(slip.rounded_total, 2), flt(slip.net_pay, 2))
+		self.assertEqual(slip.total_in_words, money_in_words(slip.net_pay, "CHF"))
+		self.assertEqual(get_salary_slip_print_data(slip)["totals"]["rounded"], 0)  # no second line
+
+	def test_a_prorated_salary_rounds_to_5_centimes(self):
+		slip = self._make_slip([(MONTHLY_COMPONENT, 5000)], payment_days=17, total_working_days=30)
+		slip.salary_structure = "_Test CH structure (never saved)"
+		row = slip.earnings[0]
+		self.assertEqual(slip.get_amount_based_on_payment_days(row)[0], 2833.35)  # 2'833.333...
+		# Outside Switzerland upstream is untouched.
+		slip._rounds_to_5_centimes = lambda: False
+		self.assertEqual(slip.get_amount_based_on_payment_days(row)[0], 2833.33)

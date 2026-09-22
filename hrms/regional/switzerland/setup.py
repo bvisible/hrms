@@ -106,6 +106,18 @@ def get_custom_fields():
 				"read_only": 1,
 				"no_copy": 1,
 			},
+			{
+				# Written by the payroll hook, read by the payslip: the base and rate each
+				# contribution was computed with (capped salary, business-unit or code rate).
+				"fieldname": "ch_contribution_bases",
+				"label": "Contribution Bases",
+				"fieldtype": "JSON",
+				"insert_after": "ch_qst_correction_details",
+				"read_only": 1,
+				"hidden": 1,
+				"no_copy": 1,
+				"print_hide": 1,
+			},
 		],
 		"Salary Component": [
 			# --- Swiss Wage Type (top of form, after abbreviation) ---

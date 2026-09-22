@@ -3,6 +3,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
+import json
+
 import frappe
 from frappe import _
 from frappe.utils import cint, flt, getdate
@@ -10,8 +12,18 @@ from frappe.utils import cint, flt, getdate
 # //// Neoffice — BASE_SALARY_WAGE_TYPE_CODES added: hourly, per-lesson and weekly pay are
 # //// base pay too, see _is_base_wage_type.
 from hrms.regional.switzerland.avs_exemption import apply_avs_status, resolve_avs_status
-from hrms.regional.switzerland.constants import BASE_SALARY_WAGE_TYPE_CODES, RATE_BASED_COMPONENTS
-from hrms.regional.switzerland.source_tax import calculate_source_tax, round_half_up
+from hrms.regional.switzerland.ceilings import contribution_period, month_insured
+from hrms.regional.switzerland.constants import (
+	AVS_STATUS_EXEMPTED,
+	AVS_STATUS_RETIRED,
+	AVS_STATUS_RETIRED_WAIVED,
+	AVS_STATUS_YOUTH,
+	BASE_SALARY_WAGE_TYPE_CODES,
+	LAA_INSURABLE_SALARY_CAP,
+	RATE_BASED_COMPONENTS,
+)
+from hrms.regional.switzerland.rounding import round_to_5_centimes
+from hrms.regional.switzerland.source_tax import calculate_source_tax
 from hrms.regional.switzerland.utils import (
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
@@ -19,8 +31,9 @@ from hrms.regional.switzerland.utils import (
 	get_employee_age,
 	get_swiss_social_insurance_config,
 	# //// Neoffice — was get_ytd_gross_for_employee; the AC ceiling tracks the AC-subject
-	# //// cumulative, not gross pay. See _update_ac_components.
-	get_ytd_ac_base_for_employee,
+	# //// cumulative, not gross pay. See _update_ac_components. Now the LAA, LAAC and IJM
+	# //// cumulatives as well: every ceiling is cumulated over the year (guidelines 7.12.3).
+	get_ytd_insurance_bases,
 )
 
 
@@ -41,6 +54,9 @@ def update_swiss_social_contributions(doc, method):
 
 	if not config:
 		return
+
+	# The base and rate of every contribution, as computed below — the payslip prints them.
+	doc.flags.ch_contribution_bases = {}
 
 	# Add 13th month earning if applicable (before computing gross)
 	updated = _add_thirteenth_month_earning(doc, config)
@@ -66,11 +82,19 @@ def update_swiss_social_contributions(doc, method):
 	# //// AC, which is not due past the reference age at all.
 	bases = _apply_avs_status_to_bases(doc, bases)
 
+	# //// Neoffice — every insurance ceiling is cumulated over the year and prorated to the
+	# //// contribution days (Swissdec guidelines 7.12.3, see ceilings.py): the bases of the
+	# //// months already paid, and the days before and of this period.
+	ytd = get_ytd_insurance_bases(doc.employee, doc.company, doc.start_date)
+	period = _contribution_period(doc, employee, ytd)
+
 	# Update rate-based components using the appropriate base for each
-	updated = _update_rate_based_components(doc, config, bases) or updated
+	updated = _update_rate_based_components(doc, config, bases, ytd, period) or updated
 
 	# Update AC/ALV with ceiling tracking using the AC base
-	updated = _update_ac_components(doc, config, bases["ac_base"]) or updated
+	updated = (
+		_update_ac_components(doc, config, bases["ac_base"], ytd, period, bases.get("ac_exempt")) or updated
+	)
 
 	# Update LPP/BVG: annualize using base_monthly * multiplier (13 if 13th enabled)
 	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
@@ -81,9 +105,7 @@ def update_swiss_social_contributions(doc, method):
 	# //// alone and SAY so — never drop the other contributions, as the early return used to.
 	lpp_base_monthly = base_monthly or flt(bases["lpp_base"])
 	if lpp_base_monthly:
-		updated = (
-			_update_lpp_components(doc, config, lpp_base_monthly, lpp_multiplier, employee) or updated
-		)
+		updated = _update_lpp_components(doc, config, lpp_base_monthly, lpp_multiplier, employee) or updated
 	elif flt(bases["gross_total"]):
 		_warn_no_lpp_base(doc)
 
@@ -93,6 +115,9 @@ def update_swiss_social_contributions(doc, method):
 
 	if updated:
 		_recalculate_totals(doc)
+
+	_store_contribution_bases(doc)
+	_pay_the_net_as_computed(doc)
 
 
 def _apply_avs_status_to_bases(doc, bases):
@@ -104,10 +129,7 @@ def _apply_avs_status_to_bases(doc, bases):
 	a birth date would be treated as a minor and exempted from AVS and AC.
 	"""
 	employee = (
-		frappe.db.get_value(
-			"Employee", doc.employee, ["ch_avs_status", "date_of_birth"], as_dict=True
-		)
-		or {}
+		frappe.db.get_value("Employee", doc.employee, ["ch_avs_status", "date_of_birth"], as_dict=True) or {}
 	)
 	age = get_employee_age(doc.employee, doc.end_date) if employee.get("date_of_birth") else None
 	year = getdate(doc.end_date).year if doc.end_date else None
@@ -119,7 +141,33 @@ def _apply_avs_status_to_bases(doc, bases):
 	bases = dict(bases)
 	bases["avs_base"] = adjusted["avs_base"]
 	bases["ac_base"] = adjusted["ac_base"]
+	# No AC is due at all — not even the catch-up a cumulated ceiling would otherwise find
+	# room for in a month with a zero base.
+	bases["ac_exempt"] = status in (
+		AVS_STATUS_YOUTH,
+		AVS_STATUS_EXEMPTED,
+		AVS_STATUS_RETIRED,
+		AVS_STATUS_RETIRED_WAIVED,
+	)
 	return bases
+
+
+def _contribution_period(doc, employee, ytd):
+	"""(days before, days of) this slip's period, for the insurance ceilings (ceilings.py).
+
+	Counted from 1 January or the entry — but never before the first period of the year
+	paid in Neoffice. For a company onboarded in September, what January to August paid
+	elsewhere is unknown here; counting those months would lend the ceiling room they
+	already used, and charge AC on a whole salary above it.
+	"""
+	start = getdate(doc.start_date)
+	entry = employee.get("ch_entry_date") or employee.get("date_of_joining")
+	exit_date = employee.get("ch_exit_date") or employee.get("relieving_date")
+	first_paid = ytd.get("first_start") or start
+	begins = max(getdate(entry), first_paid) if entry else first_paid
+	return contribution_period(
+		begins, getdate(exit_date) if exit_date else None, start, getdate(doc.end_date)
+	)
 
 
 def _get_insurance_base_totals(doc):
@@ -248,9 +296,7 @@ def _warn_no_lpp_base(doc):
 		"(no earning carries a base wage type, and none is subject to LPP). The other Swiss "
 		"contributions were computed normally."
 	).format(doc.employee)
-	frappe.log_error(
-		"Swiss payroll: no LPP base on a salary slip", f"{doc.name or doc.employee}: {message}"
-	)
+	frappe.log_error("Swiss payroll: no LPP base on a salary slip", f"{doc.name or doc.employee}: {message}")
 	frappe.msgprint(message, title=frappe._("LPP/BVG skipped"), indicator="orange")
 
 
@@ -287,7 +333,7 @@ def _is_base_wage_type(component_name):
 	return cint(code) in BASE_SALARY_WAGE_TYPE_CODES
 
 
-def _update_rate_based_components(doc, config, bases):
+def _update_rate_based_components(doc, config, bases, ytd=None, period=None):
 	"""Update components that are calculated as a percentage of their insurance base.
 
 	Also adds missing component rows that may have been removed by remove_if_zero_valued
@@ -300,7 +346,7 @@ def _update_rate_based_components(doc, config, bases):
 	//// wage bracket and sex. Every other component keeps base x rate.
 	"""
 	updated = False
-	solution_amounts = _insurance_solution_amounts(doc, config, bases)
+	solution_amounts = _insurance_solution_amounts(doc, config, bases, ytd, period)
 	existing_components = {row.salary_component for row in doc.get("deductions")}
 
 	def expected_amount(comp_name, precision):
@@ -313,7 +359,10 @@ def _update_rate_based_components(doc, config, bases):
 		# The base already reflects the prorated amounts paid, so the result is
 		# final — prorating it again would double-count.
 		base_amount = flt(bases.get(base_type, bases["gross_total"]))
-		return round_half_up(base_amount * rate / 100, precision)
+		_record_base(doc, comp_name, base_amount, rate)
+		# //// Neoffice — contributions round to 5 centimes (Swissdec guidelines 4.1.1:
+		# //// "5er-Rundung"); they rounded to the centime. See rounding.py.
+		return round_to_5_centimes(base_amount * rate / 100)
 
 	managed = set(RATE_BASED_COMPONENTS) | set(solution_amounts)
 
@@ -332,7 +381,7 @@ def _update_rate_based_components(doc, config, bases):
 	for comp_name in sorted(managed):
 		if comp_name in existing_components:
 			continue
-		# //// Neoffice — prorate=False, and round_half_up like the loop above. The base is
+		# //// Neoffice — prorate=False, and rounded like the loop above. The base is
 		# //// built from the amounts ACTUALLY PAID, so it already carries the proration of a
 		# //// partial month; _add_deduction_row used to apply payment_days/total_working_days
 		# //// on top of it. An employee paid half the month had this contribution deducted at
@@ -346,7 +395,7 @@ def _update_rate_based_components(doc, config, bases):
 	return updated
 
 
-def _insurance_solution_amounts(doc, config, bases):
+def _insurance_solution_amounts(doc, config, bases, ytd=None, period=None):
 	"""LAA, LAAC and IJM amounts for this slip, per the Swissdec insurance solutions.
 
 	LAA always goes through here, because its insured salary is capped at CHF 12'350
@@ -368,16 +417,27 @@ def _insurance_solution_amounts(doc, config, bases):
 	rows = _insurance_solution_rows(config)
 	amounts = {}
 
+	ytd = ytd or {}
+	laa_base = flt(bases.get("laa_base", bases["gross_total"]))
+	laa_cap = flt(config.get("laa_insurable_salary_cap")) or LAA_INSURABLE_SALARY_CAP
+	# //// Neoffice — the LAA ceiling cumulated over the year (guidelines 7.12.3): capping each
+	# //// month at 12'350 on its own made a 13th month paid in December lose the room of the
+	# //// eleven months before it.
+	laa_insured = (
+		month_insured(ytd.get("laa"), period[0], laa_base, period[1], 0, laa_cap) if period else None
+	)
+
 	try:
 		laa = compute_laa(
-			flt(bases.get("laa_base", bases["gross_total"])),
+			laa_base,
 			profile.get("ch_laa_code"),
 			laa_unit_rates([r for r in rows if r.get("insurance") == "LAA"]),
 			{
 				"aap": flt(config.get("laa_professional_rate")),
 				"aanp": flt(config.get("laa_nonprofessional_rate")),
 			},
-			annual_cap=flt(config.get("laa_insurable_salary_cap")) or None,
+			annual_cap=laa_cap,
+			insured_salary=laa_insured,
 		)
 		laa_rows = [r for r in rows if r.get("insurance") == "LAA"]
 		laa_configured = bool(
@@ -393,6 +453,15 @@ def _insurance_solution_amounts(doc, config, bases):
 			amounts["LAA Non-Professional Employee"] = laa["aanp_employee"]
 			if laa["aanp_employer"]:
 				amounts["LAA Non-Professional Employer"] = laa["aanp_employer"]
+			# The insured salary is the CAPPED one, and the rates those of the employee's
+			# business unit: neither can be read back from the flat configuration.
+			for comp, rate in (
+				("LAA Professional Employer", laa["rates"]["aap"]),
+				("LAA Non-Professional Employee", laa["rates"]["aanp"]),
+				("LAA Non-Professional Employer", laa["rates"]["aanp"]),
+			):
+				if amounts.get(comp):
+					_record_base(doc, comp, laa["insured_salary"], rate)
 
 		sex = normalize_sex(profile.get("gender"))
 		for insurance, base_key, code_fields, components in (
@@ -404,26 +473,41 @@ def _insurance_solution_amounts(doc, config, bases):
 			# the uncapped LAA-subject salary. (The flat LAAC below keeps the capped one.)
 			base_key = base_key or "laa_base"
 			base = flt(bases.get(base_key, bases["gross_total"]))
+			ytd_key = "ijm" if insurance == "IJM" else "laa"
 			result = compute_supplementary(
 				base,
 				[profile.get(f) for f in code_fields],
 				[r for r in rows if r.get("insurance") == insurance],
 				sex,
+				# Each bracket cumulated over the year as well (guidelines 7.12.3).
+				ytd_base=ytd.get(ytd_key) if period else None,
+				days_before=period[0] if period else None,
+				days_current=period[1] if period else None,
 			)
 			if result is None:
 				if insurance == "LAAC":
 					# Flat LAAC insures the LAA salary, so it carries the same cap.
-					for comp, field in zip(components, ("laac_rate_employee", "laac_rate_employer")):
+					for comp, field in zip(
+						components, ("laac_rate_employee", "laac_rate_employer"), strict=False
+					):
 						rate = flt(config.get(field))
 						if rate:
-							amounts[comp] = round_half_up(laa["insured_salary"] * rate / 100, 2)
+							amounts[comp] = round_to_5_centimes(laa["insured_salary"] * rate / 100)
+							_record_base(doc, comp, laa["insured_salary"], rate)
 				continue
 			amounts[components[0]] = result["employee"]
 			amounts[components[1]] = result["employer"]
+			# One bracket charged: its rate is THE rate. Several (brackets, two codes): no
+			# single rate describes the amount, and printing one would be false.
+			single = result["parts"][0] if len(result["parts"]) == 1 else None
+			_record_base(
+				doc, components[0], result["insured_salary"], single["rate_employee"] if single else ""
+			)
+			_record_base(
+				doc, components[1], result["insured_salary"], single["rate_employer"] if single else ""
+			)
 			for warning in result["warnings"]:
-				frappe.msgprint(
-					_("{0}: {1}").format(insurance, warning), indicator="orange", alert=True
-				)
+				frappe.msgprint(_("{0}: {1}").format(insurance, warning), indicator="orange", alert=True)
 	except UnknownSolutionCode as e:
 		frappe.throw(
 			_("Employee {0}: {1}").format(doc.employee, str(e)),
@@ -481,21 +565,38 @@ def _insurance_solution_rows(config):
 	)
 
 
-def _update_ac_components(doc, config, ac_base):
-	"""Update AC/ALV components with annual ceiling tracking."""
+def _update_ac_components(doc, config, ac_base, ytd=None, period=None, exempt=False):
+	"""Update AC/ALV components under the ceiling cumulated pro rata temporis."""
 	updated = False
 
 	# //// Neoffice — was get_ytd_gross_for_employee (SUM of gross_pay). The ceiling was measuring
 	# //// an AC-SUBJECT month against an ALL-EARNINGS year, so any earning that is not subject to
 	# //// AC still pushed the employee towards the ceiling and cut the AC base of the month that
 	# //// crosses it. See get_ytd_ac_base_for_employee for the worked example.
-	ytd_ac_base = get_ytd_ac_base_for_employee(doc.employee, doc.company, doc.start_date, doc.end_date)
+	if ytd is None:
+		ytd = get_ytd_insurance_bases(doc.employee, doc.company, doc.start_date)
+	if period is None:
+		period = _contribution_period(doc, frappe.get_cached_doc("Employee", doc.employee), ytd)
 
-	ac_result = calculate_ac_contribution(
-		# //// Neoffice — second argument was ytd_gross; it is the AC-subject cumulative that the
-		# //// ceiling is measured against, see get_ytd_ac_base_for_employee.
-		ac_base, ytd_ac_base, config, year=getdate(doc.end_date).year
-	)
+	if exempt:
+		# Youth, exempted or past the reference age: no AC at all this month.
+		ac_result = {"ac_employee": 0.0, "ac_employer": 0.0, "subject_to_ac": 0.0}
+	else:
+		ac_result = calculate_ac_contribution(
+			# //// Neoffice — second argument was ytd_gross; it is the AC-subject cumulative that
+			# //// the ceiling is measured against, see get_ytd_insurance_bases. The days prorate
+			# //// the ceiling (guidelines 7.12.3).
+			ac_base,
+			ytd.get("ac"),
+			config,
+			year=getdate(doc.end_date).year,
+			days_before=period[0],
+			days_current=period[1],
+		)
+
+	# Above the ceiling only part of the month is subject: that part is the base.
+	for comp in ("AC/ALV Employee", "AC/ALV Employer"):
+		_record_base(doc, comp, ac_result["subject_to_ac"])
 
 	ac_mapping = {
 		"AC/ALV Employee": ac_result["ac_employee"],
@@ -526,9 +627,7 @@ def _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee):
 
 	from frappe.utils import getdate
 
-	lpp_result = calculate_lpp_contribution(
-		annual_salary, age, config, year=getdate(doc.end_date).year
-	)
+	lpp_result = calculate_lpp_contribution(annual_salary, age, config, year=getdate(doc.end_date).year)
 
 	lpp_mapping = {
 		"LPP/BVG Employee": lpp_result["employee_monthly"],
@@ -551,7 +650,24 @@ def _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee):
 			_add_deduction_row(doc, comp_name, amount)
 			updated = True
 
+	# The base of LPP is the coordinated salary, not the earnings of the month.
+	coordinated_monthly = flt(lpp_result.get("coordinated_salary")) / 12
+	for row in doc.get("deductions"):
+		if row.salary_component in lpp_mapping and flt(row.amount):
+			_record_base(doc, row.salary_component, coordinated_monthly * _proration_factor(doc, row))
+
 	return updated
+
+
+def _proration_factor(doc, row):
+	"""payment_days / total_working_days when the row is prorated, else 1."""
+	if (
+		cint(row.depends_on_payment_days)
+		and cint(doc.total_working_days)
+		and doc.payment_days != doc.total_working_days
+	):
+		return flt(doc.payment_days) / flt(doc.total_working_days)
+	return 1.0
 
 
 def _prorate_amount(doc, row, amount):
@@ -561,16 +677,53 @@ def _prorate_amount(doc, row, amount):
 	is set and the employee has fewer payment days than total working days,
 	the amount is prorated accordingly.
 	"""
-	if (
-		cint(row.depends_on_payment_days)
-		and cint(doc.total_working_days)
-		and doc.payment_days != doc.total_working_days
-	):
-		return round_half_up(
-			amount * flt(doc.payment_days) / flt(doc.total_working_days),
-			row.precision("amount") or 2,
-		)
+	factor = _proration_factor(doc, row)
+	if factor != 1.0:
+		# //// Neoffice — a prorated amount is a computed one: 5 centimes (Swissdec guidelines
+		# //// 4.1.1), like the salary slip's own proration of a Swiss company's earnings.
+		return round_to_5_centimes(amount * factor)
 	return flt(amount, row.precision("amount"))
+
+
+def _record_base(doc, component, base, rate=None):
+	"""Remember the base, and the rate when it is not the configuration's, that a contribution
+	of this slip was computed with. The payslip prints them.
+
+	Reading them back from the amount (amount / rate) cannot work: once contributions round to
+	5 centimes, 55.00 at 1.1 % reads back as 5'000.00 for a base of 5'001.10; a capped LAA or AC
+	base is not the earnings of the month; and the LAA rate of a business unit or the LAAC rate
+	of a code is not in the configuration's flat fields at all.
+
+	rate=None leaves the payslip to the configuration's rate; "" says that no single rate
+	describes the amount (several brackets or codes), so none is printed.
+	"""
+	record = doc.flags.get("ch_contribution_bases")
+	if record is None:
+		return
+	entry = {"base": flt(base, 2)}
+	if rate is not None:
+		entry["rate"] = rate if rate == "" else flt(rate, 4)
+	record[component] = entry
+
+
+def _store_contribution_bases(doc):
+	"""Write the bases recorded by this run on the slip, where the payslip reads them."""
+	if doc.meta.has_field("ch_contribution_bases"):
+		doc.ch_contribution_bases = json.dumps(doc.flags.get("ch_contribution_bases") or {}, sort_keys=True)
+
+
+# //// Neoffice — upstream sets rounded_total = rounded(net_pay): to the whole FRANC. A Swiss
+# //// payslip printed "Rounded Total CHF 5'016.00" and the amount in words of 5'016 while the
+# //// payment file transferred the net pay, 5'016.45. The net is already rounded as Swiss
+# //// payroll rounds (every computed amount to 5 centimes); it is what is paid, so it is what
+# //// the slip states.
+def _pay_the_net_as_computed(doc):
+	"""rounded_total = net_pay on a Swiss slip, and the amount in words follows."""
+	if cint(frappe.db.get_single_value("Payroll Settings", "disable_rounded_total")):
+		return
+	doc.rounded_total = flt(doc.net_pay, doc.precision("rounded_total"))
+	doc.base_rounded_total = flt(doc.base_net_pay, doc.precision("base_rounded_total"))
+	doc.set_net_total_in_words()
 
 
 def _has_component(doc, component_name):
@@ -754,6 +907,17 @@ def _update_source_tax(doc, config, employee, imp_base):
 			title=frappe._("Source Tax Component Missing"),
 		)
 
+	# The payslip prints base x rate only where that product IS the amount withheld: a monthly
+	# slip with no correction. The annual model regularises the year to date and a correction
+	# settles past months — a rate next to the base would not explain the amount there.
+	rate_pct = flt(result.get("tax_rate")) * 100
+	explained = (
+		result.get("model") == "monthly"
+		and not result.get("corrections")
+		and round_to_5_centimes(flt(imp_base) * rate_pct / 100) == tax_amount
+	)
+	_record_base(doc, component, imp_base, rate_pct if explained else "")
+
 	# Find or add the Source Tax component
 	found = False
 	for row in doc.get("deductions"):
@@ -778,9 +942,7 @@ def _update_source_tax(doc, config, employee, imp_base):
 def _recalculate_totals(doc):
 	"""Recalculate salary slip totals after component amounts have been updated."""
 	doc.gross_pay = doc.get_component_totals("earnings", depends_on_payment_days=1)
-	doc.base_gross_pay = flt(
-		flt(doc.gross_pay) * flt(doc.exchange_rate), doc.precision("base_gross_pay")
-	)
+	doc.base_gross_pay = flt(flt(doc.gross_pay) * flt(doc.exchange_rate), doc.precision("base_gross_pay"))
 	doc.set_net_pay()
 	doc.compute_year_to_date()
 	doc.compute_month_to_date()

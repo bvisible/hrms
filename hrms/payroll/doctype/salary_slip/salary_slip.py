@@ -1855,6 +1855,23 @@ class SalarySlip(TransactionBase):
 				)
 				+ additional_amount
 			)
+			# //// Neoffice — Swiss payroll rounds every computed amount to 5 centimes (Swissdec
+			# //// guidelines 4.1.1, "5er-Rundung"): 5'000 prorated to 17 days of 30 is 2'833.35,
+			# //// not 2'833.33. A certified engine does so, and it rounds the amounts it is given
+			# //// too — a gross injected at the centime would not survive the round trip. Only a
+			# //// PRORATED amount is touched: an amount entered as such is paid as entered.
+			if self._rounds_to_5_centimes():
+				from hrms.regional.switzerland.rounding import round_to_5_centimes
+
+				additional_amount = round_to_5_centimes(
+					flt(row.additional_amount) * flt(self.payment_days) / cint(self.total_working_days)
+				)
+				amount = (
+					round_to_5_centimes(
+						flt(row.default_amount) * flt(self.payment_days) / cint(self.total_working_days)
+					)
+					+ additional_amount
+				)
 
 		elif (
 			not self.payment_days
@@ -1942,6 +1959,10 @@ class SalarySlip(TransactionBase):
 			)[0].total_amount
 			or 0.0
 		)
+
+	# //// Neoffice — see get_amount_based_on_payment_days: a Swiss company's prorated amounts.
+	def _rounds_to_5_centimes(self):
+		return frappe.get_cached_value("Company", self.company, "country") == "Switzerland"
 
 	def get_component_totals(self, component_type, depends_on_payment_days=0):
 		total = 0.0

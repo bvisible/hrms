@@ -10,8 +10,8 @@ The generated XML can be imported into certified transmitters (SwissDecTX, etc.)
 Reference namespace: http://www.swissdec.ch/schema/sd/20050902/SalaryDeclaration
 """
 
-from xml.etree.ElementTree import Element, SubElement, tostring
 from xml.dom import minidom
+from xml.etree.ElementTree import Element, SubElement, tostring
 
 from frappe.utils import flt, formatdate, getdate
 
@@ -41,8 +41,13 @@ from hrms.regional.switzerland.tax_at_source_category import (
 
 
 def generate_salary_declaration(
-	company_data, employees_data, config, fiscal_year,
-	declaration_type="Year-End", declaration_month=None, institutions=None,
+	company_data,
+	employees_data,
+	config,
+	fiscal_year,
+	declaration_type="Year-End",
+	declaration_month=None,
+	institutions=None,
 	completeness_flags=None,
 ):
 	"""Main entry point: generate full SalaryDeclaration XML.
@@ -146,8 +151,7 @@ def _build_company_element(root, company_data, config, fiscal_year):
 	return company_el
 
 
-def _build_person_element(staff_el, employee_doc, salary_data, config, institutions,
-	completeness_flags=None):
+def _build_person_element(staff_el, employee_doc, salary_data, config, institutions, completeness_flags=None):
 	"""Build a <Person> element for a single employee.
 
 	Args:
@@ -362,8 +366,11 @@ def _build_ijm_salary(person_el, salary_data, employee_doc, config, is_complete=
 		if code:
 			_add_text_element(ijm_el, "KTG-IJM-Code", code)
 
-	# IJM insured salary = same base as gross (insurer-specific cap may apply)
-	_add_amount_element(ijm_el, "KTG-IJM-Income", flt(salary_data.get("total_gross")))
+	# //// Neoffice — the insured IJM salary the contributions were computed on (brackets of the
+	# //// employee's codes included); it was the whole gross.
+	_add_amount_element(
+		ijm_el, "KTG-IJM-Income", flt(salary_data.get("ijm_salary", salary_data.get("total_gross")))
+	)
 	_add_amount_element(ijm_el, "KTG-IJM-EE", flt(salary_data.get("ijm_employee")))
 	_add_amount_element(ijm_el, "KTG-IJM-ER", flt(salary_data.get("ijm_employer")))
 
@@ -380,9 +387,11 @@ def _build_laac_salary(person_el, salary_data, employee_doc, config, is_complete
 	is accepted.
 
 	Found on 2026-09-22 by confronting our declaration with a certified payroll:
-	every amount matched to the centime, and this whole block was absent.
+	this whole block was absent.
 
-	It insures the same salary as the LAA, so the income is the LAA base.
+	The income is the insured LAAC salary the contributions were computed on — the LAA
+	salary for a flat rate, the brackets of the employee's codes otherwise. It was the
+	whole gross.
 	"""
 	laac_ee = flt(salary_data.get("laac_employee"))
 	laac_er = flt(salary_data.get("laac_employer"))
@@ -397,7 +406,9 @@ def _build_laac_salary(person_el, salary_data, employee_doc, config, is_complete
 		code = (employee_doc.get(field) or "").strip().upper()
 		if code:
 			_add_text_element(laac_el, "UVGZ-LAAC-Code", code)
-	_add_amount_element(laac_el, "UVGZ-LAAC-Income", flt(salary_data.get("total_gross")))
+	_add_amount_element(
+		laac_el, "UVGZ-LAAC-Income", flt(salary_data.get("laac_salary", salary_data.get("total_gross")))
+	)
 	_add_amount_element(laac_el, "UVGZ-LAAC-EE", laac_ee)
 	_add_amount_element(laac_el, "UVGZ-LAAC-ER", laac_er)
 	return laac_el
@@ -408,11 +419,7 @@ def _build_qst_salary(person_el, salary_data, employee_doc, config):
 	qst_el = SubElement(person_el, "QST-Salaries")
 
 	# Canton
-	canton = (
-		employee_doc.get("ch_qst_taxation_canton")
-		or employee_doc.get("ch_fiscal_canton")
-		or ""
-	)
+	canton = employee_doc.get("ch_qst_taxation_canton") or employee_doc.get("ch_fiscal_canton") or ""
 	if canton:
 		_add_text_element(qst_el, "Canton", canton)
 
@@ -532,7 +539,12 @@ EMA_EVENT_MAP = {
 
 
 def generate_ema_notification(
-	company_data, employee_doc, event_type, event_date, institutions=None, config=None,
+	company_data,
+	employee_doc,
+	event_type,
+	event_date,
+	institutions=None,
+	config=None,
 ):
 	"""Generate EMA notification XML for a single employee event.
 

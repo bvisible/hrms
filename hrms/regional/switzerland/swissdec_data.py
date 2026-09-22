@@ -10,14 +10,73 @@ into the format needed by the XML builder and validation engine.
 """
 
 import frappe
-from frappe.utils import cint, flt, getdate
+from frappe.utils import add_days, cint, flt, getdate
 
+from hrms.regional.switzerland.ceilings import contribution_days, insured_between, month_insured
 from hrms.regional.switzerland.constants import AC_ANNUAL_CEILING, LAA_INSURABLE_SALARY_CAP
 from hrms.regional.switzerland.utils import (
 	calculate_lpp_coordinated_salary,
 	get_employee_age,
 	get_swiss_social_insurance_config,
+	get_ytd_insurance_bases,
 )
+
+# //// Neoffice — the declared incomes are the bases the contributions were computed on, as the
+# //// payroll hook recorded them on each slip (ch_contribution_bases). The declaration used to
+# //// recompute them its own way: AC and LAA against the whole yearly ceiling (a leaver in June
+# //// at 20'000 a month declared 120'000 of AC income for 74'100 insured), the AVS income without
+# //// the pensioners' exemption, and the LAAC and IJM incomes as the whole gross. Slips computed
+# //// before the hook recorded its bases keep a recomputation — with the ceilings prorated now.
+_RECORDED_INCOMES = {
+	"avs_salary": ("AVS/AI/APG Employee", "AVS/AI/APG Employer"),
+	"ac_salary": ("AC/ALV Employee", "AC/ALV Employer"),
+	"laa_salary": (
+		"LAA Non-Professional Employee",
+		"LAA Professional Employer",
+		"LAA Non-Professional Employer",
+	),
+	"laac_salary": ("LAAC Employee", "LAAC Employer"),
+	"ijm_salary": ("IJM/KTG Employee", "IJM/KTG Employer"),
+}
+
+
+def _recorded_incomes(slip_names):
+	"""{income key: sum over the slips} for each income EVERY slip recorded a base for."""
+	if not slip_names or not frappe.get_meta("Salary Slip").has_field("ch_contribution_bases"):
+		return {}
+	records = []
+	for value in frappe.get_all(
+		"Salary Slip", filters={"name": ["in", slip_names]}, pluck="ch_contribution_bases"
+	):
+		parsed = frappe.parse_json(value) if value else {}
+		records.append(parsed if isinstance(parsed, dict) else {})
+	incomes = {}
+	for key, components in _RECORDED_INCOMES.items():
+		total = 0.0
+		for record in records:
+			base = next((record[c]["base"] for c in components if c in record), None)
+			if base is None:
+				break
+			total += flt(base)
+		else:
+			incomes[key] = total
+	return incomes
+
+
+def _contribution_days_between(employee, company, year_start, until):
+	"""Contribution days (guidelines 7.12.1) from 1 January — or the entry, or the first period
+	of the year paid in Neoffice — to ``until`` or the exit, whichever comes first."""
+	emp = frappe.get_cached_doc("Employee", employee)
+	entry = emp.get("ch_entry_date") or emp.get("date_of_joining")
+	exit_date = emp.get("ch_exit_date") or emp.get("relieving_date")
+	first = frappe.db.sql(
+		"""SELECT MIN(start_date) FROM `tabSalary Slip`
+		WHERE employee = %s AND company = %s AND docstatus = 1 AND start_date >= %s""",
+		(employee, company, year_start),
+	)[0][0]
+	starts = [getdate(year_start)] + [getdate(d) for d in (entry, first) if d]
+	ends = [getdate(until)] + ([getdate(exit_date)] if exit_date else [])
+	return contribution_days(max(starts), min(ends))
 
 
 def get_employees_for_declaration(company, fiscal_year, declaration_type="Year-End", declaration_month=None):
@@ -104,17 +163,20 @@ def get_annual_salary_summary(employee, company, year_start, year_end, config=No
 
 	# Compute per-insurance-base totals from earnings
 	insurance_bases = _get_annual_insurance_base_totals(slip_names)
-	avs_salary = insurance_bases.get("avs_base", total_gross)
+	recorded = _recorded_incomes(slip_names)
+	avs_salary = recorded.get("avs_salary", insurance_bases.get("avs_base", total_gross))
 	ac_base_raw = insurance_bases.get("ac_base", total_gross)
 	laa_base_raw = insurance_bases.get("laa_base", total_gross)
 
-	# AC salary = base capped at annual ceiling
+	# AC and LAA salaries: capped at the yearly ceilings prorated to the contribution days
+	# (guidelines 7.12.2) — unless the slips recorded the bases they were computed on.
+	days = _contribution_days_between(employee, company, year_start, year_end)
 	ac_ceiling = flt(config.get("ac_annual_ceiling") if config else 0) or AC_ANNUAL_CEILING
-	ac_salary = min(ac_base_raw, ac_ceiling)
-
-	# LAA salary = base capped at insurable salary cap
+	ac_salary = recorded.get("ac_salary", float(insured_between(ac_base_raw, days, 0, ac_ceiling)))
 	laa_cap = flt(config.get("laa_insurable_salary_cap") if config else 0) or LAA_INSURABLE_SALARY_CAP
-	laa_salary = min(laa_base_raw, laa_cap)
+	laa_salary = recorded.get("laa_salary", float(insured_between(laa_base_raw, days, 0, laa_cap)))
+	laac_salary = recorded.get("laac_salary", laa_salary)
+	ijm_salary = recorded.get("ijm_salary", insurance_bases.get("ijm_base", total_gross))
 
 	# LPP coordinated salary
 	emp_doc = frappe.get_cached_doc("Employee", employee)
@@ -152,6 +214,8 @@ def get_annual_salary_summary(employee, company, year_start, year_end, config=No
 		"avs_salary": round(avs_salary, 2),
 		"ac_salary": round(ac_salary, 2),
 		"laa_salary": round(laa_salary, 2),
+		"laac_salary": round(laac_salary, 2),
+		"ijm_salary": round(ijm_salary, 2),
 		"lpp_coordinated": round(lpp_coordinated, 2),
 		"source_tax_total": round(source_tax_total, 2),
 		"employee_age": age,
@@ -230,26 +294,32 @@ def get_monthly_salary_summary(employee, company, year, month, config=None):
 
 	# Compute per-insurance-base totals from earnings
 	insurance_bases = _get_annual_insurance_base_totals(slip_names)
-	avs_salary = insurance_bases.get("avs_base", total_gross)
+	recorded = _recorded_incomes(slip_names)
+	avs_salary = recorded.get("avs_salary", insurance_bases.get("avs_base", total_gross))
 	ac_base_raw = insurance_bases.get("ac_base", total_gross)
 	laa_base_raw = insurance_bases.get("laa_base", total_gross)
 
-	# AC salary: cap using YTD gross from prior months
+	# AC and LAA salaries of the month: the ceilings cumulated over the year (guidelines
+	# 7.12.3) — unless the slips recorded the bases they were computed on. The AC cumulative is
+	# the AC-subject one, no longer the gross (see get_ytd_insurance_bases).
+	year_start = getdate(month_start).replace(month=1, day=1)
+	ytd = get_ytd_insurance_bases(employee, company, month_start)
+	days_before = (
+		_contribution_days_between(employee, company, year_start, add_days(month_start, -1))
+		if getdate(month_start) > year_start
+		else 0
+	)
+	days_current = max(_contribution_days_between(employee, company, year_start, month_end) - days_before, 0)
 	ac_ceiling = flt(config.get("ac_annual_ceiling") if config else 0) or AC_ANNUAL_CEILING
-	ytd_gross_before = _get_ytd_gross_before_month(employee, company, year, month)
-	if ytd_gross_before >= ac_ceiling:
-		# Already above ceiling from prior months
-		ac_salary = 0
-	elif ytd_gross_before + ac_base_raw > ac_ceiling:
-		# Ceiling crossed this month
-		ac_salary = ac_ceiling - ytd_gross_before
-	else:
-		ac_salary = ac_base_raw
-
-	# LAA salary: cap at insurable salary cap (monthly = annual cap / 12)
+	ac_salary = recorded.get(
+		"ac_salary", month_insured(ytd["ac"], days_before, ac_base_raw, days_current, 0, ac_ceiling)
+	)
 	laa_cap = flt(config.get("laa_insurable_salary_cap") if config else 0) or LAA_INSURABLE_SALARY_CAP
-	laa_monthly_cap = round(laa_cap / 12, 2)
-	laa_salary = min(laa_base_raw, laa_monthly_cap)
+	laa_salary = recorded.get(
+		"laa_salary", month_insured(ytd["laa"], days_before, laa_base_raw, days_current, 0, laa_cap)
+	)
+	laac_salary = recorded.get("laac_salary", laa_salary)
+	ijm_salary = recorded.get("ijm_salary", insurance_bases.get("ijm_base", total_gross))
 
 	# LPP: take contribution amounts directly from slip components
 	lpp_ee = flt(component_totals.get("LPP/BVG Employee", 0))
@@ -289,6 +359,8 @@ def get_monthly_salary_summary(employee, company, year, month, config=None):
 		"avs_salary": round(avs_salary, 2),
 		"ac_salary": round(ac_salary, 2),
 		"laa_salary": round(laa_salary, 2),
+		"laac_salary": round(laac_salary, 2),
+		"ijm_salary": round(ijm_salary, 2),
 		"lpp_coordinated": round(lpp_coordinated, 2),
 		"source_tax_total": round(source_tax_total, 2),
 		"employee_age": age,
@@ -620,18 +692,20 @@ def get_bvg_projection_data(employee, company, year, base_month=1, has_thirteent
 
 	# Build a projection summary (compatible with standard salary data format)
 	result = _empty_salary_summary()
-	result.update({
-		"total_gross": projected_annual,
-		"months_worked": multiplier,
-		"avs_salary": projected_annual,
-		"lpp_coordinated": lpp_coordinated,
-		"employee_age": employee_age,
-		"bvg_projected_salary": projected_annual,
-		"bvg_base_month": base_month,
-		"bvg_multiplier": multiplier,
-		"bvg_base_month_gross": base_gross,
-		"period_start": f"{year}-01-01",
-		"period_end": f"{year}-12-31",
-	})
+	result.update(
+		{
+			"total_gross": projected_annual,
+			"months_worked": multiplier,
+			"avs_salary": projected_annual,
+			"lpp_coordinated": lpp_coordinated,
+			"employee_age": employee_age,
+			"bvg_projected_salary": projected_annual,
+			"bvg_base_month": base_month,
+			"bvg_multiplier": multiplier,
+			"bvg_base_month_gross": base_gross,
+			"period_start": f"{year}-01-01",
+			"period_end": f"{year}-12-31",
+		}
+	)
 
 	return result

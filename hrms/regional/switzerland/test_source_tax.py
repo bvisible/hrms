@@ -106,11 +106,13 @@ class TestMonthlyCalculation(unittest.TestCase):
 
 	@patch("hrms.regional.switzerland.source_tax.lookup_qst_rate")
 	def test_rounding(self, mock_lookup):
-		"""Monthly: result is rounded to 2 decimal places."""
+		"""Monthly: the tax withheld rounds to 5 centimes, the exact amount is kept."""
 		mock_lookup.return_value = 0.0333  # 3.33%
 		result = calculate_source_tax_monthly(7777, "ZH", "A0N", "2026-01-31")
-		# 7777 * 0.0333 = 258.9741
-		self.assertAlmostEqual(result["tax_amount"], 258.97, places=2)
+		# 7777 * 0.0333 = 258.9741 -> 258.95 (Swissdec guidelines 4.1.1; a certified engine
+		# withholds source tax to 5 centimes too).
+		self.assertEqual(result["tax_amount"], 258.95)
+		self.assertEqual(float(result["tax_amount_full"]), 258.9741)
 
 
 class TestAnnualCalculation(unittest.TestCase):
@@ -200,8 +202,12 @@ class TestAnnualCalculation(unittest.TestCase):
 	def test_zero_gross(self, mock_lookup):
 		"""Annual model: zero gross returns zero."""
 		result = calculate_source_tax_annual(
-			gross=0, canton="GE", tariff_code="B2Y",
-			ytd_gross=0, ytd_tax=0, month_num=1,
+			gross=0,
+			canton="GE",
+			tariff_code="B2Y",
+			ytd_gross=0,
+			ytd_tax=0,
+			month_num=1,
 			ref_date="2026-01-31",
 		)
 		self.assertEqual(result["tax_amount"], 0)
@@ -239,11 +245,11 @@ class TestEdgeCases(unittest.TestCase):
 
 	@patch("hrms.regional.switzerland.source_tax.lookup_qst_rate")
 	def test_fractional_amount(self, mock_lookup):
-		"""Fractional amounts are rounded to 2 decimals."""
+		"""Fractional amounts: the tax withheld rounds to 5 centimes."""
 		mock_lookup.return_value = 0.0333
 		result = calculate_source_tax_monthly(10000.50, "ZH", "A0N", "2026-01-31")
-		# 10000.50 * 0.0333 = 333.01665
-		self.assertAlmostEqual(result["tax_amount"], 333.02, places=2)
+		# 10000.50 * 0.0333 = 333.01665 -> 333.00
+		self.assertEqual(result["tax_amount"], 333.00)
 
 
 if __name__ == "__main__":
@@ -335,9 +341,7 @@ class TestQstDaysInPeriod(unittest.TestCase):
 		self.assertEqual(self._days(leaving="2026-06-15"), 15)
 
 	def test_exit_on_last_day_of_february(self):
-		self.assertEqual(
-			self._days(leaving="2026-02-28", start="2026-02-01", end="2026-02-28"), 30
-		)
+		self.assertEqual(self._days(leaving="2026-02-28", start="2026-02-01", end="2026-02-28"), 30)
 
 	def test_entry_and_exit_within_month(self):
 		self.assertEqual(self._days(joining="2026-06-10", leaving="2026-06-19"), 10)

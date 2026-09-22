@@ -80,7 +80,9 @@ class TestLaaFlat(unittest.TestCase):
 		out = compute_laa(20000, None, {}, FLAT)
 		self.assertEqual(out["insured_salary"], 12350)
 		self.assertEqual(out["aanp_employee"], 197.60)  # not 320.00 on the whole salary
-		self.assertEqual(out["aap_employer"], 100.04)
+		# 12'350 x 0.81 % = 100.035 -> 100.05: 5 centimes (guidelines 4.1.1), as the certified
+		# engine computed it on the same case.
+		self.assertEqual(out["aap_employer"], 100.05)
 
 	def test_cap_scales_with_the_period(self):
 		out = compute_laa(60000, None, {}, FLAT, months=3)
@@ -188,3 +190,21 @@ class TestSupplementary(unittest.TestCase):
 	def test_an_unknown_code_raises_rather_than_guessing(self):
 		with self.assertRaises(UnknownSolutionCode):
 			compute_supplementary(6000, ["Z9"], [_row("A1", 0.3, 0.3)], "male")
+
+
+class TestWhatThePayslipPrints(unittest.TestCase):
+	"""The rates applied travel with the amounts: the payslip prints them."""
+
+	def test_laa_returns_the_rates_it_applied(self):
+		out = compute_laa(6000, "B1", {"B": {"aap": 0.34, "aanp": 1.701}}, FLAT)
+		self.assertEqual(out["rates"], {"aap": 0.34, "aanp": 1.701})
+		self.assertEqual(compute_laa(6000, None, {}, FLAT)["rates"], FLAT)
+
+	def test_supplementary_returns_one_part_per_bracket_charged(self):
+		rows = [_row("A1", 0.5, 0.5, wage_to=148200), _row("A1", 1.0, 1.0, wage_from=148200, wage_to=300000)]
+		out = compute_supplementary(20000, ["A1"], rows, "male")
+		self.assertEqual(
+			[(p["insured"], p["rate_employee"]) for p in out["parts"]], [(12350.0, 0.5), (7650.0, 1.0)]
+		)
+		# Under the second bracket, only the first is charged.
+		self.assertEqual(len(compute_supplementary(6000, ["A1"], rows, "male")["parts"]), 1)

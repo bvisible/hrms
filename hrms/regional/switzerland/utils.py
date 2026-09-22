@@ -6,15 +6,15 @@
 
 import frappe
 from frappe import _
+
 # //// Neoffice — formatdate added: the payslip period label now goes through the framework's
 # //// date formatting instead of a hardcoded French month list (issue #239)
-from frappe.utils import flt, formatdate, getdate, today
+from frappe.utils import cint, flt, formatdate, getdate, today
 
-from hrms.regional.switzerland.source_tax import round_half_up
-
+# //// Neoffice — AC and LPP contributions round to 5 centimes (Swissdec guidelines 4.1.1).
+from hrms.regional.switzerland.ceilings import month_insured
 from hrms.regional.switzerland.constants import (
 	AC_ANNUAL_CEILING,
-	get_yearly_constants,
 	AC_RATE_EMPLOYEE,
 	AC_RATE_EMPLOYER,
 	AVS_RATE_EMPLOYEE,
@@ -25,7 +25,10 @@ from hrms.regional.switzerland.constants import (
 	LPP_MAXIMUM_COORDINATED_SALARY,
 	LPP_MINIMUM_INSURED_SALARY,
 	RATE_BASED_COMPONENTS,
+	get_yearly_constants,
 )
+from hrms.regional.switzerland.rounding import round_to_5_centimes
+from hrms.regional.switzerland.source_tax import round_half_up
 
 
 def get_swiss_social_insurance_config(company, canton=None):
@@ -159,25 +162,33 @@ def calculate_lpp_contribution(annual_salary, age, config=None, year=None):
 		"coordinated_salary": coordinated_salary,
 		"total_rate": total_rate,
 		"total_annual": total_annual,
-		"employee_monthly": round_half_up(employee_annual / 12),
-		"employer_monthly": round_half_up(employer_annual / 12),
+		"employee_monthly": round_to_5_centimes(employee_annual / 12),
+		"employer_monthly": round_to_5_centimes(employer_annual / 12),
 	}
 
 
-def calculate_ac_contribution(monthly_gross, ytd_gross, config=None, year=None):
-	"""Calculate AC/ALV contribution for a given month, respecting annual ceiling.
+def calculate_ac_contribution(monthly_gross, ytd_gross, config=None, year=None, *, days_before, days_current):
+	"""AC/ALV contribution of a month, under the ceiling cumulated pro rata temporis.
 
-	Salary above the annual ceiling (CHF 148'200) is fully exempt: the AC
-	solidarity contribution that used to apply above the ceiling was abolished
+	//// Neoffice — was measured against the whole yearly ceiling from January: a leaver in
+	//// June paid on 20'000 a month owed AC on 120'000 instead of 74'100 (6 x 12'350), and the
+	//// months were never capped as the year went. Swissdec guidelines 7.12.3: the base
+	//// cumulated over the year is compared with the ceiling prorated to the contribution days
+	//// (148'200 x days / 360), minus what the previous months insured — see ceilings.py.
+
+	No contribution at all above the ceiling: the AC solidarity contribution was abolished
 	on 2023-01-01 (SECO communication of 2022-10-13; AHV/AVS leaflet 2.08).
 
 	Args:
-		monthly_gross: Gross salary for the current month
-		ytd_gross: Year-to-date gross salary BEFORE the current month
-		config: Optional SwissSocialInsuranceConfig dict
+		monthly_gross: AC-subject salary of the month.
+		ytd_gross: AC-subject salary of the year BEFORE this month.
+		config: Optional SwissSocialInsuranceConfig dict.
+		days_before, days_current: contribution days before and of this month
+			(ceilings.contribution_period).
 
 	Returns:
 		dict with keys: ac_employee, ac_employer, subject_to_ac, exempt_above_ceiling
+		(negative in a month that insures what earlier months could not).
 	"""
 	yearly = get_yearly_constants(year) if year else {}
 	ceiling = (
@@ -189,25 +200,13 @@ def calculate_ac_contribution(monthly_gross, ytd_gross, config=None, year=None):
 	ac_rate_er = flt(config.get("ac_rate_employer") if config else 0) / 100 or AC_RATE_EMPLOYER
 
 	monthly_gross = flt(monthly_gross)
-	ytd_gross = flt(ytd_gross)
-	new_ytd = ytd_gross + monthly_gross
-
-	# Determine how much of this month's salary is below vs above the ceiling
-	if ytd_gross >= ceiling:
-		# Already above ceiling: entire salary exempt from AC
-		subject_to_ac = 0
-	elif new_ytd <= ceiling:
-		# Still below ceiling: entire salary subject to AC
-		subject_to_ac = monthly_gross
-	else:
-		# Ceiling crossed this month: only the part below the ceiling is subject
-		subject_to_ac = ceiling - ytd_gross
+	subject_to_ac = month_insured(flt(ytd_gross), days_before, monthly_gross, days_current, 0, ceiling)
 
 	return {
-		"ac_employee": round_half_up(subject_to_ac * ac_rate_ee),
-		"ac_employer": round_half_up(subject_to_ac * ac_rate_er),
+		"ac_employee": round_to_5_centimes(subject_to_ac * ac_rate_ee),
+		"ac_employer": round_to_5_centimes(subject_to_ac * ac_rate_er),
 		"subject_to_ac": subject_to_ac,
-		"exempt_above_ceiling": monthly_gross - subject_to_ac,
+		"exempt_above_ceiling": flt(monthly_gross - subject_to_ac, 2),
 	}
 
 
@@ -294,20 +293,23 @@ def get_ytd_gross_for_employee(employee, company, start_date, end_date):
 # //// flag at all counts everywhere, and a slip on which nothing is flagged falls back to its whole
 # //// earnings total (the backward-compatibility case of installations that never set the flags).
 def get_ytd_ac_base_for_employee(employee, company, start_date, end_date):
-	"""Year-to-date AC-subject salary for an employee, excluding the current period.
+	"""Year-to-date AC-subject salary for an employee, excluding the current period."""
+	return get_ytd_insurance_bases(employee, company, start_date)["ac"]
 
-	The cumulative the annual AC ceiling is measured against. Mirrors
-	payroll_hooks._get_insurance_base_totals over the slips already submitted.
 
-	Args:
-		employee: Employee ID
-		company: Company name
-		start_date: Start date of the current payroll period
-		end_date: End date of the current payroll period (unused, kept for symmetry
-			with get_ytd_gross_for_employee)
+def get_ytd_insurance_bases(employee, company, start_date):
+	"""Year-to-date AC-, LAA- and IJM-subject salaries of an employee, before ``start_date``.
+
+	//// Neoffice — generalised from get_ytd_ac_base_for_employee: the LAA ceiling and the
+	//// LAAC / IJM brackets are cumulated over the year too (guidelines 7.12.3), so they need
+	//// their own year-to-date bases. Same rule as _get_insurance_base_totals, applied to the
+	//// slips already submitted: flagged components count where flagged, a component with no
+	//// flag at all counts everywhere, and a slip on which nothing is flagged falls back to its
+	//// whole earnings total (installations that never set the flags).
 
 	Returns:
-		YTD AC-subject salary in CHF (float)
+		dict with ac, laa, ijm (floats) and first_start: the start of the first period of the
+		year already paid in Neoffice, or None.
 	"""
 	year_start = getdate(start_date).replace(month=1, day=1)
 
@@ -315,8 +317,11 @@ def get_ytd_ac_base_for_employee(employee, company, start_date, end_date):
 		"""
 		SELECT
 			sd.parent AS slip,
+			ss.start_date AS slip_start,
 			COALESCE(sd.amount, sd.default_amount, 0) AS amount,
 			COALESCE(sc.ch_subject_to_ac, 0) AS ac,
+			COALESCE(sc.ch_subject_to_laa, 0) AS laa,
+			COALESCE(sc.ch_subject_to_ijm, 0) AS ijm,
 			(
 				COALESCE(sc.ch_subject_to_avs, 0) OR COALESCE(sc.ch_subject_to_ac, 0)
 				OR COALESCE(sc.ch_subject_to_laa, 0) OR COALESCE(sc.ch_subject_to_ijm, 0)
@@ -338,22 +343,28 @@ def get_ytd_ac_base_for_employee(employee, company, start_date, end_date):
 		as_dict=True,
 	)
 
-	# Group per slip: the "no flag configured anywhere" fallback is decided slip by slip,
-	# exactly as _get_insurance_base_totals decides it for the slip being computed.
+	keys = ("ac", "laa", "ijm")
 	per_slip = {}
 	for row in rows:
-		slip = per_slip.setdefault(row.slip, {"total": 0.0, "ac": 0.0, "any_flag": False})
+		slip = per_slip.setdefault(row.slip, {"total": 0.0, "any_flag": False, **{k: 0.0 for k in keys}})
 		amount = flt(row.amount)
 		slip["total"] += amount
 		if row.has_flags:
 			slip["any_flag"] = True
-			if row.ac:
-				slip["ac"] += amount
+			for key in keys:
+				if row.get(key):
+					slip[key] += amount
 		else:
-			# A component with no flag at all feeds every base, AC included.
-			slip["ac"] += amount
+			# A component with no flag at all feeds every base.
+			for key in keys:
+				slip[key] += amount
 
-	return flt(sum(s["ac"] if s["any_flag"] else s["total"] for s in per_slip.values()))
+	result = {
+		key: flt(sum(s[key] if s["any_flag"] else s["total"] for s in per_slip.values())) for key in keys
+	}
+	starts = [getdate(row.slip_start) for row in rows]
+	result["first_start"] = min(starts) if starts else None
+	return result
 
 
 def calculate_thirteenth_month(base_monthly, employee, slip_start, slip_end, config):
@@ -376,7 +387,8 @@ def calculate_thirteenth_month(base_monthly, employee, slip_start, slip_end, con
 		return 0
 
 	if mode == "Monthly":
-		return round_half_up(base_monthly / 12)
+		# //// Neoffice — a paid amount: 5 centimes (Swissdec guidelines 4.1.1), was the centime.
+		return round_to_5_centimes(base_monthly / 12)
 
 	# Annual mode: pay only in December or on the relieving month
 	slip_end_date = getdate(slip_end)
@@ -417,7 +429,7 @@ def calculate_thirteenth_month(base_monthly, employee, slip_start, slip_end, con
 	days_worked = (period_end - period_start).days + 1
 	pro_rata = days_worked / total_days_in_year
 
-	return round_half_up(base_monthly * pro_rata)
+	return round_to_5_centimes(base_monthly * pro_rata)
 
 
 def get_component_rates_for_salary_slip(doc):
@@ -509,9 +521,7 @@ def get_salary_slip_print_data(doc):
 	to call frappe.get_cached_doc() in Jinja loops.
 	"""
 	employee = frappe.get_cached_doc("Employee", doc.employee)
-	config = get_swiss_social_insurance_config(
-		doc.company, employee.get("ch_fiscal_canton") or ""
-	)
+	config = get_swiss_social_insurance_config(doc.company, employee.get("ch_fiscal_canton") or "")
 	age = get_employee_age(doc.employee, doc.end_date)
 	rates = _build_rate_dict(config, age) if config else {}
 
@@ -550,29 +560,38 @@ def get_salary_slip_print_data(doc):
 
 	# Build enriched earnings
 	earnings = []
-	insurance_bases = {
-		"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "gross": 0
-	}
+	insurance_bases = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "gross": 0}
 	any_flag = False
 
 	comp_fields = [
-		"ch_wage_type_code", "ch_subject_to_avs", "ch_subject_to_ac",
-		"ch_subject_to_laa", "ch_subject_to_ijm", "ch_subject_to_lpp", "ch_subject_to_imp",
+		"ch_wage_type_code",
+		"ch_subject_to_avs",
+		"ch_subject_to_ac",
+		"ch_subject_to_laa",
+		"ch_subject_to_ijm",
+		"ch_subject_to_lpp",
+		"ch_subject_to_imp",
 	]
 
 	for row in doc.get("earnings", []):
-		comp_vals = frappe.get_cached_value(
-			"Salary Component", row.salary_component, comp_fields, as_dict=True
-		) or {}
+		comp_vals = (
+			frappe.get_cached_value("Salary Component", row.salary_component, comp_fields, as_dict=True) or {}
+		)
 		gs_code = comp_vals.get("ch_wage_type_code") or ""
-		earnings.append({
-			"gs_code": gs_code,
-			"name": row.salary_component,
-			"amount": flt(row.amount, 2),
-		})
+		earnings.append(
+			{
+				"gs_code": gs_code,
+				"name": row.salary_component,
+				"amount": flt(row.amount, 2),
+			}
+		)
 
-		# Accumulate insurance bases
-		amount = flt(row.default_amount or row.amount, 2)
+		# //// Neoffice — the amounts PAID, and only those in the total, exactly as the payroll hook
+		# //// builds its bases. It read default_amount first: on a partial month the payslip
+		# //// printed the full monthly salary as the base of contributions computed on half of it.
+		if cint(row.get("do_not_include_in_total")):
+			continue
+		amount = flt(row.default_amount if row.get("amount") is None else row.amount, 2)
 		insurance_bases["gross"] += amount
 
 		flags = {
@@ -594,6 +613,19 @@ def get_salary_slip_print_data(doc):
 		for key in ("avs", "ac", "laa", "ijm", "lpp", "imp"):
 			insurance_bases[key] = insurance_bases["gross"]
 
+	# //// Neoffice — the bases the payroll hook actually used, where the slip carries them:
+	# //// after the AVS exemption of a pensioner, the AC ceiling and the LAA cap. The sums of
+	# //// earnings above stay for the slips computed before the hook recorded its bases.
+	stored = _stored_contribution_bases(doc)
+	for key, components in (
+		("avs", ("AVS/AI/APG Employee", "AVS/AI/APG Employer")),
+		("ac", ("AC/ALV Employee", "AC/ALV Employer")),
+		("laa", ("LAA Non-Professional Employee", "LAA Professional Employer")),
+	):
+		recorded = next((stored[c]["base"] for c in components if c in stored), None)
+		if recorded is not None:
+			insurance_bases[key] = recorded
+
 	# Build enriched deductions (employee and employer separate)
 	deductions_ee = []
 	deductions_er = []
@@ -605,13 +637,23 @@ def get_salary_slip_print_data(doc):
 			continue
 		comp_name = row.salary_component
 		is_employer = comp_name in employer_set
-		comp_vals = frappe.get_cached_value(
-			"Salary Component", comp_name, ["ch_wage_type_code"], as_dict=True
-		) or {}
+		comp_vals = (
+			frappe.get_cached_value("Salary Component", comp_name, ["ch_wage_type_code"], as_dict=True) or {}
+		)
 		gs_code = comp_vals.get("ch_wage_type_code") or ""
 
 		rate_str = rates.get(comp_name, "")
-		determinant = _compute_determinant(comp_name, flt(row.amount, 2), rate_str, insurance_bases)
+		recorded = stored.get(comp_name)
+		if recorded:
+			# //// Neoffice — the base and rate the amount was computed with (see _record_base in
+			# //// payroll_hooks). Derived back from the amount they are wrong once amounts round
+			# //// to 5 centimes, and the configuration's flat rate is not the rate of a business
+			# //// unit or of an insurance code.
+			determinant = recorded.get("base") or 0
+			if "rate" in recorded:
+				rate_str = _format_rate(recorded["rate"])
+		else:
+			determinant = _compute_determinant(comp_name, flt(row.amount, 2), rate_str, insurance_bases)
 
 		entry = {
 			"gs_code": gs_code,
@@ -658,7 +700,11 @@ def get_salary_slip_print_data(doc):
 			"gross": flt(doc.gross_pay, 2),
 			"ee_deductions": flt(total_ee, 2),
 			"net": flt(doc.net_pay, 2),
-			"rounded": flt(doc.rounded_total, 2) if doc.rounded_total else 0,
+			# //// Neoffice — only when it differs from the net: a Swiss slip pays its net
+			# //// (payroll_hooks._pay_the_net_as_computed), older slips carry a franc rounding.
+			"rounded": flt(doc.rounded_total, 2)
+			if doc.rounded_total and flt(doc.rounded_total, 2) != flt(doc.net_pay, 2)
+			else 0,
 			"er_contributions": flt(total_er, 2),
 			"employer_cost": flt(doc.gross_pay, 2) + flt(total_er, 2),
 		},
@@ -693,6 +739,25 @@ def _get_bank_details(doc, employee):
 		"account_no": account_no,
 		"iban": iban,
 	}
+
+
+def _stored_contribution_bases(doc):
+	"""{component: {"base": x[, "rate": y]}} recorded on the slip by the payroll hook, or {}."""
+	value = doc.get("ch_contribution_bases")
+	if not value:
+		return {}
+	try:
+		parsed = frappe.parse_json(value)
+	except Exception:
+		return {}
+	return parsed if isinstance(parsed, dict) else {}
+
+
+def _format_rate(rate):
+	"""A recorded rate as the payslip prints it: "" for none, otherwise like the configuration."""
+	if rate in ("", None):
+		return ""
+	return str(flt(rate, 4))
 
 
 def _compute_determinant(comp_name, amount, rate_str, insurance_bases):

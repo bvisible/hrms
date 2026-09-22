@@ -13,13 +13,14 @@ from hrms.regional.switzerland.constants import (
 	LPP_MAXIMUM_COORDINATED_SALARY,
 	LPP_MINIMUM_INSURED_SALARY,
 )
+from hrms.regional.switzerland.rounding import round_to_5_centimes
 from hrms.regional.switzerland.utils import (
 	_build_rate_dict,
-	get_employee_age,  # //// Neoffice — added with TestGetEmployeeAge at the end of the file.
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
 	calculate_lpp_coordinated_salary,
 	calculate_thirteenth_month,
+	get_employee_age,  # //// Neoffice — added with TestGetEmployeeAge at the end of the file.
 	get_lpp_rate_for_age,
 )
 
@@ -122,11 +123,12 @@ class TestLPPContribution(unittest.TestCase):
 		# Coordinated: 72'000 - 26'460 = 45'540
 		# Rate: 7%
 		# Total annual: 45'540 * 0.07 = 3'187.80
-		# 50% split → employee: 1'593.90/year → 132.83/month
+		# 50% split → employee: 1'593.90/year → 132.825/month → 132.85: contributions round
+		# to 5 centimes (Swissdec guidelines 4.1.1, "5er-Rundung"), as a certified engine does.
 		self.assertEqual(result["coordinated_salary"], 45540)
 		self.assertEqual(result["total_rate"], 0.07)
-		self.assertAlmostEqual(result["employee_monthly"], 132.83, places=2)
-		self.assertAlmostEqual(result["employer_monthly"], 132.83, places=2)
+		self.assertAlmostEqual(result["employee_monthly"], 132.85, places=2)
+		self.assertAlmostEqual(result["employer_monthly"], 132.85, places=2)
 
 	def test_below_threshold(self):
 		"""Annual salary below entry threshold: no contribution."""
@@ -148,12 +150,13 @@ class TestLPPContribution(unittest.TestCase):
 		# Coordinated: capped at 64'260
 		# Rate: 15% (age 45-54)
 		# Total annual: 64'260 * 0.15 = 9'639.00
-		# 50% split -> 4'819.50/year -> 401.625/month -> 401.63 (Swissdec commercial
-		# rounding, half away from zero — proven by the Annex 1 oracle)
+		# 50% split -> 4'819.50/year -> 401.625/month -> 401.65: contributions round to
+		# 5 centimes, half away from zero (Swissdec guidelines 4.1.1). The centime rule of
+		# the Annex 1 oracle is SOURCE TAX's, and stays there.
 		self.assertEqual(result["coordinated_salary"], LPP_MAXIMUM_COORDINATED_SALARY)
 		self.assertEqual(result["total_rate"], 0.15)
-		self.assertAlmostEqual(result["employee_monthly"], 401.63, places=2)
-		self.assertAlmostEqual(result["employer_monthly"], 401.63, places=2)
+		self.assertAlmostEqual(result["employee_monthly"], 401.65, places=2)
+		self.assertAlmostEqual(result["employer_monthly"], 401.65, places=2)
 
 	def test_custom_employer_share(self):
 		"""Custom employer share (60% employer, 40% employee)."""
@@ -162,62 +165,67 @@ class TestLPPContribution(unittest.TestCase):
 		# Coordinated: 45'540
 		# Rate: 7%
 		# Total annual: 3'187.80
-		# 60% employer → 1'912.68/year → 159.39/month
-		# 40% employee → 1'275.12/year → 106.26/month
-		self.assertAlmostEqual(result["employer_monthly"], 159.39, places=2)
-		self.assertAlmostEqual(result["employee_monthly"], 106.26, places=2)
+		# 60% employer → 1'912.68/year → 159.39/month → 159.40 (5 centimes, guidelines 4.1.1)
+		# 40% employee → 1'275.12/year → 106.26/month → 106.25
+		self.assertAlmostEqual(result["employer_monthly"], 159.40, places=2)
+		self.assertAlmostEqual(result["employee_monthly"], 106.25, places=2)
 
 
 class TestACContribution(unittest.TestCase):
-	"""Tests for AC/ALV unemployment insurance contribution with ceiling tracking."""
+	"""AC/ALV under the ceiling cumulated pro rata temporis (Swissdec guidelines 7.12.3).
 
-	def test_below_ceiling(self):
-		"""Standard case: YTD gross well below ceiling."""
-		result = calculate_ac_contribution(8000, 40000)
-		# Entire salary subject to AC at 1.1%
-		self.assertAlmostEqual(result["ac_employee"], 88.0, places=2)  # 8000 * 0.011
+	A full year of employment gives 12'350 of room a month (148'200 x 30 / 360). June is
+	preceded by 150 days (room 61'750) and ends at 180 (room 74'100).
+	"""
+
+	def test_below_the_room(self):
+		result = calculate_ac_contribution(8000, 40000, days_before=150, days_current=30)
+		self.assertAlmostEqual(result["ac_employee"], 88.0, places=2)  # 8000 * 1.1%
 		self.assertAlmostEqual(result["ac_employer"], 88.0, places=2)
 		self.assertEqual(result["subject_to_ac"], 8000)
 		self.assertEqual(result["exempt_above_ceiling"], 0)
 
-	def test_above_ceiling(self):
-		"""YTD already above ceiling: salary fully EXEMPT (solidarity abolished 2023)."""
-		result = calculate_ac_contribution(8000, 150000)
+	def test_the_room_runs_out_during_the_month(self):
+		"""60'000 by May, 20'000 in June: 74'100 - 60'000 = 14'100 subject, 5'900 not."""
+		result = calculate_ac_contribution(20000, 60000, days_before=150, days_current=30)
+		self.assertEqual(result["subject_to_ac"], 14100)
+		self.assertAlmostEqual(result["ac_employee"], 155.10, places=2)
+		self.assertEqual(result["exempt_above_ceiling"], 5900)
+
+	def test_exactly_at_the_room(self):
+		result = calculate_ac_contribution(12350, 61750, days_before=150, days_current=30)
+		self.assertEqual(result["subject_to_ac"], 12350)
+		self.assertEqual(result["exempt_above_ceiling"], 0)
+
+	def test_a_month_insures_what_earlier_months_could_not(self):
+		"""May had 70'000 against 61'750 of room; June's 8'000 comes with 8'250 left over: the
+		month insures 12'350 — 4'350 more than it pays. Negative 'exempt' says so."""
+		result = calculate_ac_contribution(8000, 70000, days_before=150, days_current=30)
+		self.assertEqual(result["subject_to_ac"], 12350)
+		self.assertEqual(result["exempt_above_ceiling"], -4350)
+
+	def test_a_payment_after_the_exit_once_the_room_is_used(self):
+		"""Exit 30.06 with the six months' room filled: a bonus paid in July owes nothing."""
+		result = calculate_ac_contribution(8000, 80000, days_before=180, days_current=0)
 		self.assertEqual(result["ac_employee"], 0)
-		self.assertEqual(result["ac_employer"], 0)
 		self.assertEqual(result["subject_to_ac"], 0)
 		self.assertEqual(result["exempt_above_ceiling"], 8000)
 
-	def test_ceiling_crossed_mid_month(self):
-		"""Ceiling crossed during the current month: only the part below is subject."""
-		# YTD = 145'000, monthly = 8'000, ceiling = 148'200
-		# Subject to AC: 148'200 - 145'000 = 3'200 ; exempt: 4'800
-		result = calculate_ac_contribution(8000, 145000)
-		self.assertAlmostEqual(result["ac_employee"], 35.2, places=2)  # 3200 * 0.011
-		self.assertAlmostEqual(result["ac_employer"], 35.2, places=2)
-		self.assertEqual(result["subject_to_ac"], 3200)
-		self.assertEqual(result["exempt_above_ceiling"], 4800)
-
-	def test_exactly_at_ceiling(self):
-		"""YTD + monthly exactly reaches the ceiling."""
-		# YTD = 140'200, monthly = 8'000 → new YTD = 148'200
-		result = calculate_ac_contribution(8000, 140200)
-		# Entire salary subject to AC (exactly at ceiling)
-		self.assertAlmostEqual(result["ac_employee"], 88.0, places=2)
-		self.assertEqual(result["subject_to_ac"], 8000)
-		self.assertEqual(result["exempt_above_ceiling"], 0)
-
 	def test_first_month_of_year(self):
-		"""First month: YTD is 0."""
-		result = calculate_ac_contribution(8000, 0)
+		result = calculate_ac_contribution(8000, 0, days_before=0, days_current=30)
 		self.assertAlmostEqual(result["ac_employee"], 88.0, places=2)
 		self.assertEqual(result["exempt_above_ceiling"], 0)
 
-	def test_zero_salary(self):
-		"""Zero salary month (unpaid leave)."""
-		result = calculate_ac_contribution(0, 80000)
-		self.assertEqual(result["ac_employee"], 0)
-		self.assertEqual(result["exempt_above_ceiling"], 0)
+	def test_a_month_without_salary_still_takes_up_the_backlog(self):
+		"""80'000 by June against 74'100: July adds 12'350 of room, 5'900 of it is taken up."""
+		result = calculate_ac_contribution(0, 80000, days_before=180, days_current=30)
+		self.assertEqual(result["subject_to_ac"], 5900)
+		self.assertAlmostEqual(result["ac_employee"], 64.90, places=2)
+
+	def test_the_days_are_required(self):
+		"""Without them no ceiling can be prorated: failing loudly beats the yearly shortcut."""
+		with self.assertRaises(TypeError):
+			calculate_ac_contribution(8000, 40000)
 
 
 class TestThirteenthMonth(unittest.TestCase):
@@ -243,7 +251,8 @@ class TestThirteenthMonth(unittest.TestCase):
 		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
 		jan = calculate_thirteenth_month(8000, employee, "2025-01-01", "2025-01-31", config)
 		jul = calculate_thirteenth_month(8000, employee, "2025-07-01", "2025-07-31", config)
-		self.assertAlmostEqual(jan, 666.67, places=2)  # 8000 / 12
+		# 8000 / 12 = 666.666... -> 666.65: a computed wage rounds to 5 centimes (guidelines 4.1.1)
+		self.assertAlmostEqual(jan, 666.65, places=2)
 		self.assertEqual(jan, jul)
 
 	def test_annual_mode_december_full_year(self):
@@ -265,8 +274,8 @@ class TestThirteenthMonth(unittest.TestCase):
 		config = {"thirteenth_month_mode": "Annual"}
 		employee = {"date_of_joining": "2025-04-01", "relieving_date": None}
 		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", config)
-		# April 1 to Dec 31 = 275 days out of 365
-		expected = round(8000 * 275 / 365, 2)
+		# April 1 to Dec 31 = 275 days out of 365, rounded to 5 centimes
+		expected = round_to_5_centimes(8000 * 275 / 365)
 		self.assertAlmostEqual(result, expected, places=2)
 
 	def test_annual_mode_prorata_departure(self):
@@ -274,8 +283,8 @@ class TestThirteenthMonth(unittest.TestCase):
 		config = {"thirteenth_month_mode": "Annual"}
 		employee = {"date_of_joining": "2020-01-01", "relieving_date": "2025-09-30"}
 		result = calculate_thirteenth_month(8000, employee, "2025-09-01", "2025-09-30", config)
-		# Jan 1 to Sep 30 = 273 days out of 365
-		expected = round(8000 * 273 / 365, 2)
+		# Jan 1 to Sep 30 = 273 days out of 365: 5'983.5616 -> 5'983.55
+		expected = round_to_5_centimes(8000 * 273 / 365)
 		self.assertAlmostEqual(result, expected, places=2)
 
 	def test_annual_mode_hired_december_15(self):
@@ -283,8 +292,8 @@ class TestThirteenthMonth(unittest.TestCase):
 		config = {"thirteenth_month_mode": "Annual"}
 		employee = {"date_of_joining": "2025-12-15", "relieving_date": None}
 		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", config)
-		# Dec 15 to Dec 31 = 17 days out of 365
-		expected = round(8000 * 17 / 365, 2)
+		# Dec 15 to Dec 31 = 17 days out of 365, rounded to 5 centimes
+		expected = round_to_5_centimes(8000 * 17 / 365)
 		self.assertAlmostEqual(result, expected, places=2)
 
 	def test_zero_base(self):
@@ -326,22 +335,24 @@ class TestThirteenthMonthIntegration(unittest.TestCase):
 		# Coordinated salary = min(23'400 - 26'460, min_insured) = min(-3060, 3780) → 3'780
 		self.assertEqual(result_with["coordinated_salary"], LPP_MINIMUM_INSURED_SALARY)
 
-	def test_ac_ceiling_reached_before_december_thirteenth(self):
-		"""AC ceiling already exceeded in November: December 13th month fully exempt.
+	def test_ac_in_december_with_the_13th_month(self):
+		"""14'000 a month, 28'000 in December with the 13th month.
 
-		Employee CHF 14'000/month. By November end: YTD = 14'000x11 = 154'000 > 148'200.
-		December gross = 14'000 (regular) + 14'000 (13th month) = 28'000.
-		No AC at all above the ceiling (solidarity abolished 2023-01-01).
+		Every month of the year insures 12'350, December included: 135.85. The old rule charged
+		14'000 a month from January, reached the yearly 148'200 in November and exempted
+		December altogether — same yearly total, months that were each wrong, and a leaver
+		before December overcharged.
 		"""
 		december_gross = 28000  # regular + 13th month
-		ytd_after_november = 14000 * 11  # 154'000
+		ytd_after_november = 14000 * 11  # 154'000, against 135'850 of room after 330 days
 
-		result = calculate_ac_contribution(december_gross, ytd_after_november)
+		result = calculate_ac_contribution(
+			december_gross, ytd_after_november, days_before=330, days_current=30
+		)
 
-		self.assertEqual(result["subject_to_ac"], 0)
-		self.assertEqual(result["ac_employee"], 0)
-		self.assertEqual(result["ac_employer"], 0)
-		self.assertEqual(result["exempt_above_ceiling"], 28000)
+		self.assertEqual(result["subject_to_ac"], 12350)
+		self.assertAlmostEqual(result["ac_employee"], 135.85, places=2)
+		self.assertEqual(result["exempt_above_ceiling"], 28000 - 12350)
 
 
 class TestComponentRates(unittest.TestCase):

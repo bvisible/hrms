@@ -1,5 +1,5 @@
 # //// Neoffice — added file (no upstream equivalent): validates the source-tax engine against the
-# //// official Swissdec Annex 1 oracle (cent-exact expected withholding).
+# //// official Swissdec Annex 1 oracle (exact expected withholding).
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -7,9 +7,19 @@
 
 The fixture (test_data/annexe1_oracle.json, extracted from "Annexe 1 —
 Exemples de calcul de l'impôt à la source", ELM 6.0, 20260306) carries the
-embedded Swissdec test tariff and 113 cases with cent-exact expected
-withholding per month. The test tariff is identical for every canton in the
-oracle: the canton only selects the monthly vs annual model.
+embedded Swissdec test tariff and 113 cases with the expected withholding
+per month. The test tariff is identical for every canton in the oracle: the
+canton only selects the monthly vs annual model.
+
+The workbooks compute EXACT amounts: across both of them, the only ROUND
+formulas are the hourly wages of M12/Y12 and one tax cell of the same sheets
+(B23, to 5 centimes). So the engine's exact amount is compared with the
+oracle at full precision, and the amount withheld is checked apart: that
+exact amount rounded to 5 centimes (Swissdec guidelines 4.1.1 — and what a
+certified engine withholds). An earlier version rounded BOTH sides to the
+centime, the oracle's exact value half up, and demanded equality: its "half up,
+to the centime" finding (Y14 month 3 expects exactly 354.375) was that choice
+of the harness, not a rule of the oracle.
 
 Scope: bracket lookup with day-based determinants (partial months),
 retroactive Old/New code corrections (monthly deltas; annual per-code
@@ -17,7 +27,7 @@ settlement at the global determinant), prospective code changes. Still
 out of scope: multi-employer/hourly/foreign-workday extrapolation,
 model or canton switch mid-year (annual), corrections settled the
 following year. Out-of-scope cases are SKIPPED with a reason; every
-playable case must match to the cent.
+playable case must match at full precision.
 """
 
 import json
@@ -34,13 +44,17 @@ from hrms.regional.switzerland.source_tax import (
 	calculate_monthly_correction,
 	calculate_source_tax_annual_settlement,
 	calculate_source_tax_monthly,
-	round_half_up,
+	round_to_5_centimes,
 )
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "test_data", "annexe1_oracle.json")
 TEST_PARENT = "ANNEXE1-ORACLE-TEST"
 YEAR = 2021
-TOLERANCE = 0.005  # cent-exact
+# Full-precision comparison. 0.006 and not 0: the sheets publish the taxable base rounded to
+# 2 dp while computing on the full chain (M31), which moves the exact tax by a fraction of a cent.
+TOLERANCE = 0.006
+# Half of a 5-centime step: the most one rounding of the withheld amount can move it.
+HALF_STEP = 0.025
 
 # Capability flags that put a case out of scope.
 SKIP_FLAGS = (("model_change", "annual<->monthly model switch mid-year"),)
@@ -63,9 +77,7 @@ class TestAnnexe1Oracle(unittest.TestCase):
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.db.sql(
-			"DELETE FROM `tabSwiss QST Tariff Bracket` WHERE parent_tariff = %s", TEST_PARENT
-		)
+		frappe.db.sql("DELETE FROM `tabSwiss QST Tariff Bracket` WHERE parent_tariff = %s", TEST_PARENT)
 		frappe.db.commit()
 
 	@classmethod
@@ -76,9 +88,7 @@ class TestAnnexe1Oracle(unittest.TestCase):
 		monthly workbook's, TI/VD the annual workbook's), valid from
 		YEAR-01-01 — coexists with any real ESTV vintage in the table.
 		"""
-		frappe.db.sql(
-			"DELETE FROM `tabSwiss QST Tariff Bracket` WHERE parent_tariff = %s", TEST_PARENT
-		)
+		frappe.db.sql("DELETE FROM `tabSwiss QST Tariff Bracket` WHERE parent_tariff = %s", TEST_PARENT)
 		cantons = set()
 		for case in cls.oracle["cases"]:
 			cantons.update(c for c in (case["cantons"] or []) if c)
@@ -89,14 +99,23 @@ class TestAnnexe1Oracle(unittest.TestCase):
 			tariffs = cls.oracle["tariffs"][_natural_model(canton)]
 			for code, brackets in tariffs.items():
 				for i, (threshold, rate) in enumerate(brackets):
-					step = (
-						brackets[i + 1][0] - threshold if i + 1 < len(brackets) else 50
-					)
+					step = brackets[i + 1][0] - threshold if i + 1 < len(brackets) else 50
 					rows.append(
 						(
-							TEST_PARENT, canton, code, "SAL", f"{YEAR}-01-01",
-							threshold, step, 0, 0, rate,
-							now, now, "Administrator", "Administrator",
+							TEST_PARENT,
+							canton,
+							code,
+							"SAL",
+							f"{YEAR}-01-01",
+							threshold,
+							step,
+							0,
+							0,
+							rate,
+							now,
+							now,
+							"Administrator",
+							"Administrator",
 						)
 					)
 
@@ -189,9 +208,7 @@ class TestAnnexe1Oracle(unittest.TestCase):
 				cum_gross += gross
 				cum_aper += aperiodic
 				cum_days += days
-				det_engine = round(
-					((cum_gross - cum_aper) / cum_days * 360 + cum_aper) * factor / 12, 2
-				)
+				det_engine = round(((cum_gross - cum_aper) / cum_days * 360 + cum_aper) * factor / 12, 2)
 				if det is not None and abs(float(det) - det_engine) > 0.02:
 					return "determinant beyond day/activity annualization (special settlement)"
 		return None
@@ -225,12 +242,14 @@ class TestAnnexe1Oracle(unittest.TestCase):
 				taxable=self._month_taxable(case, m),
 			)
 			tax = result["tax_amount"]
+			exact = result["tax_amount_full"]
 			# Corrections settled this month: re-settle each origin month
 			# under its new code at the origin month's own determinant.
-			for corr in corrections.get(m + 1, []):
+			settled = corrections.get(m + 1, [])
+			for corr in settled:
 				m0 = corr["origin_month"] - 1
 				g0, d0, a0, canton0, _ = self._month_inputs(case, m0)
-				delta = calculate_monthly_correction(
+				correction = calculate_monthly_correction(
 					g0,
 					canton0,
 					corr["old_code"],
@@ -238,26 +257,27 @@ class TestAnnexe1Oracle(unittest.TestCase):
 					date(YEAR, corr["origin_month"], 28),
 					qst_days=d0,
 					aperiodic=a0,
-				)["delta"]
-				tax = round(tax + delta, 2)
-			raw_expected = float(case["expected_tax"][m])
-			expected = round_half_up(raw_expected)
-			# The sheets publish the taxable base rounded to 2 dp while
-			# computing amounts on the full chain (M31): when our rounded
-			# cent differs but the full-precision amounts agree, the
-			# mismatch is an artefact of the published source.
-			full_ok = (
-				not corrections.get(m + 1)
-				and abs(float(result["tax_amount_full"]) - raw_expected) <= 0.006
-			)
-			if abs(tax - expected) > TOLERANCE and not full_ok:
-				self.fail(
-					f"{case['id']} month {m + 1}: gross {gross} days {days} "
-					f"aperiodic {aperiodic} code {code} -> got {tax} "
-					f"(full {result['tax_amount_full']}, rate {result['tax_rate']}, "
-					f"det {result['determinant']}), oracle expects {expected} "
-					f"(raw {raw_expected})"
 				)
+				tax = round_to_5_centimes(tax + correction["delta"])
+				exact += correction["delta_full"]
+			raw_expected = float(case["expected_tax"][m])
+			context = (
+				f"{case['id']} month {m + 1}: gross {gross} days {days} "
+				f"aperiodic {aperiodic} code {code} -> exact {exact}, withheld {tax} "
+				f"(rate {result['tax_rate']}, det {result['determinant']}), "
+				f"oracle expects {raw_expected}"
+			)
+			# The calculation, at full precision...
+			if abs(float(exact) - raw_expected) > TOLERANCE:
+				self.fail(context)
+			# ...and the amount withheld: that calculation to 5 centimes. A correction settles
+			# amounts that were themselves withheld rounded, each adding its own half step.
+			if settled:
+				self.assertLessEqual(
+					abs(tax - float(exact)), HALF_STEP * (1 + 2 * len(settled)) + 1e-9, msg=context
+				)
+			else:
+				self.assertEqual(tax, round_to_5_centimes(exact), msg=context)
 
 	def _play_annual(self, case):
 		"""Replay via the per-code settlement (Annex 1 Y40 mechanics).
@@ -291,23 +311,22 @@ class TestAnnexe1Oracle(unittest.TestCase):
 				total_aperiodic=tot_aperiodic,
 				total_days=tot_days,
 				per_code={
-					c: {"cumulative_gross": s["cum"], "ytd_tax": str(s["ytd"])}
-					for c, s in state.items()
+					c: {"cumulative_gross": s["cum"], "ytd_tax": str(s["ytd"])} for c, s in state.items()
 				},
 				activity_rate_own=own,
 				activity_rate_total=total,
 			)
-			expected = round_half_up(float(case["expected_tax"][m]))
-			self.assertAlmostEqual(
-				result["tax_amount"],
-				expected,
-				delta=TOLERANCE,
-				msg=(
-					f"{case['id']} month {month}: gross {gross} days {days} "
-					f"aperiodic {aperiodic} state {state} -> "
-					f"got {result['tax_amount']} (det {result['determinant']}, "
-					f"by_code {result['by_code']}), oracle expects {expected}"
-				),
+			expected = float(case["expected_tax"][m])
+			context = (
+				f"{case['id']} month {month}: gross {gross} days {days} "
+				f"aperiodic {aperiodic} state {state} -> "
+				f"exact {result['tax_amount_full']}, withheld {result['tax_amount']} "
+				f"(det {result['determinant']}, by_code {result['by_code']}), oracle expects {expected}"
+			)
+			# The calculation at full precision, the amount withheld to 5 centimes.
+			self.assertAlmostEqual(float(result["tax_amount_full"]), expected, delta=TOLERANCE, msg=context)
+			self.assertEqual(
+				result["tax_amount"], round_to_5_centimes(result["tax_amount_full"]), msg=context
 			)
 			for c, detail in result["by_code"].items():
 				# The oracle carries unrounded cumulatives: the withheld
@@ -335,11 +354,11 @@ class TestAnnexe1Oracle(unittest.TestCase):
 					self.results[case["id"]] = ("PASS", "")
 
 	def test_monthly_cases(self):
-		"""Every in-scope monthly-model case matches the oracle to the cent."""
+		"""Every in-scope monthly-model case matches the oracle at full precision."""
 		self._run_cases("monthly")
 
 	def test_annual_cases(self):
-		"""Every in-scope annual-model case matches the oracle to the cent."""
+		"""Every in-scope annual-model case matches the oracle at full precision."""
 		self._run_cases("annual")
 
 	def test_zz_coverage_report(self):

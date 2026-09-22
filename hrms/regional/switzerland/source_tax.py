@@ -109,19 +109,10 @@ def _archived_tariff_names(canton, tariff_type="SAL"):
 	)
 
 
-def round_half_up(value, digits=2):
-	"""Commercial rounding (half away from zero), as Swissdec calculates.
-
-	Python's round() is banker's rounding: round(1063.125, 2) -> 1063.12,
-	while the Annex 1 oracle expects 1063.13 (Y14 month 3: cumulative due
-	13125 x 8.1%). Decimal(str(...)) avoids binary-float artefacts.
-	"""
-	from decimal import ROUND_HALF_UP, Decimal
-
-	quantum = Decimal(1).scaleb(-digits)
-	if not isinstance(value, Decimal):
-		value = Decimal(str(value))
-	return float(value.quantize(quantum, rounding=ROUND_HALF_UP))
+# //// Neoffice — round_half_up moved to rounding.py; still imported from here by existing
+# //// callers. The tax WITHHELD rounds to 5 centimes like every payroll amount (Swissdec
+# //// guidelines 4.1.1, and what a certified engine does); cumulatives stay exact.
+from hrms.regional.switzerland.rounding import round_half_up, round_to_5_centimes
 
 
 def _activity_extrapolation(activity_rate_own, activity_rate_total):
@@ -195,7 +186,7 @@ def calculate_source_tax_monthly(
 	tax_full = Decimal(str(base)) * Decimal(str(rate))
 
 	return {
-		"tax_amount": round_half_up(tax_full),
+		"tax_amount": round_to_5_centimes(tax_full),
 		"tax_amount_full": tax_full,
 		"tax_rate": rate,
 		"determinant": determinant,
@@ -236,7 +227,8 @@ def calculate_monthly_correction(
 	return {
 		"old_tax": old["tax_amount"],
 		"new_tax": new["tax_amount"],
-		"delta": round_half_up(new["tax_amount"] - old["tax_amount"]),
+		"delta": round_to_5_centimes(new["tax_amount"] - old["tax_amount"]),
+		"delta_full": new["tax_amount_full"] - old["tax_amount_full"],
 	}
 
 
@@ -302,7 +294,7 @@ def calculate_source_tax_annual_settlement(
 		# Exact decimal arithmetic: rates (6 dp) x amounts (2 dp) are exact
 		# in decimal, so cumulative dues never accumulate binary-float
 		# noise (Y14: 17850 x 0.083 must stay 1481.55, not ...0000002).
-		# Only the monthly output is rounded; cumulatives stay full.
+		# Only the monthly output is rounded (to 5 centimes); cumulatives stay full.
 		from decimal import Decimal
 
 		due_full = Decimal(str(cum_gross)) * Decimal(str(rate))
@@ -311,13 +303,14 @@ def calculate_source_tax_annual_settlement(
 			"tax_rate": rate,
 			"cumulative_due": round_half_up(due_full),
 			"cumulative_due_full": due_full,
-			"tax_amount": round_half_up(delta_full),
+			"tax_amount": round_to_5_centimes(delta_full),
 			"tax_amount_full": delta_full,
 		}
 		total += delta_full
 
 	return {
-		"tax_amount": round_half_up(total),
+		"tax_amount": round_to_5_centimes(total),
+		"tax_amount_full": total,
 		"determinant": determinant,
 		"projected_annual": annualized,
 		"by_code": by_code,
@@ -638,9 +631,7 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 	model = get_calculation_model(canton)
 
 	# Partial entry/exit months extrapolate the rate-determining salary
-	qst_days = qst_days_in_period(
-		employee_doc, salary_slip_doc.start_date, salary_slip_doc.end_date
-	)
+	qst_days = qst_days_in_period(employee_doc, salary_slip_doc.start_date, salary_slip_doc.end_date)
 
 	# Retroactive tariff-code change (marriage/birth reported late): slips
 	# already settled from the effective date under another code.
@@ -667,7 +658,7 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 					corr["end_date"],
 					qst_days=corr["qst_days"],
 				)
-				total_delta = round_half_up(total_delta + delta["delta"])
+				total_delta = round_to_5_centimes(total_delta + delta["delta"])
 				details.append(
 					{
 						"slip": corr["slip"],
@@ -679,7 +670,7 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 						"delta": delta["delta"],
 					}
 				)
-			result["tax_amount"] = round_half_up(result["tax_amount"] + total_delta)
+			result["tax_amount"] = round_to_5_centimes(result["tax_amount"] + total_delta)
 			result["corrections"] = details
 	else:
 		# Annual model: need YTD data (gross, tax withheld, source-tax days)
@@ -697,20 +688,14 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 			corrected_slips = {corr["slip"] for corr in corrections}
 			per_code = {}
 			for slip in ytd_data.get("slips") or []:
-				code = (
-					tariff_code
-					if slip["slip"] in corrected_slips
-					else (slip["code"] or tariff_code)
-				)
+				code = tariff_code if slip["slip"] in corrected_slips else (slip["code"] or tariff_code)
 				account = per_code.setdefault(code, {"cumulative_gross": 0.0, "ytd_tax": 0.0})
 				account["cumulative_gross"] = round(account["cumulative_gross"] + slip["gross"], 2)
 				withheld_account = per_code.setdefault(
 					slip["code"] or tariff_code, {"cumulative_gross": 0.0, "ytd_tax": 0.0}
 				)
 				withheld_account["ytd_tax"] = round(withheld_account["ytd_tax"] + slip["tax"], 2)
-			current = per_code.setdefault(
-				tariff_code, {"cumulative_gross": 0.0, "ytd_tax": 0.0}
-			)
+			current = per_code.setdefault(tariff_code, {"cumulative_gross": 0.0, "ytd_tax": 0.0})
 			current["cumulative_gross"] = round(current["cumulative_gross"] + gross, 2)
 
 			total_aperiodic = flt(ytd_data.get("ytd_aperiodic") or 0) + flt(aperiodic)
@@ -732,9 +717,7 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 				for corr in corrections
 			]
 			result["tax_rate"] = (result["by_code"].get(tariff_code) or {}).get("tax_rate", 0)
-			result["cumulative_due"] = (result["by_code"].get(tariff_code) or {}).get(
-				"cumulative_due", 0
-			)
+			result["cumulative_due"] = (result["by_code"].get(tariff_code) or {}).get("cumulative_due", 0)
 		else:
 			result = calculate_source_tax_annual(
 				gross,
@@ -817,9 +800,7 @@ def get_qst_ytd_data(employee, company, start_date, employee_doc=None):
 
 	ytd_days = None
 	if employee_doc is not None:
-		ytd_days = sum(
-			qst_days_in_period(employee_doc, slip.start_date, slip.end_date) for slip in slips
-		)
+		ytd_days = sum(qst_days_in_period(employee_doc, slip.start_date, slip.end_date) for slip in slips)
 
 	return {
 		"ytd_gross": flt(sum(flt(slip.gross_pay) for slip in slips)),

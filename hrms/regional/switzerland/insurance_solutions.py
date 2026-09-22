@@ -40,7 +40,9 @@ payslip that is accepted and wrong.
 import re
 from decimal import ROUND_HALF_UP, Decimal
 
+from hrms.regional.switzerland.ceilings import month_insured
 from hrms.regional.switzerland.constants import LAA_INSURABLE_SALARY_CAP
+from hrms.regional.switzerland.rounding import round_to_5_centimes
 
 SEX_MALE = "male"
 SEX_FEMALE = "female"
@@ -48,16 +50,33 @@ SEX_FEMALE = "female"
 # Gender records are free text in Frappe and localised per instance: one site
 # stores "Masculin" / "Féminin", another "Male" / "Female". The ELM only knows
 # M and F, and the LAAC / IJM rates only male and female.
-_FEMALE_VALUES = frozenset({
-	"female", "féminin", "feminin", "femme", "f",
-	"weiblich", "frau", "w",
-	"femminile", "donna",
-})
-_MALE_VALUES = frozenset({
-	"male", "masculin", "homme", "m",
-	"männlich", "maennlich", "mann",
-	"maschile", "uomo",
-})
+_FEMALE_VALUES = frozenset(
+	{
+		"female",
+		"féminin",
+		"feminin",
+		"femme",
+		"f",
+		"weiblich",
+		"frau",
+		"w",
+		"femminile",
+		"donna",
+	}
+)
+_MALE_VALUES = frozenset(
+	{
+		"male",
+		"masculin",
+		"homme",
+		"m",
+		"männlich",
+		"maennlich",
+		"mann",
+		"maschile",
+		"uomo",
+	}
+)
 
 LAA_SCOPE_NOT_INSURED = "0"
 LAA_SCOPE_WITH_DEDUCTION = "1"
@@ -127,7 +146,7 @@ def laa_unit_rates(rows):
 	return units
 
 
-def compute_laa(base, code, unit_rates, flat_rates, annual_cap=None, months=1):
+def compute_laa(base, code, unit_rates, flat_rates, annual_cap=None, months=1, insured_salary=None):
 	"""LAA contributions for one employee over ``months`` months.
 
 	Args:
@@ -138,12 +157,19 @@ def compute_laa(base, code, unit_rates, flat_rates, annual_cap=None, months=1):
 			ARE the unit's rates when no unit is configured.
 		annual_cap: insured-salary ceiling per year (default: the legal one).
 		months: months covered — the cap is monthly, so a quarter gets three.
+		insured_salary: the insured wage when the caller already applied the ceiling, as
+			guidelines 7.12.3 want it — cumulated over the year (see ceilings.py). ``base``
+			and the monthly cap are then ignored.
 
 	Returns:
-		dict with insured_salary, aap_employer, aanp_employee, aanp_employer, unit, scope.
+		dict with insured_salary, aap_employer, aanp_employee, aanp_employer, unit, scope,
+		and rates — the {"aap", "aanp"} percentages applied, which the payslip prints.
 	"""
-	cap = Decimal(str(annual_cap or LAA_INSURABLE_SALARY_CAP)) / 12 * max(int(months or 1), 1)
-	insured = min(max(Decimal(str(base or 0)), Decimal(0)), cap)
+	if insured_salary is not None:
+		insured = Decimal(str(insured_salary))
+	else:
+		cap = Decimal(str(annual_cap or LAA_INSURABLE_SALARY_CAP)) / 12 * max(int(months or 1), 1)
+		insured = min(max(Decimal(str(base or 0)), Decimal(0)), cap)
 
 	parsed = parse_laa_code(code) if code else None
 	if parsed:
@@ -160,23 +186,32 @@ def compute_laa(base, code, unit_rates, flat_rates, annual_cap=None, months=1):
 	else:
 		unit, scope, rates = None, LAA_SCOPE_WITH_DEDUCTION, flat_rates
 
-	zero = {"insured_salary": 0.0, "aap_employer": 0.0, "aanp_employee": 0.0,
-	        "aanp_employer": 0.0, "unit": unit, "scope": scope}
+	zero = {
+		"insured_salary": 0.0,
+		"aap_employer": 0.0,
+		"aanp_employee": 0.0,
+		"aanp_employer": 0.0,
+		"unit": unit,
+		"scope": scope,
+		"rates": {"aap": float(rates.get("aap") or 0), "aanp": float(rates.get("aanp") or 0)},
+	}
 	if scope == LAA_SCOPE_NOT_INSURED:
 		return zero
 
 	aap = _pct(insured, rates.get("aap"))
 	aanp = _pct(insured, rates.get("aanp"))
-	result = dict(zero, insured_salary=_money(insured), aap_employer=_money(aap))
+	result = dict(zero, insured_salary=_money(insured), aap_employer=round_to_5_centimes(aap))
 	if scope == LAA_SCOPE_WITH_DEDUCTION:
-		result["aanp_employee"] = _money(aanp)
+		result["aanp_employee"] = round_to_5_centimes(aanp)
 	elif scope == LAA_SCOPE_EMPLOYER_PAYS_AANP:
-		result["aanp_employer"] = _money(aanp)
+		result["aanp_employer"] = round_to_5_centimes(aanp)
 	# LAA_SCOPE_OCCUPATIONAL_ONLY: no non-occupational cover, nothing to charge.
 	return result
 
 
-def compute_supplementary(base, codes, rows, sex, months=1):
+def compute_supplementary(
+	base, codes, rows, sex, months=1, ytd_base=None, days_before=None, days_current=None
+):
 	"""LAAC or IJM contributions for one employee — one insurance at a time.
 
 	Args:
@@ -187,10 +222,15 @@ def compute_supplementary(base, codes, rows, sex, months=1):
 			``wage_to`` means no upper bound.
 		sex: 'male', 'female' or None.
 		months: months covered — brackets scale with the period.
+		ytd_base, days_before, days_current: when given, each bracket is applied the way
+			guidelines 7.12.3 want it — to the base cumulated over the year against the
+			bracket prorated to the contribution days (see ceilings.py). ``months`` is then
+			ignored.
 
 	Returns:
 		None when the employee has no code (the caller keeps the flat rates),
-		otherwise a dict with employee, employer, insured_salary, codes, warnings.
+		otherwise a dict with employee, employer, insured_salary, codes, warnings, and
+		parts — one {code, insured, rate_employee, rate_employer} per bracket charged.
 	"""
 	parsed = [c for c in (parse_solution_code(c) for c in (codes or [])) if c]
 	if not parsed:
@@ -204,8 +244,10 @@ def compute_supplementary(base, codes, rows, sex, months=1):
 
 	months = max(int(months or 1), 1)
 	amount = Decimal(str(base or 0))
+	cumulated = days_current is not None
 	employee = employer = insured = Decimal(0)
 	warnings = []
+	parts = []
 
 	for code in parsed:
 		code_rows = by_code.get(code)
@@ -217,11 +259,25 @@ def compute_supplementary(base, codes, rows, sex, months=1):
 				f"configured codes: {', '.join(sorted(by_code)) or 'none'}."
 			)
 		for row in code_rows:
-			low = Decimal(str(row.get("wage_from") or 0)) / 12 * months
-			top = Decimal(str(row.get("wage_to") or 0))
-			high = top / 12 * months if top else None
-			ceiling = amount if high is None else min(amount, high)
-			part = max(ceiling - low, Decimal(0))
+			if cumulated:
+				part = Decimal(
+					str(
+						month_insured(
+							ytd_base,
+							days_before,
+							base,
+							days_current,
+							row.get("wage_from") or 0,
+							row.get("wage_to") or None,
+						)
+					)
+				)
+			else:
+				low = Decimal(str(row.get("wage_from") or 0)) / 12 * months
+				top = Decimal(str(row.get("wage_to") or 0))
+				high = top / 12 * months if top else None
+				ceiling = amount if high is None else min(amount, high)
+				part = max(ceiling - low, Decimal(0))
 			ee_rate, er_rate, ambiguous = _rates_for(row, sex)
 			if ambiguous:
 				warnings.append(
@@ -231,13 +287,24 @@ def compute_supplementary(base, codes, rows, sex, months=1):
 			employee += _pct(part, ee_rate)
 			employer += _pct(part, er_rate)
 			insured += part
+			if part:
+				parts.append(
+					{
+						"code": code,
+						"insured": _money(part),
+						"rate_employee": ee_rate,
+						"rate_employer": er_rate,
+					}
+				)
 
 	return {
-		"employee": _money(employee),
-		"employer": _money(employer),
+		# Contributions: 5 centimes (Swissdec guidelines 4.1.1); the salary: the centime.
+		"employee": round_to_5_centimes(employee),
+		"employer": round_to_5_centimes(employer),
 		"insured_salary": _money(insured),
 		"codes": parsed,
 		"warnings": warnings,
+		"parts": parts,
 	}
 
 
@@ -264,5 +331,5 @@ def _pct(amount, rate):
 
 
 def _money(value):
-	"""Commercial rounding to the centime, as Swissdec calculates (see source_tax.round_half_up)."""
+	"""A salary amount, to the centime. Contributions go through round_to_5_centimes."""
 	return float(Decimal(str(value)).quantize(_CENT, rounding=ROUND_HALF_UP))
