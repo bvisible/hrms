@@ -848,6 +848,9 @@ def get_swiss_salary_component_definitions():
 			"_is_employer": True,
 			"_linked_to": "LAA Non-Professional Employee",
 		},
+		# //// Neoffice — LAAC (UVGZ) was in the wage type catalogue but never had a salary
+		# //// Neoffice — component, config rate, aggregation or declaration: deductions existed
+		# //// Neoffice — with nothing declared for them (d0d329a43 "feat(payroll): declare LAAC (UVGZ), which was computed and declared nowhere")
 		# --- LAAC/UVGZ Complementary Accident Insurance ---
 		{
 			"name": "LAAC Employee",
