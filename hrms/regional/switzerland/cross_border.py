@@ -34,6 +34,7 @@ from hrms.regional.switzerland.constants import (
 	ITALIAN_NEW_FRONTALIER_CUTOFF,
 	ITALIAN_TARIFF_LETTERS,
 )
+from hrms.regional.switzerland.rounding import round_to_5_centimes
 
 _STANDARD = {
 	"treatment": "standard",
@@ -63,9 +64,7 @@ def classify_cross_border_worker(employee_doc, config=None):
 
 	country = (employee_doc.get("ch_residence_country") or "").upper()
 	canton = (
-		employee_doc.get("ch_qst_taxation_canton")
-		or employee_doc.get("ch_fiscal_canton")
-		or ""
+		employee_doc.get("ch_qst_taxation_canton") or employee_doc.get("ch_fiscal_canton") or ""
 	).upper()
 
 	if not country:
@@ -153,7 +152,8 @@ def get_german_capped_tax(gross, standard_qst_result=None, config=None):
 	in. When the standard lookup produced a positive amount, the result is
 	min(standard, cap). When no tariff data is available (standard = 0), the
 	cap itself is withheld as a conservative fallback — this preserves the
-	historical behaviour of this module and never exceeds the treaty maximum.
+	historical behaviour of this module. Like every amount withheld it rounds to
+	5 centimes, which can put it up to 2.5 centimes above the exact 4.5 %.
 
 	Args:
 		gross: Monthly gross salary in CHF.
@@ -168,7 +168,11 @@ def get_german_capped_tax(gross, standard_qst_result=None, config=None):
 		return {"tax_amount": 0, "tax_rate": 0, "cap_rate": 0, "model": "german_capped"}
 
 	cap_rate = flt(config.get("cb_german_flat_rate") if config else 0) / 100 or GERMAN_TAX_CAP_RATE
-	cap_amount = round(gross * cap_rate, 2)
+	# //// Neoffice — 5 centimes, commercially, like every amount withheld (Swissdec guidelines
+	# //// 4.1.1). It was Python's round(), banker's rounding: 8'125 x 4.5 % = 365.625 gave
+	# //// 365.62. The cantonal L/M/N/P tariffs carry the 4.5 % cap in their rates and a
+	# //// certified engine rounds their product the same way.
+	cap_amount = round_to_5_centimes(gross * cap_rate)
 
 	standard_amount = flt((standard_qst_result or {}).get("tax_amount"))
 	if standard_amount > 0:
@@ -223,7 +227,9 @@ def check_french_telework_threshold(employee, year, config=None):
 
 	from hrms.regional.switzerland.constants import FRENCH_TELEWORK_THRESHOLD
 
-	threshold = flt(config.get("cb_french_telework_threshold") if config else 0) / 100 or FRENCH_TELEWORK_THRESHOLD
+	threshold = (
+		flt(config.get("cb_french_telework_threshold") if config else 0) / 100 or FRENCH_TELEWORK_THRESHOLD
+	)
 
 	result = frappe.db.get_all(
 		"Cross-Border Telework Log",

@@ -79,9 +79,7 @@ class TestClassifyCrossBorderWorker(unittest.TestCase):
 
 	def test_german_with_attestation(self):
 		"""German residence + Gre-1 → german_capped treatment."""
-		emp = _make_employee(
-			ch_is_cross_border=1, ch_residence_country="DE", ch_de_gre1_attestation=1
-		)
+		emp = _make_employee(ch_is_cross_border=1, ch_residence_country="DE", ch_de_gre1_attestation=1)
 		result = classify_cross_border_worker(emp)
 		self.assertEqual(result["treatment"], "german_capped")
 		self.assertAlmostEqual(result["cap_rate"], 0.045)
@@ -97,9 +95,7 @@ class TestClassifyCrossBorderWorker(unittest.TestCase):
 
 	def test_german_custom_cap(self):
 		"""German cap rate from config overrides default."""
-		emp = _make_employee(
-			ch_is_cross_border=1, ch_residence_country="DE", ch_de_gre1_attestation=1
-		)
+		emp = _make_employee(ch_is_cross_border=1, ch_residence_country="DE", ch_de_gre1_attestation=1)
 		config = _make_config(cb_german_flat_rate=4.0)
 		result = classify_cross_border_worker(emp, config)
 		self.assertEqual(result["treatment"], "german_capped")
@@ -309,9 +305,15 @@ class TestGermanCappedTax(unittest.TestCase):
 		self.assertEqual(result["tax_amount"], 0)
 
 	def test_cap_rounding(self):
-		"""Cap rounding: 7777 × 4.5% = 349.965 → banker's 349.96."""
+		"""Cap rounding: 7777 x 4.5% = 349.965 -> 349.95, 5 centimes like every amount withheld
+		(Swissdec guidelines 4.1.1). It was pinned at banker's 349.96."""
 		result = get_german_capped_tax(7777, {"tax_amount": 0})
-		self.assertAlmostEqual(result["tax_amount"], 349.96, places=2)
+		self.assertEqual(result["tax_amount"], 349.95)
+
+	def test_cap_half_goes_up(self):
+		"""8'125 x 4.5% = 365.625 -> 365.65, where Python's round() gave 365.62."""
+		result = get_german_capped_tax(8125, {"tax_amount": 0})
+		self.assertEqual(result["tax_amount"], 365.65)
 
 	def test_high_salary_cap(self):
 		"""High salary: 25000 → cap 1125.00 beats standard 2000."""
@@ -352,9 +354,7 @@ class TestSuggestTariffLetter(unittest.TestCase):
 
 	def test_german_worker_with_attestation(self):
 		"""German worker with Gre-1 → L (mirror of A, capped tariffs)."""
-		emp = _make_employee(
-			ch_is_cross_border=1, ch_residence_country="DE", ch_de_gre1_attestation=1
-		)
+		emp = _make_employee(ch_is_cross_border=1, ch_residence_country="DE", ch_de_gre1_attestation=1)
 		self.assertEqual(suggest_tariff_letter(emp), "L")
 
 	def test_german_worker_without_attestation(self):
@@ -572,7 +572,8 @@ class TestGetCrossBorderTax(unittest.TestCase):
 
 			result = get_cross_border_tax(emp, slip, config, standard)
 			self.assertEqual(
-				result["tax_amount"], 0,
+				result["tax_amount"],
+				0,
 				f"Expected tax=0 for French exempt canton {canton}",
 			)
 
