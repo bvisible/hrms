@@ -16,6 +16,34 @@ AC_ANNUAL_CEILING = 148_200  # CHF — NO contribution at all above this
 # 2023-01-01 (SECO communication of 2022-10-13; leaflet 2.08). Salary above
 # the annual ceiling is simply exempt from AC.
 
+# AVS contribution liability by age and status (AVS 21 reform)
+# Source: OFAS leaflet 2.01 "Cotisations salariales à l'AVS, à l'AI et aux APG".
+# Liability starts on 1 January following the 17th birthday, so someone is only
+# liable from the year they turn 18 — apprentices under that age pay neither
+# AVS/AI/APG nor AC.
+AVS_CONTRIBUTION_START_AGE = 18
+# Someone working past the reference age pays AVS only on the part of the income
+# ABOVE this exemption, granted per employment relationship. Since the AVS 21
+# reform the employee may waive it, to earn a higher pension — hence the
+# "retired_waive_exemption" status below rather than an automatic rule.
+AVS_RETIREMENT_EXEMPTION_MONTHLY = 1_400
+AVS_RETIREMENT_EXEMPTION_ANNUAL = 16_800
+
+# Swissdec AVS status of an employee. The wording follows the standard so the
+# value can be exported as-is and compared with a certified payroll.
+AVS_STATUS_LIABLE = ""  # ordinary case: full liability, no special handling
+AVS_STATUS_YOUTH = "youth"  # under the contribution start age
+AVS_STATUS_EXEMPTED = "exempted"  # exempt for another reason
+AVS_STATUS_RETIRED = "retired"  # past reference age, exemption applied
+AVS_STATUS_RETIRED_WAIVED = "retired_waive_exemption"  # past reference age, exemption waived
+AVS_STATUSES = (
+	AVS_STATUS_LIABLE,
+	AVS_STATUS_YOUTH,
+	AVS_STATUS_EXEMPTED,
+	AVS_STATUS_RETIRED,
+	AVS_STATUS_RETIRED_WAIVED,
+)
+
 # LPP/BVG (Occupational Pension — 2nd Pillar)
 LPP_ENTRY_THRESHOLD = 22_680  # Minimum annual salary to be insured
 LPP_COORDINATION_DEDUCTION = 26_460  # Deducted from gross to get coordinated salary
@@ -222,6 +250,9 @@ ITALIAN_TARIFF_LETTERS = ["R", "S", "T", "U", "V"]
 YEARLY_CONSTANTS = {
 	2025: {
 		"avs_rate_employee": 0.053,
+		"avs_retirement_exemption_monthly": 1_400,
+		"avs_retirement_exemption_annual": 16_800,
+		"avs_contribution_start_age": 18,
 		"avs_rate_employer": 0.053,
 		"ac_rate_employee": 0.011,
 		"ac_rate_employer": 0.011,
@@ -235,6 +266,9 @@ YEARLY_CONSTANTS = {
 	},
 	2026: {
 		"avs_rate_employee": 0.053,
+		"avs_retirement_exemption_monthly": 1_400,
+		"avs_retirement_exemption_annual": 16_800,
+		"avs_contribution_start_age": 18,
 		"avs_rate_employer": 0.053,
 		"ac_rate_employee": 0.011,
 		"ac_rate_employer": 0.011,

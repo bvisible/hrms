@@ -120,6 +120,13 @@ after_install = [
 ]
 after_migrate = [
 	"hrms.setup.update_select_perm_after_install",
+	# //// Neoffice — make_custom_fields also runs here, not only at install. It was
+	# //// after_install only, so any Swiss custom field added later never reached an
+	# //// EXISTING instance: the code read it, the column did not exist, and the feature
+	# //// was silently inert until someone reinstalled. Found on 2026-09-22 adding
+	# //// Employee.ch_avs_status. create_custom_fields(update=True) is idempotent, so
+	# //// replaying it on every migrate is cheap and keeps the fleet aligned.
+	"hrms.regional.switzerland.setup.make_custom_fields",
 	"hrms.regional.switzerland.setup.ensure_swiss_workspace_hierarchy",
 ]
 

@@ -261,9 +261,26 @@ def get_custom_fields():
 				"translatable": 0,
 			},
 			{
+				"fieldname": "ch_avs_status",
+				"label": "AVS Status",
+				"fieldtype": "Select",
+				# Swissdec wording, so the value exports as-is and can be diffed
+				# against a certified payroll. Blank = ordinary full liability.
+				"options": "\nyouth\nexempted\nretired\nretired_waive_exemption",
+				"insert_after": "ch_fiscal_canton",
+				"translatable": 0,
+				"description": (
+					"Leave empty for the ordinary case. 'youth': below the contribution start age "
+					"(18) — no AVS and no AC. 'retired': past the reference age, AVS is due only "
+					"above CHF 1'400/month and no AC is due. 'retired_waive_exemption': past the "
+					"reference age but the employee waived the exemption (AVS 21) to earn a higher "
+					"pension — full AVS, still no AC."
+				),
+			},
+			{
 				"fieldname": "ch_column_break",
 				"fieldtype": "Column Break",
-				"insert_after": "ch_fiscal_canton",
+				"insert_after": "ch_avs_status",
 			},
 			{
 				"fieldname": "ch_avs_number",
@@ -707,8 +724,11 @@ def get_swiss_salary_component_definitions():
 			"amount_based_on_formula": 0,
 			"amount": 0,
 			"do_not_include_in_total": 0,
-			"ch_wage_type": "CH-WT-1181",
-			"ch_wage_type_code": "1181",
+			# //// Neoffice — was 1181, one of our own variants. The Swissdec guidelines use
+			# //// 1200 for the 13th month, so that is the code an ELM declaration must carry.
+			# //// Migrated on existing sites by patches/v15_0/switzerland_13th_month_code_1200.
+			"ch_wage_type": "CH-WT-1200",
+			"ch_wage_type_code": "1200",
 			"ch_subject_to_avs": 1,
 			"ch_subject_to_ac": 1,
 			"ch_subject_to_laa": 1,

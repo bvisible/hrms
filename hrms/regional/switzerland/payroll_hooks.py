@@ -4,10 +4,11 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, getdate
 
 # //// Neoffice — BASE_SALARY_WAGE_TYPE_CODES added: hourly, per-lesson and weekly pay are
 # //// base pay too, see _is_base_wage_type.
+from hrms.regional.switzerland.avs_exemption import apply_avs_status, resolve_avs_status
 from hrms.regional.switzerland.constants import BASE_SALARY_WAGE_TYPE_CODES, RATE_BASED_COMPONENTS
 from hrms.regional.switzerland.source_tax import calculate_source_tax, round_half_up
 from hrms.regional.switzerland.utils import (
@@ -57,6 +58,13 @@ def update_swiss_social_contributions(doc, method):
 	# if no flags are configured (backward compatibility).
 	bases = _get_insurance_base_totals(doc)
 
+	# //// Neoffice — narrow the AVS and AC bases for an employee who is under the
+	# //// contribution start age or past the reference age. Without this an apprentice
+	# //// under 18 was charged AVS and AC he does not owe, and a working pensioner paid
+	# //// AVS on his whole salary instead of only the part above CHF 1'400/month — and
+	# //// AC, which is not due past the reference age at all.
+	bases = _apply_avs_status_to_bases(doc, bases)
+
 	# Update rate-based components using the appropriate base for each
 	updated = _update_rate_based_components(doc, config, bases) or updated
 
@@ -84,6 +92,33 @@ def update_swiss_social_contributions(doc, method):
 
 	if updated:
 		_recalculate_totals(doc)
+
+
+def _apply_avs_status_to_bases(doc, bases):
+	"""Adjust the AVS and AC bases for the employee's declared AVS status.
+
+	The status is read from the employee; the age is only used to catch someone
+	below the contribution start age when nothing was declared. A missing date of
+	birth means the age is UNKNOWN, never zero — otherwise every employee without
+	a birth date would be treated as a minor and exempted from AVS and AC.
+	"""
+	employee = (
+		frappe.db.get_value(
+			"Employee", doc.employee, ["ch_avs_status", "date_of_birth"], as_dict=True
+		)
+		or {}
+	)
+	age = get_employee_age(doc.employee, doc.end_date) if employee.get("date_of_birth") else None
+	year = getdate(doc.end_date).year if doc.end_date else None
+	status = resolve_avs_status(employee.get("ch_avs_status"), age, year=year)
+	if not status:
+		return bases
+
+	adjusted = apply_avs_status(bases["avs_base"], bases["ac_base"], status, months=1, year=year)
+	bases = dict(bases)
+	bases["avs_base"] = adjusted["avs_base"]
+	bases["ac_base"] = adjusted["ac_base"]
+	return bases
 
 
 def _get_insurance_base_totals(doc):
@@ -306,8 +341,6 @@ def _update_ac_components(doc, config, ac_base):
 	# //// AC still pushed the employee towards the ceiling and cut the AC base of the month that
 	# //// crosses it. See get_ytd_ac_base_for_employee for the worked example.
 	ytd_ac_base = get_ytd_ac_base_for_employee(doc.employee, doc.company, doc.start_date, doc.end_date)
-
-	from frappe.utils import getdate
 
 	ac_result = calculate_ac_contribution(
 		# //// Neoffice — second argument was ytd_gross; it is the AC-subject cumulative that the
