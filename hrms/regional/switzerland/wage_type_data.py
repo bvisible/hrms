@@ -322,6 +322,16 @@ def get_swiss_wage_types():
 			stat="",
 		),
 		# =====================================================================
+		# //// Neoffice — salary certificate positions below follow the ESTV
+		# //// "Wegleitung zum Ausfüllen des Lohnausweises" (2026 edition):
+		# ////   Ziffer 1 — "das ordentliche Salär sowie die Taggelder aus Versicherungen,
+		# ////              die durch den Arbeitgeber ausbezahlt werden (Kranken-, Unfall-
+		# ////              und Invalidenversicherungen)" and "sämtliche Zulagen (Geburts-,
+		# ////              Kinder- oder andere Familienzulagen ...)".
+		# ////   Ziffer 7 — "Leistungen der Arbeitslosenversicherung" and "Leistungen der EO
+		# ////              ... Dazu gehören auch Taggelder bei Mutterschaft".
+		# //// So APG (2000), maternity (2040) and unemployment (2070) stay at 7 — a
+		# //// certified competitor puts them at 1, which the guide contradicts.
 		# 2000-2075: Third-party benefits (APG, military, insurance, maternity)
 		# =====================================================================
 		_wt(
@@ -340,12 +350,12 @@ def get_swiss_wage_types():
 		_wt(2015, "Parifonds", "Earning", "7", _AVS_AC_LAA_IJM, stat="PRT"),
 		_wt(2020, "Indemnité assurance militaire", "Earning", "7", _IMP_ONLY, stat="PRT"),
 		_wt(2021, "Rente assurance militaire", "Earning", "7", _IMP_ONLY, stat="PRT"),
-		_wt(2025, "Indemnité AI", "Earning", "7", _AVS_AC, stat="PRT"),
+		_wt(2025, "Indemnité AI", "Earning", "1", _AVS_AC, stat="PRT"),
 		_wt(2026, "Rente AI", "Earning", "7", _IMP_ONLY, stat="PRT"),
-		_wt(2030, "Indemnité accident", "Earning", "7", _IMP_ONLY, stat="PRT"),
+		_wt(2030, "Indemnité accident", "Earning", "1", _IMP_ONLY, stat="PRT"),
 		_wt(2031, "Rente accident", "Earning", "7", _IMP_ONLY, stat="PRT"),
 		_wt(
-			2035, "Indemnité maladie", "Earning", "7", _IMP_ONLY, stat="PRT", common=1,
+			2035, "Indemnité maladie", "Earning", "1", _IMP_ONLY, stat="PRT", common=1,
 			abbr="IIJM", desc_fr="Indemnité journalière maladie IJM", payment_days=0,
 		),
 		_wt(
@@ -362,23 +372,23 @@ def get_swiss_wage_types():
 		# 3000-3034: Family allowances (not subject to social charges)
 		# =====================================================================
 		_wt(
-			3000, "Allocation pour enfant", "Earning", "7", _IMP_ONLY, stat="CMO", common=1,
+			3000, "Allocation pour enfant", "Earning", "1", _IMP_ONLY, stat="CMO", common=1,
 			abbr="CHALL", desc_fr="Allocation pour enfant", payment_days=0,
 		),
 		_wt(
 			3010,
 			"Allocation de formation professionnelle",
 			"Earning",
-			"7",
+			"1",
 			_IMP_ONLY,
 			stat="CMO",
 			common=1,
 		),
-		_wt(3030, "Allocation familiale", "Earning", "7", _IMP_ONLY, stat="CMO"),
-		_wt(3031, "Allocation de ménage", "Earning", "7", _IMP_ONLY, stat="CMO"),
-		_wt(3032, "Allocation de naissance", "Earning", "3", _IMP_ONLY, stat="CMO", common=1),
-		_wt(3033, "Allocation de mariage", "Earning", "3", _IMP_ONLY, stat="CMO"),
-		_wt(3034, "Allocation pour charge d'assistance", "Earning", "7", _IMP_ONLY, stat="CMO"),
+		_wt(3030, "Allocation familiale", "Earning", "1", _IMP_ONLY, stat="CMO"),
+		_wt(3031, "Allocation de ménage", "Earning", "1", _IMP_ONLY, stat="CMO"),
+		_wt(3032, "Allocation de naissance", "Earning", "1", _IMP_ONLY, stat="CMO", common=1),
+		_wt(3033, "Allocation de mariage", "Earning", "1", _IMP_ONLY, stat="CMO"),
+		_wt(3034, "Allocation pour charge d'assistance", "Earning", "1", _IMP_ONLY, stat="CMO"),
 		# =====================================================================
 		# 5010-5027: AVS/AC/Family contributions (social deductions)
 		# =====================================================================

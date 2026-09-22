@@ -68,3 +68,7 @@ hrms.patches.v15_0.translate_swiss_custom_field_labels
 # //// The Swissdec guidelines use 1200 ("1200 / 13. Monatslohn" in the ELM test examples,
 # //// whose Lohnartenstamm is authoritative), so a declaration carried an unknown code.
 hrms.patches.v15_0.switzerland_13th_month_code_1200
+# //// Neoffice — 2026-09-22: salary certificate positions corrected from the 2026 ESTV
+# //// Wegleitung (daily allowances paid by the employer and family allowances belong to
+# //// Ziffer 1). Components are created once and never updated, so existing sites need this.
+hrms.patches.v15_0.switzerland_sync_component_catalogue
