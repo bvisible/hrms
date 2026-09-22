@@ -112,6 +112,12 @@ RATE_BASED_COMPONENTS = {
 	"LAA Non-Professional Employee": ("laa_nonprofessional_rate", False, "laa_base"),
 	"IJM/KTG Employee": ("ijm_rate_employee", False, "ijm_base"),
 	"IJM/KTG Employer": ("ijm_rate_employer", True, "ijm_base"),
+	# //// Neoffice — LAAC (UVGZ) was in the wage type catalogue (5046-5048) but
+	# //// implemented nowhere: no rate, no component, no aggregation, no declaration.
+	# //// A company that deducts it was silently declaring nothing for it. It insures
+	# //// the same salary as the LAA, hence laa_base.
+	"LAAC Employee": ("laac_rate_employee", False, "laa_base"),
+	"LAAC Employer": ("laac_rate_employer", True, "laa_base"),
 	"Family Allowances Employer": ("family_allowance_rate", True, "avs_base"),
 }
 

@@ -40,6 +40,11 @@
   "ijm_rate_employer",
   "column_break_ijm",
   "ijm_employer_account",
+  "section_laac",
+  "laac_rate_employee",
+  "laac_rate_employer",
+  "column_break_laac",
+  "laac_employer_account",
   "section_family",
   "family_allowance_rate",
   "column_break_family",
@@ -510,10 +515,40 @@
    "fieldtype": "Link",
    "label": "Payment Account",
    "options": "Account"
+  },
+  {
+   "fieldname": "section_laac",
+   "fieldtype": "Section Break",
+   "label": "LAAC/UVGZ (Complementary Accident Insurance)"
+  },
+  {
+   "default": "0",
+   "description": "Complementary accident insurance, employee share. Insurer-specific — see the policy. Leave empty if the company has no LAAC.",
+   "fieldname": "laac_rate_employee",
+   "fieldtype": "Percent",
+   "label": "LAAC Employee Rate (%)"
+  },
+  {
+   "default": "0",
+   "description": "Complementary accident insurance, employer share.",
+   "fieldname": "laac_rate_employer",
+   "fieldtype": "Percent",
+   "label": "LAAC Employer Rate (%)"
+  },
+  {
+   "fieldname": "column_break_laac",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "laac_employer_account",
+   "fieldtype": "Link",
+   "label": "LAAC Employer GL Account",
+   "options": "Account"
   }
  ],
  "links": [],
- "modified": "2026-08-21 14:30:00.000000",
+ "modified": "2026-09-22 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "Swiss Social Insurance Config",

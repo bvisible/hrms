@@ -183,6 +183,10 @@ def _build_person_element(staff_el, employee_doc, salary_data, config, instituti
 		laa_complete = completeness_flags.get("laa_complete", True)
 		_build_laa_salary(person_el, salary_data, employee_doc, config, is_complete=laa_complete)
 
+	if institutions.get("include_laac"):
+		laac_complete = completeness_flags.get("laac_complete", True)
+		_build_laac_salary(person_el, salary_data, employee_doc, config, is_complete=laac_complete)
+
 	if institutions.get("include_ijm"):
 		ijm_complete = completeness_flags.get("ijm_complete", True)
 		_build_ijm_salary(person_el, salary_data, employee_doc, config, is_complete=ijm_complete)
@@ -348,6 +352,35 @@ def _build_ijm_salary(person_el, salary_data, employee_doc, config, is_complete=
 	return ijm_el
 
 
+def _build_laac_salary(person_el, salary_data, employee_doc, config, is_complete=True):
+	"""Build <UVGZ-LAAC-Salaries> — complementary accident insurance.
+
+	LAAC (UVGZ) is a Swissdec domain of its own, and it was missing entirely: the
+	wage type catalogue carried the codes (5046-5048) but nothing computed,
+	aggregated or declared it. A company deducting LAAC from its employees was
+	therefore declaring nothing for it — silently, since an incomplete declaration
+	is accepted.
+
+	Found on 2026-09-22 by confronting our declaration with a certified payroll:
+	every amount matched to the centime, and this whole block was absent.
+
+	It insures the same salary as the LAA, so the income is the LAA base.
+	"""
+	laac_ee = flt(salary_data.get("laac_employee"))
+	laac_er = flt(salary_data.get("laac_employer"))
+	if not laac_ee and not laac_er:
+		# Nothing was deducted: the company has no LAAC. Emitting an empty block
+		# would declare a cover that does not exist.
+		return None
+
+	laac_el = SubElement(person_el, "UVGZ-LAAC-Salaries")
+	laac_el.set("complete", "true" if is_complete else "false")
+	_add_amount_element(laac_el, "UVGZ-LAAC-Income", flt(salary_data.get("total_gross")))
+	_add_amount_element(laac_el, "UVGZ-LAAC-EE", laac_ee)
+	_add_amount_element(laac_el, "UVGZ-LAAC-ER", laac_er)
+	return laac_el
+
+
 def _build_qst_salary(person_el, salary_data, employee_doc, config):
 	"""Build <QST-Salaries> element for source tax declaration."""
 	qst_el = SubElement(person_el, "QST-Salaries")
@@ -454,6 +487,10 @@ def _default_institutions():
 		"include_ac": True,
 		"include_lpp": True,
 		"include_laa": True,
+		# //// Neoffice — LAAC (UVGZ) is its own Swissdec domain and was declared
+		# //// nowhere. On by default: the block only appears when something was
+		# //// actually deducted, so a company without LAAC declares nothing extra.
+		"include_laac": True,
 		"include_ijm": True,
 		"include_qst": True,
 		"include_fak": True,

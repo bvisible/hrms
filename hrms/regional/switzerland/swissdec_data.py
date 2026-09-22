@@ -137,6 +137,9 @@ def get_annual_salary_summary(employee, company, year_start, year_end, config=No
 	laa_nprof = flt(component_totals.get("LAA Non-Professional Employee", 0))
 	ijm_ee = flt(component_totals.get("IJM/KTG Employee", 0))
 	ijm_er = flt(component_totals.get("IJM/KTG Employer", 0))
+	# //// Neoffice — LAAC (UVGZ) was deducted on the slip but declared nowhere.
+	laac_ee = flt(component_totals.get("LAAC Employee", 0))
+	laac_er = flt(component_totals.get("LAAC Employer", 0))
 	fak_er = flt(component_totals.get("Family Allowances Employer", 0))
 
 	return {
@@ -163,6 +166,8 @@ def get_annual_salary_summary(employee, company, year_start, year_end, config=No
 		"laa_nonprofessional": round(laa_nprof, 2),
 		"ijm_employee": round(ijm_ee, 2),
 		"ijm_employer": round(ijm_er, 2),
+		"laac_employee": round(laac_ee, 2),
+		"laac_employer": round(laac_er, 2),
 		"fak_employer": round(fak_er, 2),
 		# Period
 		"period_start": slips[0].start_date,
@@ -263,6 +268,9 @@ def get_monthly_salary_summary(employee, company, year, month, config=None):
 	laa_nprof = flt(component_totals.get("LAA Non-Professional Employee", 0))
 	ijm_ee = flt(component_totals.get("IJM/KTG Employee", 0))
 	ijm_er = flt(component_totals.get("IJM/KTG Employer", 0))
+	# //// Neoffice — LAAC (UVGZ) was deducted on the slip but declared nowhere.
+	laac_ee = flt(component_totals.get("LAAC Employee", 0))
+	laac_er = flt(component_totals.get("LAAC Employer", 0))
 	fak_er = flt(component_totals.get("Family Allowances Employer", 0))
 
 	emp_doc = frappe.get_cached_doc("Employee", employee)
@@ -292,6 +300,8 @@ def get_monthly_salary_summary(employee, company, year, month, config=None):
 		"laa_nonprofessional": round(laa_nprof, 2),
 		"ijm_employee": round(ijm_ee, 2),
 		"ijm_employer": round(ijm_er, 2),
+		"laac_employee": round(laac_ee, 2),
+		"laac_employer": round(laac_er, 2),
 		"fak_employer": round(fak_er, 2),
 		# Period
 		"period_start": month_start,
@@ -546,6 +556,8 @@ def _empty_salary_summary():
 		"laa_professional": 0,
 		"laa_nonprofessional": 0,
 		"ijm_employee": 0,
+		"laac_employee": 0,
+		"laac_employer": 0,
 		"ijm_employer": 0,
 		"fak_employer": 0,
 		"period_start": None,

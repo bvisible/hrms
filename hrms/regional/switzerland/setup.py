@@ -730,6 +730,31 @@ def get_swiss_salary_component_definitions():
 			"_is_employer": True,
 			"_linked_to": "IJM/KTG Employee",
 		},
+		# --- LAAC/UVGZ Complementary Accident Insurance ---
+		{
+			"name": "LAAC Employee",
+			"salary_component": "LAAC Employee",
+			"salary_component_abbr": "LAAC_EE",
+			"type": "Deduction",
+			"description": "LAAC/UVGZ Complementary Accident Insurance - Employee share (rate set by insurer)",
+			"depends_on_payment_days": 1,
+			"amount_based_on_formula": 0,
+			"amount": 0,
+			"do_not_include_in_total": 0,
+		},
+		{
+			"name": "LAAC Employer",
+			"salary_component": "LAAC Employer",
+			"salary_component_abbr": "LAAC_ER",
+			"type": "Deduction",
+			"description": "LAAC/UVGZ Complementary Accident Insurance - Employer share (rate set by insurer)",
+			"depends_on_payment_days": 1,
+			"amount_based_on_formula": 0,
+			"amount": 0,
+			"do_not_include_in_total": 1,
+			"_is_employer": True,
+			"_linked_to": "LAAC Employee",
+		},
 		# --- Family Allowances (Employer only) ---
 		{
 			"name": "Family Allowances Employer",

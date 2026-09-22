@@ -688,6 +688,38 @@ class TestXmlGeneration(unittest.TestCase):
 		er = fak.find("sd:FAK-CAF-ER", self.NS)
 		self.assertEqual(er.text, "1056.00")
 
+	def test_laac_salary_element_when_deducted(self):
+		"""LAAC (UVGZ) is a Swissdec domain of its own and must be declared."""
+		salary = _make_salary_data()
+		salary["laac_employee"] = 144.00
+		salary["laac_employer"] = 144.00
+		xml_bytes = generate_salary_declaration(
+			company_data=_make_company(),
+			employees_data=[{"employee_doc": _make_employee(), "salary_data": salary}],
+			config=_make_config(),
+			fiscal_year="2025",
+		)
+		root = fromstring(xml_bytes)
+		laac = root.find("sd:Company/sd:Staff/sd:Person/sd:UVGZ-LAAC-Salaries", self.NS)
+		self.assertIsNotNone(laac, "the LAAC block must be declared when LAAC was deducted")
+		self.assertEqual(laac.find("sd:UVGZ-LAAC-EE", self.NS).text, "144.00")
+		self.assertEqual(laac.find("sd:UVGZ-LAAC-ER", self.NS).text, "144.00")
+
+	def test_no_laac_block_when_nothing_deducted(self):
+		"""A company without LAAC must not declare an empty cover."""
+		xml_bytes = generate_salary_declaration(
+			company_data=_make_company(),
+			employees_data=[
+				{"employee_doc": _make_employee(), "salary_data": _make_salary_data()},
+			],
+			config=_make_config(),
+			fiscal_year="2025",
+		)
+		root = fromstring(xml_bytes)
+		self.assertIsNone(
+			root.find("sd:Company/sd:Staff/sd:Person/sd:UVGZ-LAAC-Salaries", self.NS)
+		)
+
 	def test_cross_border_data_in_qst(self):
 		"""Cross-border data included in QST element."""
 		emp = _make_employee(
