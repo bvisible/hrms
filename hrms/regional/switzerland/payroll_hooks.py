@@ -4,6 +4,7 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
+from frappe import _
 from frappe.utils import cint, flt, getdate
 
 # //// Neoffice — BASE_SALARY_WAGE_TYPE_CODES added: hourly, per-lesson and weekly pay are
@@ -287,49 +288,197 @@ def _is_base_wage_type(component_name):
 
 
 def _update_rate_based_components(doc, config, bases):
-	"""Update components that are calculated as a simple percentage of their insurance base.
+	"""Update components that are calculated as a percentage of their insurance base.
 
 	Also adds missing component rows that may have been removed by remove_if_zero_valued
 	during salary slip generation.
+
+	//// Neoffice — LAA, LAAC and IJM no longer reduce to base x flat rate. Their
+	//// amounts come from _insurance_solution_amounts(): the LAA insured salary is
+	//// capped, the LAA code picks the business unit's rates and decides who pays the
+	//// non-occupational premium, and the LAAC / IJM codes pick rates by category,
+	//// wage bracket and sex. Every other component keeps base x rate.
 	"""
 	updated = False
-
-	# Track which components are already in the slip
+	solution_amounts = _insurance_solution_amounts(doc, config, bases)
 	existing_components = {row.salary_component for row in doc.get("deductions")}
 
-	for row in doc.get("deductions"):
-		if row.salary_component in RATE_BASED_COMPONENTS:
-			rate_field, _is_employer, base_type = RATE_BASED_COMPONENTS[row.salary_component]
-			rate = flt(config.get(rate_field))
-			base_amount = flt(bases.get(base_type, bases["gross_total"]))
-			if rate:
-				# The base already reflects the prorated amounts paid, so the
-				# result is final — prorating it again would double-count.
-				amount = round_half_up(base_amount * rate / 100, row.precision("amount") or 2)
-				if amount != flt(row.amount, row.precision("amount")):
-					row.default_amount = amount
-					row.amount = amount
-					updated = True
+	def expected_amount(comp_name, precision):
+		if comp_name in solution_amounts:
+			return solution_amounts[comp_name]
+		rate_field, _is_employer, base_type = RATE_BASED_COMPONENTS[comp_name]
+		rate = flt(config.get(rate_field))
+		if not rate:
+			return None
+		# The base already reflects the prorated amounts paid, so the result is
+		# final — prorating it again would double-count.
+		base_amount = flt(bases.get(base_type, bases["gross_total"]))
+		return round_half_up(base_amount * rate / 100, precision)
 
-	# Add missing rate-based components (removed by remove_if_zero_valued)
-	for comp_name, (rate_field, _is_employer, base_type) in RATE_BASED_COMPONENTS.items():
+	managed = set(RATE_BASED_COMPONENTS) | set(solution_amounts)
+
+	for row in doc.get("deductions"):
+		if row.salary_component not in managed:
+			continue
+		amount = expected_amount(row.salary_component, row.precision("amount") or 2)
+		if amount is None:
+			continue
+		if amount != flt(row.amount, row.precision("amount")):
+			row.default_amount = amount
+			row.amount = amount
+			updated = True
+
+	# Add missing components (removed by remove_if_zero_valued, or never in the structure)
+	for comp_name in sorted(managed):
 		if comp_name in existing_components:
 			continue
-		rate = flt(config.get(rate_field))
-		base_amount = flt(bases.get(base_type, bases["gross_total"]))
-		if rate and base_amount:
-			# //// Neoffice — prorate=False, and round_half_up like the loop above. The base is
-			# //// built from the amounts ACTUALLY PAID, so it already carries the proration of a
-			# //// partial month; _add_deduction_row used to apply payment_days/total_working_days
-			# //// on top of it. An employee paid half the month had this contribution deducted at
-			# //// a quarter — and only on the components the structure did not carry, so the same
-			# //// slip mixed correct and quartered lines.
-			amount = round_half_up(base_amount * rate / 100, 2)
-			if amount:
-				_add_deduction_row(doc, comp_name, amount, prorate=False)
-				updated = True
+		# //// Neoffice — prorate=False, and round_half_up like the loop above. The base is
+		# //// built from the amounts ACTUALLY PAID, so it already carries the proration of a
+		# //// partial month; _add_deduction_row used to apply payment_days/total_working_days
+		# //// on top of it. An employee paid half the month had this contribution deducted at
+		# //// a quarter — and only on the components the structure did not carry, so the same
+		# //// slip mixed correct and quartered lines.
+		amount = expected_amount(comp_name, 2)
+		if amount:
+			_add_deduction_row(doc, comp_name, amount, prorate=False)
+			updated = True
 
 	return updated
+
+
+def _insurance_solution_amounts(doc, config, bases):
+	"""LAA, LAAC and IJM amounts for this slip, per the Swissdec insurance solutions.
+
+	LAA always goes through here, because its insured salary is capped at CHF 12'350
+	a month whatever the configuration: the monthly slip never applied that cap, so
+	above it the non-occupational premium was deducted on the whole salary. LAAC and
+	IJM go through here only when the employee carries codes; otherwise they keep
+	the flat rates. A code the configuration does not define stops the slip — a
+	guessed rate would produce a payslip that is accepted and wrong.
+	"""
+	from hrms.regional.switzerland.insurance_solutions import (
+		UnknownSolutionCode,
+		compute_laa,
+		compute_supplementary,
+		laa_unit_rates,
+		normalize_sex,
+	)
+
+	profile = _employee_insurance_profile(doc.employee)
+	rows = _insurance_solution_rows(config)
+	amounts = {}
+
+	try:
+		laa = compute_laa(
+			flt(bases.get("laa_base", bases["gross_total"])),
+			profile.get("ch_laa_code"),
+			laa_unit_rates([r for r in rows if r.get("insurance") == "LAA"]),
+			{
+				"aap": flt(config.get("laa_professional_rate")),
+				"aanp": flt(config.get("laa_nonprofessional_rate")),
+			},
+			annual_cap=flt(config.get("laa_insurable_salary_cap")) or None,
+		)
+		laa_rows = [r for r in rows if r.get("insurance") == "LAA"]
+		laa_configured = bool(
+			laa_rows
+			or profile.get("ch_laa_code")
+			or flt(config.get("laa_professional_rate"))
+			or flt(config.get("laa_nonprofessional_rate"))
+		)
+		# A company with no LAA rate at all keeps whatever its salary structure
+		# computes: taking over the components would zero them.
+		if laa_configured:
+			amounts["LAA Professional Employer"] = laa["aap_employer"]
+			amounts["LAA Non-Professional Employee"] = laa["aanp_employee"]
+			if laa["aanp_employer"]:
+				amounts["LAA Non-Professional Employer"] = laa["aanp_employer"]
+
+		sex = normalize_sex(profile.get("gender"))
+		for insurance, base_key, code_fields, components in (
+			("LAAC", None, ("ch_laac_code", "ch_laac_code_2"), ("LAAC Employee", "LAAC Employer")),
+			("IJM", "ijm_base", ("ch_ijm_code", "ch_ijm_code_2"), ("IJM/KTG Employee", "IJM/KTG Employer")),
+		):
+			# With codes, each bracket caps itself — and a LAAC "salary surplus" solution
+			# exists precisely to cover what lies ABOVE the LAA ceiling, so it must see
+			# the uncapped LAA-subject salary. (The flat LAAC below keeps the capped one.)
+			base_key = base_key or "laa_base"
+			base = flt(bases.get(base_key, bases["gross_total"]))
+			result = compute_supplementary(
+				base,
+				[profile.get(f) for f in code_fields],
+				[r for r in rows if r.get("insurance") == insurance],
+				sex,
+			)
+			if result is None:
+				if insurance == "LAAC":
+					# Flat LAAC insures the LAA salary, so it carries the same cap.
+					for comp, field in zip(components, ("laac_rate_employee", "laac_rate_employer")):
+						rate = flt(config.get(field))
+						if rate:
+							amounts[comp] = round_half_up(laa["insured_salary"] * rate / 100, 2)
+				continue
+			amounts[components[0]] = result["employee"]
+			amounts[components[1]] = result["employer"]
+			for warning in result["warnings"]:
+				frappe.msgprint(
+					_("{0}: {1}").format(insurance, warning), indicator="orange", alert=True
+				)
+	except UnknownSolutionCode as e:
+		frappe.throw(
+			_("Employee {0}: {1}").format(doc.employee, str(e)),
+			title=_("Insurance code not configured"),
+		)
+	except ValueError as e:
+		frappe.throw(
+			_("Employee {0}: {1}").format(doc.employee, str(e)),
+			title=_("Invalid insurance code"),
+		)
+
+	return amounts
+
+
+_INSURANCE_PROFILE_FIELDS = (
+	"gender",
+	"ch_laa_code",
+	"ch_laac_code",
+	"ch_laac_code_2",
+	"ch_ijm_code",
+	"ch_ijm_code_2",
+)
+
+
+def _employee_insurance_profile(employee):
+	"""The employee's sex and insurance codes — only the fields this site already has."""
+	meta = frappe.get_meta("Employee")
+	fields = [f for f in _INSURANCE_PROFILE_FIELDS if f == "gender" or meta.has_field(f)]
+	return frappe.db.get_value("Employee", employee, fields, as_dict=True) or {}
+
+
+def _insurance_solution_rows(config):
+	"""The configuration's insurance-solution rows. The config is loaded with
+	frappe.db.get_value, which never carries child tables, so they are read here."""
+	if not config or not config.get("name") or not frappe.db.table_exists("Swiss Insurance Solution"):
+		return []
+	return frappe.get_all(
+		"Swiss Insurance Solution",
+		filters={
+			"parent": config.get("name"),
+			"parenttype": "Swiss Social Insurance Config",
+			"parentfield": "insurance_solutions",
+		},
+		fields=[
+			"insurance",
+			"solution_code",
+			"wage_from",
+			"wage_to",
+			"rate_employee_male",
+			"rate_employer_male",
+			"rate_employee_female",
+			"rate_employer_female",
+		],
+		order_by="idx asc",
+	)
 
 
 def _update_ac_components(doc, config, ac_base):

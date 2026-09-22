@@ -127,6 +127,9 @@ after_migrate = [
 	# //// Employee.ch_avs_status. create_custom_fields(update=True) is idempotent, so
 	# //// replaying it on every migrate is cheap and keeps the fleet aligned.
 	"hrms.regional.switzerland.setup.make_custom_fields",
+	# //// Neoffice — same reason for the salary components: a component added to the
+	# //// definitions never reached an already-provisioned site (LAAC, 2026-09-22).
+	"hrms.regional.switzerland.setup.ensure_swiss_salary_components",
 	"hrms.regional.switzerland.setup.ensure_swiss_workspace_hierarchy",
 ]
 

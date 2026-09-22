@@ -720,6 +720,51 @@ class TestXmlGeneration(unittest.TestCase):
 			root.find("sd:Company/sd:Staff/sd:Person/sd:UVGZ-LAAC-Salaries", self.NS)
 		)
 
+	def _declare(self, employee, salary=None):
+		xml_bytes = generate_salary_declaration(
+			company_data=_make_company(),
+			employees_data=[{"employee_doc": employee, "salary_data": salary or _make_salary_data()}],
+			config=_make_config(),
+			fiscal_year="2025",
+		)
+		return fromstring(xml_bytes).find("sd:Company/sd:Staff/sd:Person", self.NS)
+
+	def test_sex_is_m_or_f_whatever_the_localised_gender_record(self):
+		"""The schema's SexType only admits M and F. A man recorded 'Masculin' — as a
+		French-localised instance stores him — used to be declared '2', i.e. a woman."""
+		for gender, expected in (("Male", "M"), ("Masculin", "M"), ("Female", "F"), ("Féminin", "F")):
+			person = self._declare(_make_employee(gender=gender))
+			self.assertEqual(person.find("sd:Particulars/sd:Sex", self.NS).text, expected, gender)
+
+	def test_an_unrecognised_sex_is_left_out_not_guessed(self):
+		person = self._declare(_make_employee(gender="Autre"))
+		self.assertIsNone(person.find("sd:Particulars/sd:Sex", self.NS))
+
+	def test_insurance_codes_are_declared(self):
+		"""The codes are what the insurers price the salary with (guidelines 7.4.2, 7.6.1)."""
+		salary = _make_salary_data()
+		salary["laac_employee"] = 60.0
+		salary["laac_employer"] = 60.0
+		person = self._declare(
+			_make_employee(ch_laa_code="a1", ch_laac_code="B1", ch_laac_code_2="B2", ch_ijm_code="C1"),
+			salary,
+		)
+		self.assertEqual(person.find("sd:UVG-LAA-Salaries/sd:UVG-LAA-Code", self.NS).text, "A1")
+		self.assertEqual(
+			[e.text for e in person.findall("sd:UVGZ-LAAC-Salaries/sd:UVGZ-LAAC-Code", self.NS)],
+			["B1", "B2"],
+		)
+		self.assertEqual(person.find("sd:KTG-IJM-Salaries/sd:KTG-IJM-Code", self.NS).text, "C1")
+
+	def test_employer_paid_non_occupational_premium_is_declared(self):
+		"""LAA scope 2: insured, but the employer pays the non-occupational premium."""
+		salary = _make_salary_data()
+		salary["laa_nonprofessional"] = 0.0
+		salary["laa_nonprofessional_employer"] = 960.0
+		person = self._declare(_make_employee(ch_laa_code="A2"), salary)
+		laa = person.find("sd:UVG-LAA-Salaries", self.NS)
+		self.assertEqual(laa.find("sd:UVG-LAA-NBUV-ER", self.NS).text, "960.00")
+
 	def test_cross_border_data_in_qst(self):
 		"""Cross-border data included in QST element."""
 		emp = _make_employee(

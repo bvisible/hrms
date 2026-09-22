@@ -45,6 +45,8 @@
   "laac_rate_employer",
   "column_break_laac",
   "laac_employer_account",
+  "section_insurance_solutions",
+  "insurance_solutions",
   "section_family",
   "family_allowance_rate",
   "column_break_family",
@@ -545,10 +547,23 @@
    "fieldtype": "Link",
    "label": "LAAC Employer GL Account",
    "options": "Account"
+  },
+  {
+   "fieldname": "section_insurance_solutions",
+   "fieldtype": "Section Break",
+   "label": "Insurance Solutions (LAA units, LAAC and IJM codes)",
+   "collapsible": 1,
+   "description": "Optional. Leave empty and the flat rates above apply to everyone. Fill it when the LAA insurer assigns several business units, or when LAAC / IJM rates depend on the category, the wage bracket or the employee's sex — then set each employee's codes on the employee record."
+  },
+  {
+   "fieldname": "insurance_solutions",
+   "fieldtype": "Table",
+   "label": "Insurance Solutions",
+   "options": "Swiss Insurance Solution"
   }
  ],
  "links": [],
- "modified": "2026-09-22 21:00:00.000000",
+ "modified": "2026-09-22 22:30:00.000000",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "Swiss Social Insurance Config",

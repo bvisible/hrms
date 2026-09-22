@@ -135,6 +135,8 @@ def get_annual_salary_summary(employee, company, year_start, year_end, config=No
 	lpp_er = flt(component_totals.get("LPP/BVG Employer", 0))
 	laa_prof = flt(component_totals.get("LAA Professional Employer", 0))
 	laa_nprof = flt(component_totals.get("LAA Non-Professional Employee", 0))
+	# LAA scope 2: non-occupational premium paid by the employer.
+	laa_nprof_er = flt(component_totals.get("LAA Non-Professional Employer", 0))
 	ijm_ee = flt(component_totals.get("IJM/KTG Employee", 0))
 	ijm_er = flt(component_totals.get("IJM/KTG Employer", 0))
 	# //// Neoffice — LAAC (UVGZ) was deducted on the slip but declared nowhere.
@@ -164,6 +166,7 @@ def get_annual_salary_summary(employee, company, year_start, year_end, config=No
 		"lpp_employer": round(lpp_er, 2),
 		"laa_professional": round(laa_prof, 2),
 		"laa_nonprofessional": round(laa_nprof, 2),
+		"laa_nonprofessional_employer": round(laa_nprof_er, 2),
 		"ijm_employee": round(ijm_ee, 2),
 		"ijm_employer": round(ijm_er, 2),
 		"laac_employee": round(laac_ee, 2),
@@ -266,6 +269,8 @@ def get_monthly_salary_summary(employee, company, year, month, config=None):
 	ac_sol_er = flt(component_totals.get("AC Solidarity Employer", 0))
 	laa_prof = flt(component_totals.get("LAA Professional Employer", 0))
 	laa_nprof = flt(component_totals.get("LAA Non-Professional Employee", 0))
+	# LAA scope 2: non-occupational premium paid by the employer.
+	laa_nprof_er = flt(component_totals.get("LAA Non-Professional Employer", 0))
 	ijm_ee = flt(component_totals.get("IJM/KTG Employee", 0))
 	ijm_er = flt(component_totals.get("IJM/KTG Employer", 0))
 	# //// Neoffice — LAAC (UVGZ) was deducted on the slip but declared nowhere.
@@ -298,6 +303,7 @@ def get_monthly_salary_summary(employee, company, year, month, config=None):
 		"lpp_employer": round(lpp_er, 2),
 		"laa_professional": round(laa_prof, 2),
 		"laa_nonprofessional": round(laa_nprof, 2),
+		"laa_nonprofessional_employer": round(laa_nprof_er, 2),
 		"ijm_employee": round(ijm_ee, 2),
 		"ijm_employer": round(ijm_er, 2),
 		"laac_employee": round(laac_ee, 2),

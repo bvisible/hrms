@@ -519,10 +519,14 @@ def get_salary_slip_print_data(doc):
 	# //// German- or Italian-speaking employee of a Swiss company received a French
 	# //// payslip header. The French wording is unchanged, it now comes from the
 	# //// catalogue (issue #239).
-	gender = (employee.get("gender") or "").strip()
-	if gender == "Female":
+	# //// Neoffice — compared the raw gender with "Female" / "Male": an instance whose
+	# //// Gender records are localised ("Féminin", "Masculin") printed no salutation at all.
+	from hrms.regional.switzerland.insurance_solutions import SEX_FEMALE, SEX_MALE, normalize_sex
+
+	sex = normalize_sex(employee.get("gender"))
+	if sex == SEX_FEMALE:
 		salutation = _("Mrs")
-	elif gender == "Male":
+	elif sex == SEX_MALE:
 		# //// Neoffice — see the block marker above: translated, was hardcoded French
 		salutation = _("Mr")
 	else:

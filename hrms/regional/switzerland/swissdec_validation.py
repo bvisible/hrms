@@ -263,7 +263,36 @@ def _validate_employee(employee_doc):
 				)
 			)
 
+	results.extend(_validate_sex(employee_doc))
+
 	return results
+
+
+def _validate_sex(employee_doc):
+	"""The ELM SexType admits only M and F, and so does the AVS register.
+
+	A Gender record that is neither — "Autre", "Other" — cannot be declared; the
+	employee's sex as held by the compensation office has to be set.
+	"""
+	from hrms.regional.switzerland.insurance_solutions import normalize_sex
+
+	value = employee_doc.get("gender")
+	if normalize_sex(value):
+		return []
+	emp_name = employee_doc.get("name") or employee_doc.get("employee") or "Unknown"
+	return [
+		ValidationResult(
+			level="error",
+			employee=emp_name,
+			field_name="gender",
+			message=(
+				f"Sex {value!r} cannot be declared: the ELM only admits M or F. Record the "
+				"employee's sex as held by the AVS compensation office."
+				if value
+				else "Sex is missing: the ELM declaration requires M or F."
+			),
+		)
+	]
 
 
 def _validate_salary_data(salary_data, employee_doc, config=None):

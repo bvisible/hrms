@@ -511,6 +511,71 @@ def get_custom_fields():
 				"insert_after": "ch_fr_2041as_attestation",
 				"depends_on": "eval:doc.ch_is_cross_border",
 			},
+			{
+				"fieldname": "ch_insurance_codes_section",
+				"label": "Insurance Codes (LAA / LAAC / IJM)",
+				"fieldtype": "Section Break",
+				"insert_after": "ch_permit_expiry_date",
+				"collapsible": 1,
+				"description": (
+					"The codes the insurers assigned. Leave empty when the company has a single "
+					"flat rate per insurance. They are declared as-is to Swissdec."
+				),
+			},
+			{
+				"fieldname": "ch_laa_code",
+				"label": "LAA Code",
+				"fieldtype": "Data",
+				"length": 2,
+				"insert_after": "ch_insurance_codes_section",
+				"description": (
+					"Business unit letter + scope, e.g. A1. Scope: 0 not insured, 1 with the "
+					"non-occupational premium deducted, 2 insured but the employer pays it, "
+					"3 occupational only (under 8 hours a week). Chosen, never derived from the "
+					"activity rate (Swissdec guidelines 7.4.2)."
+				),
+			},
+			{
+				"fieldname": "ch_insurance_codes_column_break",
+				"fieldtype": "Column Break",
+				"insert_after": "ch_laa_code",
+			},
+			{
+				"fieldname": "ch_laac_code",
+				"label": "LAAC Code",
+				"fieldtype": "Data",
+				"length": 2,
+				"insert_after": "ch_insurance_codes_column_break",
+				"description": "Person group + category, e.g. A1. Category 0 means not insured.",
+			},
+			{
+				"fieldname": "ch_laac_code_2",
+				"label": "LAAC Code 2",
+				"fieldtype": "Data",
+				"length": 2,
+				"insert_after": "ch_laac_code",
+				"description": "A second LAAC code, typically for the salary above the LAA ceiling.",
+			},
+			{
+				"fieldname": "ch_insurance_codes_column_break_2",
+				"fieldtype": "Column Break",
+				"insert_after": "ch_laac_code_2",
+			},
+			{
+				"fieldname": "ch_ijm_code",
+				"label": "IJM Code",
+				"fieldtype": "Data",
+				"length": 2,
+				"insert_after": "ch_insurance_codes_column_break_2",
+				"description": "Person group + category, e.g. A1. Category 0 means not insured.",
+			},
+			{
+				"fieldname": "ch_ijm_code_2",
+				"label": "IJM Code 2",
+				"fieldtype": "Data",
+				"length": 2,
+				"insert_after": "ch_ijm_code",
+			},
 		],
 		"Company": [
 			{
@@ -596,6 +661,41 @@ def create_swiss_salary_components():
 
 	# Link paired components
 	_link_paired_components(components)
+
+
+def ensure_swiss_salary_components():
+	"""Create, on an already-provisioned Swiss site, the salary components added since.
+
+	//// Neoffice — added. create_swiss_salary_components() runs once, when the setup
+	//// wizard completes, and never again. A component added to the definitions
+	//// later never reached an existing site: the LAAC pair (2026-09-22) was absent
+	//// from production, and the first slip with a LAAC rate would have died on a
+	//// missing Salary Component. Wired in after_migrate, like make_custom_fields.
+
+	Only acts where the Swiss payroll was provisioned, and only on what is missing —
+	a component a client has edited is never touched, and a site with nothing
+	missing pays one existence check per definition.
+	"""
+	if not frappe.db.exists("Salary Component", "AVS/AI/APG Employee"):
+		return  # not a Swiss payroll site
+
+	missing = [
+		definition
+		for definition in get_swiss_salary_component_definitions()
+		if not frappe.db.exists("Salary Component", definition["name"])
+	]
+	if not missing:
+		return
+
+	for definition in missing:
+		doc = frappe.new_doc("Salary Component")
+		doc.update({k: v for k, v in definition.items() if not k.startswith("_")})
+		doc.insert(ignore_permissions=True)
+
+	# Pair only the new ones: _link_paired_components writes with set_value, which
+	# would otherwise bump the modified date of every Swiss component on every migrate.
+	_link_paired_components(missing)
+	frappe.db.commit()
 
 
 def get_swiss_salary_component_definitions():
@@ -729,6 +829,24 @@ def get_swiss_salary_component_definitions():
 			"do_not_include_in_total": 1,
 			"_is_employer": True,
 			"_linked_to": "IJM/KTG Employee",
+		},
+		# --- LAA non-occupational premium paid by the employer (LAA code scope 2) ---
+		# //// Neoffice — added. With LAA scope 2 the employee is insured for
+		# //// non-occupational accidents but nothing is deducted: the employer pays the
+		# //// premium. It is an employer cost, not a benefit to declare — the ESTV guide
+		# //// excludes employer UVG premiums (BUV and NBUV) from the salary certificate.
+		{
+			"name": "LAA Non-Professional Employer",
+			"salary_component": "LAA Non-Professional Employer",
+			"salary_component_abbr": "LAA_NP_ER",
+			"type": "Deduction",
+			"description": "LAA/UVG non-occupational premium paid by the employer (LAA code scope 2)",
+			"depends_on_payment_days": 1,
+			"amount_based_on_formula": 0,
+			"amount": 0,
+			"do_not_include_in_total": 1,
+			"_is_employer": True,
+			"_linked_to": "LAA Non-Professional Employee",
 		},
 		# --- LAAC/UVGZ Complementary Accident Insurance ---
 		{

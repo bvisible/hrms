@@ -1,0 +1,116 @@
+{
+ "actions": [],
+ "creation": "2026-09-22 22:30:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "insurance",
+  "solution_code",
+  "description",
+  "column_break_bracket",
+  "wage_from",
+  "wage_to",
+  "section_rates",
+  "rate_employee_male",
+  "rate_employer_male",
+  "column_break_female",
+  "rate_employee_female",
+  "rate_employer_female"
+ ],
+ "fields": [
+  {
+   "fieldname": "insurance",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Insurance",
+   "options": "LAA\nLAAC\nIJM",
+   "reqd": 1,
+   "description": "LAA: one row per business unit. LAAC / IJM: one row per insurance code (and per wage bracket)."
+  },
+  {
+   "fieldname": "solution_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Code",
+   "length": 2,
+   "reqd": 1,
+   "description": "LAA: the business unit letter (A-Z) — the scope digit is set per employee. LAAC / IJM: the two-character code (person group + category), as communicated by the insurer."
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_bracket",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "wage_from",
+   "fieldtype": "Currency",
+   "label": "Wage From (per year)",
+   "depends_on": "eval:doc.insurance!='LAA'",
+   "description": "Lower bound of the insured salary, per year, as the insurer publishes it."
+  },
+  {
+   "fieldname": "wage_to",
+   "fieldtype": "Currency",
+   "label": "Wage To (per year)",
+   "depends_on": "eval:doc.insurance!='LAA'",
+   "description": "Upper bound per year. Leave empty for no upper bound. LAA is always capped at the legal ceiling."
+  },
+  {
+   "fieldname": "section_rates",
+   "fieldtype": "Section Break",
+   "label": "Rates"
+  },
+  {
+   "fieldname": "rate_employee_male",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Employee Rate (%)",
+   "description": "LAA: the non-occupational premium (NBUV/AANP) of the unit. LAAC / IJM: employee share, men (or everyone if the insurer does not differentiate)."
+  },
+  {
+   "fieldname": "rate_employer_male",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Employer Rate (%)",
+   "description": "LAA: the occupational premium (BUV/AAP) of the unit, always the employer's. LAAC / IJM: employer share, men (or everyone)."
+  },
+  {
+   "fieldname": "column_break_female",
+   "fieldtype": "Column Break",
+   "depends_on": "eval:doc.insurance!='LAA'"
+  },
+  {
+   "fieldname": "rate_employee_female",
+   "fieldtype": "Percent",
+   "label": "Employee Rate, Women (%)",
+   "depends_on": "eval:doc.insurance!='LAA'",
+   "description": "Only when the insurer charges women differently. Empty = same as above."
+  },
+  {
+   "fieldname": "rate_employer_female",
+   "fieldtype": "Percent",
+   "label": "Employer Rate, Women (%)",
+   "depends_on": "eval:doc.insurance!='LAA'",
+   "description": "Only when the insurer charges women differently. Empty = same as above."
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-22 22:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payroll",
+ "name": "Swiss Insurance Solution",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

@@ -545,3 +545,131 @@ class TestAcCeilingTracksTheAcBase(SwissPayrollHookCase):
 			self.employee, self.company, f"{self.year}-03-01", f"{self.year}-03-01"
 		)
 		self.assertEqual(flt(ytd_ac, 2), 0.00)
+
+
+# //// Neoffice — tests of an added file (no upstream equivalent).
+class TestInsuranceSolutionsThroughTheHook(SwissPayrollHookCase):
+	"""LAA cap, LAA code scopes and business units, LAAC / IJM codes — through the real hook.
+
+	Swissdec guidelines 7.4.2 (LAA code: business unit + scope 0/1/2/3) and 7.6.1 / 7.7
+	(LAAC / IJM codes, rates by category, wage bracket and sex).
+	"""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		for name in ("LAA Non-Professional Employer", "LAAC Employee", "LAAC Employer"):
+			_ensure_component(name, "Deduction")
+		# A site may carry a single Gender record ("Masculin" on the test site): skipping
+		# would leave the rates-by-sex path unverified, so the record is created instead.
+		cls.female = frappe.db.get_value("Gender", {"name": ["in", ["Female", "Féminin"]]}, "name")
+		if not cls.female:
+			cls.female = frappe.get_doc({"doctype": "Gender", "gender": "Female"}).insert(
+				ignore_permissions=True
+			).name
+
+	def setUp(self):
+		self._gender = frappe.db.get_value("Employee", self.employee, "gender")
+
+	def tearDown(self):
+		frappe.db.set_value(
+			"Employee",
+			self.employee,
+			{
+				"ch_laa_code": None,
+				"ch_laac_code": None,
+				"ch_laac_code_2": None,
+				"ch_ijm_code": None,
+				"ch_ijm_code_2": None,
+				"gender": self._gender,
+			},
+			update_modified=False,
+		)
+		self._set_solutions([])
+
+	def _set_solutions(self, rows):
+		config = frappe.get_doc("Swiss Social Insurance Config", self.config)
+		config.set("insurance_solutions", rows)
+		config.save(ignore_permissions=True)
+
+	def _employee(self, **values):
+		frappe.db.set_value("Employee", self.employee, values, update_modified=False)
+
+	def _run(self, monthly_salary):
+		slip = self._make_slip([(MONTHLY_COMPONENT, monthly_salary)])
+		update_swiss_social_contributions(slip, "validate")
+		return slip
+
+	def test_laa_is_capped_at_12350_a_month(self):
+		"""CHF 148'200 a year: above CHF 12'350 a month nothing more is insured, nor charged."""
+		slip = self._run(20000)
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employee"), 123.50)  # not 200.00
+
+	def test_under_the_cap_nothing_moves(self):
+		"""Witness: the ordinary case keeps its amount to the centime."""
+		self.assertEqual(self._amount(self._run(6000), "LAA Non-Professional Employee"), 60.00)
+
+	def test_scope_3_charges_no_non_occupational_premium(self):
+		"""Under 8 hours a week: insured for occupational accidents only."""
+		self._employee(ch_laa_code="A3")
+		self.assertEqual(self._amount(self._run(2000), "LAA Non-Professional Employee"), 0.0)
+
+	def test_scope_2_moves_the_premium_to_the_employer(self):
+		self._employee(ch_laa_code="A2")
+		slip = self._run(6000)
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employee"), 0.0)
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employer"), 60.00)
+
+	def test_scope_0_is_not_insured(self):
+		self._employee(ch_laa_code="A0")
+		self.assertEqual(self._amount(self._run(6000), "LAA Non-Professional Employee"), 0.0)
+
+	def test_business_unit_rates(self):
+		"""The guidelines' own example rates for business unit B."""
+		self._set_solutions(
+			[{"insurance": "LAA", "solution_code": "B", "rate_employer_male": 0.34, "rate_employee_male": 1.701}]
+		)
+		self._employee(ch_laa_code="B1")
+		slip = self._run(10000)
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employee"), 170.10)
+		self.assertEqual(self._amount(slip, "LAA Professional Employer"), 34.00)
+
+	def test_ijm_rates_by_sex(self):
+		self._set_solutions(
+			[
+				{
+					"insurance": "IJM",
+					"solution_code": "A1",
+					"rate_employee_male": 0.5,
+					"rate_employer_male": 0.5,
+					"rate_employee_female": 0.9,
+					"rate_employer_female": 0.9,
+				}
+			]
+		)
+		self._employee(ch_ijm_code="A1", gender=self.female)
+		self.assertEqual(self._amount(self._run(6000), "IJM/KTG Employee"), 54.00)  # 6000 x 0.9 %
+
+	def test_laac_above_the_laa_cap(self):
+		"""A LAAC solution covering the salary between CHF 148'200 and 300'000 a year."""
+		self._set_solutions(
+			[
+				{
+					"insurance": "LAAC",
+					"solution_code": "A2",
+					"wage_from": 148200,
+					"wage_to": 300000,
+					"rate_employee_male": 1.0,
+					"rate_employer_male": 1.0,
+				}
+			]
+		)
+		self._employee(ch_laac_code="A2")
+		# The bracket starts at 12'350 a month: 20'000 - 12'350 = 7'650 insured, at 1 %.
+		self.assertEqual(self._amount(self._run(20000), "LAAC Employee"), 76.50)
+
+	def test_an_unconfigured_code_stops_the_slip(self):
+		"""A guessed rate would produce a payslip that is accepted and wrong."""
+		self._employee(ch_ijm_code="Z9")
+		with self.assertRaises(frappe.ValidationError):
+			self._run(6000)

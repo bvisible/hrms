@@ -31,6 +31,7 @@ PERMIT_MAP = {
 }
 
 
+from hrms.regional.switzerland.insurance_solutions import SEX_MALE, normalize_sex
 from hrms.regional.switzerland.tax_at_source_category import (
 	CATEGORY_OPEN,
 	CATEGORY_PREDEFINED,
@@ -219,10 +220,14 @@ def _build_particulars(person_el, employee_doc):
 		_add_text_element(part_el, "DateOfBirth", _format_date(dob))
 
 	# Gender
-	gender = employee_doc.get("gender") or ""
-	if gender:
-		gender_code = "1" if gender == "Male" else "2"
-		_add_text_element(part_el, "Sex", gender_code)
+	# //// Neoffice — was '"1" if gender == "Male" else "2"'. Two defects in one line:
+	# //// the schema's SexType only admits "M" and "F", and the comparison with the
+	# //// literal "Male" sent every man recorded as "Masculin" — as a localised instance
+	# //// stores him — to the declaration as a woman. An unrecognised value ("Autre")
+	# //// is left out rather than guessed; pre-export validation reports it.
+	sex = normalize_sex(employee_doc.get("gender"))
+	if sex:
+		_add_text_element(part_el, "Sex", "M" if sex == SEX_MALE else "F")
 
 	# Nationality
 	nationality = employee_doc.get("ch_nationality") or ""
@@ -332,9 +337,18 @@ def _build_laa_salary(person_el, salary_data, employee_doc, config, is_complete=
 	laa_el = SubElement(person_el, "UVG-LAA-Salaries")
 	laa_el.set("complete", "true" if is_complete else "false")
 
+	# //// Neoffice — the LAA code (business unit + scope, Swissdec guidelines 7.4.2) is
+	# //// what the insurer prices the salary with; it was never declared.
+	laa_code = (employee_doc.get("ch_laa_code") or "").strip().upper()
+	if laa_code:
+		_add_text_element(laa_el, "UVG-LAA-Code", laa_code)
 	_add_amount_element(laa_el, "UVG-LAA-Income", flt(salary_data.get("laa_salary")))
 	_add_amount_element(laa_el, "UVG-LAA-BUV-ER", flt(salary_data.get("laa_professional")))
 	_add_amount_element(laa_el, "UVG-LAA-NBUV-EE", flt(salary_data.get("laa_nonprofessional")))
+	# Scope 2: insured for non-occupational accidents, premium paid by the employer.
+	nbuv_er = flt(salary_data.get("laa_nonprofessional_employer"))
+	if nbuv_er:
+		_add_amount_element(laa_el, "UVG-LAA-NBUV-ER", nbuv_er)
 
 	return laa_el
 
@@ -343,6 +357,10 @@ def _build_ijm_salary(person_el, salary_data, employee_doc, config, is_complete=
 	"""Build <KTG-IJM-Salaries> element for IJM/KTG declaration."""
 	ijm_el = SubElement(person_el, "KTG-IJM-Salaries")
 	ijm_el.set("complete", "true" if is_complete else "false")
+	for field in ("ch_ijm_code", "ch_ijm_code_2"):
+		code = (employee_doc.get(field) or "").strip().upper()
+		if code:
+			_add_text_element(ijm_el, "KTG-IJM-Code", code)
 
 	# IJM insured salary = same base as gross (insurer-specific cap may apply)
 	_add_amount_element(ijm_el, "KTG-IJM-Income", flt(salary_data.get("total_gross")))
@@ -375,6 +393,10 @@ def _build_laac_salary(person_el, salary_data, employee_doc, config, is_complete
 
 	laac_el = SubElement(person_el, "UVGZ-LAAC-Salaries")
 	laac_el.set("complete", "true" if is_complete else "false")
+	for field in ("ch_laac_code", "ch_laac_code_2"):
+		code = (employee_doc.get(field) or "").strip().upper()
+		if code:
+			_add_text_element(laac_el, "UVGZ-LAAC-Code", code)
 	_add_amount_element(laac_el, "UVGZ-LAAC-Income", flt(salary_data.get("total_gross")))
 	_add_amount_element(laac_el, "UVGZ-LAAC-EE", laac_ee)
 	_add_amount_element(laac_el, "UVGZ-LAAC-ER", laac_er)
