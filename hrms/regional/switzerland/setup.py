@@ -278,9 +278,28 @@ def get_custom_fields():
 				),
 			},
 			{
+				"fieldname": "ch_qst_predefined_category",
+				"label": "Source Tax Predefined Category",
+				"fieldtype": "Select",
+				# Swissdec CategoryPredefinedType (Common.xsd). Replaces the tariff
+				# code for someone liable to source tax who has none.
+				"options": "\nHEN\nHEY\nMEN\nMEY\nNON\nNOY\nSFN",
+				"insert_after": "ch_avs_status",
+				"translatable": 0,
+				"description": (
+					"Leave empty in the ordinary case — the tariff code is then used. "
+					"HEN/HEY: board fee of a non-resident (linear rate). MEN/MEY: employee "
+					"participation realised after leaving Switzerland. NON/NOY: period during "
+					"which the person was not liable, for a correction. SFN: French special "
+					"agreement — set automatically for a French resident in BL, BS, SO, VD, VS, "
+					"NE, JU or BE holding the 2041-AS attestation; nothing is withheld but the "
+					"salary is still declared."
+				),
+			},
+			{
 				"fieldname": "ch_column_break",
 				"fieldtype": "Column Break",
-				"insert_after": "ch_avs_status",
+				"insert_after": "ch_qst_predefined_category",
 			},
 			{
 				"fieldname": "ch_avs_number",

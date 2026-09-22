@@ -31,6 +31,14 @@ PERMIT_MAP = {
 }
 
 
+from hrms.regional.switzerland.tax_at_source_category import (
+	CATEGORY_OPEN,
+	CATEGORY_PREDEFINED,
+	CATEGORY_TARIFF,
+	resolve_tax_at_source_category,
+)
+
+
 def generate_salary_declaration(
 	company_data, employees_data, config, fiscal_year,
 	declaration_type="Year-End", declaration_month=None, institutions=None,
@@ -353,14 +361,27 @@ def _build_qst_salary(person_el, salary_data, employee_doc, config):
 	if canton:
 		_add_text_element(qst_el, "Canton", canton)
 
-	# Tariff code
-	tariff_code = employee_doc.get("ch_qst_tariff_code") or ""
-	if tariff_code:
-		_add_text_element(qst_el, "TariffCode", tariff_code)
+	# //// Neoffice — was a bare <TariffCode>. The schema wants <TaxAtSourceCategory>,
+	# //// a CHOICE of exactly one of TaxAtSourceCode | CategoryPredefined |
+	# //// CategoryOpen (Common.xsd, TaxAtSourceCategoryType). Emitting only a tariff
+	# //// code made it impossible to declare anyone who HAS no tariff code — above all
+	# //// a French frontalier in VD or VS, exempt under the 1983 agreement, who must
+	# //// carry the predefined category SFN while his taxable salary is still declared.
+	category = resolve_tax_at_source_category(employee_doc, canton=canton)
+	if category:
+		category_el = SubElement(qst_el, "TaxAtSourceCategory")
+		element_name = {
+			CATEGORY_TARIFF: "TaxAtSourceCode",
+			CATEGORY_PREDEFINED: "CategoryPredefined",
+			CATEGORY_OPEN: "CategoryOpen",
+		}[category["kind"]]
+		_add_text_element(category_el, element_name, category["value"])
 
-	# Gross and tax
+	# Gross and tax. A category that withholds nothing (SFN, NON, NOY) still declares
+	# the taxable salary — that is the whole point of the French special agreement.
 	_add_amount_element(qst_el, "QST-GrossIncome", flt(salary_data.get("total_gross")))
-	_add_amount_element(qst_el, "QST-Tax", flt(salary_data.get("source_tax_total")))
+	tax = 0.0 if (category and not category["withhold"]) else flt(salary_data.get("source_tax_total"))
+	_add_amount_element(qst_el, "QST-Tax", tax)
 
 	# Cross-border info
 	if employee_doc.get("ch_is_cross_border"):

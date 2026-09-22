@@ -648,8 +648,11 @@ class TestXmlGeneration(unittest.TestCase):
 		canton = qst.find("sd:Canton", self.NS)
 		self.assertEqual(canton.text, "ZH")
 
-		tariff = qst.find("sd:TariffCode", self.NS)
+		# The schema wants TaxAtSourceCategory, a choice of exactly one of
+		# TaxAtSourceCode | CategoryPredefined | CategoryOpen.
+		tariff = qst.find("sd:TaxAtSourceCategory/sd:TaxAtSourceCode", self.NS)
 		self.assertEqual(tariff.text, "B2Y")
+		self.assertIsNone(qst.find("sd:TaxAtSourceCategory/sd:CategoryPredefined", self.NS))
 
 		tax = qst.find("sd:QST-Tax", self.NS)
 		self.assertEqual(tax.text, "4800.00")

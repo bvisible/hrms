@@ -221,6 +221,28 @@ GERMAN_NON_RETURN_DAY_LIMIT = 60  # nights/year
 GERMAN_SWISS_WORK_THRESHOLD = 0.20  # 20% minimum work in CH
 GERMAN_TARIFF_LETTERS = ["L", "M", "N", "P"]
 
+# Swissdec predefined source-tax categories (ELM guidelines § 9.5.2, and the
+# CategoryPredefinedType enumeration of Common.xsd). They replace the tariff code
+# for people liable to source tax who have NO tariff code at all. The XML element
+# TaxAtSourceCategory is a CHOICE: exactly one of TaxAtSourceCode,
+# CategoryPredefined or CategoryOpen must be present.
+QST_CATEGORY_HEN = "HEN"  # board fee, non-resident, no church tax — linear rate
+QST_CATEGORY_HEY = "HEY"  # board fee, non-resident, with church tax — linear rate
+QST_CATEGORY_MEN = "MEN"  # employee participation realised after leaving CH, no church tax
+QST_CATEGORY_MEY = "MEY"  # employee participation realised after leaving CH, with church tax
+QST_CATEGORY_NON = "NON"  # period during which the person was NOT liable (correction)
+QST_CATEGORY_NOY = "NOY"  # same, with church tax
+QST_CATEGORY_SFN = "SFN"  # French special agreement: no source tax withheld, salary still declared
+QST_PREDEFINED_CATEGORIES = (
+	QST_CATEGORY_HEN,
+	QST_CATEGORY_HEY,
+	QST_CATEGORY_MEN,
+	QST_CATEGORY_MEY,
+	QST_CATEGORY_NON,
+	QST_CATEGORY_NOY,
+	QST_CATEGORY_SFN,
+)
+
 # French agreement of 1983-04-11: cantons where France taxes at residence
 # (no CH withholding) — conditional on the French residence attestation
 # 2041-AS being provided before January 1st.
