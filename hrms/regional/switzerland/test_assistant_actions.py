@@ -60,7 +60,9 @@ class TestTriggerQstFetch(FrappeTestCase):
 				"doctype": "Swiss QST Tariff",
 				"canton": self.CANTON,
 				"year": self.YEAR,
-				"tariff_type": "Salaires",
+				# //// Neoffice — was the French "Salaires" (b62d7bdeb "fix(swiss-payroll): the tariff
+				# //// type, the field labels and the payslip wording leave French behind")
+				"tariff_type": "Salary",
 			}
 		).insert(ignore_permissions=True)
 

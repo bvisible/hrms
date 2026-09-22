@@ -6,7 +6,9 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate, today
+# //// Neoffice — formatdate added: the payslip period label now goes through the framework's
+# //// date formatting instead of a hardcoded French month list (issue #239)
+from frappe.utils import flt, formatdate, getdate, today
 
 from hrms.regional.switzerland.source_tax import round_half_up
 
@@ -513,12 +515,16 @@ def get_salary_slip_print_data(doc):
 	age = get_employee_age(doc.employee, doc.end_date)
 	rates = _build_rate_dict(config, age) if config else {}
 
-	# Salutation
+	# //// Neoffice — translated, was hardcoded French ("Madame" / "Monsieur"), so a
+	# //// German- or Italian-speaking employee of a Swiss company received a French
+	# //// payslip header. The French wording is unchanged, it now comes from the
+	# //// catalogue (issue #239).
 	gender = (employee.get("gender") or "").strip()
 	if gender == "Female":
-		salutation = "Madame"
+		salutation = _("Mrs")
 	elif gender == "Male":
-		salutation = "Monsieur"
+		# //// Neoffice — see the block marker above: translated, was hardcoded French
+		salutation = _("Mr")
 	else:
 		salutation = ""
 
@@ -621,11 +627,12 @@ def get_salary_slip_print_data(doc):
 	# Period label
 	try:
 		end = getdate(doc.end_date)
-		months_fr = [
-			"", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-			"Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
-		]
-		period_label = f"{months_fr[end.month]} {end.year}"
+		# //// Neoffice — the framework formats the month in the reader's language.
+		# //// It was a hardcoded French month list, so the period on every payslip read
+		# //// French whatever the employee's language (issue #239). In French the output
+		# //// is unchanged: babel gives "septembre 2026", capitalised to "Septembre 2026".
+		label = formatdate(end, "MMMM yyyy")
+		period_label = label[:1].upper() + label[1:]
 	except Exception:
 		period_label = ""
 

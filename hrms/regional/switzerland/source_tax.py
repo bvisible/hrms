@@ -898,7 +898,9 @@ def auto_fetch_new_tariffs():
 	# Determine target year
 	target_year = today.year if today.month <= 6 else today.year + 1
 
-	for tariff_type_abbr, tariff_type_label in (("SAL", "Salaires"), ("VSL", "Autres revenus")):
+	# //// Neoffice — labels are "Salary"/"Other Income" now, were the French "Salaires"/
+	# //// "Autres revenus" (b62d7bdeb "fix(swiss-payroll): the tariff type, the field labels and the payslip wording leave French behind")
+	for tariff_type_abbr, tariff_type_label in (("SAL", "Salary"), ("VSL", "Other Income")):
 		existing = frappe.db.count(
 			"Swiss QST Tariff",
 			{"year": target_year, "tariff_type_abbr": tariff_type_abbr, "status": "Active"},

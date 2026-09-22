@@ -121,7 +121,9 @@ def get_custom_fields():
 				"fieldtype": "Link",
 				"options": "Swiss Wage Type",
 				"insert_after": "ch_wage_type_section",
-				"description": "Sélectionner un type de salaire standard pour remplir automatiquement les bases d'assurance et la position Lohnausweis.",
+				# //// Neoffice — description translated from French; a patch migrates the existing Custom
+				# //// Field rows, filtered on the exact old value (b62d7bdeb "fix(swiss-payroll): the tariff type, the field labels and the payslip wording leave French behind")
+				"description": "Select a standard wage type to fill in the insurance bases and the Lohnausweis position automatically.",
 				"fetch_from": "",
 			},
 			{
@@ -136,51 +138,60 @@ def get_custom_fields():
 			# --- Swiss Employer Contribution ---
 			{
 				"fieldname": "ch_employer_section",
-				"label": "Part employeur / employé",
+				# //// Neoffice — see above: label translated from French
+				"label": "Employer / Employee Share",
 				"fieldtype": "Section Break",
 				"insert_after": "ch_wage_type_code",
 				"depends_on": "eval:doc.type == 'Deduction'",
 			},
 			{
 				"fieldname": "is_employer_contribution",
-				"label": "Part employeur",
+				# //// Neoffice — see above: label translated from French
+				"label": "Employer Share",
 				"fieldtype": "Check",
 				"insert_after": "ch_employer_section",
 				"default": "0",
-				"description": "Si coché, cette composante représente la part employeur et sera masquée du bulletin de salaire.",
+				# //// Neoffice — see above: description translated from French
+				"description": "When ticked, this component is the employer's share and is hidden from the payslip.",
 			},
 			{
 				"fieldname": "linked_component",
-				"label": "Composante liée (employé/employeur)",
+				# //// Neoffice — see above: label translated from French
+				"label": "Linked Component (Employee/Employer)",
 				"fieldtype": "Link",
 				"options": "Salary Component",
 				"insert_after": "is_employer_contribution",
-				"description": "Lien vers la composante appariée (employé ou employeur) pour cette charge sociale.",
+				# //// Neoffice — see above: description translated from French
+				"description": "Link to the paired component (employee or employer) of this social charge.",
 			},
 			# --- Swiss Social Insurance Bases ---
 			{
 				"fieldname": "ch_insurance_base_section",
-				"label": "Bases d'assurance sociale suisse",
+				# //// Neoffice — see above: label translated from French
+				"label": "Swiss Social Insurance Bases",
 				"fieldtype": "Section Break",
 				"insert_after": "linked_component",
 			},
 			{
 				"fieldname": "ch_subject_to_avs",
-				"label": "Soumis à l'AVS",
+				# //// Neoffice — see above: label translated from French
+				"label": "Subject to AVS",
 				"fieldtype": "Check",
 				"insert_after": "ch_insurance_base_section",
 				"default": "1",
 			},
 			{
 				"fieldname": "ch_subject_to_ac",
-				"label": "Soumis à l'AC",
+				# //// Neoffice — see above: label translated from French
+				"label": "Subject to AC",
 				"fieldtype": "Check",
 				"insert_after": "ch_subject_to_avs",
 				"default": "1",
 			},
 			{
 				"fieldname": "ch_subject_to_laa",
-				"label": "Soumis à la LAA",
+				# //// Neoffice — see above: label translated from French
+				"label": "Subject to LAA",
 				"fieldtype": "Check",
 				"insert_after": "ch_subject_to_ac",
 				"default": "1",
@@ -192,25 +203,29 @@ def get_custom_fields():
 			},
 			{
 				"fieldname": "ch_subject_to_ijm",
-				"label": "Soumis à l'IJM",
+				# //// Neoffice — see above: label translated from French
+				"label": "Subject to IJM",
 				"fieldtype": "Check",
 				"insert_after": "ch_column_break_insurance",
 				"default": "1",
 			},
 			{
 				"fieldname": "ch_subject_to_lpp",
-				"label": "Soumis à la LPP",
+				# //// Neoffice — see above: label translated from French
+				"label": "Subject to LPP",
 				"fieldtype": "Check",
 				"insert_after": "ch_subject_to_ijm",
 				"default": "1",
 			},
 			{
 				"fieldname": "ch_subject_to_imp",
-				"label": "Soumis à l'impôt à la source",
+				# //// Neoffice — see above: label translated from French
+				"label": "Subject to Withholding Tax",
 				"fieldtype": "Check",
 				"insert_after": "ch_subject_to_lpp",
 				"default": "1",
-				"description": "Si coché, cette composante est incluse dans la base de l'impôt à la source.",
+				# //// Neoffice — see above: description translated from French
+				"description": "When ticked, this component counts towards the withholding-tax base.",
 			},
 			{
 				"fieldname": "ch_lohnausweis_position",

@@ -329,7 +329,9 @@ class TestSourceTaxBase(SwissPayrollHookCase):
 				"doctype": "Swiss QST Tariff",
 				"canton": cls.QST_CANTON,
 				"year": 2099,
-				"tariff_type": "Salaires",
+				# //// Neoffice — was the French "Salaires" (b62d7bdeb "fix(swiss-payroll): the tariff
+				# //// type, the field labels and the payslip wording leave French behind")
+				"tariff_type": "Salary",
 				"status": "Active",
 			}
 		).insert(ignore_permissions=True)

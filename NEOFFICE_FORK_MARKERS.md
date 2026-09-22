@@ -133,6 +133,11 @@ merge (they are field-level edits inside upstream JSON, which is what conflicts)
 - `scripts.build`: prefixed with `NODE_OPTIONS=--max-old-space-size=4096`; **added** `scripts.build:force` with the same command, called by `.github/workflows/build-frontend.yml`.
 - same reason: the PWA build does not fit in Node's default heap on the CI runner.
 
+#### `hrms/hr/doctype/leave_ledger_entry/leave_ledger_entry.json`
+- **removed** the `All` permission row (`if_owner`, with read, write, create, submit and delete). Upstream gives it to every signed-in account, portal customers included, who could then create and submit lines of their own leave balance (neoffice-maintenance#432). Every real entry comes from `create_leave_ledger_entry()`, which ignores permissions, so no flow needs the row.
+- `modified` bumped so that sites re-import the permissions. The frozen `Custom DocPerm` copy most sites hold (it outranks this JSON) is removed by neoffice_custom_fields, with the other open grants of neoffice-maintenance#431, and its permission sync refuses the row from then on.
+- at a merge, **keep ours**: upstream still ships the row (version-15 and develop, checked 2026-09-14).
+
 ### Deleted upstream files
 
 Seven upstream workspaces were removed, their content folded into two of ours. At a

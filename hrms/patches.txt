@@ -1,5 +1,9 @@
 [pre_model_sync]
 hrms.patches.v15_0.check_version_compatibility_with_frappe #2023-06-27
+# //// Neoffice — 2026-09-06, issue #239: `Swiss QST Tariff.tariff_type` stored its
+# //// French label. Must run BEFORE the model sync brings the new Select options,
+# //// so the rows are migrated while the old values are still the legal ones.
+hrms.patches.v15_0.rename_swiss_qst_tariff_type
 
 [post_model_sync]
 hrms.patches.post_install.set_payroll_entry_status
@@ -56,3 +60,7 @@ hrms.patches.v15_0.add_swiss_payroll_workspace
 hrms.patches.v15_0.migrate_salary_certificate_expense_fields #2026-09-05
 # //// Neoffice — TLS verification default for Swissdec settings stored before the field.
 hrms.patches.v15_0.set_swissdec_verify_tls_default
+# //// Neoffice — 2026-09-06, issue #239: the Swiss payroll Custom Fields shipped
+# //// French labels and descriptions, which are stored ON the record — a German- or
+# //// English-speaking instance saw French next to English in the same form.
+hrms.patches.v15_0.translate_swiss_custom_field_labels

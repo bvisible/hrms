@@ -336,7 +336,7 @@ Sur la [fiche employé](https://osiris.neoffice.me/app/employee/Jean%20Claude), 
 
 ### 8.1 Configuration gateway
 
-- [ ] URL gateway : `http://swissdec.neoffice.me:8745`
+- [ ] URL gateway : `http://votre-instance.neoffice.me:8745`
 - [ ] API Key : configurée
 - [ ] **Bouton "Test Connection"** → statut OK
 

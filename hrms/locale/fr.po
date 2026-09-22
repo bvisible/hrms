@@ -21,6 +21,50 @@ msgstr ""
 msgid " Unlink Payment on Cancellation of Employee Advance"
 msgstr " Dissocier le paiement lors de l'annulation de l'avance employé"
 
+#: hrms/regional/switzerland/setup.py
+msgid "Employer / Employee Share"
+msgstr "Part employeur / employé"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Employer Share"
+msgstr "Part employeur"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Link to the paired component (employee or employer) of this social charge."
+msgstr "Lien vers la composante appariée (employé ou employeur) pour cette charge sociale."
+
+#: hrms/regional/switzerland/setup.py
+msgid "Linked Component (Employee/Employer)"
+msgstr "Composante liée (employé/employeur)"
+
+#: hrms/regional/switzerland/utils.py
+msgid "Mr"
+msgstr "Monsieur"
+
+#: hrms/regional/switzerland/utils.py
+msgid "Mrs"
+msgstr "Madame"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Select a standard wage type to fill in the insurance bases and the Lohnausweis position automatically."
+msgstr "Sélectionner un type de salaire standard pour remplir automatiquement les bases d'assurance et la position Lohnausweis."
+
+#: hrms/regional/switzerland/setup.py
+msgid "Subject to Withholding Tax"
+msgstr "Soumis à l'impôt à la source"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Swiss Social Insurance Bases"
+msgstr "Bases d'assurance sociale suisse"
+
+#: hrms/regional/switzerland/setup.py
+msgid "When ticked, this component counts towards the withholding-tax base."
+msgstr "Si coché, cette composante est incluse dans la base de l'impôt à la source."
+
+#: hrms/regional/switzerland/setup.py
+msgid "When ticked, this component is the employer's share and is hidden from the payslip."
+msgstr "Si coché, cette composante représente la part employeur et sera masquée du bulletin de salaire."
+
 #: hrms/hr/report/employee_leave_balance/employee_leave_balance.py:23
 msgid "\"From Date\" can not be greater than or equal to \"To Date\""
 msgstr "Le \"De Date\" ne peut pas être supérieur ou égal à \"Date de Date\""
@@ -11606,6 +11650,10 @@ msgstr "Graphique organisationnel"
 #: hrms/hr/doctype/travel_request/travel_request.json
 msgid "Other Details"
 msgstr "Autres détails"
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
+msgid "Other Income"
+msgstr "Autres revenus"
 
 #. Label of a Section Break field in DocType 'Swiss Wage Type'
 #: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
