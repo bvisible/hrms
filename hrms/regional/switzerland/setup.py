@@ -281,6 +281,10 @@ def get_custom_fields():
 					"pension — full AVS, still no AC."
 				),
 			},
+			# //// Neoffice — added ch_qst_predefined_category (Swissdec CategoryPredefinedType)
+			# so a person liable to source tax but holding no tariff code — HEN/HEY, MEN/MEY,
+			# NON/NOY, or SFN under the French special agreement — can still be declared
+			# (be078717a "fix(payroll): emit TaxAtSourceCategory, not a bare TariffCode")
 			{
 				"fieldname": "ch_qst_predefined_category",
 				"label": "Source Tax Predefined Category",
