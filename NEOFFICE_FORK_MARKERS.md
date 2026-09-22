@@ -242,3 +242,14 @@ in a skipped file. The build bot writes the marker into it at the next `yarn bui
 - `Employee.employment_degrees` — a child table `hrms` does not ship; it comes from
   another Neoffice app. Same file, same block.
 
+## Auto-marked (fork-markers workflow)
+
+- `hrms/public/images/605_040_18N_Form_11.png` — added file, the official Swiss Form 11
+  (Lohnausweis) overlay image used by the salary certificate print format (ce58cd002
+  "feat(payroll): migrate official Swiss Form 11 print format from erpnextswiss")
+- `hrms/public/images/icon-humain-ressource-gestion.jpg` — added file, the fork's HR app
+  logo, referenced as `app_logo_url` in `hrms/hooks.py` (f395f38c4 "change logo")
+- `hrms/public/roster/favicon.png` — added file, committed roster SPA build artifact
+  (b322e8d6e "build(frontend): commit built frontend so instances pull, no rebuild on
+  prod")
+
