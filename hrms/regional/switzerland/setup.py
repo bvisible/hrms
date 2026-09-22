@@ -260,6 +260,10 @@ def get_custom_fields():
 				"insert_after": "ch_permit_type",
 				"translatable": 0,
 			},
+			# //// Neoffice — added ch_avs_status (declared status, Swissdec wording, not inferred
+			# from birth date) so AVS/AC liability accounts for apprentices below contribution
+			# start age and employees past reference age (1a3e1cc45 "feat(payroll): Swiss AVS
+			# liability by age and status")
 			{
 				"fieldname": "ch_avs_status",
 				"label": "AVS Status",
@@ -299,6 +303,9 @@ def get_custom_fields():
 			{
 				"fieldname": "ch_column_break",
 				"fieldtype": "Column Break",
+				# //// Neoffice — the column break follows the two Swiss status fields added
+				# //// on 2026-09-22 (ch_avs_status, then ch_qst_predefined_category), so the
+				# //// left column carries permit, canton and both statuses.
 				"insert_after": "ch_qst_predefined_category",
 			},
 			{
