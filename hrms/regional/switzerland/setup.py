@@ -107,6 +107,10 @@ def get_custom_fields():
 				"no_copy": 1,
 			},
 			{
+				# //// Neoffice — new field: the hook records the base and rate of each contribution
+				# //// on the slip, so the payslip can print them and the declaration can declare them
+				# //// (AVS after the pensioners' exemption, prorated AC/LAA, insured LAAC/IJM salaries)
+				# //// (35e9ce9b4 "fix(payroll): Swiss 5-centime rounding, cumulated insurance ceilings, recorded bases")
 				# Written by the payroll hook, read by the payslip: the base and rate each
 				# contribution was computed with (capped salary, business-unit or code rate).
 				"fieldname": "ch_contribution_bases",

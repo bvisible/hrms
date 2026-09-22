@@ -252,4 +252,9 @@ in a skipped file. The build bot writes the marker into it at the next `yarn bui
 - `hrms/public/roster/favicon.png` — added file, committed roster SPA build artifact
   (b322e8d6e "build(frontend): commit built frontend so instances pull, no rebuild on
   prod")
+- `hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json` — new
+  DocType (child table): LAA rate per business unit (occupational/non-occupational
+  premium), LAAC/IJM rate per code and wage bracket, split by sex — replaces the single
+  flat rate per insurance that used to apply to the whole salary (a33896d9f
+  "feat(payroll): LAA / LAAC / IJM per insurance solution, LAA cap, Sex as M/F")
 
