@@ -511,6 +511,9 @@ def get_custom_fields():
 				"insert_after": "ch_fr_2041as_attestation",
 				"depends_on": "eval:doc.ch_is_cross_border",
 			},
+			# //// Neoffice ▼▼▼ — per-employee LAA/LAAC/IJM insurance codes (business unit + scope for LAA,
+			# person group + category for LAAC/IJM, per Swissdec guidelines 7.4.2/7.6.1/7.7), replacing the
+			# flat per-company rate (a33896d9f "feat(payroll): LAA / LAAC / IJM per insurance solution, LAA cap, Sex as M/F")
 			{
 				"fieldname": "ch_insurance_codes_section",
 				"label": "Insurance Codes (LAA / LAAC / IJM)",
@@ -576,6 +579,7 @@ def get_custom_fields():
 				"length": 2,
 				"insert_after": "ch_ijm_code",
 			},
+			# //// Neoffice ▲▲▲
 		],
 		"Company": [
 			{
