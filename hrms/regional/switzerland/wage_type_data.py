@@ -171,6 +171,14 @@ def get_swiss_wage_types():
 			payment_days=0,
 		),
 		_wt(1182, "13e salaire calculé", "Earning", "1", _ALL, vac=0, stat="SMS"),
+		# //// Neoffice — 1200 is the code the Swissdec guidelines themselves use for the
+		# //// 13th month ("1200 / 13. Monatslohn" in the ELM Richtlinien test examples,
+		# //// whose Lohnartenstamm is authoritative for certification). 1180-1182 are our
+		# //// own variants and stay for the payment modes; the component that is DECLARED
+		# //// points at 1200, so an ELM declaration carries the standard code.
+		_wt(1200, "13e salaire", "Earning", "1", _ALL, vac=0, stat="SMS", common=1,
+			abbr="13M", desc_fr="Treizième salaire — Calculé automatiquement par le module suisse",
+			payment_days=0),
 		# =====================================================================
 		# 1201-1250: Gratifications, bonuses, primes
 		# =====================================================================

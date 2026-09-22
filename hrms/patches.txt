@@ -64,3 +64,7 @@ hrms.patches.v15_0.set_swissdec_verify_tls_default
 # //// French labels and descriptions, which are stored ON the record — a German- or
 # //// English-speaking instance saw French next to English in the same form.
 hrms.patches.v15_0.translate_swiss_custom_field_labels
+# //// Neoffice — 2026-09-22: the 13th month component pointed at our own wage type 1181.
+# //// The Swissdec guidelines use 1200 ("1200 / 13. Monatslohn" in the ELM test examples,
+# //// whose Lohnartenstamm is authoritative), so a declaration carried an unknown code.
+hrms.patches.v15_0.switzerland_13th_month_code_1200
