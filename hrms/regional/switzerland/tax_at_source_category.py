@@ -20,10 +20,13 @@ the element the schema expects.
 """
 
 from hrms.regional.switzerland.constants import (
+	BOARD_FEE_WAGE_TYPES,
 	FRENCH_EXEMPTED_CANTONS,
 	QST_CATEGORY_SFN,
 	QST_PREDEFINED_CATEGORIES,
 )
+
+BOARD_FEE_CATEGORIES = ("HEN", "HEY")
 
 CATEGORY_TARIFF = "tariff"
 CATEGORY_PREDEFINED = "predefined"
@@ -90,3 +93,59 @@ def _is_french_agreement_exempt(employee_doc, canton):
 	# Without the 2041-AS attestation the employer MUST withhold at the ordinary
 	# tariff — the exemption is conditional, never automatic.
 	return bool(employee_doc.get("ch_fr_2041as_attestation"))
+
+
+def detect_split_required(wage_type_codes, category):
+	"""Does this person need to be declared twice?
+
+	A board member domiciled abroad is taxed on his fee at a linear rate under
+	HEN/HEY, while the ordinary salary he may also draw keeps its tariff code.
+	One ``TaxAtSourceCategory`` cannot carry both — it is a choice — so the ELM
+	guidelines resolve it by entering the person **twice**, with two personnel
+	numbers and two accounting circles.
+
+	Declaring such a person under a single category is not rejected by the
+	recipient; it silently taxes part of the income at the wrong rate. Hence a
+	detection rather than a best guess.
+
+	Args:
+		wage_type_codes: the wage type codes actually paid in the period.
+		category: the resolved category, as returned by
+			``resolve_tax_at_source_category`` (may be None).
+
+	Returns:
+		dict describing the conflict, or None when there is none.
+	"""
+	if not category:
+		return None
+	codes = {str(c).strip() for c in (wage_type_codes or []) if str(c).strip()}
+	board_codes = sorted(codes & BOARD_FEE_WAGE_TYPES)
+	other_codes = sorted(codes - BOARD_FEE_WAGE_TYPES)
+	value = category.get("value")
+
+	if board_codes and category["kind"] == CATEGORY_TARIFF:
+		return {
+			"reason": "board_fee_under_tariff_code",
+			"board_wage_types": board_codes,
+			"category": value,
+			"message": (
+				f"Board fees ({', '.join(board_codes)}) are declared under tariff code "
+				f"{value}, but a non-resident board member is taxed on them at a linear "
+				"rate under HEN/HEY. Enter the person twice — one personnel number for "
+				"the salary, one for the fee — as the ELM guidelines require."
+			),
+		}
+
+	if other_codes and value in BOARD_FEE_CATEGORIES:
+		return {
+			"reason": "salary_under_board_fee_category",
+			"other_wage_types": other_codes,
+			"category": value,
+			"message": (
+				f"Ordinary salary ({', '.join(other_codes)}) is declared under the board-fee "
+				f"category {value}, which taxes it at a linear rate. Enter the person twice — "
+				"one personnel number for the salary, one for the fee."
+			),
+		}
+
+	return None

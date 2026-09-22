@@ -233,6 +233,12 @@ QST_CATEGORY_MEY = "MEY"  # employee participation realised after leaving CH, wi
 QST_CATEGORY_NON = "NON"  # period during which the person was NOT liable (correction)
 QST_CATEGORY_NOY = "NOY"  # same, with church tax
 QST_CATEGORY_SFN = "SFN"  # French special agreement: no source tax withheld, salary still declared
+# Board-of-directors fees. A non-resident board member is taxed on these at a
+# LINEAR rate under the predefined category HEN/HEY, while any ordinary salary he
+# also draws keeps its tariff code. The two cannot share one declaration: the ELM
+# guidelines say to enter the person TWICE, with two personnel numbers.
+BOARD_FEE_WAGE_TYPES = frozenset({"1500", "1501", "1503", "1510"})
+
 QST_PREDEFINED_CATEGORIES = (
 	QST_CATEGORY_HEN,
 	QST_CATEGORY_HEY,

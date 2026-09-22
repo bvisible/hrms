@@ -8,6 +8,7 @@ from hrms.regional.switzerland.tax_at_source_category import (
 	CATEGORY_OPEN,
 	CATEGORY_PREDEFINED,
 	CATEGORY_TARIFF,
+	detect_split_required,
 	resolve_tax_at_source_category,
 )
 
@@ -91,3 +92,45 @@ class TestDeclaredCategories(unittest.TestCase):
 		out = resolve_tax_at_source_category({"ch_qst_open_category": "VD-SPECIAL"}, canton="VD")
 		self.assertEqual(out["kind"], CATEGORY_OPEN)
 		self.assertEqual(out["value"], "VD-SPECIAL")
+
+
+class TestBoardFeeSplit(unittest.TestCase):
+	"""A board member taxed at a linear rate on his fee cannot share one declaration."""
+
+	def _tariff(self, code="B0N"):
+		return {"kind": CATEGORY_TARIFF, "value": code, "withhold": True}
+
+	def _board(self, code="HEN"):
+		return {"kind": CATEGORY_PREDEFINED, "value": code, "withhold": True}
+
+	def test_board_fee_under_a_tariff_code_is_flagged(self):
+		out = detect_split_required(["1000", "1500"], self._tariff())
+		self.assertIsNotNone(out)
+		self.assertEqual(out["reason"], "board_fee_under_tariff_code")
+		self.assertEqual(out["board_wage_types"], ["1500"])
+		self.assertIn("twice", out["message"])
+
+	def test_every_board_fee_wage_type_is_caught(self):
+		for code in ("1500", "1501", "1503", "1510"):
+			self.assertIsNotNone(detect_split_required(["1000", code], self._tariff()), code)
+
+	def test_ordinary_salary_under_a_board_fee_category_is_flagged(self):
+		out = detect_split_required(["1000", "1500"], self._board())
+		self.assertIsNotNone(out)
+		self.assertEqual(out["reason"], "salary_under_board_fee_category")
+		self.assertEqual(out["other_wage_types"], ["1000"])
+
+	def test_a_fee_only_board_member_is_fine(self):
+		"""Only the fee, under HEN: nothing to split."""
+		self.assertIsNone(detect_split_required(["1500"], self._board()))
+
+	def test_an_ordinary_salary_under_a_tariff_code_is_fine(self):
+		self.assertIsNone(detect_split_required(["1000", "1065"], self._tariff()))
+
+	def test_sfn_with_a_salary_is_fine(self):
+		"""SFN covers the whole salary of a French frontalier — no split involved."""
+		sfn = {"kind": CATEGORY_PREDEFINED, "value": "SFN", "withhold": False}
+		self.assertIsNone(detect_split_required(["1000", "1065"], sfn))
+
+	def test_no_category_means_nothing_to_check(self):
+		self.assertIsNone(detect_split_required(["1000", "1500"], None))

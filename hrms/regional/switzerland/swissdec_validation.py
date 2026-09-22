@@ -13,9 +13,14 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
+import frappe
 from frappe.utils import flt
 
 from hrms.regional.switzerland.constants import SWISS_CANTONS
+from hrms.regional.switzerland.tax_at_source_category import (
+	detect_split_required,
+	resolve_tax_at_source_category,
+)
 
 
 @dataclass
@@ -310,7 +315,11 @@ def _validate_salary_data(salary_data, employee_doc, config=None):
 	# Check source tax if employee is QST-subject
 	if employee_doc.get("ch_qst_subject"):
 		qst = flt(salary_data.get("source_tax_total"))
-		if qst == 0 and gross > 0:
+		category = resolve_tax_at_source_category(employee_doc)
+		if qst == 0 and gross > 0 and (not category or category["withhold"]):
+			# A category that withholds nothing (SFN under the French agreement,
+			# NON/NOY on a correction) is SUPPOSED to show zero tax, so warning
+			# about it would train people to ignore this check.
 			results.append(
 				ValidationResult(
 					level="warning",
@@ -320,7 +329,37 @@ def _validate_salary_data(salary_data, employee_doc, config=None):
 				)
 			)
 
+		conflict = detect_split_required(_paid_wage_type_codes(salary_data), category)
+		if conflict:
+			results.append(
+				ValidationResult(
+					level="error",
+					employee=emp_name,
+					field_name="ch_qst_predefined_category",
+					message=conflict["message"],
+				)
+			)
+
 	return results
+
+
+def _paid_wage_type_codes(salary_data):
+	"""Wage type codes actually paid in the period, from the component totals.
+
+	``component_totals`` is keyed by Salary Component name, so the codes have to
+	be looked up. Only components with a non-zero amount count: a component that
+	exists but paid nothing says nothing about how the person must be declared.
+	"""
+	totals = (salary_data or {}).get("component_totals") or {}
+	names = [name for name, amount in totals.items() if flt(amount)]
+	if not names:
+		return []
+	rows = frappe.get_all(
+		"Salary Component",
+		filters={"name": ["in", names]},
+		fields=["ch_wage_type_code"],
+	)
+	return [r.ch_wage_type_code for r in rows if r.ch_wage_type_code]
 
 
 def validate_avs_number(avs_number):
