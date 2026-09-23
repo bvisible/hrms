@@ -117,12 +117,15 @@ class TestWageTypeData(unittest.TestCase):
 		self.assertEqual(wt["subject_to_imp"], 1)  # taxable income
 
 	def test_apg_partial_flags(self):
-		"""APG (2000) should be subject to AVS+AC+IMP only."""
+		"""APG (2000): AVS/AC, IJM and source tax — never LAA (Swissdec guidelines 6.0, 5.2.1).
+
+		//// Neoffice — IJM was 0 here, pinning the catalogue error the guidelines contradict.
+		"""
 		wt = self._get_by_code("2000")
 		self.assertEqual(wt["subject_to_avs"], 1)
 		self.assertEqual(wt["subject_to_ac"], 1)
 		self.assertEqual(wt["subject_to_laa"], 0)
-		self.assertEqual(wt["subject_to_ijm"], 0)
+		self.assertEqual(wt["subject_to_ijm"], 1)
 		self.assertEqual(wt["subject_to_lpp"], 0)
 		self.assertEqual(wt["subject_to_imp"], 1)
 
@@ -213,6 +216,7 @@ class TestWageTypeData(unittest.TestCase):
 			"13.2.1",
 			"13.2.2",
 			"13.2.3",
+			"13.3",
 			"14",
 		}
 		for wt in self.wage_types:
@@ -228,6 +232,148 @@ class TestWageTypeData(unittest.TestCase):
 			if wt["code"] == code:
 				return wt
 		return None
+
+
+# code -> (type, AVS/AC, LAA, IJM, LPP, source tax, negative, bases only) as the sample wage type
+# table of the Swissdec guidelines 6.0 (edition 06.03.2026, 5.2.1) gives them, for every code our
+# catalogue shares with it under the same meaning. The LPP column is our own flag, not theirs: it
+# only feeds the salary annualised for an employee paid by the hour.
+SWISSDEC_60 = {
+	"1000": ("Earning", 1, 1, 1, 1, 1, 0, 0),
+	"1165": ("Earning", 1, 1, 1, 1, 1, 0, 0),  # 1166 "Paiement des vacances" there
+	"1210": ("Earning", 1, 1, 1, 1, 1, 0, 0),
+	"1400": ("Earning", 0, 0, 0, 0, 1, 0, 0),
+	"1401": ("Earning", 1, 0, 1, 0, 1, 0, 0),
+	"1920": ("Earning", 1, 1, 1, 0, 1, 0, 1),
+	"1971": ("Earning", 0, 0, 0, 0, 1, 0, 0),
+	"1976": ("Earning", 0, 0, 0, 0, 1, 0, 0),
+	"1977": ("Earning", 1, 1, 1, 1, 1, 0, 0),
+	"1978": ("Earning", 1, 1, 1, 1, 1, 0, 0),
+	"1979": ("Earning", 1, 1, 1, 1, 1, 0, 0),
+	"1980": ("Earning", 0, 0, 0, 0, 0, 0, 0),
+	"2000": ("Earning", 1, 0, 1, 0, 1, 0, 0),
+	"2005": ("Earning", 1, 1, 1, 0, 1, 0, 0),
+	"2020": ("Earning", 1, 0, 1, 0, 1, 0, 0),
+	"2021": ("Earning", 0, 0, 0, 0, 0, 0, 0),
+	"2025": ("Earning", 1, 0, 1, 0, 1, 0, 0),
+	"2026": ("Earning", 0, 0, 0, 0, 0, 0, 0),
+	"2030": ("Earning", 0, 0, 0, 0, 1, 0, 0),
+	"2031": ("Earning", 0, 0, 0, 0, 0, 0, 0),
+	"2035": ("Earning", 0, 0, 0, 0, 1, 0, 0),
+	"2040": ("Earning", 1, 0, 1, 0, 1, 0, 0),  # 2001 "Indemnité maternité" there
+	"2050": ("Earning", 1, 1, 1, 0, 1, 1, 0),
+	"2060": ("Earning", 0, 0, 0, 0, 1, 1, 0),
+	"2065": ("Earning", 1, 1, 1, 1, 0, 0, 1),  # LPP: "LPP rétroactive" 1 there
+	"2070": ("Earning", 0, 0, 0, 0, 1, 0, 0),
+	"2075": ("Earning", 0, 0, 0, 0, 1, 0, 0),
+	"3000": ("Earning", 0, 0, 0, 0, 1, 0, 0),
+}
+
+
+class TestCatalogueMatchesSwissdec60(unittest.TestCase):
+	"""//// Neoffice — the catalogue against the official sample table, code by code (2026-09-23)."""
+
+	def test_every_shared_code_is_subject_as_swissdec_says(self):
+		catalogue = {wt["code"]: wt for wt in get_swiss_wage_types()}
+		for code, expected in SWISSDEC_60.items():
+			wt = catalogue[code]
+			actual = (
+				wt["type"],
+				wt["subject_to_avs"],
+				wt["subject_to_laa"],
+				wt["subject_to_ijm"],
+				wt["subject_to_lpp"],
+				wt["subject_to_imp"],
+				wt["is_negative"],
+				wt["bases_only"],
+			)
+			self.assertEqual(actual, expected, f"wage type {code} ({wt['wage_type_name']})")
+			self.assertEqual(wt["subject_to_ac"], wt["subject_to_avs"], f"AVS and AC go together ({code})")
+
+	def test_a_bases_only_wage_type_is_never_paid(self):
+		for wt in get_swiss_wage_types():
+			if wt["bases_only"]:
+				self.assertEqual(wt.get("do_not_include_in_total"), 1, wt["code"])
+
+	def test_certificate_boxes_the_guidelines_fix(self):
+		catalogue = {wt["code"]: wt for wt in get_swiss_wage_types()}
+		self.assertEqual(catalogue["1980"]["lohnausweis_position"], "13.3")  # training (Rz 61)
+		self.assertEqual(catalogue["2020"]["lohnausweis_position"], "1")  # insurance daily allowance
+		self.assertEqual(catalogue["2050"]["lohnausweis_position"], "1")
+		self.assertEqual(catalogue["2060"]["lohnausweis_position"], "7")
+		self.assertEqual(catalogue["2075"]["lohnausweis_position"], "7")
+
+
+class TestSwissdecBaseExamples(unittest.TestCase):
+	"""The worked examples of the Swissdec guidelines 6.0 (8.7.2), through utils.sum_insurance_bases."""
+
+	@staticmethod
+	def _row(code, amount, no_total=0):
+		wt = {w["code"]: w for w in get_swiss_wage_types()}[code]
+		row = {f"ch_subject_to_{k}": wt[f"subject_to_{k}"] for k in ("avs", "ac", "laa", "ijm", "lpp", "imp")}
+		row.update(
+			ch_wage_type_code=code,
+			ch_bases_only=wt["bases_only"],
+			do_not_include_in_total=no_total or wt.get("do_not_include_in_total", 0),
+			# A "-" wage type reaches the bases negative (payroll_hooks._apply_negative_wage_types).
+			amount=-amount if wt["is_negative"] else amount,
+		)
+		return row
+
+	def _bases(self, *lines):
+		from hrms.regional.switzerland.utils import sum_insurance_bases
+
+		return sum_insurance_bases([self._row(code, amount) for code, amount in lines])
+
+	def test_apg_with_the_salary_continued(self):
+		"""8.7.2.1: 7'000 + APG 550 - correction 550 -> gross 7'000, LAA 6'450, AVS 7'000."""
+		bases = self._bases(("1000", 7000), ("2000", 550), ("2050", 550))
+		self.assertEqual((bases["gross"], bases["laa"], bases["avs"]), (7000, 6450, 7000))
+
+	def test_apg_without_the_salary_continued(self):
+		"""8.7.2.1: hourly 2'250.50 + APG 550 -> gross 2'800.50, LAA 2'250.50, AVS 2'800.50."""
+		bases = self._bases(("1005", 2250.50), ("2000", 550))
+		self.assertEqual((bases["gross"], bases["laa"], bases["avs"]), (2800.50, 2250.50, 2800.50))
+
+	def test_military_compensation_with_the_salary_continued(self):
+		"""8.7.2.2: the CCM is subject to LAA too -> gross, LAA and AVS all 7'000."""
+		bases = self._bases(("1000", 7000), ("2005", 550), ("2050", 550))
+		self.assertEqual((bases["gross"], bases["laa"], bases["avs"]), (7000, 7000, 7000))
+
+	def test_accident_daily_allowance_with_the_salary_continued(self):
+		"""8.7.2.4: exempt from AVS and LAA -> gross 7'000, LAA 6'450, AVS 6'450."""
+		bases = self._bases(("1000", 7000), ("2030", 550), ("2050", 550))
+		self.assertEqual((bases["gross"], bases["laa"], bases["avs"]), (7000, 6450, 6450))
+
+	def test_short_time_work_with_the_salary_continued(self):
+		"""8.7.2.5: 7'000 - 1'500 + 1'050 + 150 -> gross 6'700, LAA and AVS 7'000."""
+		bases = self._bases(("1000", 7000), ("2060", 1500), ("2070", 1050), ("2075", 150))
+		self.assertEqual((bases["gross"], bases["laa"], bases["avs"]), (6700, 7000, 7000))
+		self.assertEqual(bases["imp"], 6700)  # source tax on what is actually earned
+
+	def test_short_time_work_without_the_salary_continued(self):
+		"""8.7.2.5: hourly 4'600 + loss 900 (bases only) + 600 + 120 -> gross 5'320, bases 5'500."""
+		bases = self._bases(("1005", 4600), ("2065", 900), ("2070", 600), ("2075", 120))
+		self.assertEqual((bases["gross"], bases["laa"], bases["avs"]), (5320, 5500, 5500))
+		self.assertEqual(bases["imp"], 5320)
+
+	def test_tips_raise_the_bases_without_being_paid(self):
+		"""1920: 800 of tips on 6'000 -> gross 6'000, AVS and LAA 6'800."""
+		bases = self._bases(("1000", 6000), ("1920", 800))
+		self.assertEqual((bases["gross"], bases["avs"], bases["laa"], bases["lpp"]), (6000, 6800, 6800, 6000))
+
+
+def _component_fields(avs, ac, laa, ijm, lpp, imp, wage_type="X"):
+	"""The Salary Component fields sum_insurance_bases reads; wage_type=None for a legacy one."""
+	return {
+		"ch_subject_to_avs": avs,
+		"ch_subject_to_ac": ac,
+		"ch_subject_to_laa": laa,
+		"ch_subject_to_ijm": ijm,
+		"ch_subject_to_lpp": lpp,
+		"ch_subject_to_imp": imp,
+		"ch_wage_type_code": wage_type,
+	}
 
 
 class TestInsuranceBaseTotals(unittest.TestCase):
@@ -259,15 +405,7 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 		"""When all earnings are subject to all insurances, all bases equal gross."""
 		from hrms.regional.switzerland.payroll_hooks import _get_insurance_base_totals
 
-		mock_flags.return_value = {
-			"avs": 1,
-			"ac": 1,
-			"laa": 1,
-			"ijm": 1,
-			"lpp": 1,
-			"imp": 1,
-			"has_flags": True,
-		}
+		mock_flags.return_value = _component_fields(1, 1, 1, 1, 1, 1)
 
 		earnings = [
 			self._make_earning_row("Basic", 8000),
@@ -292,13 +430,13 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 
 		def side_effect(comp):
 			if comp == "Basic":
-				return {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 1, "has_flags": True}
+				return _component_fields(1, 1, 1, 1, 1, 1)
 			elif comp == "Child Allowance":
 				# Exempt from social charges but subject to source tax
-				return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 1, "has_flags": True}
+				return _component_fields(0, 0, 0, 0, 0, 1)
 			elif comp == "APG Allowance":
-				return {"avs": 1, "ac": 1, "laa": 0, "ijm": 0, "lpp": 0, "imp": 1, "has_flags": True}
-			return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": False}
+				return _component_fields(1, 1, 0, 0, 0, 1)
+			return _component_fields(0, 0, 0, 0, 0, 0, wage_type=None)
 
 		mock_flags.side_effect = side_effect
 
@@ -337,15 +475,7 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 		"""When no component has flags configured, fall back to gross for all bases."""
 		from hrms.regional.switzerland.payroll_hooks import _get_insurance_base_totals
 
-		mock_flags.return_value = {
-			"avs": 0,
-			"ac": 0,
-			"laa": 0,
-			"ijm": 0,
-			"lpp": 0,
-			"imp": 0,
-			"has_flags": False,
-		}
+		mock_flags.return_value = _component_fields(0, 0, 0, 0, 0, 0, wage_type=None)
 
 		earnings = [
 			self._make_earning_row("Basic", 8000),
@@ -371,11 +501,11 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 
 		def side_effect(comp):
 			if comp == "Basic":
-				return {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 1, "has_flags": True}
+				return _component_fields(1, 1, 1, 1, 1, 1)
 			elif comp == "Travel Expenses":
 				# Explicitly configured as exempt from all
-				return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": True}
-			return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": False}
+				return _component_fields(0, 0, 0, 0, 0, 0)
+			return _component_fields(0, 0, 0, 0, 0, 0, wage_type=None)
 
 		mock_flags.side_effect = side_effect
 
@@ -403,13 +533,13 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 
 		def side_effect(comp):
 			if comp == "Basic":
-				return {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 1, "has_flags": True}
+				return _component_fields(1, 1, 1, 1, 1, 1)
 			elif comp in ("Travel Expenses", "Child Allowance"):
 				# Explicitly exempt from everything
-				return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": True}
+				return _component_fields(0, 0, 0, 0, 0, 0)
 			else:
 				# Not configured — goes into all bases
-				return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": False}
+				return _component_fields(0, 0, 0, 0, 0, 0, wage_type=None)
 
 		mock_flags.side_effect = side_effect
 

@@ -244,6 +244,28 @@ def get_employee_age(employee, reference_date=None):
 	return age
 
 
+# //// Neoffice — added. The LPP rates were read with the age to the day (get_employee_age):
+# //// someone born in November 1991 was charged the 7 % credit until his birthday in 2026
+# //// instead of 10 % from January, and a man of 65 kept paying 18 % until his 66th birthday.
+def get_lpp_age(employee, start_date, end_date):
+	"""The LPP age of a pay period, or 0 once the AVS reference age is behind.
+
+	The age that sets the savings credit is the calendar year minus the year of birth — every
+	pension fund reads it so, whatever the birthday. The savings stop when the reference age
+	is reached (LPP art. 13): from the month after it, no credit is due any more.
+	"""
+	from hrms.regional.switzerland.avs_exemption import age_in_year, is_past_reference_age
+	from hrms.regional.switzerland.insurance_solutions import normalize_sex
+
+	values = frappe.db.get_value("Employee", employee, ["date_of_birth", "gender"], as_dict=True) or {}
+	if not values.get("date_of_birth"):
+		return 0
+	birth = getdate(values.date_of_birth)
+	if is_past_reference_age(birth, normalize_sex(values.get("gender")), getdate(start_date or end_date)):
+		return 0
+	return age_in_year(birth, getdate(end_date or start_date).year)
+
+
 def get_ytd_gross_for_employee(employee, company, start_date, end_date):
 	"""Get year-to-date gross salary for an employee, excluding the current period.
 
@@ -297,6 +319,76 @@ def get_ytd_ac_base_for_employee(employee, company, start_date, end_date):
 	return get_ytd_insurance_bases(employee, company, start_date)["ac"]
 
 
+# //// Neoffice — one definition of a component whose flags are to be trusted, shared by the
+# //// payslip (payroll_hooks), the year-to-date bases below and the declaration (swissdec_data).
+def is_configured_component(values):
+	"""Whether a Salary Component's insurance flags are to be trusted as set.
+
+	True when the component carries a Swiss wage type (its flags come from the catalogue, all
+	zero included) or when any flag is set. A component with neither predates the flags: the
+	callers then count it in every base, as before the flags existed.
+	"""
+	values = values or {}
+	flags = (
+		"ch_subject_to_avs",
+		"ch_subject_to_ac",
+		"ch_subject_to_laa",
+		"ch_subject_to_ijm",
+		"ch_subject_to_lpp",
+		"ch_subject_to_imp",
+	)
+	return bool(
+		any(cint(values.get(f)) for f in flags)
+		or values.get("ch_wage_type")
+		or values.get("ch_wage_type_code")
+	)
+
+
+INSURANCE_BASE_KEYS = ("avs", "ac", "laa", "ijm", "lpp", "imp")
+
+
+# //// Neoffice — added: the payslip, the year-to-date ceilings, the declaration and the printed
+# //// slip each summed their own bases and had already drifted apart (a component subject to
+# //// nothing, 6000 expenses, was exempt on one side and charged on the other). One rule now,
+# //// and it knows the two Swissdec behaviours a subject flag cannot express.
+def sum_insurance_bases(rows):
+	"""The insurance bases of a set of earning rows, and the gross they add up to.
+
+	Each row carries its ``amount``, ``do_not_include_in_total`` and its component's
+	ch_subject_to_* flags, ch_wage_type, ch_wage_type_code and ch_bases_only.
+
+	* A row paid (in the total) counts in the gross, and in each base its component is
+	  subject to — in every base when the component predates the flags.
+	* A row left out of the total counts nowhere, unless its wage type counts in the bases
+	  only (1920 tips, 2065 short-time work loss, Swissdec guidelines 6.0, 8.7.2.5): then in
+	  the bases it is subject to, never in the gross, since nobody pays it.
+	* A negative amount — a "-" wage type (2050 correction of a daily allowance, 2060
+	  short-time work deduction) — takes back from each of them what it would have added.
+	* When no row is configured at all, every base is the gross: installations that never
+	  set the flags keep their old behaviour.
+
+	Returns:
+		dict with avs, ac, laa, ijm, lpp, imp and gross (floats), and configured (bool).
+	"""
+	totals = dict.fromkeys(INSURANCE_BASE_KEYS, 0.0)
+	gross = 0.0
+	configured = False
+	for row in rows:
+		if cint(row.get("do_not_include_in_total")) and not cint(row.get("ch_bases_only")):
+			continue
+		amount = flt(row.get("amount"))
+		if not cint(row.get("do_not_include_in_total")):
+			gross += amount
+		row_configured = is_configured_component(row)
+		configured = configured or row_configured
+		for key in INSURANCE_BASE_KEYS:
+			if not row_configured or cint(row.get(f"ch_subject_to_{key}")):
+				totals[key] += amount
+	if not configured:
+		totals = dict.fromkeys(INSURANCE_BASE_KEYS, gross)
+	return {**totals, "gross": gross, "configured": configured}
+
+
 def get_ytd_insurance_bases(employee, company, start_date):
 	"""Year-to-date AC-, LAA- and IJM-subject salaries of an employee, before ``start_date``.
 
@@ -313,20 +405,19 @@ def get_ytd_insurance_bases(employee, company, start_date):
 	"""
 	year_start = getdate(start_date).replace(month=1, day=1)
 
+	# //// Neoffice — the rows left out of the total are read too, and every slip goes through
+	# //// sum_insurance_bases: a wage type that only raises the bases (1920, 2065) must count
+	# //// in the ceilings of the months after, exactly as it counted in its own.
 	rows = frappe.db.sql(
 		"""
 		SELECT
 			sd.parent AS slip,
 			ss.start_date AS slip_start,
 			COALESCE(sd.amount, sd.default_amount, 0) AS amount,
-			COALESCE(sc.ch_subject_to_ac, 0) AS ac,
-			COALESCE(sc.ch_subject_to_laa, 0) AS laa,
-			COALESCE(sc.ch_subject_to_ijm, 0) AS ijm,
-			(
-				COALESCE(sc.ch_subject_to_avs, 0) OR COALESCE(sc.ch_subject_to_ac, 0)
-				OR COALESCE(sc.ch_subject_to_laa, 0) OR COALESCE(sc.ch_subject_to_ijm, 0)
-				OR COALESCE(sc.ch_subject_to_lpp, 0) OR COALESCE(sc.ch_subject_to_imp, 0)
-			) AS has_flags
+			COALESCE(sd.do_not_include_in_total, 0) AS do_not_include_in_total,
+			sc.ch_subject_to_avs, sc.ch_subject_to_ac, sc.ch_subject_to_laa,
+			sc.ch_subject_to_ijm, sc.ch_subject_to_lpp, sc.ch_subject_to_imp,
+			sc.ch_wage_type, sc.ch_wage_type_code, sc.ch_bases_only
 		FROM `tabSalary Detail` sd
 		INNER JOIN `tabSalary Slip` ss ON ss.name = sd.parent
 		LEFT JOIN `tabSalary Component` sc ON sc.name = sd.salary_component
@@ -337,7 +428,6 @@ def get_ytd_insurance_bases(employee, company, start_date):
 			AND ss.docstatus = 1
 			AND sd.parenttype = 'Salary Slip'
 			AND sd.parentfield = 'earnings'
-			AND COALESCE(sd.do_not_include_in_total, 0) = 0
 		""",
 		(employee, company, year_start, start_date),
 		as_dict=True,
@@ -346,22 +436,9 @@ def get_ytd_insurance_bases(employee, company, start_date):
 	keys = ("ac", "laa", "ijm")
 	per_slip = {}
 	for row in rows:
-		slip = per_slip.setdefault(row.slip, {"total": 0.0, "any_flag": False, **{k: 0.0 for k in keys}})
-		amount = flt(row.amount)
-		slip["total"] += amount
-		if row.has_flags:
-			slip["any_flag"] = True
-			for key in keys:
-				if row.get(key):
-					slip[key] += amount
-		else:
-			# A component with no flag at all feeds every base.
-			for key in keys:
-				slip[key] += amount
-
-	result = {
-		key: flt(sum(s[key] if s["any_flag"] else s["total"] for s in per_slip.values())) for key in keys
-	}
+		per_slip.setdefault(row.slip, []).append(row)
+	slips = [sum_insurance_bases(slip_rows) for slip_rows in per_slip.values()]
+	result = {key: flt(sum(bases[key] for bases in slips)) for key in keys}
 	starts = [getdate(row.slip_start) for row in rows]
 	result["first_start"] = min(starts) if starts else None
 	return result
@@ -451,7 +528,8 @@ def get_component_rates_for_salary_slip(doc):
 	if not config:
 		return {}
 
-	age = get_employee_age(doc.employee, doc.end_date)
+	# //// Neoffice — the LPP age the slip was computed with (utils.get_lpp_age), not the age to the day.
+	age = get_lpp_age(doc.employee, doc.start_date, doc.end_date)
 	return _build_rate_dict(config, age)
 
 
@@ -522,7 +600,8 @@ def get_salary_slip_print_data(doc):
 	"""
 	employee = frappe.get_cached_doc("Employee", doc.employee)
 	config = get_swiss_social_insurance_config(doc.company, employee.get("ch_fiscal_canton") or "")
-	age = get_employee_age(doc.employee, doc.end_date)
+	# //// Neoffice — the LPP age the slip was computed with (get_lpp_age), not the age to the day.
+	age = get_lpp_age(doc.employee, doc.start_date, doc.end_date)
 	rates = _build_rate_dict(config, age) if config else {}
 
 	# //// Neoffice — translated, was hardcoded French ("Madame" / "Monsieur"), so a
@@ -560,10 +639,10 @@ def get_salary_slip_print_data(doc):
 
 	# Build enriched earnings
 	earnings = []
-	insurance_bases = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "gross": 0}
-	any_flag = False
+	base_rows = []
 
 	comp_fields = [
+		"ch_wage_type",
 		"ch_wage_type_code",
 		"ch_subject_to_avs",
 		"ch_subject_to_ac",
@@ -571,6 +650,7 @@ def get_salary_slip_print_data(doc):
 		"ch_subject_to_ijm",
 		"ch_subject_to_lpp",
 		"ch_subject_to_imp",
+		"ch_bases_only",
 	]
 
 	for row in doc.get("earnings", []):
@@ -586,32 +666,19 @@ def get_salary_slip_print_data(doc):
 			}
 		)
 
-		# //// Neoffice — the amounts PAID, and only those in the total, exactly as the payroll hook
-		# //// builds its bases. It read default_amount first: on a partial month the payslip
-		# //// printed the full monthly salary as the base of contributions computed on half of it.
-		if cint(row.get("do_not_include_in_total")):
-			continue
+		# //// Neoffice — the amounts PAID, exactly as the payroll hook builds its bases. It read
+		# //// default_amount first: on a partial month the payslip printed the full monthly salary
+		# //// as the base of contributions computed on half of it.
 		amount = flt(row.default_amount if row.get("amount") is None else row.amount, 2)
-		insurance_bases["gross"] += amount
+		base_rows.append(
+			{**comp_vals, "amount": amount, "do_not_include_in_total": row.get("do_not_include_in_total")}
+		)
 
-		flags = {
-			"avs": comp_vals.get("ch_subject_to_avs"),
-			"ac": comp_vals.get("ch_subject_to_ac"),
-			"laa": comp_vals.get("ch_subject_to_laa"),
-			"ijm": comp_vals.get("ch_subject_to_ijm"),
-			"lpp": comp_vals.get("ch_subject_to_lpp"),
-			"imp": comp_vals.get("ch_subject_to_imp"),
-		}
-		if any(flags.values()):
-			any_flag = True
-			for key in ("avs", "ac", "laa", "ijm", "lpp", "imp"):
-				if flags[key]:
-					insurance_bases[key] += amount
-
-	# Backward compat: if no flags configured, all bases = gross
-	if not any_flag:
-		for key in ("avs", "ac", "laa", "ijm", "lpp", "imp"):
-			insurance_bases[key] = insurance_bases["gross"]
+	# //// Neoffice — the payslip's own rule (sum_insurance_bases). This loop had a third one: a
+	# //// component without flags counted in no base at all as soon as another one had flags,
+	# //// where the hook counts it in every base.
+	summed = sum_insurance_bases(base_rows)
+	insurance_bases = {key: summed[key] for key in (*INSURANCE_BASE_KEYS, "gross")}
 
 	# //// Neoffice — the bases the payroll hook actually used, where the slip carries them:
 	# //// after the AVS exemption of a pensioner, the AC ceiling and the LAA cap. The sums of

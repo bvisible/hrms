@@ -267,6 +267,41 @@ class TestHourlyEmployeeContributions(SwissPayrollHookCase):
 		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 66.00)
 
 
+class TestComponentSubjectToNothing(SwissPayrollHookCase):
+	"""A wage type subject to nothing stays out of every base — found by the Odoo bench."""
+
+	EXPENSES = "_Test CH Travel Expenses"
+	LEGACY = "_Test CH Legacy Allowance"
+
+	def test_expenses_are_not_charged(self):
+		"""500 of travel expenses (6000) on a 6'000 salary: the contributions of 6'000 only."""
+		_ensure_component(self.EXPENSES, "Earning", subject_to=0)
+		frappe.db.set_value(
+			"Salary Component", self.EXPENSES, "ch_wage_type_code", "6000", update_modified=False
+		)
+		slip = self._make_slip([(MONTHLY_COMPONENT, 6000), (self.EXPENSES, 500)])
+		update_swiss_social_contributions(slip, "validate")
+
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 318.00)  # was 344.50
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 66.00)
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employee"), 60.00)
+		self.assertEqual(self._amount(slip, "IJM/KTG Employee"), 42.00)
+
+	def test_a_component_without_wage_type_nor_flag_still_counts_everywhere(self):
+		"""Installations that predate the flags: such a component feeds every base, as before."""
+		_ensure_component(self.LEGACY, "Earning", subject_to=0)
+		frappe.db.set_value(
+			"Salary Component",
+			self.LEGACY,
+			{"ch_wage_type": None, "ch_wage_type_code": None},
+			update_modified=False,
+		)
+		slip = self._make_slip([(MONTHLY_COMPONENT, 6000), (self.LEGACY, 500)])
+		update_swiss_social_contributions(slip, "validate")
+
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 344.50)  # 6'500 x 5.3 %
+
+
 # //// Neoffice — tests of an added file (no upstream equivalent).
 class TestPartialMonthIsProratedOnce(SwissPayrollHookCase):
 	"""A base already built from the amounts paid must not be prorated a second time."""
@@ -816,3 +851,206 @@ class TestFiveCentimesAndWhatThePayslipStates(SwissPayrollHookCase):
 		# Outside Switzerland upstream is untouched.
 		slip._rounds_to_5_centimes = lambda: False
 		self.assertEqual(slip.get_amount_based_on_payment_days(row)[0], 2833.33)
+
+
+def _catalogue_component(name, code):
+	"""A component made from our catalogue entry, as api.create_component_from_wage_type makes it."""
+	from hrms.regional.switzerland.wage_type_data import get_swiss_wage_types
+
+	wt = {w["code"]: w for w in get_swiss_wage_types()}[code]
+	_ensure_component(name, wt["type"])
+	frappe.db.set_value(
+		"Salary Component",
+		name,
+		{
+			"type": wt["type"],
+			"ch_wage_type_code": code,
+			**{
+				f"ch_subject_to_{k}": wt[f"subject_to_{k}"] for k in ("avs", "ac", "laa", "ijm", "lpp", "imp")
+			},
+			"ch_negative_wage_type": wt["is_negative"],
+			"ch_bases_only": wt["bases_only"],
+			"do_not_include_in_total": wt.get("do_not_include_in_total", 0),
+		},
+		update_modified=False,
+	)
+	return name
+
+
+# //// Neoffice — the worked examples of the Swissdec guidelines 6.0 (8.7.2) on a real slip.
+class TestSwissdecWageTypesOnTheSlip(SwissPayrollHookCase):
+	APG = "_Test CH 2000 APG"
+	CORRECTION = "_Test CH 2050 Correction"
+	TIPS = "_Test CH 1920 Tips"
+	LOSS = "_Test CH 2065 Short-time Loss"
+	UNEMPLOYMENT = "_Test CH 2070 Unemployment"
+	WAITING = "_Test CH 2075 Waiting Day"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		for name, code in (
+			(cls.APG, "2000"),
+			(cls.CORRECTION, "2050"),
+			(cls.TIPS, "1920"),
+			(cls.LOSS, "2065"),
+			(cls.UNEMPLOYMENT, "2070"),
+			(cls.WAITING, "2075"),
+		):
+			_catalogue_component(name, code)
+
+	def _slip(self, earnings):
+		slip = self._make_slip(earnings)
+		for row in slip.earnings:
+			# What the framework copies from the component when it builds the row.
+			row.do_not_include_in_total = frappe.db.get_value(
+				"Salary Component", row.salary_component, "do_not_include_in_total"
+			)
+		update_swiss_social_contributions(slip, "validate")
+		return slip
+
+	def _earning(self, slip, component):
+		return next(flt(r.amount, 2) for r in slip.earnings if r.salary_component == component)
+
+	def test_apg_with_the_salary_continued(self):
+		"""7'000 + APG 550 + correction 550: gross 7'000, AVS/AC on 7'000, LAA on 6'450 (8.7.2.1)."""
+		slip = self._slip([(MONTHLY_COMPONENT, 7000), (self.APG, 550), (self.CORRECTION, 550)])
+		self.assertEqual(self._earning(slip, self.CORRECTION), -550)  # entered positive
+		self.assertEqual(flt(slip.gross_pay, 2), 7000)
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 371.00)  # 7'000 x 5.3 %
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 77.00)
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employee"), 64.50)  # 6'450 x 1 %
+		self.assertEqual(self._amount(slip, "IJM/KTG Employee"), 49.00)  # 7'000 x 0.7 %
+
+	def test_a_second_validate_keeps_the_correction_negative(self):
+		slip = self._slip([(MONTHLY_COMPONENT, 7000), (self.APG, 550), (self.CORRECTION, 550)])
+		update_swiss_social_contributions(slip, "validate")
+		self.assertEqual(self._earning(slip, self.CORRECTION), -550)
+		self.assertEqual(flt(slip.gross_pay, 2), 7000)
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employee"), 64.50)
+
+	def test_tips_raise_the_bases_without_being_paid(self):
+		"""800 of tips (1920) on 6'000: contributions on 6'800, 6'000 paid."""
+		slip = self._slip([(MONTHLY_COMPONENT, 6000), (self.TIPS, 800)])
+		self.assertEqual(flt(slip.gross_pay, 2), 6000)
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 360.40)  # 6'800 x 5.3 %
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employee"), 68.00)
+
+	def test_short_time_work_without_the_salary_continued(self):
+		"""Hourly 4'600 + loss 900 + 600 + 120: gross 5'320, AVS/AC, LAA and IJM on 5'500 (8.7.2.5)."""
+		slip = self._slip(
+			[(HOURLY_COMPONENT, 4600), (self.LOSS, 900), (self.UNEMPLOYMENT, 600), (self.WAITING, 120)]
+		)
+		self.assertEqual(flt(slip.gross_pay, 2), 5320)
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 291.50)  # 5'500 x 5.3 %
+		self.assertEqual(self._amount(slip, "LAA Non-Professional Employee"), 55.00)
+		self.assertEqual(self._amount(slip, "IJM/KTG Employee"), 38.50)
+
+
+def _male_gender():
+	from hrms.regional.switzerland.insurance_solutions import normalize_sex
+
+	for name in frappe.get_all("Gender", pluck="name"):
+		if normalize_sex(name) == "male":
+			return name
+	return frappe.get_doc({"doctype": "Gender", "gender": "Male"}).insert(ignore_permissions=True).name
+
+
+# //// Neoffice — the ages follow the calendar year and the AVS 21 reference age (2026-09-23).
+class TestAgesOnTheSlip(SwissPayrollHookCase):
+	def _employee_born(self, date_of_birth, avs_status=""):
+		fields = ["date_of_birth", "gender", "ch_avs_status"]
+		before = frappe.db.get_value("Employee", self.employee, fields, as_dict=True)
+		frappe.db.set_value(
+			"Employee",
+			self.employee,
+			{"date_of_birth": date_of_birth, "gender": _male_gender(), "ch_avs_status": avs_status},
+			update_modified=False,
+		)
+		self.addCleanup(frappe.db.set_value, "Employee", self.employee, dict(before), update_modified=False)
+
+	def _slip(self):
+		slip = self._make_slip([(MONTHLY_COMPONENT, 6000)])
+		update_swiss_social_contributions(slip, "validate")
+		return slip
+
+	def test_an_apprentice_born_in_november_pays_avs_from_january(self):
+		"""17 to the day in March, but liable since 1 January of the year he turns 18."""
+		year = getdate(nowdate()).year
+		self._employee_born(f"{year - 18}-11-15")
+		slip = self._slip()
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 318.00)  # was 0
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 66.00)
+
+	def test_a_man_past_the_reference_age_is_a_pensioner_without_declaring_it(self):
+		"""Guidelines 8.1.1: the birth date and the sex decide — AVS above 1'400, no AC."""
+		year = getdate(nowdate()).year
+		self._employee_born(f"{year - 66}-01-15")
+		slip = self._slip()
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 243.80)  # (6'000 - 1'400) x 5.3 %
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 0)
+
+	def test_a_declared_waiver_keeps_the_full_avs(self):
+		year = getdate(nowdate()).year
+		self._employee_born(f"{year - 66}-01-15", avs_status="retired_waive_exemption")
+		slip = self._slip()
+		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 318.00)
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 0)
+
+	def test_the_lpp_credit_follows_the_calendar_year(self):
+		"""LPP age 35 from January: 10 % of 45'540, half of it a month — not 7 % until the birthday."""
+		year = getdate(nowdate()).year
+		self._employee_born(f"{year - 35}-11-20")
+		slip = self._slip()
+		self.assertEqual(self._amount(slip, "LPP/BVG Employee"), 189.75)  # 4'554 / 2 / 12
+
+	def test_no_lpp_credit_once_past_the_reference_age(self):
+		year = getdate(nowdate()).year
+		self._employee_born(f"{year - 66}-01-15")
+		slip = self._slip()
+		self.assertFalse(self._amount(slip, "LPP/BVG Employee"))
+
+
+# //// Neoffice — the compensation fund's administrative fees (2026-09-23).
+class TestAvsAdministrativeFees(SwissPayrollHookCase):
+	FEES = "AVS Administrative Fees Employer"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_ensure_component(cls.FEES, "Deduction")
+		frappe.db.set_value(
+			"Salary Component",
+			cls.FEES,
+			{"is_employer_contribution": 1, "do_not_include_in_total": 1, "depends_on_payment_days": 0},
+			update_modified=False,
+		)
+
+	def _with_rate(self, rate):
+		frappe.db.set_value("Swiss Social Insurance Config", self.config, "avs_admin_fee_rate", rate)
+		self.addCleanup(
+			frappe.db.set_value, "Swiss Social Insurance Config", self.config, "avs_admin_fee_rate", 0
+		)
+
+	def test_a_share_of_the_avs_contributions(self):
+		"""1.2 % of 318 + 318: 7.632, rounded to 7.65 — the certified engine's figure."""
+		self._with_rate(1.2)
+		slip = self._make_slip([(MONTHLY_COMPONENT, 6000)])
+		update_swiss_social_contributions(slip, "validate")
+		self.assertEqual(self._amount(slip, self.FEES), 7.65)
+		recorded = json.loads(slip.ch_contribution_bases)[self.FEES]
+		self.assertEqual(recorded, {"base": 636.00, "rate": 1.2})
+
+	def test_an_employer_cost_never_taken_from_the_net(self):
+		self._with_rate(1.2)
+		with_fees = self._make_slip([(MONTHLY_COMPONENT, 6000)])
+		update_swiss_social_contributions(with_fees, "validate")
+		frappe.db.set_value("Swiss Social Insurance Config", self.config, "avs_admin_fee_rate", 0)
+		without = self._make_slip([(MONTHLY_COMPONENT, 6000)])
+		update_swiss_social_contributions(without, "validate")
+		self.assertEqual(flt(with_fees.net_pay, 2), flt(without.net_pay, 2))
+
+	def test_no_rate_no_fees(self):
+		slip = self._make_slip([(MONTHLY_COMPONENT, 6000)])
+		update_swiss_social_contributions(slip, "validate")
+		self.assertIsNone(self._amount(slip, self.FEES))

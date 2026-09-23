@@ -72,3 +72,7 @@ hrms.patches.v15_0.switzerland_13th_month_code_1200
 # //// Wegleitung (daily allowances paid by the employer and family allowances belong to
 # //// Ziffer 1). Components are created once and never updated, so existing sites need this.
 hrms.patches.v15_0.switzerland_sync_component_catalogue
+# //// Neoffice — 2026-09-23: wage type catalogue checked against the Swissdec guidelines 6.0
+# //// (5.2.1, 8.7.2): IJM on the APG/maternity/military/AI allowances, "–" wage types 2050/2060,
+# //// bases-only 1920/2065, 1976/1978/1979 meanings, 1980 in box 13.3. Pushed to existing sites.
+hrms.patches.v15_0.switzerland_wage_types_swissdec_60

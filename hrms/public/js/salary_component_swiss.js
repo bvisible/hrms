@@ -16,6 +16,12 @@ frappe.ui.form.on("Salary Component", {
 			frm.set_value("ch_subject_to_ijm", wt.subject_to_ijm);
 			frm.set_value("ch_subject_to_lpp", wt.subject_to_lpp);
 			frm.set_value("ch_subject_to_imp", wt.subject_to_imp);
+			// A "–" wage type (2050, 2060) and one that only raises the bases (1920, 2065).
+			frm.set_value("ch_negative_wage_type", wt.is_negative || 0);
+			frm.set_value("ch_bases_only", wt.bases_only || 0);
+			if (wt.bases_only) {
+				frm.set_value("do_not_include_in_total", 1);
+			}
 			if (wt.lohnausweis_position) {
 				frm.set_value("ch_lohnausweis_position", wt.lohnausweis_position);
 			}

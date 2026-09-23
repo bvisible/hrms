@@ -11,7 +11,12 @@ from frappe.utils import cint, flt, getdate
 
 # //// Neoffice — BASE_SALARY_WAGE_TYPE_CODES added: hourly, per-lesson and weekly pay are
 # //// base pay too, see _is_base_wage_type.
-from hrms.regional.switzerland.avs_exemption import apply_avs_status, resolve_avs_status
+from hrms.regional.switzerland.avs_exemption import (
+	age_in_year,
+	apply_avs_status,
+	is_past_reference_age,
+	resolve_avs_status,
+)
 from hrms.regional.switzerland.ceilings import contribution_period, month_insured
 from hrms.regional.switzerland.constants import (
 	AVS_STATUS_EXEMPTED,
@@ -22,18 +27,21 @@ from hrms.regional.switzerland.constants import (
 	LAA_INSURABLE_SALARY_CAP,
 	RATE_BASED_COMPONENTS,
 )
+from hrms.regional.switzerland.insurance_solutions import normalize_sex
 from hrms.regional.switzerland.rounding import round_to_5_centimes
 from hrms.regional.switzerland.source_tax import calculate_source_tax
 from hrms.regional.switzerland.utils import (
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
 	calculate_thirteenth_month,
-	get_employee_age,
+	get_lpp_age,
 	get_swiss_social_insurance_config,
 	# //// Neoffice — was get_ytd_gross_for_employee; the AC ceiling tracks the AC-subject
 	# //// cumulative, not gross pay. See _update_ac_components. Now the LAA, LAAC and IJM
 	# //// cumulatives as well: every ceiling is cumulated over the year (guidelines 7.12.3).
 	get_ytd_insurance_bases,
+	is_configured_component,
+	sum_insurance_bases,
 )
 
 
@@ -60,6 +68,9 @@ def update_swiss_social_contributions(doc, method):
 
 	# Add 13th month earning if applicable (before computing gross)
 	updated = _add_thirteenth_month_earning(doc, config)
+	# //// Neoffice — a "-" wage type (2050, 2060) is entered positive and deducted here, before
+	# //// anything is summed: see _apply_negative_wage_types.
+	updated = _apply_negative_wage_types(doc) or updated
 
 	# //// Neoffice — the early return that stood here aborted the WHOLE hook whenever no base
 	# //// salary component was found on the slip: an employee paid by the hour (wage type 1005)
@@ -90,6 +101,8 @@ def update_swiss_social_contributions(doc, method):
 
 	# Update rate-based components using the appropriate base for each
 	updated = _update_rate_based_components(doc, config, bases, ytd, period) or updated
+	# //// Neoffice — the compensation fund's administrative fees, on the AVS contributions just set.
+	updated = _update_avs_admin_fees(doc, config) or updated
 
 	# Update AC/ALV with ceiling tracking using the AC base
 	updated = (
@@ -120,23 +133,49 @@ def update_swiss_social_contributions(doc, method):
 	_pay_the_net_as_computed(doc)
 
 
-def _apply_avs_status_to_bases(doc, bases):
-	"""Adjust the AVS and AC bases for the employee's declared AVS status.
+def _apply_negative_wage_types(doc):
+	"""Turn the earnings of a "-" wage type negative, as Swissdec books them.
 
-	The status is read from the employee; the age is only used to catch someone
-	below the contribution start age when nothing was declared. A missing date of
-	birth means the age is UNKNOWN, never zero — otherwise every employee without
-	a birth date would be treated as a minor and exempted from AVS and AC.
+	//// Neoffice — added. A correction of a daily allowance (2050) or a short-time work deduction
+	//// (2060) takes back from the gross and from each base it is subject to (Swissdec guidelines
+	//// 6.0, 8.7.2): monthly salary 7'000, APG 550, correction 550 — gross 7'000, LAA base 6'450.
+	//// The catalogue had them as deductions, which left the gross at 7'550 and every base
+	//// untouched. Entered positive — Additional Salary refuses a negative amount — they become
+	//// negative earnings here, so the gross, the net, the bases, the salary certificate and the
+	//// declaration all follow without a rule of their own. A row already negative is left alone:
+	//// the framework recomputes the amounts from their sources on every validate, not always.
+
+	Returns True when a row changed.
 	"""
-	employee = (
-		frappe.db.get_value("Employee", doc.employee, ["ch_avs_status", "date_of_birth"], as_dict=True) or {}
-	)
-	age = get_employee_age(doc.employee, doc.end_date) if employee.get("date_of_birth") else None
-	year = getdate(doc.end_date).year if doc.end_date else None
-	status = resolve_avs_status(employee.get("ch_avs_status"), age, year=year)
+	changed = False
+	for row in doc.get("earnings"):
+		if not cint(
+			frappe.get_cached_value("Salary Component", row.salary_component, "ch_negative_wage_type")
+		):
+			continue
+		signed = flt(row.amount) or (flt(row.default_amount) + flt(row.additional_amount))
+		if signed <= 0:
+			continue
+		row.amount = -flt(row.amount)
+		row.default_amount = -flt(row.default_amount)
+		row.additional_amount = -flt(row.additional_amount)
+		changed = True
+	return changed
+
+
+def _apply_avs_status_to_bases(doc, bases):
+	"""Adjust the AVS and AC bases for the employee's AVS status.
+
+	The status is the declared one, or else the one the birth date and the gender give
+	(resolve_employee_avs_status). A missing date of birth means the age is UNKNOWN,
+	never zero — otherwise every employee without a birth date would be treated as a
+	minor and exempted from AVS and AC.
+	"""
+	status = resolve_employee_avs_status(doc.employee, doc.start_date, doc.end_date)
 	if not status:
 		return bases
 
+	year = getdate(doc.end_date).year if doc.end_date else None
 	adjusted = apply_avs_status(bases["avs_base"], bases["ac_base"], status, months=1, year=year)
 	bases = dict(bases)
 	bases["avs_base"] = adjusted["avs_base"]
@@ -150,6 +189,28 @@ def _apply_avs_status_to_bases(doc, bases):
 		AVS_STATUS_RETIRED_WAIVED,
 	)
 	return bases
+
+
+def resolve_employee_avs_status(employee, start_date, end_date):
+	"""The AVS status of an employee over a pay period, declared or read from the birth date.
+
+	//// Neoffice — the age was counted to the day at the end of the period and the reference
+	//// age was never looked at: an apprentice born in November was a minor for the ten months
+	//// of the year he was liable in, and a man of 65 without a declared status kept paying AC
+	//// and AVS on his whole salary. Both ends now follow the birth date and the gender, as
+	//// guidelines 8.1.1 require: liable from 1 January of the year of the 18th birthday,
+	//// pensioner from the month after the AVS 21 reference age.
+	"""
+	values = (
+		frappe.db.get_value("Employee", employee, ["ch_avs_status", "date_of_birth", "gender"], as_dict=True)
+		or {}
+	)
+	year = getdate(end_date).year if end_date else None
+	birth = getdate(values.get("date_of_birth")) if values.get("date_of_birth") else None
+	# A missing date of birth means the age is UNKNOWN, never zero.
+	age = age_in_year(birth, year) if birth and year else None
+	past = is_past_reference_age(birth, normalize_sex(values.get("gender")), getdate(start_date or end_date))
+	return resolve_avs_status(values.get("ch_avs_status"), age, year=year, past_reference_age=past)
 
 
 def _contribution_period(doc, employee, ytd):
@@ -180,83 +241,44 @@ def _get_insurance_base_totals(doc):
 	(all are 0 or NULL), falls back to sum(all earnings) for all bases.
 	This handles installations where the flags have not yet been configured.
 
+	//// Neoffice — the rule itself now lives in utils.sum_insurance_bases, shared with the
+	//// year-to-date ceilings, the declaration and the printed slip. The rows left out of the
+	//// total are passed too: a wage type that only raises the bases (1920, 2065) is one.
+
 	Returns:
 		dict with keys: avs_base, ac_base, laa_base, ijm_base, lpp_base, imp_base, gross_total
 	"""
-	gross_total = 0
-	avs_base = 0
-	ac_base = 0
-	laa_base = 0
-	ijm_base = 0
-	lpp_base = 0
-	imp_base = 0
-	any_flag_configured = False
-
+	rows = []
 	for row in doc.get("earnings"):
-		if cint(row.get("do_not_include_in_total")):
-			continue
 		# Amounts actually paid: on a partial month row.amount is prorated
 		# while default_amount stays full. Ceilings (AC/LAA) must apply to
 		# the real base, so no downstream proration of the results either.
 		amount = flt(row.default_amount if row.get("amount") is None else row.amount)
-		gross_total += amount
-
-		# Fetch insurance base flags from the Salary Component
-		flags = _get_component_insurance_flags(row.salary_component)
-
-		if flags["has_flags"]:
-			any_flag_configured = True
-			if flags["avs"]:
-				avs_base += amount
-			if flags["ac"]:
-				ac_base += amount
-			if flags["laa"]:
-				laa_base += amount
-			if flags["ijm"]:
-				ijm_base += amount
-			if flags["lpp"]:
-				lpp_base += amount
-			if flags["imp"]:
-				imp_base += amount
-		else:
-			# No flags configured on this component — accumulate into all bases
-			avs_base += amount
-			ac_base += amount
-			laa_base += amount
-			ijm_base += amount
-			lpp_base += amount
-			imp_base += amount
-
-	# Backward compatibility: if no component had any flag configured,
-	# all bases equal gross_total (same as the old behavior)
-	if not any_flag_configured:
-		return {
-			"avs_base": gross_total,
-			"ac_base": gross_total,
-			"laa_base": gross_total,
-			"ijm_base": gross_total,
-			"lpp_base": gross_total,
-			"imp_base": gross_total,
-			"gross_total": gross_total,
-		}
-
+		rows.append(
+			{
+				**_get_component_insurance_flags(row.salary_component),
+				"amount": amount,
+				"do_not_include_in_total": row.get("do_not_include_in_total"),
+			}
+		)
+	bases = sum_insurance_bases(rows)
 	return {
-		"avs_base": avs_base,
-		"ac_base": ac_base,
-		"laa_base": laa_base,
-		"ijm_base": ijm_base,
-		"lpp_base": lpp_base,
-		"imp_base": imp_base,
-		"gross_total": gross_total,
+		"avs_base": bases["avs"],
+		"ac_base": bases["ac"],
+		"laa_base": bases["laa"],
+		"ijm_base": bases["ijm"],
+		"lpp_base": bases["lpp"],
+		"imp_base": bases["imp"],
+		"gross_total": bases["gross"],
 	}
 
 
 def _get_component_insurance_flags(component_name):
-	"""Get the Swiss social insurance base flags for a Salary Component.
+	"""The Swiss insurance fields of a Salary Component, as utils.sum_insurance_bases reads them.
 
-	Returns a dict with boolean flags for each insurance base plus a
-	has_flags indicator that is True if at least one flag is explicitly set.
-	Uses frappe.get_cached_value for performance.
+	The ch_subject_to_* flags, the wage type that says whether they are to be trusted (see
+	utils.is_configured_component) and ch_bases_only. Uses frappe.get_cached_value for
+	performance.
 	"""
 	fields = [
 		"ch_subject_to_avs",
@@ -265,25 +287,11 @@ def _get_component_insurance_flags(component_name):
 		"ch_subject_to_ijm",
 		"ch_subject_to_lpp",
 		"ch_subject_to_imp",
+		"ch_wage_type",
+		"ch_wage_type_code",
+		"ch_bases_only",
 	]
-
-	values = frappe.get_cached_value("Salary Component", component_name, fields, as_dict=True)
-
-	if not values:
-		return {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0, "has_flags": False}
-
-	avs = cint(values.get("ch_subject_to_avs"))
-	ac = cint(values.get("ch_subject_to_ac"))
-	laa = cint(values.get("ch_subject_to_laa"))
-	ijm = cint(values.get("ch_subject_to_ijm"))
-	lpp = cint(values.get("ch_subject_to_lpp"))
-	imp = cint(values.get("ch_subject_to_imp"))
-
-	# has_flags is True if at least one flag is explicitly 1
-	# This distinguishes "all flags = 0" (configured as exempt) from "not configured"
-	has_flags = bool(avs or ac or laa or ijm or lpp or imp)
-
-	return {"avs": avs, "ac": ac, "laa": laa, "ijm": ijm, "lpp": lpp, "imp": imp, "has_flags": has_flags}
+	return frappe.get_cached_value("Salary Component", component_name, fields, as_dict=True) or {}
 
 
 def _warn_no_lpp_base(doc):
@@ -393,6 +401,41 @@ def _update_rate_based_components(doc, config, bases, ytd=None, period=None):
 			updated = True
 
 	return updated
+
+
+AVS_ADMIN_FEES = "AVS Administrative Fees Employer"
+
+
+def _update_avs_admin_fees(doc, config):
+	"""The compensation fund's administrative fees: a share of the AVS/AI/APG contributions.
+
+	//// Neoffice — added. Each fund invoices its administrative costs with the contributions, as
+	//// a percentage of them it sets itself (avs_admin_fee_rate); the certified engine we compare
+	//// with computes them the same way (1.2 % of 318 + 318 on a 6'000 salary: 7.65). Left out,
+	//// the fund's current account never balanced after an invoice. An employer cost only.
+
+	Returns True when the slip changed.
+	"""
+	rate = flt(config.get("avs_admin_fee_rate"))
+	contributions = sum(
+		flt(row.amount)
+		for row in doc.get("deductions")
+		if row.salary_component in ("AVS/AI/APG Employee", "AVS/AI/APG Employer")
+	)
+	amount = round_to_5_centimes(contributions * rate / 100) if rate else 0
+	if amount:
+		_record_base(doc, AVS_ADMIN_FEES, contributions, rate)
+	row = next((r for r in doc.get("deductions") if r.salary_component == AVS_ADMIN_FEES), None)
+	if row is None:
+		if not amount or not frappe.db.exists("Salary Component", AVS_ADMIN_FEES):
+			return False
+		# Computed on contributions already prorated: never prorated again.
+		_add_deduction_row(doc, AVS_ADMIN_FEES, amount, prorate=False)
+		return True
+	if flt(row.amount, 2) == amount:
+		return False
+	row.default_amount = row.amount = amount
+	return True
 
 
 def _insurance_solution_amounts(doc, config, bases, ytd=None, period=None):
@@ -622,7 +665,9 @@ def _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee):
 	"""Update LPP/BVG components based on employee age."""
 	updated = False
 
-	age = get_employee_age(doc.employee, doc.end_date)
+	# //// Neoffice — the LPP age (calendar year minus year of birth), 0 past the reference age:
+	# //// was the age to the day, see utils.get_lpp_age.
+	age = get_lpp_age(doc.employee, doc.start_date, doc.end_date)
 	annual_salary = base_monthly * lpp_multiplier  # 13 if 13th month enabled, 12 otherwise
 
 	from frappe.utils import getdate
@@ -851,8 +896,8 @@ def _get_aperiodic_total(doc, config):
 		if cint(row.get("do_not_include_in_total")):
 			continue
 		# //// Neoffice — see the note above the function: only the source-tax base counts here.
-		flags = _get_component_insurance_flags(row.salary_component)
-		if flags["has_flags"] and not flags["imp"]:
+		values = _get_component_insurance_flags(row.salary_component)
+		if is_configured_component(values) and not cint(values.get("ch_subject_to_imp")):
 			continue
 		if _is_aperiodic_component(row.salary_component, thirteenth_mode):
 			total += flt(row.default_amount if row.get("amount") is None else row.amount)
@@ -946,3 +991,6 @@ def _recalculate_totals(doc):
 	doc.set_net_pay()
 	doc.compute_year_to_date()
 	doc.compute_month_to_date()
+	# //// Neoffice — the year-to-date of each row too: the framework computed it before this hook
+	# //// changed the amounts (contributions, "-" wage types), and the payslip prints it.
+	doc.compute_component_wise_year_to_date()

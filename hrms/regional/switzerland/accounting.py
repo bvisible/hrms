@@ -23,6 +23,13 @@ What this books, as the Swiss SME chart of accounts (KMU / PME) lays it out:
 Accounts are taken from each Salary Component's accounts table, as HRMS does; the employer
 charge lives next to it (``ch_expense_account``). ``configure_payroll_accounts`` fills
 what is missing from the company's own chart, by number range AND wording.
+
+That is the "social insurance liability" method. Swiss SMEs use a second one, chosen per
+company (``Company.ch_payroll_booking_method``): through the social charges. There each
+employee contribution is credited straight to its charge account (5700-5799) and the
+employer contributions are not booked monthly at all — the insurers' invoices, which carry
+both parts, are charged in full when they are paid, and the employee part credited here
+brings the charge down to the employer's. Source tax is a liability to the canton in both.
 """
 
 import re
@@ -49,6 +56,12 @@ _ROLE_ACCOUNTS = {
 	"payroll_payable": (1090, 1099, r"salair|lohn", ("Asset", "Liability")),
 }
 
+# The two booking methods (Company.ch_payroll_booking_method).
+BOOKING_LIABILITY = "Social Insurance Liability"
+BOOKING_CHARGES = "Social Charges"
+# The insurances whose contributions are social charges; source tax is not one.
+SOCIAL_INSURANCES = ("avs", "caf", "accident", "sickness", "lpp")
+
 # The insurance a deduction wage type belongs to (Swissdec wage type catalogue).
 _DEDUCTION_RANGES = (
 	(5010, 5023, "avs"),  # AVS/AI/APG and AC, employee and employer
@@ -62,7 +75,8 @@ _DEDUCTION_RANGES = (
 # Our own components carry no wage type on some sites: their name is the fallback.
 _NAME_HINTS = (
 	("caf", ("family allowance", "allocation", "caf/fak")),
-	("avs", ("avs/", "ac/alv", "ac solidarity")),
+	# //// Neoffice — "avs administrative": the fund's administrative fees go with its contributions.
+	("avs", ("avs/", "avs administrative", "ac/alv", "ac solidarity")),
 	("accident", ("laa ", "laac")),
 	("sickness", ("ijm/", "ktg")),
 	("lpp", ("lpp/", "bvg")),
@@ -130,14 +144,15 @@ def pick_account(accounts, role):
 	return sorted(matches)[0][1] if matches else None
 
 
-def accrual_lines(rows, net_pays):
+def accrual_lines(rows, net_pays, method=BOOKING_LIABILITY):
 	"""Debits and credits of the salary journal entry, per account.
 
 	Args:
 		rows: one dict per slip row — parentfield, salary_component, amount,
 			do_not_include_in_total, do_not_include_in_accounts, is_employer_contribution,
-			account, expense_account.
+			account, expense_account, ch_wage_type_code.
 		net_pays: the net pay of each slip; their sum must be what the entry leaves payable.
+		method: BOOKING_LIABILITY or BOOKING_CHARGES, see the module docstring.
 
 	Returns:
 		(balances, payable, problems, skipped): ``balances`` maps an account to its amount,
@@ -163,6 +178,8 @@ def accrual_lines(rows, net_pays):
 			balances[row["account"]] += amount
 			payable += amount
 		elif row.get("is_employer_contribution"):
+			if method == BOOKING_CHARGES:
+				continue  # charged in full from the insurer's invoice, see the module docstring
 			if not row.get("account") or not row.get("expense_account"):
 				problems.append(
 					_("{0}: the employer charge needs both its charge and its liability account").format(
@@ -176,10 +193,19 @@ def accrual_lines(rows, net_pays):
 			if row.get("do_not_include_in_total"):
 				skipped.append(component)
 				continue
-			if not row.get("account"):
+			account = row.get("account")
+			if (
+				method == BOOKING_CHARGES
+				and insurance_of(row.get("ch_wage_type_code"), component) in SOCIAL_INSURANCES
+			):
+				account = row.get("expense_account")
+				if not account:
+					problems.append(_("{0}: no social charge account for this company").format(component))
+					continue
+			if not account:
 				problems.append(_("{0}: no account for this company").format(component))
 				continue
-			balances[row["account"]] -= amount
+			balances[account] -= amount
 			payable -= amount
 
 	payable = flt(payable, 2)
@@ -235,29 +261,34 @@ def configure_payroll_accounts(company):
 		else:
 			report["missing"].append(_("Payroll payable account (salary transit account, 1091)"))
 
+	# //// Neoffice — an employee contribution needs its charge account too under the "Social
+	# //// Charges" booking method, where it is credited there instead of the liability.
+	charges_method = booking_method(company) == BOOKING_CHARGES
 	for name in _payroll_components(company):
 		comp = frappe.get_doc("Salary Component", name)
 		code = comp.get("ch_wage_type_code")
 		employer = bool(comp.get("is_employer_contribution"))
+		insurance = None
 		if comp.type == "Earning":
 			target, charge = role_account.get(earning_role(code) or ""), None
 		else:
 			insurance = insurance_of(code, name)
 			target = role_account.get(f"liability_{insurance}") if insurance else None
-			charge = role_account.get(f"charge_{insurance}") if (insurance and employer) else None
+			charge = role_account.get(f"charge_{insurance}") if insurance in SOCIAL_INSURANCES else None
+		needs_charge = employer or (charges_method and insurance in SOCIAL_INSURANCES)
 
 		row = next((a for a in comp.get("accounts") or [] if a.company == company), None)
-		complete = row and row.account and (not employer or row.get("ch_expense_account"))
+		complete = row and row.account and (not needs_charge or row.get("ch_expense_account"))
 		if complete:
 			report["kept"].append(name)
 			continue
-		if not target or (employer and not charge):
+		if not target or (needs_charge and not charge):
 			report["missing"].append(name)
 			continue
 		if not row:
 			row = comp.append("accounts", {"company": company})
 		row.account = row.account or target
-		if employer:
+		if charge:
 			row.ch_expense_account = row.get("ch_expense_account") or charge
 		comp.save(ignore_permissions=True)
 		report["set"].append(name)
@@ -280,7 +311,8 @@ def _slip_rows(company, slip_names):
 	return frappe.db.sql(
 		"""SELECT sd.parent, sd.parentfield, sd.salary_component, sd.amount,
 			sd.do_not_include_in_total, sd.do_not_include_in_accounts,
-			sc.is_employer_contribution, sca.account, sca.ch_expense_account AS expense_account
+			sc.is_employer_contribution, sc.ch_wage_type_code,
+			sca.account, sca.ch_expense_account AS expense_account
 		FROM `tabSalary Detail` sd
 		JOIN `tabSalary Component` sc ON sc.name = sd.salary_component
 		LEFT JOIN `tabSalary Component Account` sca
@@ -358,8 +390,9 @@ def post_payroll_accrual(company, year, month):
 
 	payable_account = frappe.db.get_value("Company", company, "default_payroll_payable_account")
 	cost_center = frappe.db.get_value("Company", company, "cost_center")
+	method = booking_method(company)
 	balances, payable, problems, skipped = accrual_lines(
-		_slip_rows(company, [s.name for s in slips]), [s.net_pay for s in slips]
+		_slip_rows(company, [s.name for s in slips]), [s.net_pay for s in slips], method
 	)
 	if not payable_account:
 		problems.append(_("No payroll payable account on the company."))
@@ -400,7 +433,20 @@ def post_payroll_accrual(company, year, month):
 	frappe.db.sql(
 		"UPDATE `tabSalary Slip` SET ch_accrual_entry = %s WHERE name IN %s", (je.name, tuple(names))
 	)
-	return {"journal_entry": je.name, "slips": names, "payable": payable, "skipped": skipped}
+	return {
+		"journal_entry": je.name,
+		"slips": names,
+		"payable": payable,
+		"skipped": skipped,
+		"booking_method": method,
+	}
+
+
+def booking_method(company):
+	"""The company's payroll booking method; the liability method when none was chosen."""
+	if not frappe.get_meta("Company").has_field("ch_payroll_booking_method"):
+		return BOOKING_LIABILITY
+	return frappe.db.get_value("Company", company, "ch_payroll_booking_method") or BOOKING_LIABILITY
 
 
 # ---------------------------------------------------------------------------------------

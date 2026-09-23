@@ -165,25 +165,35 @@ def get_custom_fields():
 				# An employer contribution is a charge AND a liability: "account" is the
 				# institution's current account credited, this one the charge debited.
 				"fieldname": "ch_expense_account",
-				"label": "Employer Charge Account",
+				# //// Neoffice — was "Employer Charge Account": employee contributions are credited to it
+				# //// too under the "Social Charges" booking method.
+				"label": "Social Charge Account",
 				"fieldtype": "Link",
 				"options": "Account",
 				"insert_after": "account",
 				"in_list_view": 1,
-				"description": "Employer contributions only: the charge debited (5700-5799). The account on the left is the liability credited.",
+				# //// Neoffice — employee contributions use it too since the "Social Charges" booking
+				# //// method (Company.ch_payroll_booking_method): they are credited to the charge there.
+				"description": (
+					"The social charge account (5700-5799). An employer contribution debits it and "
+					"credits the liability on the left. An employee contribution credits it instead of "
+					"the liability when the company books its payroll through the social charges."
+				),
 			},
 		],
 		"Salary Component": [
 			# --- Swiss Wage Type (top of form, after abbreviation) ---
 			{
 				"fieldname": "ch_wage_type_section",
-				"label": "Type de salaire suisse",
+				# //// Neoffice — label was French in the source; the French comes from the catalogue.
+				"label": "Swiss Wage Type",
 				"fieldtype": "Section Break",
 				"insert_after": "salary_component_abbr",
 			},
 			{
 				"fieldname": "ch_wage_type",
-				"label": "Type de salaire suisse",
+				# //// Neoffice — label was French in the source; the French comes from the catalogue.
+				"label": "Swiss Wage Type",
 				"fieldtype": "Link",
 				"options": "Swiss Wage Type",
 				"insert_after": "ch_wage_type_section",
@@ -293,12 +303,45 @@ def get_custom_fields():
 				# //// Neoffice — see above: description translated from French
 				"description": "When ticked, this component counts towards the withholding-tax base.",
 			},
+			# //// Neoffice — the two Swissdec wage type behaviours a subject flag cannot express
+			# //// (guidelines 6.0, 5.2.1 and 8.7.2): a "-" wage type that takes back from the gross
+			# //// and the bases (2050, 2060), and one that raises the bases without being paid
+			# //// (1920 tips, 2065 short-time work loss). See utils.sum_insurance_bases.
+			{
+				"fieldname": "ch_negative_wage_type",
+				"label": "Negative Wage Type",
+				"fieldtype": "Check",
+				"insert_after": "ch_subject_to_imp",
+				"default": "0",
+				"depends_on": "eval:doc.type == 'Earning'",
+				"description": (
+					"Enter the amount as a positive number: the slip deducts it from the gross "
+					"salary and from every base ticked above (e.g. 2050 correction of a daily "
+					"allowance, 2060 short-time work deduction)."
+				),
+			},
+			{
+				"fieldname": "ch_bases_only",
+				"label": "Counts in the Bases Only",
+				"fieldtype": "Check",
+				"insert_after": "ch_negative_wage_type",
+				"default": "0",
+				"depends_on": "eval:doc.type == 'Earning'",
+				"description": (
+					"Not paid and not part of the gross salary: the amount only raises the bases "
+					"ticked above (e.g. 1920 tips subject to AVS, 2065 short-time work loss of "
+					"earnings). Tick 'Do Not Include in Total' as well."
+				),
+			},
 			{
 				"fieldname": "ch_lohnausweis_position",
-				"label": "Position Lohnausweis",
+				# //// Neoffice — label was half German, half French in the source.
+				"label": "Salary Certificate Position",
 				"fieldtype": "Select",
-				"insert_after": "ch_subject_to_imp",
-				"options": "\n1\n2.1\n2.2\n2.3\n3\n4\n5\n6\n7\n9\n10.1\n10.2\n12\n13.1.1\n13.1.2\n13.2.1\n13.2.2\n13.2.3\n14",
+				# //// Neoffice — inserted after the two checks above; 13.3 (training paid by the
+				# //// employer, 2026 Wegleitung Rz 61) added to the options.
+				"insert_after": "ch_bases_only",
+				"options": "\n1\n2.1\n2.2\n2.3\n3\n4\n5\n6\n7\n9\n10.1\n10.2\n12\n13.1.1\n13.1.2\n13.2.1\n13.2.2\n13.2.3\n13.3\n14",
 				"translatable": 0,
 			},
 		],
@@ -339,9 +382,13 @@ def get_custom_fields():
 				"options": "\nyouth\nexempted\nretired\nretired_waive_exemption",
 				"insert_after": "ch_fiscal_canton",
 				"translatable": 0,
+				# //// Neoffice — "leave empty" now derives both ends from the birth date and the
+				# //// gender (Swissdec guidelines 8.1.1), see avs_exemption.resolve_avs_status.
 				"description": (
-					"Leave empty for the ordinary case. 'youth': below the contribution start age "
-					"(18) — no AVS and no AC. 'retired': past the reference age, AVS is due only "
+					"Leave empty and the status follows from the date of birth and the gender: "
+					"liable from 1 January of the year of the 18th birthday, pensioner from the "
+					"month after the AVS reference age. 'youth': below the contribution start age "
+					"— no AVS and no AC. 'retired': past the reference age, AVS is due only "
 					"above CHF 1'400/month and no AC is due. 'retired_waive_exemption': past the "
 					"reference age but the employee waived the exemption (AVS 21) to earn a higher "
 					"pension — full AVS, still no AC."
@@ -430,7 +477,8 @@ def get_custom_fields():
 				"fieldtype": "Check",
 				"insert_after": "ch_qst_section",
 				"default": "0",
-				"description": "Check if this employee is subject to withholding tax (impôt à la source).",
+				# //// Neoffice — the English source carried French words; the French comes from the catalogue.
+				"description": "Check if this employee is subject to withholding tax.",
 			},
 			{
 				"fieldname": "ch_qst_tariff_letter",
@@ -512,7 +560,8 @@ def get_custom_fields():
 				"fieldtype": "Check",
 				"insert_after": "ch_cb_section",
 				"default": "0",
-				"description": "Check if this employee is a cross-border commuter (Grenzgänger/frontalier).",
+				# //// Neoffice — the English source carried German and French words, see above.
+				"description": "Check if this employee is a cross-border commuter.",
 			},
 			{
 				"fieldname": "ch_residence_country",
@@ -671,12 +720,32 @@ def get_custom_fields():
 				"insert_after": "ch_default_social_insurance_config",
 				"description": "Default GL account for employer social contributions.",
 			},
+			# //// Neoffice — the two ways Swiss SMEs book salaries (SME chart, 4.4 and 4.5 of the usual
+			# //// accounting manuals), chosen per company: accounting.accrual_lines applies it.
+			{
+				"fieldname": "ch_payroll_booking_method",
+				"label": "Payroll Booking Method",
+				"fieldtype": "Select",
+				"options": "Social Insurance Liability\nSocial Charges",
+				"default": "Social Insurance Liability",
+				"insert_after": "ch_employer_cost_account",
+				"description": (
+					"Social Insurance Liability: every month the employee deductions and the employer "
+					"contributions are credited to the insurers' current accounts (2270-2274) and the "
+					"employer contributions charged (5700-5799); the insurers' invoices then settle "
+					"those accounts. Social Charges: the employee deductions are credited straight to "
+					"the charge accounts (5700-5799) and the employer contributions are not booked "
+					"monthly — the insurers' invoices are charged in full when they are paid. Source "
+					"tax stays a liability (2279) in both."
+				),
+			},
 			# --- Swissdec / ELM fields ---
 			{
 				"fieldname": "ch_swissdec_section",
 				"label": "Swissdec / ELM",
 				"fieldtype": "Section Break",
-				"insert_after": "ch_employer_cost_account",
+				# //// Neoffice — after the booking method, which now closes the section above.
+				"insert_after": "ch_payroll_booking_method",
 				"collapsible": 1,
 			},
 			{
@@ -791,6 +860,7 @@ COMPONENT_NAME_MESSAGES = (
 	_lt("IJM/KTG Employee"),
 	_lt("IJM/KTG Employer"),
 	_lt("Family Allowances Employer"),
+	_lt("AVS Administrative Fees Employer"),
 	_lt("Source Tax Employee"),
 	_lt("13th Month Salary"),
 	_lt("Overtime Pay"),
@@ -987,6 +1057,21 @@ def get_swiss_salary_component_definitions():
 			"_linked_to": "LAAC Employee",
 		},
 		# --- Family Allowances (Employer only) ---
+		# //// Neoffice — the compensation fund's administrative fees: a percentage of the AVS/AI/APG
+		# //// contributions (config avs_admin_fee_rate), charged to the employer and invoiced by the
+		# //// fund with the contributions. Without them the fund's current account never balanced.
+		{
+			"name": "AVS Administrative Fees Employer",
+			"salary_component": "AVS Administrative Fees Employer",
+			"salary_component_abbr": "AVS_FEE",
+			"type": "Deduction",
+			"description": "AVS/AI/APG compensation fund administrative fees - employer only",
+			"depends_on_payment_days": 0,
+			"amount_based_on_formula": 0,
+			"amount": 0,
+			"do_not_include_in_total": 1,
+			"_is_employer": True,
+		},
 		{
 			"name": "Family Allowances Employer",
 			"salary_component": "Family Allowances Employer",
@@ -1091,7 +1176,8 @@ def get_swiss_salary_component_definitions():
 			"ch_subject_to_avs": 1,
 			"ch_subject_to_ac": 1,
 			"ch_subject_to_laa": 0,
-			"ch_subject_to_ijm": 0,
+			# //// Neoffice — subject to IJM (Swissdec guidelines 6.0, 5.2.1), was 0.
+			"ch_subject_to_ijm": 1,
 			"ch_subject_to_lpp": 0,
 			"ch_subject_to_imp": 1,
 			"ch_lohnausweis_position": "7",
@@ -1127,7 +1213,8 @@ def get_swiss_salary_component_definitions():
 			"ch_subject_to_avs": 1,
 			"ch_subject_to_ac": 1,
 			"ch_subject_to_laa": 0,
-			"ch_subject_to_ijm": 0,
+			# //// Neoffice — subject to IJM (Swissdec guidelines 6.0, 5.2.1), was 0.
+			"ch_subject_to_ijm": 1,
 			"ch_subject_to_lpp": 0,
 			"ch_subject_to_imp": 1,
 			"ch_lohnausweis_position": "7",

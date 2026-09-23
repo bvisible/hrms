@@ -19294,3 +19294,330 @@ msgstr ""
 msgid "{} {} open for this position."
 msgstr ""
 
+#: hrms/regional/switzerland/setup.py
+msgid "The social charge account (5700-5799). An employer contribution debits it and credits the liability on the left. An employee contribution credits it instead of the liability when the company books its payroll through the social charges."
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+#: hrms/regional/switzerland/setup.py
+msgid "Negative Wage Type"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Enter the amount as a positive number: the slip deducts it from the gross salary and from every base ticked above (e.g. 2050 correction of a daily allowance, 2060 short-time work deduction)."
+msgstr ""
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+#: hrms/regional/switzerland/setup.py
+msgid "Counts in the Bases Only"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Not paid and not part of the gross salary: the amount only raises the bases ticked above (e.g. 1920 tips subject to AVS, 2065 short-time work loss of earnings). Tick 'Do Not Include in Total' as well."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Salary Certificate Position"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "AVS Status"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Leave empty and the status follows from the date of birth and the gender: liable from 1 January of the year of the 18th birthday, pensioner from the month after the AVS reference age. 'youth': below the contribution start age — no AVS and no AC. 'retired': past the reference age, AVS is due only above CHF 1'400/month and no AC is due. 'retired_waive_exemption': past the reference age but the employee waived the exemption (AVS 21) to earn a higher pension — full AVS, still no AC."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Payroll Booking Method"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Social Insurance Liability: every month the employee deductions and the employer contributions are credited to the insurers' current accounts (2270-2274) and the employer contributions charged (5700-5799); the insurers' invoices then settle those accounts. Social Charges: the employee deductions are credited straight to the charge accounts (5700-5799) and the employer contributions are not booked monthly — the insurers' invoices are charged in full when they are paid. Source tax stays a liability (2279) in both."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Social Insurance Liability"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Social Charges"
+msgstr ""
+
+#. Description of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Swissdec '–' wage type: the amount reduces the gross salary and every base it is subject to (e.g. 2050, 2060)."
+msgstr ""
+
+#. Description of a Check field in DocType 'Swiss Wage Type'
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Not paid and not part of the gross salary: the amount only raises the bases it is subject to (e.g. 1920, 2065)."
+msgstr ""
+
+#. Label of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "AVS Administrative Fees (%)"
+msgstr ""
+
+#. Description of a Percent field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Administrative fees of the compensation fund, in % of the AVS/AI/APG contributions (employee and employer parts). Charged to the employer. Left at 0, none are computed."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "AVS Administrative Fees Employer"
+msgstr ""
+
+#: hrms/regional/switzerland/accounting.py
+msgid "{0}: no social charge account for this company"
+msgstr ""
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Employer contributions are not booked monthly with the Social Charges method: the insurers' invoices charge them when they are paid."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Social Charge Account"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Swiss Source Tax"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "QST Tariff Code Used"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Tariff code this slip was settled with — the audit trail retroactive corrections rely on."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "QST Aperiodic Share"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Aperiodic earnings of this slip (bonuses, lump 13th month) — excluded from the day-extrapolated determinant."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "QST Retroactive Corrections"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Contribution Bases"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Source Tax Predefined Category"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Leave empty in the ordinary case — the tariff code is then used. HEN/HEY: board fee of a non-resident (linear rate). MEN/MEY: employee participation realised after leaving Switzerland. NON/NOY: period during which the person was not liable, for a correction. SFN: French special agreement — set automatically for a French resident in BL, BS, SO, VD, VS, NE, JU or BE holding the 2041-AS attestation; nothing is withheld but the salary is still declared."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Swiss social security number (756.XXXX.XXXX.XX)"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Employee nationality (for Swissdec ELM declarations)."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Employment percentage (e.g., 80 for 80%). Used for Swissdec ELM."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Entry Date (Swiss)"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Start of employment for Swissdec ELM reporting."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Exit Date (Swiss)"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "End of employment for Swissdec ELM reporting."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Tariff Category"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Children (Tax)"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Church Tax Member"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Tariff Code Effective From"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Set when the tariff situation changes retroactively (marriage, birth reported late): submitted slips from this date on are re-settled on the next payroll run."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Auto-composed: letter + children + church (e.g., B2Y)."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Canton of Taxation"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Exceeds CHF 120k"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Set automatically when projected annual income exceeds the ordinary taxation threshold."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Cross-Border Worker"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Cross-Border Start Date"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Date when cross-border status began. Used for Italian old/new frontalier determination."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "New Frontalier (post-2023)"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Auto-set: Italian frontalier who started on or after July 17, 2023. Uses the R-V tariffs (80% reduction built into the tariff files)."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "German Capped Tax (max 4.5%)"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Auto-set: German cross-border worker — withholding capped at 4.5% of gross (DTA CH-DE art. 15a, L-P tariffs). Requires the Gre-1 attestation."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Gre-1 Residence Attestation"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "German residence attestation Gre-1/Gre-2 on file. Without it, the ordinary (uncapped) tariff applies."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "2041-AS Residence Attestation"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "French residence attestation 2041-AS on file (required before January 1st). Without it, the employer must withhold at the ordinary tariff."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Permit Expiry Date"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Insurance Codes (LAA / LAAC / IJM)"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "The codes the insurers assigned. Leave empty when the company has a single flat rate per insurance. They are declared as-is to Swissdec."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "LAA Code"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Business unit letter + scope, e.g. A1. Scope: 0 not insured, 1 with the non-occupational premium deducted, 2 insured but the employer pays it, 3 occupational only (under 8 hours a week). Chosen, never derived from the activity rate (Swissdec guidelines 7.4.2)."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "LAAC Code"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Person group + category, e.g. A1. Category 0 means not insured."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "LAAC Code 2"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "A second LAAC code, typically for the salary above the LAA ceiling."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "IJM Code"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "IJM Code 2"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Swiss Payroll Settings"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Default Swiss Social Insurance Config"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Default social insurance configuration for this company."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Default Employer Social Cost Account"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Default GL account for employer social contributions."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "UID-BFS Number"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Company identification number (CHE-XXX.XXX.XXX) for Swissdec ELM."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Swissdec Contact Person"
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Contact person name for ELM declarations."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Phone number for ELM declarations."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Email address for ELM declarations."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Check if this employee is subject to withholding tax."
+msgstr ""
+
+#: hrms/regional/switzerland/setup.py
+msgid "Check if this employee is a cross-border commuter."
+msgstr ""
+

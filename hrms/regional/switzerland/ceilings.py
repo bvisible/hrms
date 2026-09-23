@@ -32,6 +32,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 YEAR_DAYS = 360
 _CENT = Decimal("0.01")
+_FIVE_CENTIMES = Decimal("0.05")
 
 
 def _day30(d):
@@ -68,19 +69,28 @@ def contribution_period(entry, exit_date, period_start, period_end):
 	return days_before, days_current
 
 
+def _to_five_centimes(amount):
+	return (amount / _FIVE_CENTIMES).quantize(Decimal(1), rounding=ROUND_HALF_UP) * _FIVE_CENTIMES
+
+
 def insured_between(cumulated_base, days, lower=0, upper=None):
 	"""The part of a cumulated base insured between two YEARLY limits prorated to ``days``.
 
-	``upper`` None or 0 means no upper limit. The prorated limits are rounded to the centime:
-	148'200 x 61 / 360 = 25'111.666... is a ceiling of 25'111.67.
+	``upper`` None or 0 means no upper limit. The prorated limits are rounded to 5 centimes:
+	148'200 x 61 / 360 = 25'111.666... is a ceiling of 25'111.65.
+
+	//// Neoffice — was rounded to the centime (25'111.67). "Every calculation made in payroll
+	//// processing must follow commercial principles (rounding to five centimes)" (Swissdec
+	//// guidelines 6.0, 5.1.1, translated), and the certified engine we compare with rounds
+	//// the prorated ceiling so.
 	"""
 	base = Decimal(str(cumulated_base or 0))
 	days = Decimal(int(days or 0))
-	low = (Decimal(str(lower or 0)) * days / YEAR_DAYS).quantize(_CENT, rounding=ROUND_HALF_UP)
+	low = _to_five_centimes(Decimal(str(lower or 0)) * days / YEAR_DAYS)
 	part = base - low
 	if upper:
 		width = (Decimal(str(upper)) - Decimal(str(lower or 0))) * days / YEAR_DAYS
-		part = min(part, width.quantize(_CENT, rounding=ROUND_HALF_UP))
+		part = min(part, _to_five_centimes(width))
 	return max(part, Decimal(0))
 
 

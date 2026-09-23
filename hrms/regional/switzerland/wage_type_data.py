@@ -3,14 +3,16 @@
 # Swiss standard wage type catalog (rubriques de salaire)
 # Reference: Daniel Moret Informatique Service, 08.05.2024
 # Based on Swissdec standard wage type definitions
+# //// Neoffice — checked line by line against the sample wage type table of the Swissdec
+# //// guidelines 6.0 (edition 06.03.2026, 5.2.1) and their worked examples (8.7.2): the codes
+# //// marked "Swissdec 6.0" below were corrected on 2026-09-23.
 
 # Common flag patterns for social insurance bases
 _ALL = {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 1}
-_NO_LPP = {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 0, "imp": 1}
-_AVS_AC = {"avs": 1, "ac": 1, "laa": 0, "ijm": 0, "lpp": 0, "imp": 1}
 _AVS_AC_LAA_IJM = {"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 0, "imp": 1}
-_AVS_AC_LAA = {"avs": 1, "ac": 1, "laa": 1, "ijm": 0, "lpp": 0, "imp": 1}
-_AVS_AC_LAA_LPP = {"avs": 1, "ac": 1, "laa": 1, "ijm": 0, "lpp": 1, "imp": 0}
+# //// Neoffice — daily allowances of the APG, maternity, military and invalidity insurance:
+# //// AVS/AC and IJM, never LAA (Swissdec 6.0, 5.2.1 and 8.7.2.1 / 8.7.2.3).
+_AVS_AC_IJM = {"avs": 1, "ac": 1, "laa": 0, "ijm": 1, "lpp": 0, "imp": 1}
 _IMP_ONLY = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 1}
 _EXEMPT = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0}
 _DEDUCTION = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0}
@@ -19,7 +21,7 @@ _DEDUCTION = {"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0}
 def _wt(
 	code, name, typ, cert, flags, vac=0, stat="", common=0,
 	abbr="", desc_fr="", employer=0, linked="", formula="", condition="",
-	amount=0, formula_based=0, no_total=0, payment_days=1,
+	amount=0, formula_based=0, no_total=0, payment_days=1, negative=0, bases_only=0,
 ):
 	"""Build a wage type dict entry.
 
@@ -42,6 +44,10 @@ def _wt(
 		formula_based: Amount based on formula flag.
 		no_total: Do not include in total (net pay) flag.
 		payment_days: Depends on payment days flag.
+		negative: Swissdec "-" wage type — entered positive, deducted from the gross and
+			from every base it is subject to (2050, 2060).
+		bases_only: counts in the bases it is subject to without being paid or part of
+			the gross (1920 tips, 2065 short-time work loss); implies no_total.
 	"""
 	entry = {
 		"code": str(code),
@@ -58,6 +64,8 @@ def _wt(
 		"statistical_category": stat,
 		"is_standard": 1,
 		"is_common": common,
+		"is_negative": 1 if negative else 0,
+		"bases_only": 1 if bases_only else 0,
 	}
 	# Template fields (only set if provided)
 	if abbr:
@@ -78,7 +86,7 @@ def _wt(
 		entry["default_amount"] = amount
 	if formula_based:
 		entry["amount_based_on_formula"] = 1
-	if no_total:
+	if no_total or bases_only:
 		entry["do_not_include_in_total"] = 1
 	if not payment_days:
 		entry["depends_on_payment_days"] = 0
@@ -160,7 +168,9 @@ def get_swiss_wage_types():
 		_wt(1162, "Vacances payées %", "Earning", "1", _ALL, vac=0, stat="HS"),
 		_wt(1163, "Vacances payées", "Earning", "1", _ALL, vac=0, stat="HS"),
 		_wt(1164, "Vacances calculées", "Earning", "1", _ALL, vac=0, stat="HS"),
-		_wt(1165, "Paiement vacances", "Earning", "1", _EXEMPT, vac=0, stat="HS"),
+		# //// Neoffice — Swissdec 6.0: paying out vacation (1166/1168 there) is subject to
+		# //// everything; it was exempt from every insurance here.
+		_wt(1165, "Paiement vacances", "Earning", "1", _ALL, vac=0, stat="HS"),
 		# =====================================================================
 		# 1180-1182: 13th month salary
 		# =====================================================================
@@ -237,7 +247,8 @@ def get_swiss_wage_types():
 		# 1400-1420: Departure indemnities and capital benefits
 		# =====================================================================
 		_wt(1400, "Indemnité de départ (prévoyance)", "Earning", "4", _IMP_ONLY, stat="CMO"),
-		_wt(1401, "Indemnité de départ (soumis AVS)", "Earning", "3", _AVS_AC, stat="CMO"),
+		# //// Neoffice — Swissdec 6.0: subject to IJM as well.
+		_wt(1401, "Indemnité de départ (soumis AVS)", "Earning", "3", _AVS_AC_IJM, stat="CMO"),
 		_wt(
 			1410,
 			"Prestation en capital caract. de prévoyance",
@@ -262,14 +273,17 @@ def get_swiss_wage_types():
 		_wt(1901, "Chambre gratuite", "Earning", "2.1", _ALL, vac=1, stat="BS"),
 		_wt(1902, "Logement gratuit", "Earning", "2.3", _ALL, vac=1, stat="BS"),
 		_wt(1910, "Part privée voiture de service", "Earning", "2.2", _ALL, vac=1, stat="BS"),
+		# //// Neoffice — Swissdec 6.0: tips are not paid by the employer and are not gross
+		# //// salary (gross 0), but they are subject to AVS/AC, LAA, LAAC, IJM and source tax.
 		_wt(
 			1920,
 			"Pourboire soumis aux cotisations AVS",
 			"Earning",
 			"1",
-			_ALL,
+			{"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 0, "imp": 1},
 			vac=1,
 			stat="BS",
+			bases_only=1,
 		),
 		_wt(1950, "Réduction loyer logement locatif", "Earning", "2.3", _ALL, vac=1, stat="BS"),
 		_wt(
@@ -300,24 +314,23 @@ def get_swiss_wage_types():
 			_IMP_ONLY,
 			stat="PS",
 		),
-		_wt(1976, "3ème pilier A payé par l'employeur", "Earning", "7", _ALL, stat="PS"),
+		# //// Neoffice — Swissdec 6.0: 1976 is the employee's LAAC premium taken over by the
+		# //// employer (source tax only), 1978 the pillar 3a and 1979 the source tax paid by the
+		# //// employer. The pillar 3a sat on 1976 and the source tax on 1978.
+		_wt(1976, "Part facultative employeur LAAC", "Earning", "7", _IMP_ONLY, stat="PS"),
 		_wt(1977, "3ème pilier B payé par l'employeur", "Earning", "7", _ALL, stat="PS"),
-		_wt(
-			1978,
-			"Impôt à la source payé par employeur",
-			"Earning",
-			"7",
-			_ALL,
-			stat="PS",
-		),
+		_wt(1978, "3ème pilier A payé par l'employeur", "Earning", "7", _ALL, stat="PS"),
+		_wt(1979, "Impôt à la source payé par l'employeur", "Earning", "7", _ALL, stat="PS"),
 		# =====================================================================
 		# 1980: Training (certificate of salary only)
 		# =====================================================================
+		# //// Neoffice — Swissdec 6.0 and the 2026 Wegleitung (Rz 61): training paid by the
+		# //// employer goes to box 13.3, not to 13.2.3 (other flat-rate expenses).
 		_wt(
 			1980,
 			"Perfectionnement (certificat de salaire)",
 			"Earning",
-			"13.2.3",
+			"13.3",
 			_EXEMPT,
 			stat="",
 		),
@@ -334,8 +347,10 @@ def get_swiss_wage_types():
 		# //// certified competitor puts them at 1, which the guide contradicts.
 		# 2000-2075: Third-party benefits (APG, military, insurance, maternity)
 		# =====================================================================
+		# //// Neoffice — Swissdec 6.0: 2000, 2020, 2025 and 2040 are subject to IJM as well
+		# //// (_AVS_AC_IJM); 2020 was subject to source tax only.
 		_wt(
-			2000, "Indemnité APG", "Earning", "7", _AVS_AC, stat="PRT", common=1,
+			2000, "Indemnité APG", "Earning", "7", _AVS_AC_IJM, stat="PRT", common=1,
 			abbr="CHAP", desc_fr="Indemnité APG (allocation perte de gain)", payment_days=0,
 		),
 		_wt(
@@ -348,26 +363,41 @@ def get_swiss_wage_types():
 		),
 		_wt(2010, "Caisse militaire subsidiaire", "Earning", "7", _AVS_AC_LAA_IJM, stat="PRT"),
 		_wt(2015, "Parifonds", "Earning", "7", _AVS_AC_LAA_IJM, stat="PRT"),
-		_wt(2020, "Indemnité assurance militaire", "Earning", "7", _IMP_ONLY, stat="PRT"),
-		_wt(2021, "Rente assurance militaire", "Earning", "7", _IMP_ONLY, stat="PRT"),
-		_wt(2025, "Indemnité AI", "Earning", "1", _AVS_AC, stat="PRT"),
-		_wt(2026, "Rente AI", "Earning", "7", _IMP_ONLY, stat="PRT"),
+		# //// Neoffice — 2020 goes to box 1 like the other insurance daily allowances the
+		# //// employer pays out (Wegleitung 2026 Rz 14, Swissdec 6.0). The pensions 2021, 2026
+		# //// and 2031 are not taxed at source through the payroll (Swissdec 6.0: no source tax).
+		_wt(2020, "Indemnité assurance militaire", "Earning", "1", _AVS_AC_IJM, stat="PRT"),
+		_wt(2021, "Rente assurance militaire", "Earning", "7", _EXEMPT, stat="PRT"),
+		_wt(2025, "Indemnité AI", "Earning", "1", _AVS_AC_IJM, stat="PRT"),
+		_wt(2026, "Rente AI", "Earning", "7", _EXEMPT, stat="PRT"),
 		_wt(2030, "Indemnité accident", "Earning", "1", _IMP_ONLY, stat="PRT"),
-		_wt(2031, "Rente accident", "Earning", "7", _IMP_ONLY, stat="PRT"),
+		_wt(2031, "Rente accident", "Earning", "7", _EXEMPT, stat="PRT"),
 		_wt(
 			2035, "Indemnité maladie", "Earning", "1", _IMP_ONLY, stat="PRT", common=1,
 			abbr="IIJM", desc_fr="Indemnité journalière maladie IJM", payment_days=0,
 		),
 		_wt(
-			2040, "Indemnité maternité", "Earning", "7", _AVS_AC, stat="PRT", common=1,
+			2040, "Indemnité maternité", "Earning", "7", _AVS_AC_IJM, stat="PRT", common=1,
 			abbr="MATA", desc_fr="Allocation de maternité", payment_days=0,
 		),
-		_wt(2050, "Correction indemnité de tiers", "Deduction", "", _AVS_AC_LAA, stat=""),
+		# //// Neoffice — Swissdec 6.0 (5.2.1, 8.7.2): 2050 and 2060 are "-" wage types, they
+		# //// take back from the gross and from each base they are subject to — a 2050 of 550
+		# //// after an APG allowance of 550 leaves the gross at 7'000 and the LAA base at 6'450.
+		# //// As deductions they left the gross at 7'550 and every base untouched. 2065 raises
+		# //// AVS/AC, LAA and IJM to the salary the short-time work took away, without being
+		# //// paid. 2060 and 2075 go to box 7 of the certificate with the unemployment benefit.
+		_wt(
+			2050, "Correction indemnité de tiers", "Earning", "1",
+			{"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 0, "imp": 1}, stat="", negative=1,
+		),
 		_wt(2051, "Correction de salaire net", "Deduction", "", _IMP_ONLY, stat=""),
-		_wt(2060, "Déduction RHT/ITP (SM)", "Deduction", "", _IMP_ONLY, stat=""),
-		_wt(2065, "Perte de gain RHT/ITP (SH)", "Earning", "", _AVS_AC_LAA_LPP, stat=""),
+		_wt(2060, "Déduction RHT/ITP (SM)", "Earning", "7", _IMP_ONLY, stat="", negative=1),
+		_wt(
+			2065, "Perte de gain RHT/ITP (SH)", "Earning", "",
+			{"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 0}, stat="", bases_only=1,
+		),
 		_wt(2070, "Indemnité de chômage", "Earning", "7", _IMP_ONLY, stat=""),
-		_wt(2075, "Délai de carence RHT/ITP", "Earning", "", _IMP_ONLY, stat=""),
+		_wt(2075, "Délai de carence RHT/ITP", "Earning", "7", _IMP_ONLY, stat=""),
 		# =====================================================================
 		# 3000-3034: Family allowances (not subject to social charges)
 		# =====================================================================

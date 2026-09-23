@@ -72,8 +72,9 @@ class TestProratedLimits(unittest.TestCase):
 		"""The surplus between 148'200 and 300'000, prorated: 63'250."""
 		self.assertEqual(insured_between(1000000, 150, UVG, 300000), 63250)
 
-	def test_a_prorated_limit_is_rounded_to_the_centime(self):
-		self.assertEqual(float(insured_between(10**6, 61, 0, UVG)), 25111.67)
+	def test_a_prorated_limit_is_rounded_to_five_centimes(self):
+		"""Guidelines 5.1.1: every payroll calculation rounds to 5 centimes."""
+		self.assertEqual(float(insured_between(10**6, 61, 0, UVG)), 25111.65)
 
 
 class TestCumulation(unittest.TestCase):

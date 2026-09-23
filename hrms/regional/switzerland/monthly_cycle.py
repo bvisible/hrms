@@ -318,7 +318,7 @@ def summary(company, year, month):
 
 	# //// Neoffice — slips submitted from a Payroll Entry were booked by HRMS itself: the
 	# //// Swiss booking refuses them (they would count twice), so the page says so instead.
-	from hrms.regional.switzerland.accounting import payroll_entry_bookings
+	from hrms.regional.switzerland.accounting import booking_method, payroll_entry_bookings
 
 	pending = [s for s in slips if s.docstatus == 1 and not s.get("ch_accrual_entry") and s.payroll_entry]
 	hrms_bookings = payroll_entry_bookings(s.payroll_entry for s in pending)
@@ -340,6 +340,8 @@ def summary(company, year, month):
 			"paid": sum(1 for s in slips if s.docstatus == 1 and s.get("ch_payment_entry")),
 		},
 		"accrual_entries": sorted({s.ch_accrual_entry for s in slips if s.get("ch_accrual_entry")}),
+		# //// Neoffice — how the company books its payroll (accounting.booking_method), shown with the state.
+		"booking_method": booking_method(company),
 		"payroll_entry_bookings": sorted(set(hrms_bookings.values())),
 		"proposals": _proposals_of([s.name for s in slips]) if payment_proposals else [],
 		"payment_proposals": payment_proposals,

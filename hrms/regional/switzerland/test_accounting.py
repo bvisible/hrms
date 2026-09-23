@@ -12,6 +12,7 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils import flt
 
 from hrms.regional.switzerland.accounting import (
+	BOOKING_CHARGES,
 	accrual_lines,
 	earning_role,
 	insurance_of,
@@ -66,6 +67,7 @@ class TestRoles(unittest.TestCase):
 			self.assertEqual(insurance_of(code, "whatever"), expected, code)
 
 	def test_our_components_without_a_wage_type(self):
+		self.assertEqual(insurance_of(None, "AVS Administrative Fees Employer"), "avs")
 		self.assertEqual(insurance_of(None, "Family Allowances Employer"), "caf")
 		self.assertEqual(insurance_of("", "LAAC Employer"), "accident")
 		self.assertEqual(insurance_of(None, "Source Tax Employee"), "source_tax")
@@ -216,6 +218,42 @@ class TestAccrualLines(unittest.TestCase):
 		rows = [*self._slip(), _row("deductions", "Memo", 50, None, dnia=1)]
 		_b, _p, problems, _s = accrual_lines(rows, [6865.90])
 		self.assertEqual(problems, [])
+
+	# //// Neoffice — the second booking method Swiss SMEs use (2026-09-23).
+	def _slip_with_employee_charges(self):
+		charges = {
+			"AVS/AI/APG Employee": "5700",
+			"AC/ALV Employee": "5700",
+			"IJM/KTG Employee": "5740",
+			"LAA Non-Professional Employee": "5730",
+			"LPP/BVG Employee": "5720",
+		}
+		rows = self._slip()
+		for row in rows:
+			row["expense_account"] = charges.get(row["salary_component"], row["expense_account"])
+		return rows
+
+	def test_the_social_charges_method(self):
+		"""Employee contributions credited to the charges, employer ones left to the invoices."""
+		balances, payable, problems, _s = accrual_lines(
+			self._slip_with_employee_charges(), [6865.90], BOOKING_CHARGES
+		)
+		self.assertEqual(problems, [])
+		self.assertEqual(payable, 6865.90)
+		self.assertEqual(balances["5000"], 8125.00)
+		self.assertEqual(balances["5700"], -(430.65 + 89.40))  # the employee part, credited
+		self.assertEqual(balances["5720"], -267.75)
+		self.assertEqual(balances["5730"], -65.00)
+		self.assertEqual(balances["5740"], -40.65)
+		self.assertEqual(balances["2279"], -365.65)  # source tax stays a liability to the canton
+		self.assertNotIn("2270", balances)  # nothing owed monthly: the invoices settle it
+		self.assertNotIn("2271", balances)
+		self.assertAlmostEqual(sum(balances.values()) - payable, 0, places=2)
+
+	def test_the_social_charges_method_needs_the_charge_of_an_employee_contribution(self):
+		_b, _p, problems, _s = accrual_lines(self._slip(), [6865.90], BOOKING_CHARGES)
+		self.assertTrue(any("AVS/AI/APG Employee" in p for p in problems))
+		self.assertFalse(any("Source Tax" in p for p in problems))
 
 
 class TestBookingAndPayment(FrappeTestCase):

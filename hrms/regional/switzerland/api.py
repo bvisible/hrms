@@ -113,6 +113,12 @@ def _create_component_from_wage_type(wt):
 	doc.ch_subject_to_ijm = wt.subject_to_ijm
 	doc.ch_subject_to_lpp = wt.subject_to_lpp
 	doc.ch_subject_to_imp = wt.subject_to_imp
+	# //// Neoffice — the two Swissdec behaviours a subject flag cannot express (a "-" wage type,
+	# //// a wage type that only raises the bases), see utils.sum_insurance_bases.
+	doc.ch_negative_wage_type = wt.get("is_negative") or 0
+	doc.ch_bases_only = wt.get("bases_only") or 0
+	if doc.ch_bases_only:
+		doc.do_not_include_in_total = 1
 	if wt.lohnausweis_position:
 		doc.ch_lohnausweis_position = wt.lohnausweis_position
 

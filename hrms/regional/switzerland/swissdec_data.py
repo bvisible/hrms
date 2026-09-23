@@ -19,6 +19,7 @@ from hrms.regional.switzerland.utils import (
 	get_employee_age,
 	get_swiss_social_insurance_config,
 	get_ytd_insurance_bases,
+	sum_insurance_bases,
 )
 
 # //// Neoffice — the declared incomes are the bases the contributions were computed on, as the
@@ -486,14 +487,20 @@ def _get_annual_insurance_base_totals(slip_names):
 		return {}
 
 	# Fetch earning amounts with their insurance base flags
+	# //// Neoffice — the rows left out of the total are told apart now (they were summed with
+	# //// the others, a statistical row included) and the bases follow the payslip's own rule,
+	# //// utils.sum_insurance_bases: a wage type that only raises the bases counts, a "-" one
+	# //// takes back.
 	rows = frappe.db.sql(
-		"""SELECT sd.salary_component, SUM(sd.amount) as total,
+		"""SELECT sd.salary_component, SUM(sd.amount) as amount,
+			COALESCE(sd.do_not_include_in_total, 0) AS do_not_include_in_total,
 			sc.ch_subject_to_avs, sc.ch_subject_to_ac, sc.ch_subject_to_laa,
-			sc.ch_subject_to_ijm, sc.ch_subject_to_lpp, sc.ch_subject_to_imp
+			sc.ch_subject_to_ijm, sc.ch_subject_to_lpp, sc.ch_subject_to_imp,
+			sc.ch_wage_type, sc.ch_wage_type_code, sc.ch_bases_only
 		FROM `tabSalary Detail` sd
 		LEFT JOIN `tabSalary Component` sc ON sc.name = sd.salary_component
 		WHERE sd.parent IN %s AND sd.parentfield = 'earnings'
-		GROUP BY sd.salary_component""",
+		GROUP BY sd.salary_component, COALESCE(sd.do_not_include_in_total, 0)""",
 		(slip_names,),
 		as_dict=True,
 	)
@@ -501,59 +508,17 @@ def _get_annual_insurance_base_totals(slip_names):
 	if not rows:
 		return {}
 
-	avs_base = 0
-	ac_base = 0
-	laa_base = 0
-	ijm_base = 0
-	lpp_base = 0
-	imp_base = 0
-	any_flag_set = False
-
-	for row in rows:
-		amount = flt(row.total)
-		avs = cint(row.ch_subject_to_avs)
-		ac = cint(row.ch_subject_to_ac)
-		laa = cint(row.ch_subject_to_laa)
-		ijm = cint(row.ch_subject_to_ijm)
-		lpp = cint(row.ch_subject_to_lpp)
-		imp = cint(row.ch_subject_to_imp)
-
-		has_flags = bool(avs or ac or laa or ijm or lpp or imp)
-		if has_flags:
-			any_flag_set = True
-
-		if has_flags:
-			if avs:
-				avs_base += amount
-			if ac:
-				ac_base += amount
-			if laa:
-				laa_base += amount
-			if ijm:
-				ijm_base += amount
-			if lpp:
-				lpp_base += amount
-			if imp:
-				imp_base += amount
-		else:
-			# No flags configured — include in all bases (backward compat)
-			avs_base += amount
-			ac_base += amount
-			laa_base += amount
-			ijm_base += amount
-			lpp_base += amount
-			imp_base += amount
-
-	if not any_flag_set:
+	bases = sum_insurance_bases(rows)
+	if not bases["configured"]:
 		return {}
 
 	return {
-		"avs_base": round(avs_base, 2),
-		"ac_base": round(ac_base, 2),
-		"laa_base": round(laa_base, 2),
-		"ijm_base": round(ijm_base, 2),
-		"lpp_base": round(lpp_base, 2),
-		"imp_base": round(imp_base, 2),
+		"avs_base": round(bases["avs"], 2),
+		"ac_base": round(bases["ac"], 2),
+		"laa_base": round(bases["laa"], 2),
+		"ijm_base": round(bases["ijm"], 2),
+		"lpp_base": round(bases["lpp"], 2),
+		"imp_base": round(bases["imp"], 2),
 	}
 
 

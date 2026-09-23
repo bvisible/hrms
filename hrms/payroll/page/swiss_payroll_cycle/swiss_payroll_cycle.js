@@ -248,6 +248,7 @@ class SwissPayrollCycle {
 							: ""
 					}
 					· ${__("Paid")}: ${t.paid}/${t.submitted}
+					· ${__("Payroll Booking Method")}: ${frappe.utils.escape_html(__(sum.booking_method || ""))}
 				</div>`
 				: "";
 			//// Neoffice — booked by HRMS from a Payroll Entry: say it, the Swiss booking refuses them.
@@ -338,6 +339,14 @@ class SwissPayrollCycle {
 						__("Not booked (not paid out):") +
 						" " +
 						res.skipped.map((c) => frappe.utils.escape_html(c)).join(", ");
+				}
+				//// Neoffice — the Social Charges method books no employer contribution monthly.
+				if (res.booking_method === "Social Charges") {
+					message +=
+						"<br><br>" +
+						__(
+							"Employer contributions are not booked monthly with the Social Charges method: the insurers' invoices charge them when they are paid."
+						);
 				}
 				frappe.msgprint({ title: __("Salaries booked"), message: message, indicator: "green" });
 				await this.run_preflight();

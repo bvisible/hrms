@@ -12,14 +12,21 @@ Two cases are not covered by a flat rate on the gross, and both are common:
 * **Working past the reference age.** AVS is then due only on the part of the
   income ABOVE an exemption of CHF 1'400 per month (CHF 16'800 per year),
   granted *per employment relationship*. Since the AVS 21 reform the employee
-  may waive it in order to earn a higher pension, so this is a declared status,
-  never something inferred from the birth date alone. And from the reference age
-  there is no unemployment cover at all, so **no AC contribution is due either**
-  (art. 2 al. 2 let. c LACI) — in both the exempted and the waived case.
+  may waive it in order to earn a higher pension: the waiver is a declared
+  status. And from the reference age there is no unemployment cover at all, so
+  **no AC contribution is due either** (art. 2 al. 2 let. c LACI) — in both the
+  exempted and the waived case.
+
+Both ends are read from the birth date and the sex whenever nothing was declared: AVS
+liability "must always be determined from the date of birth and the sex" (Swissdec
+guidelines 6.0, 8.1.1, translated). A declared status still wins, for what no birth date
+says (the waiver, another exemption).
 
 Everything here is a pure function: no frappe import, no database, so the rules
 can be tested on their own against the Swissdec oracle.
 """
+
+from datetime import date
 
 from hrms.regional.switzerland.constants import (
 	AVS_STATUS_EXEMPTED,
@@ -28,14 +35,68 @@ from hrms.regional.switzerland.constants import (
 	AVS_STATUS_YOUTH,
 	get_yearly_constants,
 )
+from hrms.regional.switzerland.insurance_solutions import SEX_FEMALE, SEX_MALE
+
+# AVS 21 transition (LAVS art. 21 and its transitional provisions, Swissdec guidelines 8.1.1):
+# women born in 1961, 1962 and 1963 reach the reference age at 64 years and 3, 6 and 9 months.
+_WOMEN_REFERENCE_AGE_MONTHS = {1961: 64 * 12 + 3, 1962: 64 * 12 + 6, 1963: 64 * 12 + 9}
 
 
-def resolve_avs_status(declared_status, age, year=None):
-	"""The status actually to apply, from what was declared and the employee's age.
+def age_in_year(birth_date, year):
+	"""The age reached in ``year``: the calendar year minus the year of birth.
+
+	Liability to AVS starts on 1 January of the year of the 18th birthday — born 7.8.2003,
+	liable from 1.1.2021, in the example of the guidelines (8.1.1) — and the LPP age that sets
+	the savings credit is the calendar year minus the year of birth too.
+	Neither waits for the birthday: an age counted to the day made an apprentice born in
+	November a minor for ten months of the year he was liable in.
+	"""
+	return int(year) - birth_date.year
+
+
+def reference_age_months(birth_date, sex):
+	"""The AVS reference age of this person, in months; None when the sex is not known."""
+	if sex == SEX_MALE:
+		return 65 * 12
+	if sex == SEX_FEMALE:
+		if birth_date.year <= 1960:
+			return 64 * 12
+		return _WOMEN_REFERENCE_AGE_MONTHS.get(birth_date.year, 65 * 12)
+	return None
+
+
+def retirement_start(birth_date, sex):
+	"""First day of the month after the one in which the reference age is reached.
+
+	From that day AC is no longer due and the pensioner's AVS exemption applies: those who
+	reached the AVS reference age are released "from the following month" (guidelines 8.1.1,
+	translated). None when the sex is not known.
+	"""
+	months = reference_age_months(birth_date, sex)
+	if months is None:
+		return None
+	month_index = birth_date.year * 12 + birth_date.month - 1 + months + 1
+	return date(month_index // 12, month_index % 12 + 1, 1)
+
+
+def is_past_reference_age(birth_date, sex, period_start):
+	"""Whether a period starting on ``period_start`` falls after the reference age."""
+	if not birth_date or not period_start:
+		return False
+	start = retirement_start(birth_date, sex)
+	return bool(start and period_start >= start)
+
+
+def resolve_avs_status(declared_status, age, year=None, past_reference_age=False):
+	"""The status actually to apply, from what was declared, the age and the reference age.
 
 	A declared status always wins: it carries a decision (waiving the exemption,
-	an exemption granted for another reason) that no birth date can express. Age
-	is only consulted to catch the under-age case when nothing was declared.
+	an exemption granted for another reason) that no birth date can express. With
+	nothing declared, the birth date decides both ends of the working life.
+
+	Args:
+		age: the age reached during the year (``age_in_year``), not the age to the day.
+		past_reference_age: the period falls after the reference age (``is_past_reference_age``).
 	"""
 	declared = (declared_status or "").strip()
 	if declared:
@@ -43,6 +104,8 @@ def resolve_avs_status(declared_status, age, year=None):
 	start_age = get_yearly_constants(year)["avs_contribution_start_age"] if year else 18
 	if age is not None and age < start_age:
 		return AVS_STATUS_YOUTH
+	if past_reference_age:
+		return AVS_STATUS_RETIRED
 	return ""
 
 
