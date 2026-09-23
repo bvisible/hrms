@@ -860,6 +860,7 @@ COMPONENT_NAME_MESSAGES = (
 	_lt("IJM/KTG Employee"),
 	_lt("IJM/KTG Employer"),
 	_lt("Family Allowances Employer"),
+	# //// Neoffice — see the block marker above: AVS admin fees translation
 	_lt("AVS Administrative Fees Employer"),
 	_lt("Source Tax Employee"),
 	_lt("13th Month Salary"),
