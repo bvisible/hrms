@@ -62,9 +62,9 @@ class TestPayrollReadEndpointsRefuseWebsiteUser(SwissEndpointPermissionCase):
 	"""A portal customer must not be able to read the company's payroll through the API."""
 
 	def setUp(self):
-		self.company = frappe.db.get_value("Company", {"country": "Switzerland"}, "name") or frappe.db.get_value(
-			"Company", {}, "name"
-		)
+		self.company = frappe.db.get_value(
+			"Company", {"country": "Switzerland"}, "name"
+		) or frappe.db.get_value("Company", {}, "name")
 		self.fiscal_year = frappe.db.get_value("Fiscal Year", {}, "name")
 
 	def test_monthly_cycle_preflight_refuses(self):
@@ -218,9 +218,7 @@ class TestWhitelistedDocumentMethodsRefuseWebsiteUser(SwissEndpointPermissionCas
 	def test_declaration_transmit_refuses(self):
 		"""The one that files the declaration with the authorities."""
 		frappe.set_user(self.website_user)
-		with patch(
-			"hrms.regional.switzerland.swissdec_transmitter.transmit_declaration"
-		) as transmit:
+		with patch("hrms.regional.switzerland.swissdec_transmitter.transmit_declaration") as transmit:
 			self.assertRefused(self.declaration.transmit)
 		transmit.assert_not_called()
 
@@ -246,9 +244,7 @@ class TestWhitelistedDocumentMethodsRefuseWebsiteUser(SwissEndpointPermissionCas
 
 	def test_ema_transmit_refuses(self):
 		frappe.set_user(self.website_user)
-		with patch(
-			"hrms.regional.switzerland.swissdec_transmitter.transmit_declaration"
-		) as transmit:
+		with patch("hrms.regional.switzerland.swissdec_transmitter.transmit_declaration") as transmit:
 			self.assertRefused(self.ema.transmit)
 		transmit.assert_not_called()
 
@@ -267,9 +263,7 @@ class TestWhitelistedDocumentMethodsRefuseWebsiteUser(SwissEndpointPermissionCas
 		frappe.set_user(self.website_user)
 		# call_gateway is stubbed on purpose: should the gate regress, this test must not be
 		# the thing that opens a connection carrying the instance's gateway API key.
-		with patch(
-			"hrms.regional.switzerland.swissdec_transmitter.call_gateway"
-		) as call_gateway:
+		with patch("hrms.regional.switzerland.swissdec_transmitter.call_gateway") as call_gateway:
 			self.assertRefused(settings.test_connection)
 		call_gateway.assert_not_called()
 
@@ -307,3 +301,124 @@ class TestWhitelistedDocumentMethodsStillPassAdministrator(SwissEndpointPermissi
 		with self.assertRaises(frappe.ValidationError) as caught:
 			certificate.populate_from_salary_slips()
 		self.assertNotIsInstance(caught.exception, frappe.PermissionError)
+
+
+# //// Neoffice — added (2026-09-23): an EMPLOYEE, not a portal customer. The Employee role reads
+# //// Salary Slip (their own slips, through a User Permission), so the gates that only asked for
+# //// read on Salary Slip let an ordinary employee read the payroll of the whole company.
+EMPLOYEE_USER = "swiss-payroll-employee-test@yopmail.com"
+HR_USER = "swiss-payroll-hr-test@yopmail.com"
+
+
+def _ensure_desk_user(email, roles):
+	"""A desk user holding exactly ``roles``, and none of the User Permissions of a past run."""
+	if not frappe.db.exists("User", email):
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": email.split("@")[0],
+				"send_welcome_email": 0,
+				"user_type": "System User",
+			}
+		)
+		user.flags.ignore_permissions = True
+		user.insert(ignore_permissions=True)
+	user = frappe.get_doc("User", email)
+	user.set("roles", [{"role": role} for role in roles])
+	user.save(ignore_permissions=True)
+	frappe.db.delete("User Permission", {"user": email})
+	return user.name
+
+
+def _restrict(user, allow, value):
+	frappe.get_doc(
+		{
+			"doctype": "User Permission",
+			"user": user,
+			"allow": allow,
+			"for_value": value,
+			"apply_to_all_doctypes": 1,
+		}
+	).insert(ignore_permissions=True)
+	frappe.clear_cache(user=user)
+
+
+class TestPayrollOfTheCompanyRefusesAnEmployee(SwissEndpointPermissionCase):
+	"""An employee reads their own slips, never the payroll of the company."""
+
+	def setUp(self):
+		self.company = frappe.db.get_value(
+			"Company", {"country": "Switzerland"}, "name"
+		) or frappe.db.get_value("Company", {}, "name")
+		self.fiscal_year = frappe.db.get_value("Fiscal Year", {}, "name")
+		# As the employees of a real site are: desk users linked to their Employee record, holding
+		# the Employee role (ERPNext drops it from a user no employee is linked to) and the User
+		# Permission ERPNext gives them on their own record.
+		self.employee_user = _ensure_desk_user(EMPLOYEE_USER, ["Desk User"])
+		self.employee = self._employee_of(self.employee_user)
+		_ensure_desk_user(EMPLOYEE_USER, ["Employee", "Desk User"])
+		_restrict(self.employee_user, "Employee", self.employee)
+		self.hr_user = _ensure_desk_user(HR_USER, ["HR User", "Desk User"])
+
+	def _employee_of(self, user):
+		name = frappe.db.get_value("Employee", {"user_id": user}, "name")
+		if name:
+			return name
+		return (
+			frappe.get_doc(
+				{
+					"doctype": "Employee",
+					"first_name": "Swiss",
+					"last_name": "EmployeeTest",
+					"company": self.company,
+					"gender": frappe.db.get_value("Gender", {}, "name"),
+					"date_of_birth": "1990-01-01",
+					"date_of_joining": "2020-01-01",
+					"status": "Active",
+					"user_id": user,
+					"create_user_permission": 0,
+				}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+
+	def endpoints(self):
+		return (
+			(year_end.reconcile, (self.company, self.fiscal_year)),
+			(year_end.qst_summary, (self.company, self.fiscal_year)),
+			(year_end.export_year_end_csv, (self.company, self.fiscal_year, "avs")),
+			(monthly_cycle.preflight, (self.company, 2026, 1)),
+			(monthly_cycle.summary, (self.company, 2026, 1)),
+		)
+
+	def test_the_company_payroll_refuses_an_employee(self):
+		frappe.set_user(self.employee_user)
+		# The trap: read on Salary Slip passes, for their own slips.
+		self.assertTrue(frappe.has_permission("Salary Slip", "read"))
+		for fn, args in self.endpoints():
+			with self.subTest(fn.__name__):
+				self.assertRefused(fn, *args)
+
+	def test_the_payroll_assistant_refuses_an_employee(self):
+		frappe.set_user(self.employee_user)
+		self.assertRefused(api.chat_start_session, self.company)
+
+	def test_payroll_staff_still_read_it(self):
+		frappe.set_user(self.hr_user)
+		self.assertIn("cantons", year_end.qst_summary(self.company, self.fiscal_year))
+		self.assertIn("employees", year_end.reconcile(self.company, self.fiscal_year))
+
+	def test_staff_limited_to_some_employees_do_not(self):
+		_restrict(self.hr_user, "Employee", self.employee)
+		frappe.set_user(self.hr_user)
+		self.assertRefused(year_end.qst_summary, self.company, self.fiscal_year)
+
+	def test_staff_limited_to_another_company_do_not(self):
+		other = frappe.db.get_value("Company", {"name": ["!=", self.company]}, "name")
+		if not other:
+			self.skipTest("a single company on this site")
+		_restrict(self.hr_user, "Company", other)
+		frappe.set_user(self.hr_user)
+		self.assertRefused(year_end.qst_summary, self.company, self.fiscal_year)

@@ -19,8 +19,14 @@ def get_events(
 	month_start: str, month_end: str, employee_filters: dict[str, str], shift_filters: dict[str, str]
 ) -> dict[str, list[dict]]:
 	holidays = get_holidays(month_start, month_end, employee_filters)
-	leaves = get_leaves(month_start, month_end, employee_filters)
-	shifts = get_shifts(month_start, month_end, employee_filters, shift_filters)
+	# //// Neoffice — the leaves and shifts of the employees the caller may see. Upstream read them
+	# //// with frappe.qb, which applies no permission: any employee received every colleague's
+	# //// approved leaves (and their type) and shifts, and the filter keys, used as raw Employee
+	# //// columns, answered guesses on any of its fields. frappe.get_list applies the caller's
+	# //// User Permissions, like get_holidays above.
+	employees = frappe.get_list("Employee", filters=employee_filters, pluck="name", limit_page_length=0)
+	leaves = get_leaves(month_start, month_end, employee_filters, employees)
+	shifts = get_shifts(month_start, month_end, employee_filters, shift_filters, employees)
 
 	events = {}
 	for event in [holidays, leaves, shifts]:
@@ -211,7 +217,12 @@ def get_holidays(month_start: str, month_end: str, employee_filters: dict[str, s
 	return holidays
 
 
-def get_leaves(month_start: str, month_end: str, employee_filters: dict[str, str]) -> dict[str, list[dict]]:
+# //// Neoffice — `employees` added: when given, only their leaves (see get_events).
+def get_leaves(
+	month_start: str, month_end: str, employee_filters: dict[str, str], employees: list[str] | None = None
+) -> dict[str, list[dict]]:
+	if employees is not None and not employees:
+		return {}
 	LeaveApplication = frappe.qb.DocType("Leave Application")
 	Employee = frappe.qb.DocType("Employee")
 
@@ -236,13 +247,23 @@ def get_leaves(month_start: str, month_end: str, employee_filters: dict[str, str
 
 	for filter in employee_filters:
 		query = query.where(Employee[filter] == employee_filters[filter])
+	# //// Neoffice — see get_events.
+	if employees is not None:
+		query = query.where(LeaveApplication.employee.isin(employees))
 
 	return group_by_employee(query.run(as_dict=True))
 
 
+# //// Neoffice — `employees` added: when given, only their shifts (see get_events).
 def get_shifts(
-	month_start: str, month_end: str, employee_filters: dict[str, str], shift_filters: dict[str, str]
+	month_start: str,
+	month_end: str,
+	employee_filters: dict[str, str],
+	shift_filters: dict[str, str],
+	employees: list[str] | None = None,
 ) -> dict[str, list[dict]]:
+	if employees is not None and not employees:
+		return {}
 	ShiftAssignment = frappe.qb.DocType("Shift Assignment")
 	ShiftType = frappe.qb.DocType("Shift Type")
 	Employee = frappe.qb.DocType("Employee")
@@ -282,6 +303,9 @@ def get_shifts(
 
 	for filter in shift_filters:
 		query = query.where(ShiftAssignment[filter] == shift_filters[filter])
+	# //// Neoffice — see get_events.
+	if employees is not None:
+		query = query.where(ShiftAssignment.employee.isin(employees))
 
 	return group_by_employee(query.run(as_dict=True))
 

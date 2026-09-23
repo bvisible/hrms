@@ -14,10 +14,10 @@ from hrms.regional.switzerland.assistant.validators import (
 	validate_rate,
 	validate_uid_bfs,
 )
+from hrms.regional.switzerland.permissions import check_company_access
 
 # Maximum age for session resumption (hours)
 SESSION_MAX_AGE_HOURS = 24
-
 
 
 # //// Neoffice — "HRMS Settings" does not exist in hrms: get_single_value raised "DocType not
@@ -597,6 +597,8 @@ class SwissPayrollChatService:
 
 		if command.startswith("__SELECT_COMPANY_"):
 			company_name = command.replace("__SELECT_COMPANY_", "").rstrip("_")
+			# A company the user may see: apply_step configures it with ignore_permissions.
+			check_company_access(company_name)
 			self.session.update_collected_data({"company": company_name})
 			self.session.company = company_name
 			self.session.save(ignore_permissions=True)

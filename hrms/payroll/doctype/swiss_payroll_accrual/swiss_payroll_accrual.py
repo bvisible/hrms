@@ -59,6 +59,9 @@ class SwissPayrollAccrual(Document):
 		"""The reversal on the reversal date — once that date has a fiscal year."""
 		if self.docstatus != 1 or self.reversal_entry or not self.reversal_date:
 			return
+		# Called from the form it only had the read check of a document method: booking the reversal
+		# is the accrual's own submission, it asks for the same right.
+		self.check_permission("submit")
 		from erpnext.accounts.utils import FiscalYearError, get_fiscal_year
 
 		try:

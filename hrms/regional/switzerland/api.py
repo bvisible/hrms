@@ -6,6 +6,8 @@
 import frappe
 from frappe import _
 
+from hrms.regional.switzerland.permissions import check_company_access
+
 
 @frappe.whitelist()
 def create_salary_component_from_wage_type(wage_type_code, company=None):
@@ -137,16 +139,36 @@ def _create_component_from_wage_type(wt):
 # //// those actions save with ignore_permissions=True. One helper, used by all three.
 def _get_owned_chat_session(session_id):
 	"""Return the chat session only if it belongs to the caller (or a System Manager)."""
+	_check_chat_access()
 	session = frappe.get_doc("Swiss Payroll Chat Session", session_id)
 	if session.user != frappe.session.user and "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Access denied"), frappe.PermissionError)
 	return session
 
 
+# //// Neoffice — 2026-09-23: owning the session was the only check, and anyone signed in could start
+# //// one — then apply_step wrote the company's payroll settings, the insurance rates, employees'
+# //// Swiss fields and salary structure assignments with ignore_permissions. The assistant
+# //// configures the payroll: HR Manager (or System Manager) only.
+CHAT_ROLES = ("HR Manager", "System Manager")
+
+
+def _check_chat_access():
+	if frappe.session.user != "Administrator" and not set(frappe.get_roles()) & set(CHAT_ROLES):
+		frappe.throw(
+			_("Only an HR Manager can configure the payroll with the assistant."), frappe.PermissionError
+		)
+
+
 @frappe.whitelist()
 def chat_start_session(company=None):
 	"""Start or resume a Swiss payroll configuration chat session."""
 	from hrms.regional.switzerland.assistant.chat_service import SwissPayrollChatService
+
+	# //// Neoffice — see _check_chat_access; a company the caller may see.
+	_check_chat_access()
+	if company:
+		check_company_access(company)
 
 	service = SwissPayrollChatService()
 	return service.start_session(company=company)

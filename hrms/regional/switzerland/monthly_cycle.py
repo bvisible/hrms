@@ -22,6 +22,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt, getdate
 
+from hrms.regional.switzerland.permissions import check_company_access, check_payroll_staff
 from hrms.regional.switzerland.source_tax import (
 	build_tariff_code,
 	get_calculation_model,
@@ -35,9 +36,13 @@ from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
 # //// the permission layer entirely: without this gate any authenticated account — a portal
 # //// Website User included — could list the employees, their gross and their net for a period.
 # //// Hiding the desk page is not a permission; the whitelisted API is the boundary.
-def _check_payroll_read_permission():
-	"""Refuse anyone who may not read Salary Slips (frappe.get_all ignores permissions)."""
-	frappe.has_permission("Salary Slip", "read", throw=True)
+# //// Neoffice — 2026-09-23: read on Salary Slip was not a gate — the Employee role has it, for their
+# //// own slips through a User Permission these queries ignore, and an ordinary employee got the
+# //// whole company's payroll. Payroll staff only now, and only for a company they may see
+# //// (permissions.check_payroll_staff).
+def _check_payroll_read_permission(company=None):
+	"""Refuse anyone but payroll staff who see every employee of ``company``."""
+	check_payroll_staff(company)
 
 
 def _period_bounds(year, month):
@@ -83,7 +88,7 @@ def preflight(company, year, month):
 	Issue levels: "error" blocks generation, "warning" is informational.
 	"""
 	# //// Neoffice — permission gate, see _check_payroll_read_permission.
-	_check_payroll_read_permission()
+	_check_payroll_read_permission(company)
 	start, end = _period_bounds(year, month)
 	issues = []
 	employees = []
@@ -230,7 +235,7 @@ def generate(company, year, month, employees=None):
 	# //// Neoffice — permission gate: this one WRITES slips, so it asks for create on Salary Slip.
 	# //// slip.insert() would have refused anyway, but not before _active_employees() had already
 	# //// leaked the staff list and the failures had named every employee.
-	_check_payroll_read_permission()
+	_check_payroll_read_permission(company)
 	frappe.has_permission("Salary Slip", "create", throw=True)
 	import json
 
@@ -286,7 +291,7 @@ def generate(company, year, month, employees=None):
 def summary(company, year, month):
 	"""Period totals per employee and per component, for the review step."""
 	# //// Neoffice — permission gate, see _check_payroll_read_permission.
-	_check_payroll_read_permission()
+	_check_payroll_read_permission(company)
 	start, _end = _period_bounds(year, month)
 
 	# //// Neoffice — the accounting state of each slip too: booked (salary journal entry),
@@ -367,6 +372,8 @@ def book_salaries(company, year, month):
 	"""Fill in the missing payroll accounts from the company's chart, then book the period."""
 	from hrms.regional.switzerland.accounting import configure_payroll_accounts, post_payroll_accrual
 
+	# //// Neoffice — a company the caller may see (the functions below check the role only).
+	check_company_access(company)
 	configured = configure_payroll_accounts(company)
 	result = post_payroll_accrual(company, year, month)
 	result["configured"] = configured["set"]
@@ -377,6 +384,9 @@ def book_salaries(company, year, month):
 def create_salary_payment_proposal(company, year, month, execution_date=None):
 	"""A payment proposal holding the period's booked salaries, to pay by file or EBICS."""
 	frappe.only_for(["System Manager", "Accounts Manager", "HR Manager"])
+	# //// Neoffice — and a company the caller may see: the role check alone let a manager restricted
+	# //// to one company pay the salaries of another.
+	check_company_access(company)
 	if not frappe.db.exists("DocType", "Payment Proposal"):
 		frappe.throw(_("Payment proposals need the ERPNextSwiss app."))
 	start, end = _period_bounds(year, month)
@@ -480,7 +490,7 @@ def create_salary_payment_proposal(company, year, month, execution_date=None):
 def submit_cycle(company, year, month):
 	"""Submit every draft Salary Slip of the period."""
 	# //// Neoffice — permission gate: submitting is a write, so it asks for submit on Salary Slip.
-	_check_payroll_read_permission()
+	_check_payroll_read_permission(company)
 	frappe.has_permission("Salary Slip", "submit", throw=True)
 	start, _end = _period_bounds(year, month)
 

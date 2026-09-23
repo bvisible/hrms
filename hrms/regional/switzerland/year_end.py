@@ -22,6 +22,7 @@ from frappe import _
 from frappe.utils import flt, getdate, today
 
 from hrms.regional.switzerland.payroll_hooks import _resolve_component_by_wage_type
+from hrms.regional.switzerland.permissions import check_payroll_staff
 from hrms.regional.switzerland.source_tax import build_tariff_code
 
 
@@ -29,15 +30,17 @@ from hrms.regional.switzerland.source_tax import build_tariff_code
 # //// both of which bypass the permission layer: without this gate any authenticated account —
 # //// a portal Website User included — could read the gross, the net and the source tax withheld
 # //// for the whole company. The desk page is not the boundary; the API is.
-def _check_payroll_read_permission():
-	"""Refuse anyone who may not read Salary Slips (frappe.get_all ignores permissions)."""
-	frappe.has_permission("Salary Slip", "read", throw=True)
+# //// Neoffice — 2026-09-23: read on Salary Slip was not a gate — the Employee role has it, for their
+# //// own slips through a User Permission these queries ignore, and an ordinary employee got the
+# //// whole company's payroll. Payroll staff only now, and only for a company they may see
+# //// (permissions.check_payroll_staff).
+def _check_payroll_read_permission(company=None):
+	"""Refuse anyone but payroll staff who see every employee of ``company``."""
+	check_payroll_staff(company)
 
 
 def _fiscal_year_bounds(fiscal_year):
-	fy = frappe.db.get_value(
-		"Fiscal Year", fiscal_year, ["year_start_date", "year_end_date"], as_dict=True
-	)
+	fy = frappe.db.get_value("Fiscal Year", fiscal_year, ["year_start_date", "year_end_date"], as_dict=True)
 	if not fy:
 		frappe.throw(_("Fiscal Year {0} not found").format(fiscal_year))
 	return getdate(fy.year_start_date), getdate(fy.year_end_date)
@@ -61,7 +64,7 @@ def _slips_of_year(company, start, end):
 def reconcile(company, fiscal_year):
 	"""Per-employee year recap: coverage, cumulatives, certificate status."""
 	# //// Neoffice — permission gate, see _check_payroll_read_permission.
-	_check_payroll_read_permission()
+	_check_payroll_read_permission(company)
 	start, end = _fiscal_year_bounds(fiscal_year)
 	slips = _slips_of_year(company, start, end)
 	if not slips:
@@ -199,9 +202,7 @@ def reconcile(company, fiscal_year):
 				"months": months,
 				"gross": gross,
 				"qst_withheld": qst_withheld,
-				"components": [
-					{"component": c, "total": t} for c, t in sorted(component_totals.items())
-				],
+				"components": [{"component": c, "total": t} for c, t in sorted(component_totals.items())],
 				"avs_ok": bool(meta.ch_avs_number),
 				"certificate": certificate.name if certificate else None,
 				"certificate_status": certificate_status,
@@ -216,13 +217,9 @@ def reconcile(company, fiscal_year):
 		"issues": issues,
 		"counts": {
 			"employees": len(rows),
-			"certificates_missing": sum(
-				1 for r in rows if r["certificate_status"] == "missing"
-			),
+			"certificates_missing": sum(1 for r in rows if r["certificate_status"] == "missing"),
 			"certificates_draft": sum(1 for r in rows if r["certificate_status"] == "draft"),
-			"certificates_submitted": sum(
-				1 for r in rows if r["certificate_status"] == "submitted"
-			),
+			"certificates_submitted": sum(1 for r in rows if r["certificate_status"] == "submitted"),
 			"certificates_sent": sum(1 for r in rows if r["certificate_status"] == "sent"),
 		},
 	}
@@ -247,7 +244,7 @@ def generate_certificates(company, fiscal_year, employees=None):
 	"""Create and populate missing certificates (draft) from submitted slips."""
 	# //// Neoffice — permission gate: this one WRITES (it inserts certificates carrying the AVS
 	# //// number and the yearly totals), so it asks for create on the certificate, not just read.
-	_check_payroll_read_permission()
+	_check_payroll_read_permission(company)
 	frappe.has_permission("Swiss Salary Certificate", "create", throw=True)
 	import json
 
@@ -297,9 +294,7 @@ def generate_certificates(company, fiscal_year, employees=None):
 			)
 		except Exception:
 			frappe.db.rollback()
-			failed.append(
-				{"employee": employee, "error": frappe.get_traceback().splitlines()[-1]}
-			)
+			failed.append({"employee": employee, "error": frappe.get_traceback().splitlines()[-1]})
 			frappe.log_error(
 				"Year-end: certificate generation failed",
 				f"{employee} {fiscal_year}: {frappe.get_traceback()}",
@@ -321,6 +316,8 @@ def _certificates(company, fiscal_year, **filters):
 def submit_certificates(company, fiscal_year):
 	"""Validate every draft certificate of the year: each one gets its Swissdec DocID."""
 	# //// Neoffice — permission gate: submitting fixes the certificates the employees receive.
+	# //// Neoffice — and payroll staff of this company (see _check_payroll_read_permission).
+	_check_payroll_read_permission(company)
 	frappe.has_permission("Swiss Salary Certificate", "submit", throw=True)
 	submitted, failed = [], []
 	for name in _certificates(company, fiscal_year, docstatus=0):
@@ -339,6 +336,8 @@ def submit_certificates(company, fiscal_year):
 def send_certificates(company, fiscal_year):
 	"""Mail every validated certificate not sent yet to its employee, in the background."""
 	# //// Neoffice — permission gate: the same as the Send button of one certificate.
+	# //// Neoffice — and payroll staff of this company (see _check_payroll_read_permission).
+	_check_payroll_read_permission(company)
 	frappe.has_permission("Swiss Salary Certificate", "email", throw=True)
 	from hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate import (
 		employee_email_addresses,
@@ -397,7 +396,7 @@ def qst_summary(company, fiscal_year):
 	"""Source-tax recap per canton for the cantonal settlements."""
 	# //// Neoffice — permission gate, see _check_payroll_read_permission. The raw SQL below joins
 	# //// Salary Slip to Employee and returns AVS numbers and withheld tax for every employee.
-	_check_payroll_read_permission()
+	_check_payroll_read_permission(company)
 	start, end = _fiscal_year_bounds(fiscal_year)
 	qst_component = _resolve_component_by_wage_type(5060, "Source Tax Employee")
 	if not qst_component:
@@ -465,6 +464,7 @@ def qst_summary(company, fiscal_year):
 
 	return {"cantons": sorted(cantons.values(), key=lambda c: c["canton"])}
 
+
 @frappe.whitelist()
 def export_year_end_csv(company, fiscal_year, kind):
 	"""Download a year-end list as CSV (plan B for the cantonal portals).
@@ -479,7 +479,7 @@ def export_year_end_csv(company, fiscal_year, kind):
 	"""
 	# //// Neoffice — permission gate, see _check_payroll_read_permission. This one downloads
 	# //// the whole payroll year as a CSV (AVS numbers, birth dates, gross, withheld).
-	_check_payroll_read_permission()
+	_check_payroll_read_permission(company)
 	import csv
 	import io
 
@@ -491,7 +491,14 @@ def export_year_end_csv(company, fiscal_year, kind):
 		for e in frappe.get_all(
 			"Employee",
 			filters={"name": ("in", list(employees))},
-			fields=["name", "employee_name", "ch_avs_number", "date_of_birth", "date_of_joining", "relieving_date"],
+			fields=[
+				"name",
+				"employee_name",
+				"ch_avs_number",
+				"date_of_birth",
+				"date_of_joining",
+				"relieving_date",
+			],
 		)
 	}
 
@@ -507,8 +514,12 @@ def export_year_end_csv(company, fiscal_year, kind):
 	if kind == "qst":
 		writer.writerow(
 			[
-				_("Canton"), _("Employee"), _("AVS Number"), _("Tariff code"),
-				_("Taxable gross"), _("Source tax withheld"),
+				_("Canton"),
+				_("Employee"),
+				_("AVS Number"),
+				_("Tariff code"),
+				_("Taxable gross"),
+				_("Source tax withheld"),
 			]
 		)
 		for canton in qst_summary(company, fiscal_year)["cantons"]:
@@ -523,14 +534,22 @@ def export_year_end_csv(company, fiscal_year, kind):
 						f"{emp['withheld']:.2f}",
 					]
 				)
-			writer.writerow([canton["canton"], _("Total"), "", "", f"{canton['gross']:.2f}", f"{canton['withheld']:.2f}"])
+			writer.writerow(
+				[canton["canton"], _("Total"), "", "", f"{canton['gross']:.2f}", f"{canton['withheld']:.2f}"]
+			)
 		filename = f"IS_{fiscal_year}_{frappe.scrub(company)}.csv"
 
 	elif kind == "avs":
 		writer.writerow(
 			[
-				_("Employee"), _("AVS Number"), _("Date of Birth"), _("From"), _("To"),
-				_("Gross salary"), _("AVS withheld (employee)"), _("AC withheld (employee)"),
+				_("Employee"),
+				_("AVS Number"),
+				_("Date of Birth"),
+				_("From"),
+				_("To"),
+				_("Gross salary"),
+				_("AVS withheld (employee)"),
+				_("AC withheld (employee)"),
 			]
 		)
 		for employee, row in sorted(employees.items(), key=lambda kv: kv[1]["employee_name"]):

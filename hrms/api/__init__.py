@@ -747,7 +747,12 @@ def upload_base64_file(content, filename, dt=None, dn=None, fieldname=None):
 
 	from PIL import Image, ImageOps
 
-	from frappe.handler import ALLOWED_MIMETYPES
+	# //// Neoffice — the write check frappe.handler.upload_file makes before attaching. Without it any
+	# //// signed-in user attached files to any document (a colleague's employee record, somebody
+	# //// else's expense claim). No document yet (dt/dn empty): nothing to check, as upstream.
+	from frappe.handler import ALLOWED_MIMETYPES, check_write_permission
+
+	check_write_permission(dt, dn)
 
 	decoded_content = base64.b64decode(content)
 	content_type = guess_type(filename)[0]
