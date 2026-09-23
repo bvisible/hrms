@@ -122,6 +122,9 @@ def get_custom_fields():
 				"no_copy": 1,
 				"print_hide": 1,
 			},
+			# //// Neoffice ▼▼▼ — new fields: Salary Slip gains an "Accounting" section (ch_accrual_entry,
+			# //// ch_payment_entry) linking the journal entries that book and pay it; a booked slip is
+			# //// corrected through them, not cancelled (5984103a7 "feat(payroll): book the Swiss payroll and pay it through the payment proposal")
 			# The journal entries that booked this slip (accounting.py): the salary entry of the
 			# period, then its payment. A booked slip is corrected through them, not cancelled.
 			{
@@ -154,6 +157,7 @@ def get_custom_fields():
 				"allow_on_submit": 1,
 				"print_hide": 1,
 			},
+			# //// Neoffice ▲▲▲
 		],
 		"Salary Component Account": [
 			{
