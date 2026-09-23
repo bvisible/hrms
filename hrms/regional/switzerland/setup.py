@@ -1483,6 +1483,7 @@ def create_swiss_salary_structure():
 		ensure_company_salary_structure(company)
 
 
+# //// Neoffice — old create_swiss_salary_structure() returned early when a draft "Salary Structure" already existed for the structure name; removed together with that check (073533643 "feat(payroll): a hired employee is payable, and each company gets its Swiss salary structure"): ensure_company_salary_structure below looks up, creates and submits the structure per company instead.
 def ensure_company_salary_structure(company):
 	"""The name of ``company``'s Swiss salary structure — created, submitted and active when the
 	company has none: the monthly salary (wage type 1000) as its earning, the Swiss deductions,
@@ -1507,16 +1508,19 @@ def ensure_company_salary_structure(company):
 			return name if frappe.db.get_value("Salary Structure", name, "docstatus") == 1 else None
 
 	doc = frappe.new_doc("Salary Structure")
+	# //// Neoffice — new: submitted Salary Structure per company (073533643 "feat(payroll): a hired employee is payable, and each company gets its Swiss salary structure"), named "Swiss Payroll - Standard" (suffixed with the company abbreviation on a name clash).
 	doc.name = name
 	doc.__newname = name
 	doc.company = company
 	doc.currency = frappe.get_cached_value("Company", company, "default_currency") or "CHF"
 	doc.payroll_frequency = "Monthly"
 	doc.is_active = "Yes"
+	# //// Neoffice — earning is now the wage-type-1000 component (see _monthly_salary_component() below) instead of the hardcoded "Basic" component (073533643 "feat(payroll): a hired employee is payable, and each company gets its Swiss salary structure").
 	doc.append(
 		"earnings",
 		{"salary_component": _monthly_salary_component(), "formula": "base", "amount_based_on_formula": 1},
 	)
+	# //// Neoffice — new: append the Swiss deductions straight from the salary-component catalogue (073533643 "feat(payroll): a hired employee is payable, and each company gets its Swiss salary structure"), skipping any component not yet created — replaces the old fixed "deductions" list appended below.
 	for definition in get_swiss_salary_component_definitions():
 		if definition.get("type") != "Deduction" or not frappe.db.exists(
 			"Salary Component", definition["name"]
@@ -1533,12 +1537,14 @@ def ensure_company_salary_structure(company):
 				"do_not_include_in_total": definition.get("do_not_include_in_total", 0),
 			},
 		)
+	# //// Neoffice — removed the old "for ded in deductions: doc.append("deductions", ded)" loop (073533643 "feat(payroll): a hired employee is payable, and each company gets its Swiss salary structure"): replaced by the catalogue-driven loop above.
 	doc.flags.ignore_permissions = True
 	doc.insert()
 	doc.submit()
 	return doc.name
 
 
+# //// Neoffice — new: resolve the monthly-salary earning from wage type 1000 (creating the component from the Swiss Wage Type catalogue when missing) instead of hardcoding "Basic" (073533643 "feat(payroll): a hired employee is payable, and each company gets its Swiss salary structure").
 def _monthly_salary_component():
 	"""The component of the monthly salary: the one of wage type 1000, created from the catalogue
 	when missing; "Basic" only where the catalogue is not installed."""
