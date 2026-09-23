@@ -11,6 +11,7 @@
 		"fiscal_year",
 		"company",
 		"certificate_type",
+		"language",
 		"free_transport",
 		"lunch_checks",
 		"column_break_header",
@@ -19,6 +20,8 @@
 		"posting_date",
 		"date_of_joining",
 		"relieving_date",
+		"period_from",
+		"period_to",
 		"section_income",
 		"position_1_salary",
 		"position_2_1_board_lodging",
@@ -57,7 +60,21 @@
 		"position_14_employer_contributions",
 		"position_14_description",
 		"section_remarks",
+		"number_of_certificates",
+		"benefit_days_by_insurer",
+		"column_break_remarks",
+		"additional_remarks",
+		"section_remarks_result",
 		"position_15_remarks",
+		"remark_facts",
+		"section_delivery",
+		"sent_to_employee_on",
+		"column_break_delivery",
+		"sent_to",
+		"section_identification",
+		"doc_id",
+		"column_break_identification",
+		"finalized_on",
 		"amended_from"
 	],
 	"fields": [
@@ -100,6 +117,13 @@
 			"reqd": 1
 		},
 		{
+			"description": "French, German, Italian or English: the remarks and the email follow it. Set from the employee's fiscal canton.",
+			"fieldname": "language",
+			"fieldtype": "Link",
+			"label": "Certificate Language",
+			"options": "Language"
+		},
+		{
 			"fieldname": "free_transport",
 			"fieldtype": "Check",
 			"label": "Free Transport",
@@ -135,8 +159,9 @@
 			"default": "Today",
 			"fieldname": "posting_date",
 			"fieldtype": "Date",
-			"label": "Posting Date",
-			"reqd": 1
+			"label": "Certificate Date",
+			"reqd": 1,
+			"description": "Box I: the date the certificate is made out."
 		},
 		{
 			"fetch_from": "employee.date_of_joining",
@@ -153,34 +178,47 @@
 			"read_only": 1
 		},
 		{
+			"description": "Box E: the employment dates within the year.",
+			"fieldname": "period_from",
+			"fieldtype": "Date",
+			"label": "Period From",
+			"read_only": 1
+		},
+		{
+			"fieldname": "period_to",
+			"fieldtype": "Date",
+			"label": "Period To",
+			"read_only": 1
+		},
+		{
 			"fieldname": "section_income",
 			"fieldtype": "Section Break",
 			"label": "Income (Positions 1-7)"
 		},
 		{
 			"default": "0",
-			"description": "Salary, wages, overtime, fees (Lohn)",
+			"description": "Salary and every allowance, family allowances included (Wegleitung Rz 13-18).",
 			"fieldname": "position_1_salary",
 			"fieldtype": "Currency",
-			"label": "1. Salary / Lohn"
+			"label": "1. Salary"
 		},
 		{
 			"default": "0",
-			"description": "Other benefits (Andere Leistungen)",
+			"description": "Board and lodging provided by the employer.",
 			"fieldname": "position_2_1_board_lodging",
 			"fieldtype": "Currency",
 			"label": "2.1 Board and Lodging"
 		},
 		{
 			"default": "0",
-			"description": "Board and lodging (Verpflegung / Unterkunft)",
+			"description": "Private use of the company car.",
 			"fieldname": "position_2_2_company_car",
 			"fieldtype": "Currency",
 			"label": "2.2 Private Share Company Car"
 		},
 		{
 			"default": "0",
-			"description": "Other fringe benefits (Andere Naturalleistungen)",
+			"description": "Other fringe benefits the employer can value.",
 			"fieldname": "position_2_3_other_fringe",
 			"fieldtype": "Currency",
 			"label": "2.3 Other Fringe Benefits"
@@ -196,7 +234,7 @@
 		},
 		{
 			"default": "0",
-			"description": "Irregular benefits, capital payments (Unregelm\u00e4ssige Leistungen)",
+			"description": "Irregular benefits: bonuses, gratuities, jubilee gifts.",
 			"fieldname": "position_3_irregular_benefits",
 			"fieldtype": "Currency",
 			"label": "3. Irregular Benefits"
@@ -208,7 +246,7 @@
 		},
 		{
 			"default": "0",
-			"description": "Capital benefits (Kapitalleistungen)",
+			"description": "Capital benefits.",
 			"fieldname": "position_4_capital_benefits",
 			"fieldtype": "Currency",
 			"label": "4. Capital Benefits"
@@ -220,21 +258,21 @@
 		},
 		{
 			"default": "0",
-			"description": "Ownership rights pursuant to ESOP (Beteiligungsrechte)",
+			"description": "Employee participation rights, detailed on a supplementary sheet.",
 			"fieldname": "position_5_ownership_rights",
 			"fieldtype": "Currency",
 			"label": "5. Ownership Rights"
 		},
 		{
 			"default": "0",
-			"description": "Board of directors fees (Verwaltungsratsentsch\u00e4digungen)",
+			"description": "Board of directors fees.",
 			"fieldname": "position_6_board_of_directors",
 			"fieldtype": "Currency",
 			"label": "6. Board of Directors Fees"
 		},
 		{
 			"default": "0",
-			"description": "Other income (Andere Einkommen)",
+			"description": "Other benefits: income replacement allowances paid through the payroll (APG, sickness, accident, maternity, unemployment), tips (Wegleitung Rz 31-40).",
 			"fieldname": "position_7_other_income",
 			"fieldtype": "Currency",
 			"label": "7. Other Income"
@@ -251,7 +289,7 @@
 		},
 		{
 			"default": "0",
-			"description": "Gross income = sum of positions 1-7 (Bruttolohn)",
+			"description": "Sum of boxes 1 to 7, in whole francs.",
 			"fieldname": "position_8_gross_income",
 			"fieldtype": "Currency",
 			"label": "8. Gross Income (Total)",
@@ -264,24 +302,24 @@
 		},
 		{
 			"default": "0",
-			"description": "AVS/AI/APG + AC/ALV + AANP contributions (AHV/IV/EO, ALV, NBUV-Beitr\u00e4ge)",
+			"description": "Employee AVS/AI/APG, AC and AANP contributions only (Wegleitung Rz 42).",
 			"fieldname": "position_9_avs_ac_aanp",
 			"fieldtype": "Currency",
 			"label": "9. AVS/AC/AANP Contributions"
 		},
 		{
 			"default": "0",
-			"description": "Regular BVG/LPP contributions (Ordentliche BVG-Beitr\u00e4ge)",
+			"description": "Regular employee contributions to the pension fund.",
 			"fieldname": "position_10_1_bvg_regular",
 			"fieldtype": "Currency",
-			"label": "10.1 BVG Regular Contributions"
+			"label": "10.1 LPP Regular Contributions"
 		},
 		{
 			"default": "0",
-			"description": "BVG/LPP buy-back contributions (BVG-Einkauf)",
+			"description": "Employee buy-in contributions to the pension fund.",
 			"fieldname": "position_10_2_bvg_buyback",
 			"fieldtype": "Currency",
-			"label": "10.2 BVG Buy-back"
+			"label": "10.2 LPP Buy-in"
 		},
 		{
 			"fieldname": "column_break_deductions",
@@ -289,7 +327,7 @@
 		},
 		{
 			"default": "0",
-			"description": "Net salary = position 8 - 9 - 10.1 - 10.2 (Nettolohn)",
+			"description": "Box 8 minus boxes 9, 10.1 and 10.2.",
 			"fieldname": "position_11_net_salary",
 			"fieldtype": "Currency",
 			"label": "11. Net Salary",
@@ -297,7 +335,7 @@
 		},
 		{
 			"default": "0",
-			"description": "Withholding tax deducted (Quellensteuerabzug)",
+			"description": "Source tax withheld.",
 			"fieldname": "position_12_withholding_tax",
 			"fieldtype": "Currency",
 			"label": "12. Withholding Tax"
@@ -371,26 +409,115 @@
 		},
 		{
 			"default": "0",
-			"description": "Contributions/payments from employer for further training etc. (Beitr\u00e4ge Arbeitgeber)",
+			"description": "Not printed: box 14 names benefits without an amount (Wegleitung Rz 62).",
 			"fieldname": "position_14_employer_contributions",
 			"fieldtype": "Currency",
-			"label": "14. Employer Contributions"
+			"label": "14. Employer Contributions",
+			"hidden": 1
 		},
 		{
 			"fieldname": "position_14_description",
 			"fieldtype": "Data",
-			"label": "14. Description"
+			"label": "14. Other Fringe Benefits",
+			"description": "Benefits the employer cannot value, named without an amount (Wegleitung Rz 62)."
 		},
 		{
 			"fieldname": "section_remarks",
 			"fieldtype": "Section Break",
-			"label": "Remarks"
+			"label": "Remarks (Box 15)"
 		},
 		{
-			"description": "Position 15: additional remarks, codes, and cross-references.",
+			"description": "Only when the employee exceptionally gets more than one certificate for the year (Wegleitung Rz 66).",
+			"fieldname": "number_of_certificates",
+			"fieldtype": "Int",
+			"label": "Certificates Issued for the Year"
+		},
+		{
+			"description": "Days with income replacement benefits an insurer paid the employee directly, not through the payroll (Wegleitung Rz 64).",
+			"fieldname": "benefit_days_by_insurer",
+			"fieldtype": "Int",
+			"label": "Days of Benefits Paid by an Insurer"
+		},
+		{
+			"fieldname": "column_break_remarks",
+			"fieldtype": "Column Break"
+		},
+		{
+			"description": "Printed in box 15 after the remarks built from the salary slips.",
+			"fieldname": "additional_remarks",
+			"fieldtype": "Small Text",
+			"label": "Additional Remarks"
+		},
+		{
+			"fieldname": "section_remarks_result",
+			"fieldtype": "Section Break"
+		},
+		{
+			"description": "Built from the salary slips and the fields above; rebuilt whenever a draft is saved.",
 			"fieldname": "position_15_remarks",
 			"fieldtype": "Small Text",
-			"label": "15. Remarks / Bemerkungen"
+			"label": "15. Remarks",
+			"read_only": 1
+		},
+		{
+			"fieldname": "remark_facts",
+			"fieldtype": "JSON",
+			"hidden": 1,
+			"label": "Remark Facts",
+			"print_hide": 1,
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_delivery",
+			"fieldtype": "Section Break",
+			"label": "Delivery to the Employee",
+			"collapsible": 1
+		},
+		{
+			"allow_on_submit": 1,
+			"fieldname": "sent_to_employee_on",
+			"fieldtype": "Datetime",
+			"label": "Sent to Employee On",
+			"no_copy": 1,
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_delivery",
+			"fieldtype": "Column Break"
+		},
+		{
+			"allow_on_submit": 1,
+			"fieldname": "sent_to",
+			"fieldtype": "Data",
+			"label": "Sent To",
+			"no_copy": 1,
+			"options": "Email",
+			"read_only": 1
+		},
+		{
+			"collapsible": 1,
+			"fieldname": "section_identification",
+			"fieldtype": "Section Break",
+			"label": "Swissdec Identification"
+		},
+		{
+			"description": "Unique identifier given when the certificate is validated (Swissdec guidelines 6.0, 9.1.5). A draft prints as a draft.",
+			"fieldname": "doc_id",
+			"fieldtype": "Data",
+			"label": "DocID",
+			"no_copy": 1,
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_identification",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "finalized_on",
+			"fieldtype": "Datetime",
+			"label": "Finalized On",
+			"no_copy": 1,
+			"read_only": 1
 		},
 		{
 			"fieldname": "amended_from",
@@ -403,7 +530,7 @@
 		}
 	],
 	"links": [],
-	"modified": "2026-02-21 00:00:00.000000",
+	"modified": "2026-09-23 21:00:00.000000",
 	"modified_by": "Administrator",
 	"module": "Payroll",
 	"name": "Swiss Salary Certificate",
@@ -428,6 +555,11 @@
 		{
 			"read": 1,
 			"role": "HR User"
+		},
+		{
+			"print": 1,
+			"read": 1,
+			"role": "Employee"
 		}
 	],
 	"default_print_format": "Salary Certificate Swiss",

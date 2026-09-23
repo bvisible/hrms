@@ -145,39 +145,6 @@ POSITION_FIELD_MAP = {
 	"14": "position_14_employer_contributions",
 }
 
-# Default mapping of Swiss salary components to Lohnausweis positions
-DEFAULT_LOHNAUSWEIS_MAPPING = [
-	# Earnings — position 1 (regular salary)
-	{"salary_component": "Basic", "lohnausweis_position": "1"},
-	{"salary_component": "13th Month Salary", "lohnausweis_position": "1"},
-	{"salary_component": "Overtime Pay", "lohnausweis_position": "1"},
-	{"salary_component": "Vacation Allowance", "lohnausweis_position": "1"},
-	# Earnings — position 3 (irregular benefits)
-	{"salary_component": "Bonus", "lohnausweis_position": "3"},
-	# Earnings — position 7 (other income / third-party benefits)
-	{"salary_component": "APG Allowance", "lohnausweis_position": "7"},
-	{"salary_component": "IJM Sickness Allowance", "lohnausweis_position": "7"},
-	{"salary_component": "Maternity Allowance", "lohnausweis_position": "7"},
-	{"salary_component": "Child Allowance", "lohnausweis_position": "7"},
-	# Deductions — position 9 (AVS/AC/AANP)
-	{"salary_component": "AVS/AI/APG Employee", "lohnausweis_position": "9"},
-	{"salary_component": "AC/ALV Employee", "lohnausweis_position": "9"},
-	{"salary_component": "LAA Non-Professional Employee", "lohnausweis_position": "9"},
-	# NOTE: the employee IJM/KTG retention does NOT belong in position 9
-	# (salary certificate guide 2026, margin no. 42 + CSI FAQ 9.1) — it may
-	# only be mentioned under position 15 (remarks). AC Solidarity was
-	# abolished in 2023 and is no longer mapped either.
-	# Deductions — position 10.1 (LPP/BVG)
-	{"salary_component": "LPP/BVG Employee", "lohnausweis_position": "10.1"},
-	# Deductions — position 12 (withholding tax)
-	{"salary_component": "Source Tax Employee", "lohnausweis_position": "12"},
-	# Earnings — position 13 (expense reimbursements)
-	{"salary_component": "Travel Expenses", "lohnausweis_position": "13.1.1"},
-	{"salary_component": "Car Expenses", "lohnausweis_position": "13.1.1"},
-	{"salary_component": "Meal Expenses", "lohnausweis_position": "13.1.1"},
-	{"salary_component": "Flat-Rate Representation Expenses", "lohnausweis_position": "13.2.1"},
-]
-
 # Source Tax (Quellensteuer) — cantons using the annual calculation model
 # All other cantons use the monthly model
 ANNUAL_MODEL_CANTONS = frozenset({"FR", "GE", "TI", "VD", "VS"})

@@ -56,6 +56,7 @@ def _ensure_custom_fields():
 		or not frappe.db.has_column("Salary Slip", "ch_contribution_bases")
 		or not frappe.db.has_column("Salary Slip", "ch_accrual_entry")
 		or not frappe.db.has_column("Salary Component Account", "ch_expense_account")
+		or not frappe.db.has_column("Employee", "ch_lpp_after_reference_age")
 	):
 		from hrms.regional.switzerland.setup import make_custom_fields
 
@@ -958,15 +959,15 @@ def _male_gender():
 
 # //// Neoffice — the ages follow the calendar year and the AVS 21 reference age (2026-09-23).
 class TestAgesOnTheSlip(SwissPayrollHookCase):
-	def _employee_born(self, date_of_birth, avs_status=""):
-		fields = ["date_of_birth", "gender", "ch_avs_status"]
-		before = frappe.db.get_value("Employee", self.employee, fields, as_dict=True)
-		frappe.db.set_value(
-			"Employee",
-			self.employee,
-			{"date_of_birth": date_of_birth, "gender": _male_gender(), "ch_avs_status": avs_status},
-			update_modified=False,
-		)
+	def _employee_born(self, date_of_birth, avs_status="", **extra):
+		values = {
+			"date_of_birth": date_of_birth,
+			"gender": _male_gender(),
+			"ch_avs_status": avs_status,
+			**extra,
+		}
+		before = frappe.db.get_value("Employee", self.employee, list(values), as_dict=True)
+		frappe.db.set_value("Employee", self.employee, values, update_modified=False)
 		self.addCleanup(frappe.db.set_value, "Employee", self.employee, dict(before), update_modified=False)
 
 	def _slip(self):
@@ -1009,6 +1010,35 @@ class TestAgesOnTheSlip(SwissPayrollHookCase):
 		self._employee_born(f"{year - 66}-01-15")
 		slip = self._slip()
 		self.assertFalse(self._amount(slip, "LPP/BVG Employee"))
+
+	def test_lpp_continued_after_the_reference_age(self):
+		"""LPP art. 33b: the employee who keeps working may stay insured, at the last bracket."""
+		year = getdate(nowdate()).year
+		self._employee_born(f"{year - 66}-01-15", ch_lpp_after_reference_age=1)
+		slip = self._slip()
+		self.assertEqual(self._amount(slip, "LPP/BVG Employee"), 341.55)  # 18 % of 45'540 / 2 / 12
+		# AVS and AC stay those of a pensioner: the continuation is the fund's, not the AVS's.
+		self.assertEqual(self._amount(slip, "AC/ALV Employee"), 0)
+
+	def test_lpp_continuation_ends_at_70(self):
+		year = getdate(nowdate()).year
+		self._employee_born(f"{year - 71}-01-15", ch_lpp_after_reference_age=1)
+		slip = self._slip()
+		self.assertFalse(self._amount(slip, "LPP/BVG Employee"))
+
+	def test_lpp_maintained_salary_from_58(self):
+		"""LPP art. 33a: insured on 120'000 after a cut to 72'000, the difference on the employee."""
+		year = getdate(nowdate()).year
+		self._employee_born(f"{year - 60}-01-15", ch_lpp_maintained_salary=120000)
+		slip = self._slip()
+		self.assertEqual(self._amount(slip, "LPP/BVG Employee"), 622.35)
+		self.assertEqual(self._amount(slip, "LPP/BVG Employer"), 341.55)
+
+	def test_no_maintained_salary_before_58(self):
+		year = getdate(nowdate()).year
+		self._employee_born(f"{year - 50}-01-15", ch_lpp_maintained_salary=120000)
+		slip = self._slip()
+		self.assertEqual(self._amount(slip, "LPP/BVG Employee"), 284.65)  # 15 % of 45'540 / 2 / 12
 
 
 # //// Neoffice — the compensation fund's administrative fees (2026-09-23).

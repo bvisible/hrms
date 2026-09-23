@@ -16,6 +16,7 @@ from hrms.regional.switzerland.accounting import (
 	accrual_lines,
 	earning_role,
 	insurance_of,
+	is_third_party_allowance,
 	pick_account,
 )
 
@@ -249,6 +250,34 @@ class TestAccrualLines(unittest.TestCase):
 		self.assertNotIn("2270", balances)  # nothing owed monthly: the invoices settle it
 		self.assertNotIn("2271", balances)
 		self.assertAlmostEqual(sum(balances.values()) - payable, 0, places=2)
+
+	# //// Neoffice — third-party allowances as a receivable from the insurers (2026-09-23).
+	def test_third_party_allowances_booked_as_a_receivable(self):
+		"""APG 550 advanced, taken back by the correction: 5000 bears 6'450, the fund owes 550."""
+		rows = [
+			{**_row("earnings", "Salaire mensuel", 7000, "5000"), "ch_wage_type_code": "1000"},
+			{**_row("earnings", "APG Allowance", 550, "5000"), "ch_wage_type_code": "2000"},
+			{**_row("earnings", "Correction", -550, "5000"), "ch_wage_type_code": "2050"},
+		]
+		balances, payable, problems, _s = accrual_lines(rows, [7000], third_party_account="1180")
+		self.assertEqual(problems, [])
+		self.assertEqual(balances, {"5000": 6450.0, "1180": 550.0})
+		self.assertEqual(payable, 7000)
+
+	def test_third_party_allowances_with_the_salaries_by_default(self):
+		rows = [
+			{**_row("earnings", "Salaire mensuel", 7000, "5000"), "ch_wage_type_code": "1000"},
+			{**_row("earnings", "APG Allowance", 550, "5000"), "ch_wage_type_code": "2000"},
+			{**_row("earnings", "Correction", -550, "5000"), "ch_wage_type_code": "2050"},
+		]
+		balances, _p, _pr, _s = accrual_lines(rows, [7000])
+		self.assertEqual(balances, {"5000": 7000.0})
+
+	def test_which_wage_types_are_third_party_allowances(self):
+		for code in ("2000", "2020", "2025", "2030", "2035", "2040", "2070"):
+			self.assertTrue(is_third_party_allowance(code), code)
+		for code in ("1000", "2050", "2060", "2065", "2075", "3000", None, ""):
+			self.assertFalse(is_third_party_allowance(code), code)
 
 	def test_the_social_charges_method_needs_the_charge_of_an_employee_contribution(self):
 		_b, _p, problems, _s = accrual_lines(self._slip(), [6865.90], BOOKING_CHARGES)

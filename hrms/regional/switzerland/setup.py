@@ -8,7 +8,6 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 from hrms.regional.switzerland.constants import (
 	CROSS_BORDER_COUNTRIES,
-	DEFAULT_LOHNAUSWEIS_MAPPING,
 	PERMIT_TYPES,
 	QST_TARIFF_LETTERS,
 	SWISS_CANTONS,
@@ -36,7 +35,8 @@ def setup():
 	create_swiss_wage_types()
 	create_swiss_salary_components()
 	create_swiss_salary_structure()
-	populate_default_lohnausweis_mapping()
+	# //// Neoffice — no default certificate mapping any more (2026-09-23): the certificate places
+	# //// each slip row by its component's own position; the mapping only overrides.
 
 
 def uninstall():
@@ -695,6 +695,51 @@ def get_custom_fields():
 				"insert_after": "ch_ijm_code",
 			},
 			# //// Neoffice ▲▲▲
+			# //// Neoffice ▼▼▼ — the two ways a pension fund may keep an employee's LPP insurance going
+			# //// (LPP art. 33a and 33b), each an agreement between the employee and the fund, read by
+			# //// utils.get_lpp_maintenance and utils.get_lpp_age.
+			{
+				"fieldname": "ch_lpp_section",
+				"label": "Occupational Pension (LPP)",
+				"fieldtype": "Section Break",
+				"insert_after": "ch_ijm_code_2",
+				"collapsible": 1,
+			},
+			{
+				"fieldname": "ch_lpp_maintained_salary",
+				"label": "Maintained LPP Salary (art. 33a)",
+				"fieldtype": "Currency",
+				"insert_after": "ch_lpp_section",
+				"description": (
+					"From 58, after a salary cut of half at most, the annual salary the employee keeps "
+					"insured until the reference age, if the fund's regulations allow it. The extra "
+					"contributions are paid by the employee unless the employer agreed to a share."
+				),
+			},
+			{
+				"fieldname": "ch_lpp_maintained_employer_share",
+				"label": "Employer Share of the Maintenance (%)",
+				"fieldtype": "Percent",
+				"insert_after": "ch_lpp_maintained_salary",
+				"depends_on": "eval:doc.ch_lpp_maintained_salary",
+			},
+			{
+				"fieldname": "ch_lpp_column_break",
+				"fieldtype": "Column Break",
+				"insert_after": "ch_lpp_maintained_employer_share",
+			},
+			{
+				"fieldname": "ch_lpp_after_reference_age",
+				"label": "LPP Continued After the Reference Age (art. 33b)",
+				"fieldtype": "Check",
+				"insert_after": "ch_lpp_column_break",
+				"default": "0",
+				"description": (
+					"The employee keeps working past the AVS reference age and asked the fund to stay "
+					"insured: LPP contributions continue, at the latest until the age of 70."
+				),
+			},
+			# //// Neoffice ▲▲▲
 		],
 		"Company": [
 			{
@@ -739,13 +784,39 @@ def get_custom_fields():
 					"tax stays a liability (2279) in both."
 				),
 			},
+			# //// Neoffice — where the allowances the employer pays out for an insurer are debited:
+			# //// with the salaries, or to a receivable the insurer's reimbursement clears.
+			{
+				"fieldname": "ch_third_party_allowance_booking",
+				"label": "Third-Party Allowances",
+				"fieldtype": "Select",
+				"options": "Salaries\nInsurer Receivable",
+				"default": "Salaries",
+				"insert_after": "ch_payroll_booking_method",
+				"description": (
+					"Allowances the employer pays out for an insurer (APG, maternity, accident, sickness, "
+					"AI, short-time work compensation). Salaries: debited with the salaries (5000), the "
+					"insurer's reimbursement is credited back there. Insurer Receivable: debited to a "
+					"receivable (1180) that the reimbursement clears, so the balance sheet shows what "
+					"each insurer still owes."
+				),
+			},
+			{
+				"fieldname": "ch_third_party_allowance_account",
+				"label": "Third-Party Allowances Account",
+				"fieldtype": "Link",
+				"options": "Account",
+				"insert_after": "ch_third_party_allowance_booking",
+				"depends_on": "eval:doc.ch_third_party_allowance_booking == 'Insurer Receivable'",
+				"description": "Filled from the chart of accounts at the first booking when left empty.",
+			},
 			# --- Swissdec / ELM fields ---
 			{
 				"fieldname": "ch_swissdec_section",
 				"label": "Swissdec / ELM",
 				"fieldtype": "Section Break",
-				# //// Neoffice — after the booking method, which now closes the section above.
-				"insert_after": "ch_payroll_booking_method",
+				# //// Neoffice — after the payroll accounting choices, which now close the section above.
+				"insert_after": "ch_third_party_allowance_account",
 				"collapsible": 1,
 			},
 			{
@@ -887,6 +958,9 @@ def get_swiss_salary_component_definitions():
 			"name": "AVS/AI/APG Employee",
 			"salary_component": "AVS/AI/APG Employee",
 			"salary_component_abbr": "AVS_EE",
+			# //// Neoffice — its salary certificate box: the certificate reads it from the component
+			# //// since 2026-09-23 (the default mapping that used to place it is gone).
+			"ch_lohnausweis_position": "9",
 			"type": "Deduction",
 			"description": "AVS/AI/APG - Employee share (5.3%)",
 			"depends_on_payment_days": 1,
@@ -912,6 +986,9 @@ def get_swiss_salary_component_definitions():
 			"name": "AC/ALV Employee",
 			"salary_component": "AC/ALV Employee",
 			"salary_component_abbr": "AC_EE",
+			# //// Neoffice — its salary certificate box: the certificate reads it from the component
+			# //// since 2026-09-23 (the default mapping that used to place it is gone).
+			"ch_lohnausweis_position": "9",
 			"type": "Deduction",
 			"description": "AC/ALV Unemployment - Employee share (1.1%, ceiling CHF 148'200/year)",
 			"depends_on_payment_days": 1,
@@ -954,6 +1031,9 @@ def get_swiss_salary_component_definitions():
 			"name": "LAA Non-Professional Employee",
 			"salary_component": "LAA Non-Professional Employee",
 			"salary_component_abbr": "LAANP_EE",
+			# //// Neoffice — its salary certificate box: the certificate reads it from the component
+			# //// since 2026-09-23 (the default mapping that used to place it is gone).
+			"ch_lohnausweis_position": "9",
 			"type": "Deduction",
 			"description": "LAA Non-Professional Accident Insurance - Employee only (rate set by insurer)",
 			"depends_on_payment_days": 1,
@@ -966,6 +1046,9 @@ def get_swiss_salary_component_definitions():
 			"name": "LPP/BVG Employee",
 			"salary_component": "LPP/BVG Employee",
 			"salary_component_abbr": "LPP_EE",
+			# //// Neoffice — its salary certificate box: the certificate reads it from the component
+			# //// since 2026-09-23 (the default mapping that used to place it is gone).
+			"ch_lohnausweis_position": "10.1",
 			"type": "Deduction",
 			"description": "LPP/BVG Occupational Pension - Employee share (rate depends on age)",
 			"depends_on_payment_days": 1,
@@ -1236,7 +1319,8 @@ def get_swiss_salary_component_definitions():
 			"ch_subject_to_ijm": 0,
 			"ch_subject_to_lpp": 0,
 			"ch_subject_to_imp": 0,
-			"ch_lohnausweis_position": "7",
+			# //// Neoffice — box 1 with the salary: "sämtliche Zulagen" (Wegleitung 2026 Rz 15).
+			"ch_lohnausweis_position": "1",
 		},
 		{
 			"name": "Travel Expenses",
@@ -1315,6 +1399,9 @@ def get_swiss_salary_component_definitions():
 			"name": "Source Tax Employee",
 			"salary_component": "Source Tax Employee",
 			"salary_component_abbr": "QST",
+			# //// Neoffice — its salary certificate box: the certificate reads it from the component
+			# //// since 2026-09-23 (the default mapping that used to place it is gone).
+			"ch_lohnausweis_position": "12",
 			"type": "Deduction",
 			"description": "Source tax (Quellensteuer / Impôt à la source) — calculated automatically from ESTV tariff brackets",
 			"depends_on_payment_days": 0,
@@ -1400,34 +1487,6 @@ def create_swiss_salary_structure():
 		doc.append("deductions", ded)
 
 	doc.insert(ignore_permissions=True)
-	frappe.db.commit()
-
-
-def populate_default_lohnausweis_mapping():
-	"""Populate Lohnausweis mapping on all existing Swiss Social Insurance Config records.
-
-	Skips configs that already have mapping rows.
-	"""
-	configs = frappe.get_all("Swiss Social Insurance Config", pluck="name")
-	for config_name in configs:
-		config = frappe.get_doc("Swiss Social Insurance Config", config_name)
-		if config.get("lohnausweis_mapping"):
-			continue
-
-		for mapping in DEFAULT_LOHNAUSWEIS_MAPPING:
-			if frappe.db.exists("Salary Component", mapping["salary_component"]):
-				config.append(
-					"lohnausweis_mapping",
-					{
-						"salary_component": mapping["salary_component"],
-						"lohnausweis_position": mapping["lohnausweis_position"],
-						"include_in_certificate": 1,
-					},
-				)
-
-		if config.get("lohnausweis_mapping"):
-			config.save(ignore_permissions=True)
-
 	frappe.db.commit()
 
 

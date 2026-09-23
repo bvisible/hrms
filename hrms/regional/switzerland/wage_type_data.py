@@ -275,11 +275,12 @@ def get_swiss_wage_types():
 		_wt(1910, "Part privée voiture de service", "Earning", "2.2", _ALL, vac=1, stat="BS"),
 		# //// Neoffice — Swissdec 6.0: tips are not paid by the employer and are not gross
 		# //// salary (gross 0), but they are subject to AVS/AC, LAA, LAAC, IJM and source tax.
+		# //// Certificate box 7 (Wegleitung 2026 Rz 32: "Trinkgelder"), not the table's 1.
 		_wt(
 			1920,
 			"Pourboire soumis aux cotisations AVS",
 			"Earning",
-			"1",
+			"7",
 			{"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 0, "imp": 1},
 			vac=1,
 			stat="BS",
@@ -335,16 +336,15 @@ def get_swiss_wage_types():
 			stat="",
 		),
 		# =====================================================================
-		# //// Neoffice — salary certificate positions below follow the ESTV
-		# //// "Wegleitung zum Ausfüllen des Lohnausweises" (2026 edition):
-		# ////   Ziffer 1 — "das ordentliche Salär sowie die Taggelder aus Versicherungen,
-		# ////              die durch den Arbeitgeber ausbezahlt werden (Kranken-, Unfall-
-		# ////              und Invalidenversicherungen)" and "sämtliche Zulagen (Geburts-,
-		# ////              Kinder- oder andere Familienzulagen ...)".
-		# ////   Ziffer 7 — "Leistungen der Arbeitslosenversicherung" and "Leistungen der EO
-		# ////              ... Dazu gehören auch Taggelder bei Mutterschaft".
-		# //// So APG (2000), maternity (2040) and unemployment (2070) stay at 7 — a
-		# //// certified competitor puts them at 1, which the guide contradicts.
+		# //// Neoffice — salary certificate positions below follow the ESTV/SSK FAQ on the salary
+		# //// certificate (2026 edition, 1.6): income replacement benefits — short-time work
+		# //// compensation, sickness and accident daily allowances, maternity, APG and the like —
+		# //// "are in principle declared in box 7, even when the employer pays the full salary and
+		# //// bears the difference" (translated). Box 1 is only the fallback of a payroll that
+		# //// cannot tell them apart, with a remark in box 15. The Wegleitung (Rz 14, 33-35) allows
+		# //// both; the certified competitor and the Swissdec sample table use 1. On 2026-09-22 we
+		# //// had moved 2025/2030/2035 to 1 on the strength of Rz 14 alone: back to 7 (2026-09-23).
+		# //// Family allowances stay in box 1 (Wegleitung Rz 15: "sämtliche Zulagen").
 		# 2000-2075: Third-party benefits (APG, military, insurance, maternity)
 		# =====================================================================
 		# //// Neoffice — Swissdec 6.0: 2000, 2020, 2025 and 2040 are subject to IJM as well
@@ -363,17 +363,17 @@ def get_swiss_wage_types():
 		),
 		_wt(2010, "Caisse militaire subsidiaire", "Earning", "7", _AVS_AC_LAA_IJM, stat="PRT"),
 		_wt(2015, "Parifonds", "Earning", "7", _AVS_AC_LAA_IJM, stat="PRT"),
-		# //// Neoffice — 2020 goes to box 1 like the other insurance daily allowances the
-		# //// employer pays out (Wegleitung 2026 Rz 14, Swissdec 6.0). The pensions 2021, 2026
-		# //// and 2031 are not taxed at source through the payroll (Swissdec 6.0: no source tax).
-		_wt(2020, "Indemnité assurance militaire", "Earning", "1", _AVS_AC_IJM, stat="PRT"),
+		# //// Neoffice — box 7 like every income replacement benefit (FAQ 2026, 1.6, see above).
+		# //// The pensions 2021, 2026 and 2031 are not taxed at source through the payroll
+		# //// (Swissdec 6.0: no source tax).
+		_wt(2020, "Indemnité assurance militaire", "Earning", "7", _AVS_AC_IJM, stat="PRT"),
 		_wt(2021, "Rente assurance militaire", "Earning", "7", _EXEMPT, stat="PRT"),
-		_wt(2025, "Indemnité AI", "Earning", "1", _AVS_AC_IJM, stat="PRT"),
+		_wt(2025, "Indemnité AI", "Earning", "7", _AVS_AC_IJM, stat="PRT"),
 		_wt(2026, "Rente AI", "Earning", "7", _EXEMPT, stat="PRT"),
-		_wt(2030, "Indemnité accident", "Earning", "1", _IMP_ONLY, stat="PRT"),
+		_wt(2030, "Indemnité accident", "Earning", "7", _IMP_ONLY, stat="PRT"),
 		_wt(2031, "Rente accident", "Earning", "7", _EXEMPT, stat="PRT"),
 		_wt(
-			2035, "Indemnité maladie", "Earning", "1", _IMP_ONLY, stat="PRT", common=1,
+			2035, "Indemnité maladie", "Earning", "7", _IMP_ONLY, stat="PRT", common=1,
 			abbr="IIJM", desc_fr="Indemnité journalière maladie IJM", payment_days=0,
 		),
 		_wt(
@@ -385,19 +385,21 @@ def get_swiss_wage_types():
 		# //// after an APG allowance of 550 leaves the gross at 7'000 and the LAA base at 6'450.
 		# //// As deductions they left the gross at 7'550 and every base untouched. 2065 raises
 		# //// AVS/AC, LAA and IJM to the salary the short-time work took away, without being
-		# //// paid. 2060 and 2075 go to box 7 of the certificate with the unemployment benefit.
+		# //// paid. On the certificate 2060 and 2075 stay in box 1 with the salary they correct:
+		# //// only the unemployment insurance's compensation (2070) is box 7 — booked there, the
+		# //// deduction would make box 7 negative (7'000 - 1'500 + 1'050 + 150 = -300 in box 7).
 		_wt(
 			2050, "Correction indemnité de tiers", "Earning", "1",
 			{"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 0, "imp": 1}, stat="", negative=1,
 		),
 		_wt(2051, "Correction de salaire net", "Deduction", "", _IMP_ONLY, stat=""),
-		_wt(2060, "Déduction RHT/ITP (SM)", "Earning", "7", _IMP_ONLY, stat="", negative=1),
+		_wt(2060, "Déduction RHT/ITP (SM)", "Earning", "1", _IMP_ONLY, stat="", negative=1),
 		_wt(
 			2065, "Perte de gain RHT/ITP (SH)", "Earning", "",
 			{"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 0}, stat="", bases_only=1,
 		),
 		_wt(2070, "Indemnité de chômage", "Earning", "7", _IMP_ONLY, stat=""),
-		_wt(2075, "Délai de carence RHT/ITP", "Earning", "7", _IMP_ONLY, stat=""),
+		_wt(2075, "Délai de carence RHT/ITP", "Earning", "1", _IMP_ONLY, stat=""),
 		# =====================================================================
 		# 3000-3034: Family allowances (not subject to social charges)
 		# =====================================================================

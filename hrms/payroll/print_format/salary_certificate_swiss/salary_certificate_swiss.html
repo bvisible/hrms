@@ -1,17 +1,14 @@
 {# //// Neoffice — added file (no upstream equivalent): official Swiss salary certificate (Form 11, #}
 {# //// guide 605.040.18.1f) with its Swissdec 2D barcode. Migrated from erpnextswiss. #}
-{%- set employee = frappe.get_cached_doc("Employee", doc.employee) -%}
-{%- set config = frappe.db.get_value(
-	"Swiss Social Insurance Config",
-	{"company": doc.company, "is_default": 1},
-	["lohnausweis_employer_name", "lohnausweis_employer_address"],
-	as_dict=True
-) or {} -%}
+{# //// Neoffice — box I, the employee address and the draft marker come from the certificate #}
+{# //// (get_print_data): Wegleitung Rz 8 and 12, Swissdec guidelines 6.0 9.1.2. #}
+{%- set pd = doc.get_print_data() -%}
 {%- set fiscal_year = frappe.get_cached_doc("Fiscal Year", doc.fiscal_year) -%}
-{%- set barcode_data = frappe.call(
-	"hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.get_barcode_data_for_print",
-	name=doc.name
-) -%}
+{# //// Neoffice — the document's own method, not frappe.call(...get_barcode_data_for_print): #}
+{# //// frappe.call checks the HTTP method of the current request, and a background job (the #}
+{# //// year-end mailing) has none — the render failed with "request". Printing already #}
+{# //// checked read on the certificate. #}
+{%- set barcode_data = doc.get_barcode_data() -%}
 
 {%- macro fmt_amount(val) -%}
 {% if val %}{{ "{:,.0f}".format(val).replace(",", "'") }}{% endif %}
@@ -21,16 +18,28 @@
 .print-format { padding: 0mm !important; margin: 0mm !important; }
 .print-format .form11 table td,
 .print-format .form11 table th { padding: 1px 8px !important; }
-.form11 { height: 297mm !important; overflow: hidden; box-sizing: border-box; }
+.form11 { position: relative; height: 297mm !important; overflow: hidden; box-sizing: border-box; }
+/* //// Neoffice — a draft says so across the page (Swissdec guidelines 6.0, 9.1.2 and 9.1.5). */
+.form11 .draft-marker {
+	position: absolute; top: 120mm; left: 0; width: 210mm; text-align: center;
+	-webkit-transform: rotate(-30deg); transform: rotate(-30deg); font-size: 34pt; font-weight: 700; letter-spacing: 2px;
+	color: rgba(200, 30, 60, 0.22); pointer-events: none; white-space: nowrap;
+}
+/* //// Neoffice — box 15 keeps its two lines: long remarks shrink instead of pushing box I down,
+   //// and its table takes the 67px the single line used to (18 + 49), so box I stays in place. */
+.form11 .remarks { height: 48px; overflow: hidden; line-height: 1.15; }
 @media print {
 	.print-format { width: 210mm !important; height: 297mm !important; padding: 0mm !important; }
-	.form11 { height: 297mm !important; margin-top: -6mm !important; background-position-y: -5px !important; }
+	.form11 { height: 297mm !important; margin-top: -2mm !important; background-position-y: -5px !important; }
+	/* //// Neoffice — the PDF engine lays box 15 out 3mm higher than the screen does. */
+	.form11 .remarks-table { margin-top: 29px !important; }
 	.firstSpacer { height: 10px; }
 	.footerTable { height: 90px !important; }
 }
 </style>
 
 <div class="form11">
+	{% if pd.is_draft %}<div class="draft-marker">{{ pd.draft_marker }}</div>{% endif %}
 	<div class="firstSpacer"></div>
 	<!-- A: Salary certificate checkbox -->
 	<table class="firstTable" style="margin-left: 75px;height: 18px;margin-top: 7px;">
@@ -65,16 +74,16 @@
 	<!-- D: Year, Period, Lunch checks -->
 	<table style="margin-left: 75px; margin-top: 10px; height: 24px; ">
 		<tr>
-			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px 8px !important; width: 145px; ">
+			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px !important; width: 145px; ">
 				{% if fiscal_year %}{{ frappe.utils.get_datetime(fiscal_year.year_start_date).strftime('%Y') }}{% endif %}
 			</td>
-			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px 8px !important; width: 100px; ">
-				{% if fiscal_year %}{{ frappe.utils.get_datetime(fiscal_year.year_start_date).strftime('%d.%m.') }}{% endif %}
+			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px !important; width: 100px; ">
+				{{ frappe.utils.get_datetime(doc.period_from or fiscal_year.year_start_date).strftime('%d.%m.') }}
 			</td>
-			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px 8px !important; width: 165px; ">
-				{% if fiscal_year %}{{ frappe.utils.get_datetime(fiscal_year.year_end_date).strftime('%d.%m.') }}{% endif %}
+			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px !important; width: 165px; ">
+				{{ frappe.utils.get_datetime(doc.period_to or fiscal_year.year_end_date).strftime('%d.%m.') }}
 			</td>
-			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px 8px !important; ">
+			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px !important; ">
 				{% if doc.lunch_checks == 1 %}X{% else %}&nbsp;{% endif %}
 			</td>
 		</tr>
@@ -90,12 +99,8 @@
 				{% endif %}
 			</td>
 			<td style="vertical-align: top; padding: 2px 8px !important; ">
-				{{ doc.employee_name }}<br>
-				{% if employee.permanent_address %}
-				{{ employee.permanent_address.replace("\n", "<br>") }}
-				{% elif employee.current_address %}
-				{{ employee.current_address.replace("\n", "<br>") }}
-				{% endif %}
+				{{ doc.employee_name | e }}
+				{% for line in pd.employee_address_lines %}<br>{{ line | e }}{% endfor %}
 			</td>
 		</tr>
 	</table>
@@ -109,14 +114,14 @@
 			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_1_salary) }}</td>
 		</tr>
 	</table>
-	<!-- 2.1 Other benefits -->
+	<!-- 2.1 Board and lodging -->
 	<table style="margin-left: 75px; width: 690px; margin-top: 2px; height: 22px; ">
 		<tr>
 			<td style="width: 590px; padding: 1px 8px !important; "></td>
 			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_2_1_board_lodging) }}</td>
 		</tr>
 	</table>
-	<!-- 2.2 Board and lodging -->
+	<!-- 2.2 Private share of the company car -->
 	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
 		<tr>
 			<td style="width: 590px; padding: 1px 8px !important; "></td>
@@ -127,7 +132,7 @@
 	<table style="margin-left: 75px; width: 690px; margin-top: 0px; height: 22px; ">
 		<tr>
 			<td style="width: 280px; padding: 1px 8px !important; "></td>
-			<td style="width: 310px; padding: 1px 8px !important; ">{{ doc.position_2_3_description or '&nbsp;' }}</td>
+			<td style="width: 310px; padding: 1px 8px !important; ">{{ (doc.position_2_3_description or '') | e }}&nbsp;</td>
 			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_2_3_other_fringe) }}</td>
 		</tr>
 	</table>
@@ -135,7 +140,7 @@
 	<table style="margin-left: 75px; width: 690px; margin-top: 25px; height: 22px; ">
 		<tr>
 			<td style="width: 10px; padding: 1px 8px !important; "></td>
-			<td style="width: 580px; padding: 1px 8px !important; ">{{ doc.position_3_description or '&nbsp;' }}</td>
+			<td style="width: 580px; padding: 1px 8px !important; ">{{ (doc.position_3_description or '') | e }}&nbsp;</td>
 			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_3_irregular_benefits) }}</td>
 		</tr>
 	</table>
@@ -143,7 +148,7 @@
 	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
 		<tr>
 			<td style="width: 310px; padding: 1px 8px !important; "></td>
-			<td style="width: 300px; padding: 1px 8px !important; ">{{ doc.position_4_description or '&nbsp;' }}</td>
+			<td style="width: 300px; padding: 1px 8px !important; ">{{ (doc.position_4_description or '') | e }}&nbsp;</td>
 			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_4_capital_benefits) }}</td>
 		</tr>
 	</table>
@@ -165,7 +170,7 @@
 	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
 		<tr>
 			<td style="width: 280px; padding: 1px 8px !important; "></td>
-			<td style="width: 310px; padding: 1px 8px !important; ">{{ doc.position_7_description or '&nbsp;' }}</td>
+			<td style="width: 310px; padding: 1px 8px !important; ">{{ (doc.position_7_description or '') | e }}&nbsp;</td>
 			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_7_other_income) }}</td>
 		</tr>
 	</table>
@@ -231,7 +236,7 @@
 	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
 		<tr>
 			<td style="width: 280px; padding: 1px 8px !important; "></td>
-			<td style="width: 310px; padding: 1px 8px !important; ">{{ doc.position_13_1_2_description or '&nbsp;' }}</td>
+			<td style="width: 310px; padding: 1px 8px !important; ">{{ (doc.position_13_1_2_description or '') | e }}&nbsp;</td>
 			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_13_1_2_other_effective) }}</td>
 		</tr>
 	</table>
@@ -253,7 +258,7 @@
 	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
 		<tr>
 			<td style="width: 280px; padding: 1px 8px !important; "></td>
-			<td style="width: 310px; padding: 1px 8px !important; ">{{ doc.position_13_2_3_description or '&nbsp;' }}</td>
+			<td style="width: 310px; padding: 1px 8px !important; ">{{ (doc.position_13_2_3_description or '') | e }}&nbsp;</td>
 			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_13_2_3_other_flat) }}</td>
 		</tr>
 	</table>
@@ -264,19 +269,22 @@
 			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_13_3_education) }}</td>
 		</tr>
 	</table>
-	<!-- 14. Employer contributions / Other -->
+	<!-- 14. Other fringe benefits: the kind only, box 14 has no amount (Wegleitung Rz 62) -->
 	<table style="margin-left: 75px; width: 690px; margin-top: 1px; height: 22px; ">
 		<tr>
 			<td style="width: 220px; padding: 1px 8px !important; "></td>
-			<td style="width: 370px; padding: 1px 8px !important; ">{{ doc.position_14_description or '&nbsp;' }}</td>
-			<td style="padding: 1px 8px !important; text-align: right; ">{{ fmt_amount(doc.position_14_employer_contributions) }}</td>
+			<td style="padding: 1px 8px !important; ">{{ (doc.position_14_description or '') | e }}&nbsp;</td>
 		</tr>
 	</table>
 	<!-- 15. Remarks -->
-	<table style="margin-left: 75px; width: 710px; margin-top: 45px; height: 22px; ">
+	<table class="remarks-table" style="margin-left: 75px; width: 700px; margin-top: 18px; height: 49px; ">
 		<tr>
 			<td style="width: 80px; padding: 1px 8px !important; "></td>
-			<td style="padding: 1px 8px !important; ">{{ doc.position_15_remarks or '&nbsp;' }}</td>
+			<td style="padding: 1px 8px !important; ">
+				<div class="remarks" style="font-size: {{ pd.remarks_font_pt }}pt;">
+					{%- for line in pd.remark_lines -%}{{ line | e }}{% if not loop.last %}<br>{% endif %}{%- endfor -%}
+				</div>
+			</td>
 		</tr>
 	</table>
 
@@ -284,24 +292,27 @@
 	<table class="footerTable" style="margin-left: 75px; width: 690px; height: 85px; margin-top: 0px;">
 		<tr>
 			<td style="width: 230px; vertical-align: top; padding: 28px 8px 1px 8px !important; ">
-			{% if doc.posting_date %}{{ frappe.utils.get_datetime(doc.posting_date).strftime('%d.%m.%Y') }}{% endif %}
+			{% if pd.place %}{{ pd.place | e }}, {% endif %}{% if doc.posting_date %}{{ frappe.utils.get_datetime(doc.posting_date).strftime('%d.%m.%Y') }}{% endif %}
 			</td>
-			<td style="width: 270px; padding: 1px 8px !important; "></td>
-			<td style="vertical-align: top; padding: 20px 8px 1px 8px !important; font-size: 8pt; ">
-			{{ config.get("lohnausweis_employer_name") or doc.company }}
+			<td style="width: 250px; padding: 1px 8px !important; "></td>
+			<td style="vertical-align: top; padding: 16px 8px 1px 8px !important; font-size: 7.5pt; line-height: 1.3; ">
+				<b>{{ pd.employer_name | e }}</b>
+				{% if pd.employer_address %}<br>{{ pd.employer_address | e }}{% endif %}
+				{% if pd.contact_phone %}<br>Tel. {{ pd.contact_phone | e }}{% endif %}
+				{% if pd.contact_person %}<br>{{ pd.contact_person | e }}{% endif %}
 			</td>
 		</tr>
 	</table>
 </div>
 
-<!-- eCH-0270 Barcode — additional pages for multi-barcode or CODE128C -->
+<!-- Swissdec 2D barcode (annex 5): additional pages when the data needs several symbols -->
 {% if barcode_data and barcode_data.pdf417_images %}
 	{% if barcode_data.page_count > 1 %}
 		{# Multiple barcodes (Structured Append): first is in form, rest on separate pages #}
 		{% for barcode_img in barcode_data.pdf417_images[1:] %}
 <div style="page-break-before: always;"></div>
 <div style="text-align: center; padding-top: 15mm; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
-	<h2 style="font-size: 14pt; font-weight: 700; margin: 0 0 4px 0;">{{ _("Salary Certificate") }} / Lohnausweis</h2>
+	<h2 style="font-size: 14pt; font-weight: 700; margin: 0 0 4px 0;">{{ _("Salary Certificate") }}</h2>
 	<div style="font-size: 9pt; color: #666; margin-bottom: 16px;">
 		{{ _("Barcode Page") }} ({{ loop.index + 1 }}/{{ barcode_data.page_count }})
 		&mdash; {{ doc.employee_name }} &mdash; {{ doc.fiscal_year }}
@@ -309,7 +320,7 @@
 	<div style="margin: 10mm auto; padding: 5mm;">
 		<img src="data:image/png;base64,{{ barcode_img }}"
 			style="max-width: 180mm; image-rendering: pixelated;"
-			alt="PDF417 eCH-0270" />
+			alt="PDF417" />
 	</div>
 	<div style="margin-top: 10mm;">
 		<img src="data:image/png;base64,{{ barcode_data.code128c_image }}"

@@ -35,6 +35,7 @@ from hrms.regional.switzerland.utils import (
 	calculate_lpp_contribution,
 	calculate_thirteenth_month,
 	get_lpp_age,
+	get_lpp_maintenance,
 	get_swiss_social_insurance_config,
 	# //// Neoffice — was get_ytd_gross_for_employee; the AC ceiling tracks the AC-subject
 	# //// cumulative, not gross pay. See _update_ac_components. Now the LAA, LAAC and IJM
@@ -672,7 +673,16 @@ def _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee):
 
 	from frappe.utils import getdate
 
-	lpp_result = calculate_lpp_contribution(annual_salary, age, config, year=getdate(doc.end_date).year)
+	# //// Neoffice — LPP art. 33a: the last insured salary kept insured from 58 (get_lpp_maintenance).
+	maintained_salary, maintained_share = get_lpp_maintenance(doc.employee, doc.start_date)
+	lpp_result = calculate_lpp_contribution(
+		annual_salary,
+		age,
+		config,
+		year=getdate(doc.end_date).year,
+		maintained_salary=maintained_salary,
+		maintained_employer_share=maintained_share,
+	)
 
 	lpp_mapping = {
 		"LPP/BVG Employee": lpp_result["employee_monthly"],

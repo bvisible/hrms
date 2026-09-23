@@ -11,14 +11,15 @@ Three whitelisted steps driven by the desk page swiss-year-end:
    cumulative gross and key deductions, certificate status and
    concordance against the cumulated slips.
 2. generate_certificates — create + populate the missing Swiss Salary
-   Certificates (draft) from submitted slips.
+   Certificates (draft) from submitted slips; submit_certificates validates the
+   drafts, send_certificates mails the validated ones to the employees.
 3. qst_summary — per-canton source-tax recap (taxable base and
    withheld amounts) for the cantonal settlements.
 """
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate
+from frappe.utils import flt, getdate, today
 
 from hrms.regional.switzerland.payroll_hooks import _resolve_component_by_wage_type
 from hrms.regional.switzerland.source_tax import build_tariff_code
@@ -87,7 +88,14 @@ def reconcile(company, fiscal_year):
 		for c in frappe.get_all(
 			"Swiss Salary Certificate",
 			filters={"company": company, "fiscal_year": fiscal_year},
-			fields=["name", "employee", "docstatus", "position_1_salary", "position_8_gross_income"],
+			fields=[
+				"name",
+				"employee",
+				"docstatus",
+				"position_8_gross_income",
+				"position_11_net_salary",
+				"sent_to_employee_on",
+			],
 		)
 	}
 
@@ -156,20 +164,29 @@ def reconcile(company, fiscal_year):
 		certificate_status = "missing"
 		concordance = None
 		if certificate:
-			certificate_status = "submitted" if certificate.docstatus == 1 else "draft"
-			concordance = round(flt(certificate.position_1_salary) - gross, 2)
-			if abs(concordance) > 0.05:
+			certificate_status = "draft"
+			if certificate.docstatus == 1:
+				certificate_status = "sent" if certificate.sent_to_employee_on else "submitted"
+			# //// Neoffice — the certificate against what the slips say TODAY, box by box (the same
+			# //// computation as populating it). Comparing box 1 with the gross, as before, flagged
+			# //// every employee with a bonus, an allowance or expenses: those are other boxes.
+			expected_gross, expected_net = _expected_totals(company, employee, meta, emp_slips)
+			concordance = round(flt(certificate.position_8_gross_income) - expected_gross, 2)
+			if abs(concordance) >= 1 or abs(flt(certificate.position_11_net_salary) - expected_net) >= 1:
 				issues.append(
 					{
 						"level": "warning",
 						"code": "certificate_mismatch",
 						"employee": employee,
 						"message": _(
-							"{0}: certificate position 1 ({1}) differs from cumulated slips ({2})"
+							"{0}: the certificate ({1} gross, {2} net) no longer matches the salary slips "
+							"({3} gross, {4} net). Update it from the salary slips."
 						).format(
 							meta.employee_name or employee,
-							frappe.format(certificate.position_1_salary, "Currency"),
-							frappe.format(gross, "Currency"),
+							frappe.format(certificate.position_8_gross_income, "Currency"),
+							frappe.format(certificate.position_11_net_salary, "Currency"),
+							frappe.format(expected_gross, "Currency"),
+							frappe.format(expected_net, "Currency"),
 						),
 					}
 				)
@@ -206,8 +223,23 @@ def reconcile(company, fiscal_year):
 			"certificates_submitted": sum(
 				1 for r in rows if r["certificate_status"] == "submitted"
 			),
+			"certificates_sent": sum(1 for r in rows if r["certificate_status"] == "sent"),
 		},
 	}
+
+
+def _expected_totals(company, employee, meta, slips):
+	"""Box 8 and box 11 the certificate would get from these slips now."""
+	from hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate import (
+		_get_slip_rows,
+		_mapping_overrides,
+	)
+	from hrms.regional.switzerland.salary_certificate import certificate_positions, certificate_totals
+	from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
+
+	config = get_swiss_social_insurance_config(company, meta.get("ch_fiscal_canton") or "")
+	result = certificate_positions(_get_slip_rows([s.name for s in slips]), _mapping_overrides(config))
+	return certificate_totals(result["totals"])
 
 
 @frappe.whitelist()
@@ -245,7 +277,8 @@ def generate_certificates(company, fiscal_year, employees=None):
 					"certificate_type": "Salary",
 					"avs_number": emp.get("ch_avs_number"),
 					"date_of_birth": emp.get("date_of_birth"),
-					"posting_date": end,
+					# Box I: the date the certificate is made out (Wegleitung Rz 12).
+					"posting_date": today(),
 				}
 			)
 			certificate.insert()
@@ -273,6 +306,90 @@ def generate_certificates(company, fiscal_year, employees=None):
 			)
 
 	return {"created": created, "skipped": skipped, "failed": failed}
+
+
+def _certificates(company, fiscal_year, **filters):
+	return frappe.get_all(
+		"Swiss Salary Certificate",
+		filters={"company": company, "fiscal_year": fiscal_year, **filters},
+		pluck="name",
+		order_by="employee_name",
+	)
+
+
+@frappe.whitelist()
+def submit_certificates(company, fiscal_year):
+	"""Validate every draft certificate of the year: each one gets its Swissdec DocID."""
+	# //// Neoffice — permission gate: submitting fixes the certificates the employees receive.
+	frappe.has_permission("Swiss Salary Certificate", "submit", throw=True)
+	submitted, failed = [], []
+	for name in _certificates(company, fiscal_year, docstatus=0):
+		try:
+			certificate = frappe.get_doc("Swiss Salary Certificate", name)
+			certificate.submit()
+			frappe.db.commit()
+			submitted.append(name)
+		except Exception:
+			frappe.db.rollback()
+			failed.append({"certificate": name, "error": frappe.get_traceback().splitlines()[-1]})
+	return {"submitted": submitted, "failed": failed}
+
+
+@frappe.whitelist()
+def send_certificates(company, fiscal_year):
+	"""Mail every validated certificate not sent yet to its employee, in the background."""
+	# //// Neoffice — permission gate: the same as the Send button of one certificate.
+	frappe.has_permission("Swiss Salary Certificate", "email", throw=True)
+	from hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate import (
+		employee_email_addresses,
+	)
+
+	queued, without_email = [], []
+	for row in frappe.get_all(
+		"Swiss Salary Certificate",
+		filters={
+			"company": company,
+			"fiscal_year": fiscal_year,
+			"docstatus": 1,
+			"sent_to_employee_on": ("is", "not set"),
+		},
+		fields=["name", "employee", "employee_name"],
+		order_by="employee_name",
+	):
+		if employee_email_addresses(row.employee):
+			queued.append(row.name)
+		else:
+			without_email.append(row.employee_name or row.employee)
+	if queued:
+		frappe.enqueue(
+			"hrms.regional.switzerland.year_end.send_certificates_job",
+			queue="long",
+			timeout=3600,
+			names=queued,
+		)
+	return {"queued": len(queued), "without_email": without_email}
+
+
+def send_certificates_job(names):
+	"""Background: one email per certificate, each failure logged without stopping the others."""
+	sent, failed = 0, []
+	for name in names:
+		try:
+			frappe.get_doc("Swiss Salary Certificate", name).send_to_employee()
+			frappe.db.commit()
+			sent += 1
+		except Exception:
+			frappe.db.rollback()
+			failed.append(name)
+			frappe.log_error("Year-end: salary certificate not sent", f"{name}: {frappe.get_traceback()}")
+	message = _("{0} salary certificate(s) sent to the employees.").format(sent)
+	if failed:
+		message += "<br>" + _("Not sent: {0}. See the Error Log.").format(", ".join(failed))
+	frappe.publish_realtime(
+		"msgprint",
+		{"message": message, "title": _("Salary Certificates"), "indicator": "orange" if failed else "green"},
+		user=frappe.session.user,
+	)
 
 
 @frappe.whitelist()

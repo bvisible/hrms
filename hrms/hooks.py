@@ -178,6 +178,17 @@ before_app_uninstall = "hrms.setup.before_app_uninstall"
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
 
+# //// Neoffice — an employee reads their own Swiss salary certificates (mobile app, portal):
+# //// validated ones only, never a colleague's. The Employee DocPerm grants read and print;
+# //// these two hooks narrow it to the employee's own records.
+permission_query_conditions = {
+	"Swiss Salary Certificate": "hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.get_permission_query_conditions",
+}
+
+has_permission = {
+	"Swiss Salary Certificate": "hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.has_permission",
+}
+
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 # DocType Class

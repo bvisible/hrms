@@ -19,6 +19,16 @@ from hrms.regional.switzerland.assistant.validators import (
 SESSION_MAX_AGE_HOURS = 24
 
 
+
+# //// Neoffice — "HRMS Settings" does not exist in hrms: get_single_value raised "DocType not
+# //// found" on the first message and the assistant answered every user with an error. Missing
+# //// settings now mean "no provider configured", and the built-in fallback reply is reached.
+def _hrms_setting(field):
+	if not frappe.db.exists("DocType", "HRMS Settings"):
+		return None
+	return frappe.db.get_single_value("HRMS Settings", field)
+
+
 class SwissPayrollChatService:
 	"""Orchestrates the Swiss payroll configuration chat assistant.
 
@@ -370,7 +380,7 @@ class SwissPayrollChatService:
 		import requests
 
 		# Get Ollama URL from settings or default
-		ollama_url = frappe.db.get_single_value("HRMS Settings", "ai_ollama_url") or ""
+		ollama_url = _hrms_setting("ai_ollama_url") or ""
 		if not ollama_url:
 			# Try Builder settings
 			try:
@@ -382,7 +392,7 @@ class SwissPayrollChatService:
 			return None
 
 		ollama_url = ollama_url.rstrip("/")
-		model = frappe.db.get_single_value("HRMS Settings", "ai_ollama_model") or "llama3.1"
+		model = _hrms_setting("ai_ollama_model") or "llama3.1"
 
 		try:
 			resp = requests.post(
@@ -405,7 +415,7 @@ class SwissPayrollChatService:
 		"""Call OpenAI API directly."""
 		import requests
 
-		api_key = frappe.db.get_single_value("HRMS Settings", "ai_openai_api_key") or ""
+		api_key = _hrms_setting("ai_openai_api_key") or ""
 		if not api_key:
 			try:
 				api_key = frappe.db.get_single_value("Builder Settings", "openai_api_key") or ""
@@ -415,7 +425,7 @@ class SwissPayrollChatService:
 		if not api_key:
 			return None
 
-		model = frappe.db.get_single_value("HRMS Settings", "ai_openai_model") or "gpt-4o-mini"
+		model = _hrms_setting("ai_openai_model") or "gpt-4o-mini"
 
 		try:
 			resp = requests.post(

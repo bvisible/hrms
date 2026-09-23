@@ -171,6 +171,28 @@ class TestLPPContribution(unittest.TestCase):
 		self.assertAlmostEqual(result["employee_monthly"], 106.25, places=2)
 
 
+# //// Neoffice — LPP art. 33a, the last insured salary kept insured from 58 (2026-09-23).
+class TestLPPMaintainedSalary(unittest.TestCase):
+	def test_the_employee_pays_the_credits_on_the_difference(self):
+		"""Cut from 120'000 to 72'000 at 60: 18 % on 45'540 shared, 18 % on the 18'720 above
+		paid by the employee alone (art. 33a al. 3, no parity)."""
+		result = calculate_lpp_contribution(72000, 60, maintained_salary=120000)
+		self.assertEqual(result["coordinated_salary"], LPP_MAXIMUM_COORDINATED_SALARY)
+		self.assertAlmostEqual(result["employer_monthly"], 341.55, places=2)  # 4'098.60 / 12
+		self.assertAlmostEqual(result["employee_monthly"], 622.35, places=2)  # (4'098.60 + 3'369.60) / 12
+
+	def test_an_employer_share_of_the_maintenance(self):
+		result = calculate_lpp_contribution(72000, 60, maintained_salary=120000, maintained_employer_share=50)
+		self.assertAlmostEqual(result["employer_monthly"], 481.95, places=2)
+		self.assertAlmostEqual(result["employee_monthly"], 481.95, places=2)
+
+	def test_a_maintained_salary_below_the_current_one_changes_nothing(self):
+		self.assertEqual(
+			calculate_lpp_contribution(72000, 60, maintained_salary=60000),
+			calculate_lpp_contribution(72000, 60),
+		)
+
+
 class TestACContribution(unittest.TestCase):
 	"""AC/ALV under the ceiling cumulated pro rata temporis (Swissdec guidelines 7.12.3).
 

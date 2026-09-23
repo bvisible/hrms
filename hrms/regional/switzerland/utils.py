@@ -9,7 +9,7 @@ from frappe import _
 
 # //// Neoffice — formatdate added: the payslip period label now goes through the framework's
 # //// date formatting instead of a hardcoded French month list (issue #239)
-from frappe.utils import cint, flt, formatdate, getdate, today
+from frappe.utils import add_months, cint, flt, formatdate, getdate, today
 
 # //// Neoffice — AC and LPP contributions round to 5 centimes (Swissdec guidelines 4.1.1).
 from hrms.regional.switzerland.ceilings import month_insured
@@ -127,13 +127,19 @@ def calculate_lpp_coordinated_salary(annual_salary, config=None, year=None):
 	return coordinated
 
 
-def calculate_lpp_contribution(annual_salary, age, config=None, year=None):
+def calculate_lpp_contribution(
+	annual_salary, age, config=None, year=None, maintained_salary=0, maintained_employer_share=0
+):
 	"""Calculate monthly LPP/BVG contribution amounts for employee and employer.
 
 	Args:
 		annual_salary: Gross annual salary in CHF
 		age: Employee age in years
 		config: Optional SwissSocialInsuranceConfig dict
+		maintained_salary: //// Neoffice — LPP art. 33a: the last insured annual salary the
+			employee keeps insured after a salary cut from 58. The credits on the difference are
+			outside the parity rule (art. 33a al. 3): the employee pays them, except for the
+			``maintained_employer_share`` (%) the employer agreed to take.
 
 	Returns:
 		dict with keys: coordinated_salary, total_rate, total_annual,
@@ -142,7 +148,11 @@ def calculate_lpp_contribution(annual_salary, age, config=None, year=None):
 	coordinated_salary = calculate_lpp_coordinated_salary(annual_salary, config, year=year)
 	total_rate = get_lpp_rate_for_age(age)
 
-	if not coordinated_salary or not total_rate:
+	maintained_coordinated = 0
+	if flt(maintained_salary) > flt(annual_salary):
+		maintained_coordinated = calculate_lpp_coordinated_salary(maintained_salary, config, year=year)
+
+	if not total_rate or not (coordinated_salary or maintained_coordinated):
 		return {
 			"coordinated_salary": 0,
 			"total_rate": 0,
@@ -157,6 +167,14 @@ def calculate_lpp_contribution(annual_salary, age, config=None, year=None):
 	total_annual = coordinated_salary * total_rate
 	employer_annual = total_annual * employer_share_pct
 	employee_annual = total_annual - employer_annual
+
+	if maintained_coordinated > coordinated_salary:
+		extra = (maintained_coordinated - coordinated_salary) * total_rate
+		employer_extra = extra * min(max(flt(maintained_employer_share), 0), 100) / 100
+		employer_annual += employer_extra
+		employee_annual += extra - employer_extra
+		total_annual += extra
+		coordinated_salary = maintained_coordinated
 
 	return {
 		"coordinated_salary": coordinated_salary,
@@ -247,23 +265,74 @@ def get_employee_age(employee, reference_date=None):
 # //// Neoffice — added. The LPP rates were read with the age to the day (get_employee_age):
 # //// someone born in November 1991 was charged the 7 % credit until his birthday in 2026
 # //// instead of 10 % from January, and a man of 65 kept paying 18 % until his 66th birthday.
+# LPP art. 33b: a fund may keep insuring an employee who works past the reference age, at the
+# latest until the age of 70.
+LPP_CONTINUATION_LIMIT_AGE = 70
+
+
 def get_lpp_age(employee, start_date, end_date):
 	"""The LPP age of a pay period, or 0 once the AVS reference age is behind.
 
 	The age that sets the savings credit is the calendar year minus the year of birth — every
 	pension fund reads it so, whatever the birthday. The savings stop when the reference age
-	is reached (LPP art. 13): from the month after it, no credit is due any more.
+	is reached (LPP art. 13): from the month after it, no credit is due any more — unless the
+	employee keeps working and asked to stay insured (LPP art. 33b, ch_lpp_after_reference_age):
+	then the credit of the last bracket continues, through the month of the 70th birthday.
 	"""
 	from hrms.regional.switzerland.avs_exemption import age_in_year, is_past_reference_age
 	from hrms.regional.switzerland.insurance_solutions import normalize_sex
 
-	values = frappe.db.get_value("Employee", employee, ["date_of_birth", "gender"], as_dict=True) or {}
+	fields = ["date_of_birth", "gender"]
+	if frappe.get_meta("Employee").has_field("ch_lpp_after_reference_age"):
+		fields.append("ch_lpp_after_reference_age")
+	values = frappe.db.get_value("Employee", employee, fields, as_dict=True) or {}
 	if not values.get("date_of_birth"):
 		return 0
 	birth = getdate(values.date_of_birth)
-	if is_past_reference_age(birth, normalize_sex(values.get("gender")), getdate(start_date or end_date)):
-		return 0
+	start = getdate(start_date or end_date)
+	if is_past_reference_age(birth, normalize_sex(values.get("gender")), start):
+		# Insured through the month of the 70th birthday, as the pension starts the month after.
+		limit = add_months(birth.replace(day=1), LPP_CONTINUATION_LIMIT_AGE * 12 + 1)
+		if not cint(values.get("ch_lpp_after_reference_age")) or start >= limit:
+			return 0
+		return LPP_AGE_BRACKETS[-1]["max_age"]
 	return age_in_year(birth, getdate(end_date or start_date).year)
+
+
+# //// Neoffice — added: LPP art. 33a, maintained insured salary.
+LPP_MAINTENANCE_MIN_AGE = 58
+
+
+def get_lpp_maintenance(employee, start_date):
+	"""(maintained annual salary, employer share %) of LPP art. 33a for a pay period, or (0, 0).
+
+	From 58, an employee whose salary dropped by half at most may keep the last insured salary
+	insured, until the reference age at the latest (LPP art. 33a al. 1-2).
+	"""
+	from hrms.regional.switzerland.avs_exemption import is_past_reference_age
+	from hrms.regional.switzerland.insurance_solutions import normalize_sex
+
+	if not frappe.get_meta("Employee").has_field("ch_lpp_maintained_salary"):
+		return 0, 0
+	values = (
+		frappe.db.get_value(
+			"Employee",
+			employee,
+			["date_of_birth", "gender", "ch_lpp_maintained_salary", "ch_lpp_maintained_employer_share"],
+			as_dict=True,
+		)
+		or {}
+	)
+	salary = flt(values.get("ch_lpp_maintained_salary"))
+	if not salary or not values.get("date_of_birth"):
+		return 0, 0
+	start = getdate(start_date)
+	birth = getdate(values.date_of_birth)
+	if get_employee_age({"date_of_birth": birth}, start) < LPP_MAINTENANCE_MIN_AGE:
+		return 0, 0
+	if is_past_reference_age(birth, normalize_sex(values.get("gender")), start):
+		return 0, 0
+	return salary, flt(values.get("ch_lpp_maintained_employer_share"))
 
 
 def get_ytd_gross_for_employee(employee, company, start_date, end_date):

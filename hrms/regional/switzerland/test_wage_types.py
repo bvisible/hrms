@@ -296,12 +296,15 @@ class TestCatalogueMatchesSwissdec60(unittest.TestCase):
 				self.assertEqual(wt.get("do_not_include_in_total"), 1, wt["code"])
 
 	def test_certificate_boxes_the_guidelines_fix(self):
+		"""FAQ 2026 on the salary certificate, 1.6: income replacement benefits in box 7."""
 		catalogue = {wt["code"]: wt for wt in get_swiss_wage_types()}
 		self.assertEqual(catalogue["1980"]["lohnausweis_position"], "13.3")  # training (Rz 61)
-		self.assertEqual(catalogue["2020"]["lohnausweis_position"], "1")  # insurance daily allowance
-		self.assertEqual(catalogue["2050"]["lohnausweis_position"], "1")
-		self.assertEqual(catalogue["2060"]["lohnausweis_position"], "7")
-		self.assertEqual(catalogue["2075"]["lohnausweis_position"], "7")
+		for code in ("2000", "2005", "2020", "2025", "2030", "2035", "2040", "2070"):
+			self.assertEqual(catalogue[code]["lohnausweis_position"], "7", code)
+		# What the employer bears stays with the salary: the correction, the short-time work
+		# deduction and the waiting day. Family allowances too (Wegleitung Rz 15).
+		for code in ("2050", "2060", "2075", "3000", "3010"):
+			self.assertEqual(catalogue[code]["lohnausweis_position"], "1", code)
 
 
 class TestSwissdecBaseExamples(unittest.TestCase):
@@ -615,50 +618,6 @@ class TestRateBasedComponentMapping(unittest.TestCase):
 
 		_, _, base_type = RATE_BASED_COMPONENTS["Family Allowances Employer"]
 		self.assertEqual(base_type, "avs_base")
-
-
-class TestDefaultLohnausweisMapping(unittest.TestCase):
-	"""Tests for the DEFAULT_LOHNAUSWEIS_MAPPING constant."""
-
-	def test_all_entries_have_required_fields(self):
-		"""Each mapping entry must have salary_component and lohnausweis_position."""
-		from hrms.regional.switzerland.constants import DEFAULT_LOHNAUSWEIS_MAPPING
-
-		for entry in DEFAULT_LOHNAUSWEIS_MAPPING:
-			self.assertIn("salary_component", entry)
-			self.assertIn("lohnausweis_position", entry)
-			self.assertTrue(entry["salary_component"])
-			self.assertTrue(entry["lohnausweis_position"])
-
-	def test_no_duplicate_components(self):
-		"""Each component should appear at most once in the mapping."""
-		from hrms.regional.switzerland.constants import DEFAULT_LOHNAUSWEIS_MAPPING
-
-		components = [entry["salary_component"] for entry in DEFAULT_LOHNAUSWEIS_MAPPING]
-		self.assertEqual(len(components), len(set(components)), "Duplicate components in mapping")
-
-	def test_new_earning_components_present(self):
-		"""All new earning components should be in the mapping."""
-		from hrms.regional.switzerland.constants import DEFAULT_LOHNAUSWEIS_MAPPING
-
-		comp_names = {entry["salary_component"] for entry in DEFAULT_LOHNAUSWEIS_MAPPING}
-		expected = {
-			"Basic",
-			"13th Month Salary",
-			"Overtime Pay",
-			"Vacation Allowance",
-			"Bonus",
-			"APG Allowance",
-			"IJM Sickness Allowance",
-			"Maternity Allowance",
-			"Child Allowance",
-			"Travel Expenses",
-			"Car Expenses",
-			"Meal Expenses",
-			"Flat-Rate Representation Expenses",
-		}
-		missing = expected - comp_names
-		self.assertEqual(missing, set(), f"Missing components in mapping: {missing}")
 
 
 class TestComponentNames(unittest.TestCase):

@@ -13,6 +13,34 @@ class SwissSocialInsuranceConfig(Document):
 	def validate(self):
 		self.validate_lpp_employer_share()
 		self.validate_rates()
+		self.set_default()
+
+	def set_default(self):
+		"""A company's first configuration is its default one.
+
+		Every lookup without a canton — the monthly cycle's preflight, the salary payment file,
+		the salary certificate header, the Swissdec declarations — reads the default
+		configuration only. Nothing ever set it: a company configured through the onboarding
+		failed its first payroll run with "no configuration".
+		"""
+		if self.is_default or not self.company:
+			return
+		other_default = frappe.db.exists(
+			"Swiss Social Insurance Config",
+			{"company": self.company, "is_default": 1, "name": ("!=", self.name or "")},
+		)
+		if not other_default:
+			self.is_default = 1
+
+	def on_update(self):
+		# One default per company: marking this one unmarks the others.
+		if self.is_default:
+			for name in frappe.get_all(
+				"Swiss Social Insurance Config",
+				filters={"company": self.company, "is_default": 1, "name": ("!=", self.name)},
+				pluck="name",
+			):
+				frappe.db.set_value("Swiss Social Insurance Config", name, "is_default", 0)
 
 	def validate_lpp_employer_share(self):
 		if self.lpp_employer_share_pct and self.lpp_employer_share_pct < 50:

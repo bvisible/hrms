@@ -54,10 +54,16 @@ _ROLE_ACCOUNTS = {
 	"liability_sickness": (2270, 2279, r"maladie|\bijm\b|\bktg\b|kranken", ("Liability",)),
 	"liability_source_tax": (2270, 2279, r"source|quellen", ("Liability",)),
 	"payroll_payable": (1090, 1099, r"salair|lohn", ("Asset", "Liability")),
+	# //// Neoffice — what the insurers owe back for the allowances the employer paid out
+	# //// (SME chart 1180 « Créances envers les assurances sociales et institutions de prévoyance »).
+	"receivable_insurance": (1180, 1189, r"assuranc|sozial|social|versicherung", ("Asset",)),
 }
 
 # The two booking methods (Company.ch_payroll_booking_method).
 BOOKING_LIABILITY = "Social Insurance Liability"
+# //// Neoffice — where the allowances paid out for an insurer go (Company.ch_third_party_allowance_booking).
+THIRD_PARTY_SALARIES = "Salaries"
+THIRD_PARTY_RECEIVABLE = "Insurer Receivable"
 BOOKING_CHARGES = "Social Charges"
 # The insurances whose contributions are social charges; source tax is not one.
 SOCIAL_INSURANCES = ("avs", "caf", "accident", "sickness", "lpp")
@@ -97,6 +103,15 @@ def insurance_of(wage_type_code, component_name):
 		if any(hint in name for hint in hints):
 			return insurance
 	return None
+
+
+def is_third_party_allowance(wage_type_code):
+	"""A daily allowance or benefit paid by an insurer through the employer (APG, maternity,
+	military insurance, AI, accident, sickness: 2000-2049) or the unemployment insurance's
+	short-time work compensation (2070). Not 2050: the correction is the employer's."""
+	code = str(wage_type_code or "").strip()
+	number = int(code) if code.isdigit() else None
+	return number is not None and (2000 <= number <= 2049 or number == 2070) and number != 2050
 
 
 def earning_role(wage_type_code):
@@ -144,7 +159,7 @@ def pick_account(accounts, role):
 	return sorted(matches)[0][1] if matches else None
 
 
-def accrual_lines(rows, net_pays, method=BOOKING_LIABILITY):
+def accrual_lines(rows, net_pays, method=BOOKING_LIABILITY, third_party_account=None):
 	"""Debits and credits of the salary journal entry, per account.
 
 	Args:
@@ -153,6 +168,8 @@ def accrual_lines(rows, net_pays, method=BOOKING_LIABILITY):
 			account, expense_account, ch_wage_type_code.
 		net_pays: the net pay of each slip; their sum must be what the entry leaves payable.
 		method: BOOKING_LIABILITY or BOOKING_CHARGES, see the module docstring.
+		third_party_account: when the company books third-party allowances as a receivable
+			from the insurers, the account they are debited to instead of their component's.
 
 	Returns:
 		(balances, payable, problems, skipped): ``balances`` maps an account to its amount,
@@ -172,10 +189,13 @@ def accrual_lines(rows, net_pays, method=BOOKING_LIABILITY):
 			if row.get("do_not_include_in_total"):
 				skipped.append(component)
 				continue
-			if not row.get("account"):
+			account = row.get("account")
+			if third_party_account and is_third_party_allowance(row.get("ch_wage_type_code")):
+				account = third_party_account
+			if not account:
 				problems.append(_("{0}: no account for this company").format(component))
 				continue
-			balances[row["account"]] += amount
+			balances[account] += amount
 			payable += amount
 		elif row.get("is_employer_contribution"):
 			if method == BOOKING_CHARGES:
@@ -260,6 +280,18 @@ def configure_payroll_accounts(company):
 			report["set"].append(_("Payroll payable: {0}").format(role_account["payroll_payable"]))
 		else:
 			report["missing"].append(_("Payroll payable account (salary transit account, 1091)"))
+
+	# //// Neoffice — the receivable of the third-party allowances, when the company chose it.
+	if third_party_allowance_account(company) is False:
+		if role_account["receivable_insurance"]:
+			frappe.db.set_value(
+				"Company", company, "ch_third_party_allowance_account", role_account["receivable_insurance"]
+			)
+			report["set"].append(
+				_("Third-party allowances receivable: {0}").format(role_account["receivable_insurance"])
+			)
+		else:
+			report["missing"].append(_("Receivable account of the third-party allowances (1180)"))
 
 	# //// Neoffice — an employee contribution needs its charge account too under the "Social
 	# //// Charges" booking method, where it is credited there instead of the liability.
@@ -391,9 +423,20 @@ def post_payroll_accrual(company, year, month):
 	payable_account = frappe.db.get_value("Company", company, "default_payroll_payable_account")
 	cost_center = frappe.db.get_value("Company", company, "cost_center")
 	method = booking_method(company)
+	third_party_account = third_party_allowance_account(company)
 	balances, payable, problems, skipped = accrual_lines(
-		_slip_rows(company, [s.name for s in slips]), [s.net_pay for s in slips], method
+		_slip_rows(company, [s.name for s in slips]),
+		[s.net_pay for s in slips],
+		method,
+		third_party_account=third_party_account,
 	)
+	if third_party_account is False:
+		problems.append(
+			_(
+				"The company books third-party allowances as a receivable from the insurers, but no "
+				"receivable account is set (Company, Third-Party Allowances Account)."
+			)
+		)
 	if not payable_account:
 		problems.append(_("No payroll payable account on the company."))
 	if not cost_center:
@@ -440,6 +483,23 @@ def post_payroll_accrual(company, year, month):
 		"skipped": skipped,
 		"booking_method": method,
 	}
+
+
+def third_party_allowance_account(company):
+	"""The receivable account third-party allowances are debited to; None when the company
+	books them as salaries (the default), False when it chose the receivable but has none."""
+	meta = frappe.get_meta("Company")
+	if not meta.has_field("ch_third_party_allowance_booking"):
+		return None
+	values = frappe.db.get_value(
+		"Company",
+		company,
+		["ch_third_party_allowance_booking", "ch_third_party_allowance_account"],
+		as_dict=True,
+	)
+	if (values.ch_third_party_allowance_booking or THIRD_PARTY_SALARIES) != THIRD_PARTY_RECEIVABLE:
+		return None
+	return values.ch_third_party_allowance_account or False
 
 
 def booking_method(company):

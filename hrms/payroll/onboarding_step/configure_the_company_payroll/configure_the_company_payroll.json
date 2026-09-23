@@ -1,0 +1,21 @@
+{
+ "action": "Go to Page",
+ "callback_title": "Company payroll setup",
+ "creation": "2026-09-23 18:00:00.000000",
+ "description": "<h3>Company Payroll Setup</h3>\n\nFive short steps, prefilled with what the company already has: canton, UID and the person in charge of the payroll; the rates of the AVS fund, LAA, IJM, LAAC and family allowance policies; how salaries and social charges are booked and on which accounts; the salary certificate header. It creates the company's default social insurance configuration. Run it again any time to change a choice.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-09-23 18:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Configure the Company Payroll",
+ "owner": "Administrator",
+ "path": "/app/swiss-company-payroll-setup",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Set up the company's payroll: insurances, accounting, certificate",
+ "validate_action": 0
+}

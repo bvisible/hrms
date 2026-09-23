@@ -92,17 +92,20 @@ def setup_company(data):
 	if data.get("uid_bfs"):
 		updates["ch_uid_bfs"] = format_uid_bfs(data["uid_bfs"])
 
+	# //// Neoffice — the Company fields are ch_default_social_insurance_config and ch_contact_*
+	# //// (setup.py); the names written here did not exist and the update failed with "Unknown
+	# //// column" after the configuration had already been written.
 	if data.get("swiss_social_insurance_config"):
-		updates["ch_swiss_social_insurance_config"] = data["swiss_social_insurance_config"]
+		updates["ch_default_social_insurance_config"] = data["swiss_social_insurance_config"]
 
 	if data.get("swissdec_contact_person"):
-		updates["ch_swissdec_contact_person"] = data["swissdec_contact_person"]
+		updates["ch_contact_person"] = data["swissdec_contact_person"]
 
 	if data.get("swissdec_contact_phone"):
-		updates["ch_swissdec_contact_phone"] = data["swissdec_contact_phone"]
+		updates["ch_contact_phone"] = data["swissdec_contact_phone"]
 
 	if data.get("swissdec_contact_email"):
-		updates["ch_swissdec_contact_email"] = data["swissdec_contact_email"]
+		updates["ch_contact_email"] = data["swissdec_contact_email"]
 
 	if updates:
 		frappe.db.set_value("Company", company, updates)

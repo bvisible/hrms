@@ -13,14 +13,14 @@
  "documentation_url": "https://github.com/bvisible/hrms/blob/version-15/hrms/regional/switzerland/README.md",
  "idx": 0,
  "is_complete": 0,
- "modified": "2026-08-22 12:00:00.000000",
+ "modified": "2026-09-23 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "Swiss Payroll",
  "owner": "Administrator",
  "steps": [
   {
-   "step": "Configure Swiss Social Insurances"
+   "step": "Configure the Company Payroll"
   },
   {
    "step": "Import Swiss Source Tax Tariffs"
@@ -41,7 +41,7 @@
    "step": "Run Your First Swiss Payroll Cycle"
   }
  ],
- "subtitle": "Social insurances, source tax, wage types, first payroll run.",
+ "subtitle": "Company setup, source tax, wage types, first payroll run.",
  "success_message": "Swiss payroll is ready \u2014 slips, source tax, certificates and payment files all run from here!",
  "title": "Let's set up Swiss payroll."
 }

@@ -623,6 +623,9 @@ def get_user_types_data():
 				"Company": ["read"],
 				# payroll
 				"Salary Slip": ["read"],
+				# //// Neoffice — the Swiss salary certificate, read from the portal and the mobile
+				# //// app; its has_permission hook limits it to the employee's validated ones.
+				"Swiss Salary Certificate": ["read"],
 				"Employee Benefit Application": ["read", "write", "create", "delete"],
 				# expenses
 				"Expense Claim": ["read", "write", "create", "delete"],

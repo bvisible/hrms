@@ -212,3 +212,40 @@ def chat_get_session(session_id):
 			for msg in session.messages
 		],
 	}
+
+
+# ─── Salary certificates of the signed-in employee (mobile app, portal) ───
+
+
+@frappe.whitelist()
+def get_my_salary_certificates():
+	"""The validated salary certificates of the signed-in user's employee records, newest first.
+
+	The PDF is then fetched with frappe.utils.print_format.download_pdf (doctype "Swiss Salary
+	Certificate", the certificate's language): the certificate's has_permission hook lets an
+	employee read their own validated certificates and nothing else.
+	"""
+	employees = frappe.get_all("Employee", filters={"user_id": frappe.session.user}, pluck="name")
+	# Only what the user may open: listed through get_all, a certificate showed in the app to a
+	# user without the Employee role, whose download was then refused (403).
+	if not employees or not frappe.has_permission("Swiss Salary Certificate", "read"):
+		return []
+	return frappe.get_list(
+		"Swiss Salary Certificate",
+		filters={"employee": ("in", employees), "docstatus": 1},
+		fields=[
+			"name",
+			"employee",
+			"employee_name",
+			"company",
+			"fiscal_year",
+			"period_from",
+			"period_to",
+			"posting_date",
+			"language",
+			"position_8_gross_income",
+			"position_11_net_salary",
+			"sent_to_employee_on",
+		],
+		order_by="fiscal_year desc, period_to desc",
+	)

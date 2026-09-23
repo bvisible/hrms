@@ -95,6 +95,42 @@ class SwissYearEnd {
 		await this.run_reconcile();
 	}
 
+	//// Neoffice — validate the drafts (each gets its Swissdec DocID), then mail the validated
+	//// certificates to the employees: the two steps that closed the year one form at a time.
+	async run_submit() {
+		const res = await this.call("submit_certificates");
+		let message = __("{0} certificate(s) validated", [res.submitted.length]);
+		res.failed.forEach((f) => {
+			message += `<br>${frappe.utils.escape_html(f.certificate)}: ${frappe.utils.escape_html(f.error)}`;
+		});
+		frappe.msgprint({
+			title: __("Certificates"),
+			message: message,
+			indicator: res.failed.length ? "orange" : "green",
+		});
+		await this.run_reconcile();
+	}
+
+	run_send(count) {
+		frappe.confirm(
+			__("Send {0} salary certificate(s) to the employees by email?", [count]),
+			async () => {
+				const res = await this.call("send_certificates");
+				let message = __("{0} email(s) are being sent. You will be told when they are out.", [
+					res.queued,
+				]);
+				if (res.without_email.length) {
+					message +=
+						"<br>" +
+						__("No email address: {0}", [
+							res.without_email.map((n) => frappe.utils.escape_html(n)).join(", "),
+						]);
+				}
+				frappe.msgprint({ title: __("Certificates"), message: message, indicator: "blue" });
+			}
+		);
+	}
+
 	render() {
 		const rec = this.state.reconcile;
 		const parts = [];
@@ -118,7 +154,8 @@ class SwissYearEnd {
 		const cert_badge = {
 			missing: `<span class="indicator-pill red">${__("missing")}</span>`,
 			draft: `<span class="indicator-pill orange">${__("draft")}</span>`,
-			submitted: `<span class="indicator-pill green">${__("submitted")}</span>`,
+			submitted: `<span class="indicator-pill blue">${__("validated")}</span>`,
+			sent: `<span class="indicator-pill green">${__("sent")}</span>`,
 		};
 		const rows = (rec.employees || [])
 			.map(
@@ -138,7 +175,7 @@ class SwissYearEnd {
 					<td class="text-right">${
 						e.concordance === null || e.concordance === undefined
 							? ""
-							: Math.abs(e.concordance) <= 0.05
+							: Math.abs(e.concordance) < 1
 								? `<span class="text-success">${__("matches")}</span>`
 								: `<span class="text-danger">${format_currency(e.concordance, "CHF")}</span>`
 					}</td>
@@ -150,7 +187,8 @@ class SwissYearEnd {
 				<h5>${__("Employees")} (${rec.counts.employees}) —
 					${rec.counts.certificates_missing} ${__("missing")},
 					${rec.counts.certificates_draft} ${__("draft")},
-					${rec.counts.certificates_submitted} ${__("submitted")}</h5>
+					${rec.counts.certificates_submitted} ${__("validated")},
+					${rec.counts.certificates_sent} ${__("sent")}</h5>
 				<div style="overflow-x: auto;">
 					<table class="table table-sm">
 						<thead><tr>
@@ -211,6 +249,18 @@ class SwissYearEnd {
 			this.page.add_inner_button(
 				__("Generate {0} certificate(s)", [rec.counts.certificates_missing]),
 				() => this.run_generate()
+			);
+		}
+		if (rec.counts.certificates_draft > 0) {
+			this.page.add_inner_button(
+				__("Validate {0} certificate(s)", [rec.counts.certificates_draft]),
+				() => this.run_submit()
+			);
+		}
+		if (rec.counts.certificates_submitted > 0) {
+			this.page.add_inner_button(
+				__("Send {0} certificate(s) to the employees", [rec.counts.certificates_submitted]),
+				() => this.run_send(rec.counts.certificates_submitted)
 			);
 		}
 		const exports = [
