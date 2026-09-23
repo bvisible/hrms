@@ -25,12 +25,26 @@ class SwissEmployeeWizard {
 			{ key: "review", label: __("Review & create") },
 		];
 		this.body = $('<div style="max-width: 760px; padding: 15px 0;"></div>').appendTo(
-			this.page.main
+			this.page.main,
 		);
 		this.render_step();
 	}
 
 	// ---------------------------------------------------------------- //
+
+	// The company's Swiss salary structure, proposed when none is chosen (or the company changed).
+	async propose_structure(company_changed) {
+		const company = this.form && this.form.get_value("company");
+		if (!company || (!company_changed && this.form.get_value("salary_structure"))) {
+			return;
+		}
+		const r = await frappe.db.get_value(
+			"Salary Structure",
+			{ company, docstatus: 1, is_active: "Yes" },
+			"name",
+		);
+		this.form.set_value("salary_structure", (r.message && r.message.name) || "");
+	}
 
 	fields_for(key) {
 		if (key === "identity") {
@@ -57,6 +71,17 @@ class SwissEmployeeWizard {
 					fieldtype: "Data",
 					description: __("Checked against the EAN-13 key while you type."),
 				},
+				// The address the salary certificate prints and the salary payment sends: an
+				// employee hired without it could not be paid.
+				{ fieldname: "sb_address", fieldtype: "Section Break", label: __("Address") },
+				{ fieldname: "address_street", label: __("Street and number"), fieldtype: "Data" },
+				{ fieldname: "col_address", fieldtype: "Column Break" },
+				{
+					fieldname: "address_town",
+					label: __("Postcode and town"),
+					fieldtype: "Data",
+					description: __("Printed on the salary certificate and sent with the salary payment."),
+				},
 			];
 		}
 		if (key === "engagement") {
@@ -68,6 +93,7 @@ class SwissEmployeeWizard {
 					options: "Company",
 					default: frappe.defaults.get_user_default("Company"),
 					reqd: 1,
+					onchange: () => this.propose_structure(true),
 				},
 				{
 					fieldname: "date_of_joining",
@@ -93,12 +119,26 @@ class SwissEmployeeWizard {
 					label: __("Salary Structure (optional)"),
 					fieldtype: "Link",
 					options: "Salary Structure",
+					// The company's own structures: another company's was refused at the very end.
+					get_query: () => ({
+						filters: {
+							company: this.form && this.form.get_value("company"),
+							docstatus: 1,
+							is_active: "Yes",
+						},
+					}),
 				},
 				{
 					fieldname: "base",
 					label: __("Base monthly salary"),
 					fieldtype: "Currency",
 					depends_on: "salary_structure",
+				},
+				{
+					fieldname: "iban",
+					label: __("IBAN of the salary account"),
+					fieldtype: "Data",
+					description: __("Needed to pay the salary by bank transfer."),
 				},
 			];
 		}
@@ -128,7 +168,8 @@ class SwissEmployeeWizard {
 					fieldname: "canton",
 					label: __("Work canton"),
 					fieldtype: "Select",
-					options: "\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH",
+					options:
+						"\nAG\nAI\nAR\nBE\nBL\nBS\nFR\nGE\nGL\nGR\nJU\nLU\nNE\nNW\nOW\nSG\nSH\nSO\nSZ\nTG\nTI\nUR\nVD\nVS\nZG\nZH",
 					reqd: 1,
 				},
 				{ fieldname: "col3", fieldtype: "Column Break" },
@@ -208,7 +249,7 @@ class SwissEmployeeWizard {
 			.map(
 				(s, i) => `
 				<span class="indicator-pill ${i < this.step ? "green" : i === this.step ? "blue" : "gray"}"
-					style="margin-right: 6px;">${i + 1}. ${s.label}</span>`
+					style="margin-right: 6px;">${i + 1}. ${s.label}</span>`,
 			)
 			.join("");
 		this.body.empty();
@@ -219,13 +260,16 @@ class SwissEmployeeWizard {
 			return;
 		}
 
-		const holder = $('<div></div>').appendTo(this.body);
+		const holder = $("<div></div>").appendTo(this.body);
 		this.form = new frappe.ui.FieldGroup({
 			fields: this.fields_for(step.key),
 			body: holder[0],
 		});
 		this.form.make();
 		this.form.set_values(this.data);
+		if (step.key === "engagement") {
+			this.propose_structure(false);
+		}
 
 		// Live AVS checksum feedback
 		if (step.key === "identity") {
@@ -239,10 +283,12 @@ class SwissEmployeeWizard {
 				});
 				if (r.message.valid) {
 					avs_field.set_value(r.message.formatted);
-					avs_field.set_description(`<span class="text-success">${__("Valid AVS number")}</span>`);
+					avs_field.set_description(
+						`<span class="text-success">${__("Valid AVS number")}</span>`,
+					);
 				} else {
 					avs_field.set_description(
-						`<span class="text-danger">${__("Invalid AVS number (EAN-13 key mismatch)")}</span>`
+						`<span class="text-danger">${__("Invalid AVS number (EAN-13 key mismatch)")}</span>`,
 					);
 				}
 			});
@@ -264,7 +310,10 @@ class SwissEmployeeWizard {
 				? `<tr><td class="text-muted" style="width: 40%;">${label}</td><td>${frappe.utils.escape_html(String(value))}</td></tr>`
 				: "";
 		const notes = (suggestion.notes || [])
-			.map((n) => `<div class="indicator-pill blue" style="margin: 2px 6px 2px 0;">${frappe.utils.escape_html(n)}</div>`)
+			.map(
+				(n) =>
+					`<div class="indicator-pill blue" style="margin: 2px 6px 2px 0;">${frappe.utils.escape_html(n)}</div>`,
+			)
 			.join("");
 
 		this.body.append(`
@@ -281,6 +330,8 @@ class SwissEmployeeWizard {
 					${line(__("Source tax"), this.data.qst_subject ? `${suggestion.tariff_code} (${suggestion.model === "annual" ? __("annual model") : __("monthly model")})` : __("No"))}
 					${line(__("Salary Structure (optional)"), this.data.salary_structure)}
 					${line(__("Base monthly salary"), this.data.base)}
+					${line(__("Address"), [this.data.address_street, this.data.address_town].filter(Boolean).join(", "))}
+					${line(__("IBAN of the salary account"), this.data.iban)}
 				</table>
 				<div style="display: flex; flex-wrap: wrap;">${notes}</div>
 				${
@@ -294,7 +345,7 @@ class SwissEmployeeWizard {
 
 	render_nav(is_review = false) {
 		const nav = $('<div style="margin-top: 20px; display: flex; gap: 10px;"></div>').appendTo(
-			this.body
+			this.body,
 		);
 		if (this.step > 0) {
 			$(`<button class="btn btn-default btn-sm">${__("Back")}</button>`)

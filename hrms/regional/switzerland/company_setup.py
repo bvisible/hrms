@@ -188,4 +188,8 @@ def apply_company_setup(data):
 	result = {"config": config.name}
 	if cint(data.get("configure_accounts")):
 		result["accounts"] = accounting.configure_payroll_accounts(company)
+	# Each company its own Swiss salary structure, submitted: the employee wizard assigns it.
+	from hrms.regional.switzerland.setup import ensure_company_salary_structure
+
+	result["salary_structure"] = ensure_company_salary_structure(company)
 	return result

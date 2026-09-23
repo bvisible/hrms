@@ -21211,3 +21211,27 @@ msgstr "Paie non comptabilisée"
 msgctxt "salary certificate status"
 msgid "sent"
 msgstr "envoyé"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Street and number"
+msgstr "Rue et numéro"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Postcode and town"
+msgstr "NPA et localité"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Printed on the salary certificate and sent with the salary payment."
+msgstr "Imprimée sur le certificat de salaire et envoyée avec le versement du salaire."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "IBAN of the salary account"
+msgstr "IBAN du compte salaire"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Needed to pay the salary by bank transfer."
+msgstr "Nécessaire pour verser le salaire par virement bancaire."
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "Invalid IBAN: the check digits do not match."
+msgstr "IBAN invalide : les chiffres de contrôle ne correspondent pas."

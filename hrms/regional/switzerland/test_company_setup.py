@@ -3,10 +3,13 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from hrms.regional.switzerland.company_setup import apply_company_setup, get_company_setup
+from hrms.regional.switzerland.employee_wizard import create_employee
 
 COMPANY = "_Test Company 1"
 
@@ -91,3 +94,74 @@ class TestCompanyPayrollSetup(FrappeTestCase):
 			apply_company_setup(
 				{"company": COMPANY, "canton": "VD", "default_payroll_payable_account": other}
 			)
+
+	# //// Neoffice — added (2026-09-24): each company gets its own Swiss structure, submitted.
+	def test_the_wizard_gives_the_company_its_own_salary_structure(self):
+		for name, abbr in (("AVS/AI/APG Employee", "AVS_EE"), ("AC/ALV Employee", "AC_EE")):
+			if not frappe.db.exists("Salary Component", name):
+				frappe.get_doc(
+					{
+						"doctype": "Salary Component",
+						"salary_component": name,
+						"salary_component_abbr": abbr,
+						"type": "Deduction",
+					}
+				).insert()
+		# Creating the monthly salary component from the catalogue commits: kept inside the test.
+		with patch("frappe.db.commit"):
+			name = apply_company_setup({"company": COMPANY, "canton": "VD", "configure_accounts": 0})[
+				"salary_structure"
+			]
+			structure = frappe.get_doc("Salary Structure", name)
+			self.assertEqual(
+				(structure.company, structure.docstatus, structure.is_active), (COMPANY, 1, "Yes")
+			)
+			self.assertIn("AVS/AI/APG Employee", [row.salary_component for row in structure.deductions])
+			if frappe.db.exists("Swiss Wage Type", "CH-WT-1000"):
+				earning = structure.earnings[0].salary_component
+				self.assertEqual(
+					frappe.db.get_value("Salary Component", earning, "ch_wage_type"), "CH-WT-1000"
+				)
+			# Run again: the same structure, not a second one.
+			again = apply_company_setup({"company": COMPANY, "canton": "VD", "configure_accounts": 0})
+			self.assertEqual(again["salary_structure"], name)
+
+
+class TestEmployeeWizardPaymentDetails(FrappeTestCase):
+	"""The wizard records what paying the employee needs: the IBAN and the postal address."""
+
+	IBAN = "CH93 0076 2011 6238 5295 7"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("Company", COMPANY):
+			self.skipTest(f"{COMPANY} missing on this site")
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def data(self, **values):
+		return {
+			"first_name": "Wizard",
+			"last_name": "PaymentTest",
+			"gender": frappe.db.get_value("Gender", {}, "name"),
+			"date_of_birth": "1990-01-01",
+			"company": COMPANY,
+			"date_of_joining": "2026-01-01",
+			"address_street": "Rue du Lac 15",
+			"address_town": "1003 Lausanne",
+			**values,
+		}
+
+	def test_address_and_iban_are_recorded(self):
+		with patch("frappe.db.commit"):
+			employee = create_employee(self.data(iban=self.IBAN))["employee"]
+		values = frappe.db.get_value(
+			"Employee", employee, ["permanent_address", "bank_ac_no", "salary_mode"], as_dict=True
+		)
+		self.assertEqual(values.permanent_address, "Rue du Lac 15\n1003 Lausanne")
+		self.assertEqual((values.bank_ac_no, values.salary_mode), ("CH9300762011623852957", "Bank"))
+
+	def test_a_wrong_iban_is_refused(self):
+		with patch("frappe.db.commit"), self.assertRaises(frappe.ValidationError):
+			create_employee(self.data(iban="CH93 0076 2011 6238 5295 8"))

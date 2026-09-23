@@ -105,9 +105,7 @@ def suggest_source_tax(data):
 		)
 		suggested_letter = suggest_tariff_letter(employee_like)
 		if suggested_letter:
-			notes.append(
-				_("Cross-border situation suggests tariff letter {0}.").format(suggested_letter)
-			)
+			notes.append(_("Cross-border situation suggests tariff letter {0}.").format(suggested_letter))
 		if data.get("residence_country") == "FR" and data.get("fr_2041as"):
 			notes.append(
 				_(
@@ -162,6 +160,18 @@ def create_employee(data):
 	avs = data.get("avs_number")
 	if avs and not is_valid_avs_number(avs):
 		frappe.throw(_("Invalid AVS number: the EAN-13 check digit does not match."))
+	# The salary account and the address: without them the payment proposal refuses the employee,
+	# and the salary certificate prints no address.
+	from hrms.regional.switzerland.payment_file import clean_iban, validate_iban
+
+	iban = clean_iban(data.get("iban"))
+	if iban and not validate_iban(iban):
+		frappe.throw(_("Invalid IBAN: the check digits do not match."))
+	address = "\n".join(
+		line.strip()
+		for line in (data.get("address_street"), data.get("address_town"))
+		if (line or "").strip()
+	)
 
 	employee = frappe.get_doc(
 		{
@@ -189,6 +199,9 @@ def create_employee(data):
 			"ch_fr_2041as_attestation": 1 if data.get("fr_2041as") else 0,
 			"ch_is_italian_new_frontalier": 1 if data.get("it_new_frontalier") else 0,
 			"ch_cross_border_start_date": data.get("cross_border_start_date") or None,
+			"permanent_address": address or None,
+			"bank_ac_no": iban or None,
+			"salary_mode": "Bank" if iban else None,
 		}
 	)
 	employee.insert()

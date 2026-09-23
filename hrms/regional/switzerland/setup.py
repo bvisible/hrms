@@ -1471,50 +1471,87 @@ def _link_paired_components(components):
 	frappe.db.commit()
 
 
+# //// Neoffice — rewritten (2026-09-24). Upstream of this fork created ONE structure, once, for the
+# //// default company, left it in draft and paid the salary through "Basic" (no Swiss wage type):
+# //// a second company on the same instance had no structure to assign its employees to, the first
+# //// had to submit it by hand, and the base salary reached the declarations without its wage
+# //// type 1000. Now each company gets its own, submitted, when its payroll is set up.
 def create_swiss_salary_structure():
-	"""Create a default Salary Structure template for Swiss payroll."""
-	structure_name = "Swiss Payroll - Standard"
+	"""The default company's Swiss salary structure (setup wizard)."""
+	company = frappe.defaults.get_global_default("company")
+	if company and frappe.db.get_value("Company", company, "country") == "Switzerland":
+		ensure_company_salary_structure(company)
 
-	if frappe.db.exists("Salary Structure", structure_name):
-		return
 
-	component_defs = get_swiss_salary_component_definitions()
-	deductions = []
-	for comp_def in component_defs:
-		if comp_def.get("type") != "Deduction":
-			continue
-		deductions.append(
-			{
-				"salary_component": comp_def["name"],
-				"abbr": comp_def["salary_component_abbr"],
-				"formula": comp_def.get("formula", ""),
-				"amount_based_on_formula": comp_def.get("amount_based_on_formula", 0),
-				"condition": comp_def.get("condition", ""),
-				"do_not_include_in_total": comp_def.get("do_not_include_in_total", 0),
-			}
-		)
+def ensure_company_salary_structure(company):
+	"""The name of ``company``'s Swiss salary structure — created, submitted and active when the
+	company has none: the monthly salary (wage type 1000) as its earning, the Swiss deductions,
+	whose amounts the payroll computes (update_swiss_social_contributions)."""
+	existing = frappe.get_all(
+		"Salary Structure",
+		filters={"company": company, "docstatus": 1, "is_active": "Yes"},
+		pluck="name",
+		order_by="creation asc",
+	)
+	for name in existing:
+		if frappe.db.exists(
+			"Salary Detail",
+			{"parent": name, "parenttype": "Salary Structure", "salary_component": "AVS/AI/APG Employee"},
+		):
+			return name
+
+	name = "Swiss Payroll - Standard"
+	if frappe.db.exists("Salary Structure", name):
+		name = "{} - {}".format(name, frappe.get_cached_value("Company", company, "abbr"))
+		if frappe.db.exists("Salary Structure", name):
+			return name if frappe.db.get_value("Salary Structure", name, "docstatus") == 1 else None
 
 	doc = frappe.new_doc("Salary Structure")
-	doc.name = structure_name
-	doc.salary_structure = structure_name
+	doc.name = name
+	doc.__newname = name
+	doc.company = company
+	doc.currency = frappe.get_cached_value("Company", company, "default_currency") or "CHF"
 	doc.payroll_frequency = "Monthly"
 	doc.is_active = "Yes"
-
-	# Add a Basic earning component as placeholder
 	doc.append(
 		"earnings",
-		{
-			"salary_component": "Basic",
-			"formula": "base",
-			"amount_based_on_formula": 1,
-		},
+		{"salary_component": _monthly_salary_component(), "formula": "base", "amount_based_on_formula": 1},
 	)
+	for definition in get_swiss_salary_component_definitions():
+		if definition.get("type") != "Deduction" or not frappe.db.exists(
+			"Salary Component", definition["name"]
+		):
+			continue
+		doc.append(
+			"deductions",
+			{
+				"salary_component": definition["name"],
+				"abbr": definition["salary_component_abbr"],
+				"formula": definition.get("formula", ""),
+				"amount_based_on_formula": definition.get("amount_based_on_formula", 0),
+				"condition": definition.get("condition", ""),
+				"do_not_include_in_total": definition.get("do_not_include_in_total", 0),
+			},
+		)
+	doc.flags.ignore_permissions = True
+	doc.insert()
+	doc.submit()
+	return doc.name
 
-	for ded in deductions:
-		doc.append("deductions", ded)
 
-	doc.insert(ignore_permissions=True)
-	frappe.db.commit()
+def _monthly_salary_component():
+	"""The component of the monthly salary: the one of wage type 1000, created from the catalogue
+	when missing; "Basic" only where the catalogue is not installed."""
+	from hrms.regional.switzerland.payroll_hooks import _resolve_component_by_wage_type
+
+	component = _resolve_component_by_wage_type(1000, "Salaire mensuel")
+	if component:
+		return component
+	if frappe.db.exists("Swiss Wage Type", "CH-WT-1000"):
+		from hrms.regional.switzerland.api import _create_component_from_wage_type
+
+		return _create_component_from_wage_type(frappe.get_doc("Swiss Wage Type", "CH-WT-1000"))
+	return "Basic"
 
 
 # //// Neoffice — removed populate_default_lohnausweis_mapping() (bd93e5035 "feat(payroll): the Swiss salary certificate, delivered — and the onboarding asks the payroll choices"): the certificate now places each slip row by its component's own position, so there is nothing left to prefill from a default mapping.
