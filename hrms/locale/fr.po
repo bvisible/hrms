@@ -19835,3 +19835,926 @@ msgstr "Cocher si cet employé est soumis à l'impôt à la source."
 msgid "Check if this employee is a cross-border commuter."
 msgstr "Cocher si cet employé est frontalier."
 
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html
+msgid "1. Salary"
+msgstr "1. Salaire"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "10.1 LPP Regular Contributions"
+msgstr "10.1 Cotisations LPP ordinaires"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "10.2 LPP Buy-in"
+msgstr "10.2 Rachat LPP"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "14. Other Fringe Benefits"
+msgstr "14. Autres prestations salariales accessoires"
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html
+msgid "15. Remarks"
+msgstr "15. Remarques"
+
+#: hrms/regional/switzerland/year_end.py
+msgid "AC withheld (employee)"
+msgstr "AC retenu (employé)"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "AVS recap (CSV)"
+msgstr "Récapitulatif AVS (CSV)"
+
+#: hrms/regional/switzerland/year_end.py
+msgid "AVS withheld (employee)"
+msgstr "AVS retenu (employé)"
+
+#: hrms/regional/switzerland/api.py
+msgid "Access denied"
+msgstr "Accès refusé"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Additional Remarks"
+msgstr "Remarques complémentaires"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "BIC of the paying bank"
+msgstr "BIC de la banque payeuse"
+
+#: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html
+msgid "Barcode Page"
+msgstr "Page code-barres"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Benefits the employer cannot value, named without an amount (Wegleitung Rz 62)."
+msgstr "Prestations que l'employeur ne peut pas évaluer, mentionnées sans montant (directive, Cm 62)."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Board and lodging provided by the employer."
+msgstr "Nourriture et logement fournis par l'employeur."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Board of directors fees."
+msgstr "Indemnités des membres de l'administration."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Box 8 minus boxes 9, 10.1 and 10.2."
+msgstr "Chiffre 8 moins les chiffres 9, 10.1 et 10.2."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Box E: the employment dates within the year."
+msgstr "Lettre E : les dates d'emploi durant l'année."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Box I: the date the certificate is made out."
+msgstr "Lettre I : la date d'établissement du certificat."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Built from the salary slips and the fields above; rebuilt whenever a draft is saved."
+msgstr "Construit à partir des fiches de salaire et des champs ci-dessus ; reconstruit à chaque enregistrement du brouillon."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Canton / Employee"
+msgstr "Canton / Employé"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Canton of the company's seat that approved the expense regulation. Box 15 then says so, and the effective travel expenses are no longer declared (Wegleitung Rz 59, 65)."
+msgstr "Canton du siège de la société qui a agréé le règlement des frais. Le chiffre 15 le mentionne alors, et les frais de déplacement effectifs ne sont plus déclarés (directive, Cm 59, 65)."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Capital benefits."
+msgstr "Prestations en capital."
+
+#: hrms/hooks.py
+msgid "Certificate"
+msgstr "Certificat"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Certificate Date"
+msgstr "Date du certificat"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Certificate Language"
+msgstr "Langue du certificat"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Certificate Position"
+msgstr "Position du certificat"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Certificate Position Overrides"
+msgstr "Dérogations de position sur le certificat"
+
+#: hrms/regional/switzerland/lohnausweis_barcode.py
+msgid "Certificates"
+msgstr "Certificats"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Certificates Issued for the Year"
+msgstr "Certificats émis pour l'année"
+
+#: hrms/hr/doctype/shift_assignment/shift_assignment.py
+msgid "Checks"
+msgstr "Contrôles"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py
+msgid "Choose one of the email addresses of the employee record."
+msgstr "Choisissez l'une des adresses e-mail de la fiche de l'employé."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Concordance"
+msgstr "Concordance"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Days of Benefits Paid by an Insurer"
+msgstr "Jours d'indemnités versées par un assureur"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Days with income replacement benefits an insurer paid the employee directly, not through the payroll (Wegleitung Rz 64)."
+msgstr "Jours avec des indemnités pour perte de gain qu'un assureur a versées directement à l'employé, hors paie (directive, Cm 64)."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Delivery to the Employee"
+msgstr "Envoi à l'employé"
+
+#: hrms/regional/switzerland/test_lohnausweis.py
+msgid "DocID"
+msgstr "DocID"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Employee AVS/AI/APG, AC and AANP contributions only (Wegleitung Rz 42)."
+msgstr "Cotisations AVS/AI/APG, AC et AANP de l'employé uniquement (directive, Cm 42)."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Employee buy-in contributions to the pension fund."
+msgstr "Cotisations de rachat de l'employé à la caisse de pension."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Employee participation rights, detailed on a supplementary sheet."
+msgstr "Droits de participation de l'employé, détaillés sur une feuille complémentaire."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Employer account debited for salary payments (pain.001)"
+msgstr "Compte de l'employeur débité pour le versement des salaires (pain.001)"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Expense Regulation Approved On"
+msgstr "Règlement des frais agréé le"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Expense Regulation Approved by Canton"
+msgstr "Règlement des frais agréé par le canton"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Exports"
+msgstr "Exports"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Fill the certificate from the submitted salary slips of the year."
+msgstr "Remplissez le certificat à partir des fiches de salaire validées de l'année."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Finalized On"
+msgstr "Validé le"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "French, German, Italian or English: the remarks and the email follow it. Set from the employee's fiscal canton."
+msgstr "Français, allemand, italien ou anglais : les remarques et l'e-mail en suivent la langue. Défini à partir du canton fiscal de l'employé."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Generate {0} certificate(s)"
+msgstr "Générer {0} certificat(s)"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Gross (year)"
+msgstr "Brut (année)"
+
+#: hrms/regional/switzerland/year_end.py
+msgid "Gross salary"
+msgstr "Salaire brut"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py
+msgid "Hello {0},"
+msgstr "Bonjour {0},"
+
+#: hrms/regional/switzerland/year_end.py
+msgid "IJM withheld (employee)"
+msgstr "IJM retenu (employé)"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Irregular benefits: bonuses, gratuities, jubilee gifts."
+msgstr "Prestations non périodiques : primes, gratifications, cadeaux d'ancienneté."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py
+msgid "Kind regards"
+msgstr "Meilleures salutations"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "LAA recap (CSV)"
+msgstr "Récapitulatif LAA (CSV)"
+
+#: hrms/regional/switzerland/year_end.py
+msgid "LAA withheld (employee)"
+msgstr "LAA retenu (employé)"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Last sent to {0} on {1}."
+msgstr "Envoyé pour la dernière fois à {0} le {1}."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Ledger account of the salary payment bank account (fallback source for IBAN/BIC)"
+msgstr "Compte comptable du compte bancaire de versement des salaires (source de repli pour l'IBAN/BIC)"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "No email address: {0}"
+msgstr "Pas d'adresse e-mail : {0}"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Not printed: box 14 names benefits without an amount (Wegleitung Rz 62)."
+msgstr "Non imprimé : le chiffre 14 mentionne les prestations sans indication de montant (directive, Cm 62)."
+
+#: hrms/regional/switzerland/year_end.py
+msgid "Not sent: {0}. See the Error Log."
+msgstr "Non envoyé : {0}. Voir le Journal des erreurs."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Only for a component that must land in another box than its own certificate position (set on the Salary Component from its wage type), or stay off the certificate."
+msgstr "Uniquement pour une composante devant figurer dans un autre chiffre que sa position de certificat par défaut (définie sur la Composante Salariale à partir de son genre de salaire), ou rester hors certificat."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Only when the employee exceptionally gets more than one certificate for the year (Wegleitung Rz 66)."
+msgstr "Uniquement lorsque l'employé reçoit exceptionnellement plus d'un certificat pour l'année (directive, Cm 66)."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Other benefits: income replacement allowances paid through the payroll (APG, sickness, accident, maternity, unemployment), tips (Wegleitung Rz 31-40)."
+msgstr "Autres prestations : indemnités pour perte de gain versées par la paie (APG, maladie, accident, maternité, chômage), pourboires (directive, Cm 31-40)."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Other fringe benefits the employer can value."
+msgstr "Autres prestations salariales accessoires que l'employeur peut évaluer."
+
+#: hrms/regional/switzerland/payment_file.py
+msgid "Payment BIC"
+msgstr "BIC de paiement"
+
+#: hrms/regional/switzerland/payment_file.py
+msgid "Payment IBAN"
+msgstr "IBAN de paiement"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Period From"
+msgstr "Période du"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Period To"
+msgstr "Période au"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Pick a company and a fiscal year, then run the reconciliation."
+msgstr "Choisissez une société et un exercice fiscal, puis lancez la réconciliation."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py
+msgid "Please find attached your salary certificate for {0}. Keep it with your tax return."
+msgstr "Veuillez trouver ci-joint votre certificat de salaire {0}. Joignez-le à votre déclaration d'impôt."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Please select a company and a fiscal year"
+msgstr "Veuillez sélectionner une société et un exercice fiscal"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Printed in box 15 after the remarks built from the salary slips."
+msgstr "Imprimé au chiffre 15 après les remarques construites à partir des fiches de salaire."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Private use of the company car."
+msgstr "Usage privé de la voiture de fonction."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Reading the salary slips..."
+msgstr "Lecture des fiches de salaire en cours..."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Receivable account of the third-party allowances (1180)"
+msgstr "Compte de créances des indemnités de tiers (1180)"
+
+#: hrms/hr/doctype/daily_work_summary/test_daily_work_summary.py
+msgid "Recipient"
+msgstr "Destinataire"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Reconcile"
+msgstr "Réconcilier"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Regular employee contributions to the pension fund."
+msgstr "Cotisations ordinaires de l'employé à la caisse de pension."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Remark Facts"
+msgstr "Données des remarques"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Remarks (Box 15)"
+msgstr "Remarques (chiffre 15)"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Resend"
+msgstr "Renvoyer"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Resend the salary certificate"
+msgstr "Renvoyer le certificat de salaire"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Resend to Employee"
+msgstr "Renvoyer à l'employé"
+
+#: hrms/regional/switzerland/test_company_setup.py
+msgid "Salaries"
+msgstr "Salaires"
+
+#: hrms/regional/switzerland/lohnausweis_barcode.py
+msgid "Salary Certificates"
+msgstr "Certificats de salaire"
+
+#: hrms/payroll/report/salary_payments_based_on_payment_mode/salary_payments_based_on_payment_mode.json
+msgid "Salary Payments"
+msgstr "Versement des salaires"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Salary and every allowance, family allowances included (Wegleitung Rz 13-18)."
+msgstr "Salaire et toutes les allocations, allocations familiales incluses (directive Cm 13-18)."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Salary certificate sent to {0}"
+msgstr "Certificat de salaire envoyé à {0}"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py
+msgid "Salary certificate {0}"
+msgstr "Certificat de salaire {0}"
+
+#: hrms/mixins/pwa_notifications.py
+msgid "Send"
+msgstr "Envoyer"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Send the salary certificate"
+msgstr "Envoyer le certificat de salaire"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Send to Employee"
+msgstr "Envoyer à l'employé"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Send to employee"
+msgstr "Envoyer à l'employé"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Send {0} certificate(s) to the employees"
+msgstr "Envoyer {0} certificat(s) aux employés"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Send {0} salary certificate(s) to the employees by email?"
+msgstr "Envoyer {0} certificat(s) de salaire aux employés par e-mail ?"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Sending..."
+msgstr "Envoi en cours..."
+
+#: hrms/hr/doctype/daily_work_summary/daily_work_summary.json
+msgid "Sent To"
+msgstr "Envoyé à"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Sent to Employee On"
+msgstr "Envoyé à l'employé le"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Sent to {0} on {1}."
+msgstr "Envoyé à {0} le {1}."
+
+#: hrms/regional/switzerland/api.py
+msgid "Session ID is required"
+msgstr "L'ID de session est requis"
+
+#: hrms/patches/v15_0/update_payment_status_for_leave_encashment.py
+msgid "Slips"
+msgstr "Fiches"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Source tax by canton (cantonal settlements)"
+msgstr "Impôt à la source par canton (décomptes cantonaux)"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Source tax list (CSV)"
+msgstr "Liste de l'impôt à la source (CSV)"
+
+#: hrms/regional/switzerland/year_end.py
+msgid "Source tax withheld"
+msgstr "Impôt à la source retenu"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Source tax withheld."
+msgstr "Impôt à la source retenu."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Street, ZIP and city: printed in box I with the contact person and phone of the company (Swissdec section), and read by the barcode."
+msgstr "Rue, NPA et localité : imprimés à la lettre I avec la personne de contact et le téléphone de la société (rubrique Swissdec), et lus par le code-barres."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Sum of boxes 1 to 7, in whole francs."
+msgstr "Somme des chiffres 1 à 7, en francs entiers."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.json
+msgid "Swiss Year-End Closing"
+msgstr "Clôture de fin d'année suisse"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Swissdec Identification"
+msgstr "Identification Swissdec"
+
+#: hrms/patches/v15_0/add_qst_bracket_lookup_index.py
+msgid "Tariff"
+msgstr "Code tarifaire"
+
+#: hrms/regional/switzerland/assistant/prompts.py
+msgid "Tariff code"
+msgstr "Code tarifaire"
+
+#: hrms/regional/switzerland/year_end.py
+msgid "Taxable gross"
+msgstr "Brut imposable"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "The PDF is protected by a password of the format {0}, as the salary slips."
+msgstr "Le PDF est protégé par un mot de passe au format {0}, comme les fiches de salaire."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py
+msgid "The PDF is protected by a password of the format {0}."
+msgstr "Le PDF est protégé par un mot de passe au format {0}."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "The addresses of the employee record."
+msgstr "Les adresses de la fiche de l'employé."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "The company books third-party allowances as a receivable from the insurers, but no receivable account is set (Company, Third-Party Allowances Account)."
+msgstr "La société comptabilise les indemnités de tiers comme une créance envers les assureurs, mais aucun compte de créances n'est défini (Société, Compte des indemnités de tiers)."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Third-party allowances receivable: {0}"
+msgstr "Créance sur les indemnités de tiers : {0}"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Unique identifier given when the certificate is validated (Swissdec guidelines 6.0, 9.1.5). A draft prints as a draft."
+msgstr "Identifiant unique attribué lors de la validation du certificat (directives Swissdec 6.0, 9.1.5). Un brouillon s'imprime comme un brouillon."
+
+#: hrms/regional/switzerland/year_end.py
+msgid "Unknown export kind: {0}"
+msgstr "Type d'export inconnu : {0}"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Update from Salary Slips"
+msgstr "Mettre à jour depuis les fiches de salaire"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py
+msgid "Validate the certificate before sending it to the employee."
+msgstr "Validez le certificat avant de l'envoyer à l'employé."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Validate {0} certificate(s)"
+msgstr "Valider {0} certificat(s)"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Working..."
+msgstr "Traitement en cours..."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "You are not allowed to send this certificate by email."
+msgstr "Vous n'êtes pas autorisé à envoyer ce certificat par e-mail."
+
+#: hrms/hr/utils.py
+msgid "draft"
+msgstr "brouillon"
+
+#: hrms/overrides/company.py
+msgid "matches"
+msgstr "concorde"
+
+#: hrms/overrides/employee_payment_entry.py
+msgid "missing"
+msgstr "manquant"
+
+#: hrms/overrides/employee_master.py
+msgid "sent"
+msgstr "envoyé"
+
+#: hrms/hooks.py
+msgid "validated"
+msgstr "validé"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "{0} certificate(s) created, {1} skipped"
+msgstr "{0} certificat(s) créé(s), {1} ignoré(s)"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "{0} certificate(s) validated"
+msgstr "{0} certificat(s) validé(s)"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "{0} email(s) are being sent. You will be told when they are out."
+msgstr "{0} e-mail(s) en cours d'envoi. Vous serez averti une fois l'envoi terminé."
+
+#: hrms/public/frontend/assets/CheckInPanel-BUIwawMJ.js
+msgid "{0} failed"
+msgstr "{0} en échec"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py
+msgid "{0} has no email address. Add one to the employee record."
+msgstr "{0} n'a pas d'adresse e-mail. Ajoutez-en une à la fiche de l'employé."
+
+#: hrms/regional/switzerland/year_end.py
+msgid "{0} salary certificate(s) sent to the employees."
+msgstr "{0} certificat(s) de salaire envoyé(s) aux employés."
+
+#: hrms/regional/switzerland/year_end.py
+msgid "{0}: AVS number missing on the employee — required for the certificate"
+msgstr "{0} : numéro AVS manquant sur l'employé — requis pour le certificat"
+
+#: hrms/regional/switzerland/year_end.py
+msgid "{0}: no submitted slip for month(s) {1}"
+msgstr "{0} : aucune fiche de salaire validée pour le(s) mois {1}"
+
+#: hrms/regional/switzerland/year_end.py
+msgid "{0}: the certificate ({1} gross, {2} net) no longer matches the salary slips ({3} gross, {4} net). Update it from the salary slips."
+msgstr "{0} : le certificat ({1} brut, {2} net) ne correspond plus aux fiches de salaire ({3} brut, {4} net). Mettez-le à jour à partir des fiches de salaire."
+
+#: hrms/patches/v15_0/switzerland_13th_month_code_1200.py
+msgid "13th month salary"
+msgstr "13e salaire"
+
+#: hrms/payroll/onboarding_step/configure_the_company_payroll/configure_the_company_payroll.json
+msgid ""
+"<h3>Company Payroll Setup</h3>\n"
+"\n"
+"Five short steps, prefilled with what the company already has: canton, UID and the person in charge of the payroll; the rates of the AVS fund, LAA, IJM, LAAC and family allowance policies; how salaries and social charges are booked and on which accounts; the salary certificate header. It creates the company's default social insurance configuration. Run it again any time to change a choice."
+msgstr ""
+"<h3>Configuration de la paie de la société</h3>\n"
+"\n"
+"Cinq étapes courtes, préremplies avec ce que la société possède déjà : le canton, le numéro IDE et le responsable des salaires ; les taux de la caisse AVS, de la LAA, de l'IJM, de la LAAC et des allocations familiales ; la façon dont les salaires et les charges sociales sont comptabilisés et sur quels comptes ; l'en-tête du certificat de salaire. Il crée la configuration des assurances sociales par défaut de la société. Relancez-le à tout moment pour modifier un choix."
+
+#: hrms/payroll/onboarding_step/import_swiss_source_tax_tariffs/import_swiss_source_tax_tariffs.json
+msgid ""
+"<h3>Source Tax Tariffs (ESTV)</h3>\n"
+"\n"
+"The official federal tariff files, per canton. Open a tariff of a canton where employees are taxed at source and use Fetch from ESTV to import its brackets. The payroll cycle checks they are present."
+msgstr ""
+"<h3>Barèmes de l'impôt à la source (ESTV)</h3>\n"
+"\n"
+"Les fichiers de barèmes fédéraux officiels, par canton. Ouvrez le barème d'un canton où des employés sont imposés à la source et utilisez Récupérer depuis l'ESTV pour importer ses tranches. Le cycle de paie vérifie qu'elles sont présentes."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "APG, maternity, accident, sickness, short-time work: with the salaries, the insurer's reimbursement is credited back there; as a receivable, the balance sheet shows what each insurer still owes."
+msgstr "APG, maternité, accident, maladie, réduction de l'horaire de travail : avec les salaires, le remboursement de l'assureur y est crédité en retour ; en tant que créance, le bilan indique ce que chaque assureur doit encore."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "AVS compensation fund"
+msgstr "Caisse de compensation AVS"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Accident insurance (LAA) and supplementary (LAAC)"
+msgstr "Assurance accidents (LAA) et complémentaire (LAAC)"
+
+#: hrms/regional/switzerland/company_setup.py
+msgid "Account {0} does not belong to {1}."
+msgstr "Le compte {0} n'appartient pas à {1}."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Accounts assigned"
+msgstr "Comptes attribués"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Administration fees (%)"
+msgstr "Taux des frais d'administration (%)"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Allowances the employer pays out for an insurer"
+msgstr "Indemnités que l'employeur verse pour le compte d'un assureur"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Allowances the employer pays out for an insurer (APG, maternity, accident, sickness, AI, short-time work compensation). Salaries: debited with the salaries (5000), the insurer's reimbursement is credited back there. Insurer Receivable: debited to a receivable (1180) that the reimbursement clears, so the balance sheet shows what each insurer still owes."
+msgstr "Indemnités que l'employeur verse pour le compte d'un assureur (APG, maternité, accident, maladie, AI, réduction de l'horaire de travail). Salaires : débitées avec les salaires (5000), le remboursement de l'assureur y est crédité en retour. Créance envers l'assureur : débitées sur une créance (1180) que le remboursement solde, de sorte que le bilan indique ce que chaque assureur doit encore."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Approved by the canton"
+msgstr "Agréé par le canton"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Approved on"
+msgstr "Agréé le"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "As a receivable from the insurer (1180)"
+msgstr "En tant que créance envers l'assureur (1180)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Assign the other payroll accounts from the chart of accounts"
+msgstr "Attribuez les autres comptes de paie depuis le plan comptable"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "At least 50 % by law; more if your pension fund's regulations say so."
+msgstr "Au moins 50 % selon la loi ; davantage si le règlement de votre caisse de pension le prévoit."
+
+#: hrms/regional/switzerland/payment_file.py
+msgid "BIC"
+msgstr "BIC"
+
+#: hrms/public/frontend/assets/swipe-back-B5zxTd-7.js
+msgid "Back"
+msgstr "Retour"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Bank account paying the salaries"
+msgstr "Compte bancaire de versement des salaires"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "CHE-123.456.789, on the salary certificate barcode and the declarations."
+msgstr "CHE-123.456.789, sur le code-barres du certificat de salaire et les déclarations."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Canton of the company's seat"
+msgstr "Canton du siège de la société"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Charged by your compensation fund on the AVS/AI/APG contributions (see its invoice). 0 if it charges none."
+msgstr "Facturés par votre caisse de compensation sur les cotisations AVS/AI/APG (voir sa facture). 0 si elle n'en facture aucun."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Company Payroll Setup"
+msgstr "Configuration de la paie de la société"
+
+#: hrms/regional/switzerland/company_setup.py
+msgid "Company and canton are required."
+msgstr "La société et le canton sont requis."
+
+#: hrms/payroll/onboarding_step/configure_the_company_payroll/configure_the_company_payroll.json
+msgid "Company payroll setup"
+msgstr "Configuration de la paie de la société"
+
+#: hrms/payroll/module_onboarding/swiss_payroll/swiss_payroll.json
+msgid "Company setup, source tax, wage types, first payroll run."
+msgstr "Configuration de la société, impôt à la source, types de salaire, premier cycle de paie."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Daily sickness allowance (IJM) and pension fund (LPP)"
+msgstr "Indemnités journalières maladie (IJM) et caisse de pension (LPP)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Default canton of taxation"
+msgstr "Canton de taxation par défaut"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Default social insurance configuration: {0}"
+msgstr "Configuration des assurances sociales par défaut : {0}"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Employer Share of the Maintenance (%)"
+msgstr "Part de l'employeur au maintien du salaire (%)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Employer address on the salary certificate"
+msgstr "Adresse de l'employeur sur le certificat de salaire"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Employer contribution to the family allowance fund (CAF), on the AVS salary."
+msgstr "Cotisation de l'employeur à la caisse d'allocations familiales (CAF), sur le salaire AVS."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Employer name on the salary certificate"
+msgstr "Nom de l'employeur sur le certificat de salaire"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Employer share of the LPP contributions (%)"
+msgstr "Part de l'employeur aux cotisations LPP (%)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Family allowances contribution (%)"
+msgstr "Cotisation aux allocations familiales (%)"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Filled from the chart of accounts at the first booking when left empty."
+msgstr "Rempli depuis le plan comptable lors de la première comptabilisation s'il est laissé vide."
+
+#: hrms/regional/switzerland/setup.py
+msgid "From 58, after a salary cut of half at most, the annual salary the employee keeps insured until the reference age, if the fund's regulations allow it. The extra contributions are paid by the employee unless the employer agreed to a share."
+msgstr "Dès 58 ans, après une réduction de salaire de moitié au plus, le salaire annuel que l'employé garde assuré jusqu'à l'âge de référence, si le règlement de la caisse le permet. Les cotisations supplémentaires sont à la charge de l'employé, sauf si l'employeur a accepté d'en prendre une part."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Go to the monthly payroll cycle"
+msgstr "Aller au cycle de paie mensuel"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "How are the social charges booked?"
+msgstr "Comment les charges sociales sont-elles comptabilisées ?"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "IBAN of that account"
+msgstr "IBAN de ce compte"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "IJM, employee (%)"
+msgstr "IJM, employé (%)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "IJM, employer (%)"
+msgstr "IJM, employeur (%)"
+
+#: hrms/regional/switzerland/salary_certificate.py
+msgid "Import the source tax tariffs (ESTV barèmes)"
+msgstr "Importer les barèmes de l'impôt à la source (ESTV)"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Insurer Receivable"
+msgstr "Créance envers l'assureur"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "LAAC, employee (%)"
+msgstr "LAAC, employé (%)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "LAAC, employer (%)"
+msgstr "LAAC, employeur (%)"
+
+#: hrms/regional/switzerland/setup.py
+msgid "LPP Continued After the Reference Age (art. 33b)"
+msgstr "LPP poursuivie après l'âge de référence (art. 33b)"
+
+#: hrms/payroll/module_onboarding/swiss_payroll/swiss_payroll.json
+msgid "Let's set up Swiss payroll."
+msgstr "Configurons la paie suisse."
+
+#: hrms/regional/switzerland/setup.py
+msgid "Maintained LPP Salary (art. 33a)"
+msgstr "Salaire LPP maintenu (art. 33a)"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Missing required fields: {0}"
+msgstr "Champs obligatoires manquants : {0}"
+
+#: hrms/payroll/report/bank_remittance/bank_remittance.py
+msgid "Net Salary"
+msgstr "Salaire net"
+
+#: hrms/hooks.py
+msgid "Next"
+msgstr "Suivant"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "No account found in the chart for"
+msgstr "Aucun compte trouvé dans le plan comptable pour"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Non-occupational accidents, employee (%)"
+msgstr "Accidents non professionnels, employé (%)"
+
+#: hrms/overrides/company.py
+msgid "None"
+msgstr "Aucun"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Occupational Pension (LPP)"
+msgstr "Prévoyance professionnelle (LPP)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Occupational accidents, employer (%)"
+msgstr "Accidents professionnels, employeur (%)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Paid monthly (1/12 each month)"
+msgstr "Versé mensuellement (1/12 chaque mois)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Paid once a year"
+msgstr "Versé une fois par an"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Payroll setup saved"
+msgstr "Configuration de la paie enregistrée"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Person in charge of the payroll"
+msgstr "Responsable des salaires"
+
+#: hrms/public/frontend/assets/frappe-ui-t3J-DXEe.js
+msgid "Phone"
+msgstr "Téléphone"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Printed in box I of the salary certificate with the phone number, and given in the Swissdec declarations."
+msgstr "Imprimé à la lettre I du certificat de salaire avec le numéro de téléphone, et transmis dans les déclarations Swissdec."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Rates of your policies. The insured salary cap is applied for you."
+msgstr "Taux de vos polices. Le plafond du salaire assuré est appliqué pour vous."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Receivable account"
+msgstr "Compte de créances"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Review & apply"
+msgstr "Récapitulatif et application"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Salaries, social charges and insurers' accounts of each salary component, picked by number and name. An account already chosen is never replaced."
+msgstr "Comptes des salaires, des charges sociales et des assureurs de chaque composante salariale, choisis par numéro et par nom. Un compte déjà choisi n'est jamais remplacé."
+
+#: hrms/regional/switzerland/api.py
+msgid "Salary certificate"
+msgstr "Certificat de salaire"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Salary transit account (net pay)"
+msgstr "Compte de transit des salaires (salaire net)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Saving the payroll setup..."
+msgstr "Enregistrement de la configuration de la paie en cours..."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
+msgid "Sent to employee"
+msgstr "Envoyé à l'employé"
+
+#: hrms/payroll/onboarding_step/configure_the_company_payroll/configure_the_company_payroll.json
+msgid "Set up the company's payroll: insurances, accounting, certificate"
+msgstr "Configurer la paie de la société : assurances, comptabilité, certificat"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Social insurances"
+msgstr "Assurances sociales"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Some employees are taxed at source"
+msgstr "Certains employés sont imposés à la source"
+
+#: hrms/payroll/onboarding_step/import_swiss_source_tax_tariffs/import_swiss_source_tax_tariffs.json
+msgid "Source tax tariffs"
+msgstr "Barèmes de l'impôt à la source"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Street, then ZIP and city. Printed in box I."
+msgstr "Rue, puis NPA et localité. Imprimé à la lettre I."
+
+#: hrms/public/frontend/assets/ShiftAssignmentList-C6TeISQf.js
+msgid "Summary"
+msgstr "Récapitulatif"
+
+#: hrms/regional/switzerland/salary_certificate.py
+msgid "Swiss payroll is ready — slips, source tax, certificates and payment files all run from here!"
+msgstr "La paie suisse est prête — fiches de salaire, impôt à la source, certificats et fichiers de paiement, tout se pilote depuis ici !"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "The canton approved our expense regulation"
+msgstr "Le canton a agréé notre règlement des frais"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "The choices the payroll needs before its first run. Everything can be changed later by running this setup again."
+msgstr "Les choix dont la paie a besoin avant son premier cycle. Tout peut être modifié plus tard en relançant cette configuration."
+
+#: hrms/regional/switzerland/setup.py
+msgid "The employee keeps working past the AVS reference age and asked the fund to stay insured: LPP contributions continue, at the latest until the age of 70."
+msgstr "L'employé continue de travailler au-delà de l'âge de référence AVS et a demandé à la caisse de rester assuré : les cotisations LPP se poursuivent, au plus tard jusqu'à l'âge de 70 ans."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "The social insurance configuration is kept per canton; this one becomes the company's default."
+msgstr "La configuration des assurances sociales est conservée par canton ; celle-ci devient la configuration par défaut de la société."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Then only the lump-sum expenses are declared on the salary certificates, box 15 says so, and 13.1.1 gets no cross."
+msgstr "Alors seuls les frais forfaitaires sont déclarés sur les certificats de salaire, le chiffre 15 le mentionne, et le chiffre 13.1.1 ne reçoit pas de croix."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Third-Party Allowances"
+msgstr "Indemnités de tiers"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Third-Party Allowances Account"
+msgstr "Compte des indemnités de tiers"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "UID number"
+msgstr "Numéro IDE"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Usually 1091: credited with the net salaries, cleared by the payment."
+msgstr "Généralement 1091 : crédité des salaires nets, soldé par le paiement."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "With the salaries (5000)"
+msgstr "Avec les salaires (5000)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "every month the employee deductions and the employer contributions are credited to the insurers' accounts (2270-2274) and the employer contributions charged (5700-5799); the insurers' invoices then settle those accounts. The charges are right every month. Recommended with a payroll software."
+msgstr "chaque mois, les retenues salariales et les cotisations patronales sont créditées aux comptes des assureurs (2270-2274), et les cotisations patronales sont comptabilisées en charges (5700-5799) ; les factures des assureurs soldent ensuite ces comptes. Les charges sont exactes chaque mois. Recommandé avec un logiciel de paie."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "the employee deductions are credited to the charge accounts (5700-5799) and the employer contributions are not booked monthly: the insurers' invoices are charged in full when paid. Simpler for a small company, the charges are right once the invoices are booked."
+msgstr "les retenues salariales sont créditées aux comptes de charges (5700-5799) et les cotisations patronales ne sont pas comptabilisées mensuellement : les factures des assureurs sont comptabilisées en charges intégralement lors de leur paiement. Plus simple pour une petite société, les charges sont exactes une fois les factures comptabilisées."
