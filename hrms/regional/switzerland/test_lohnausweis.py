@@ -15,6 +15,8 @@ from hrms.regional.switzerland.salary_certificate import (
 	certificate_totals,
 	employment_period,
 	format_chf,
+	free_remarks,
+	standard_remarks,
 	to_francs,
 )
 
@@ -230,6 +232,38 @@ class TestRemarks(unittest.TestCase):
 				"Mittagessen durch Arbeitgeber bezahlt",
 			],
 		)
+
+	def test_the_barcode_splits_box_15_between_catalogue_and_free_text(self):
+		"""Swissdec 6.0 annex 5, 3.3: the catalogue's remarks travel as StandardRemark elements;
+		only the others are free text."""
+		facts = {
+			"part_time_rate": 80,
+			"number_of_certificates": 2,
+			"rectificate": {"date": "2027-01-10", "doc_id": "d78dea25"},
+			"expense_regulation": {"canton": "VD", "date": "2024-05-01"},
+			"short_time_work_in_box_1": True,
+			"tax_at_source_year": 2027,
+			"family_allowances": 3600,
+			"additional_remarks": "Repas payés par l'employeur",
+		}
+		self.assertEqual(
+			standard_remarks(facts),
+			{
+				"rectificate": {"date": "2027-01-10", "doc_id": "d78dea25"},
+				"number_of_certificates": 2,
+				"part_time": True,
+				"short_time_work": True,
+				"tax_at_source": True,
+				"expense_regulation": {"canton": "VD", "date": "2024-05-01"},
+			},
+		)
+		self.assertEqual(
+			free_remarks(facts, "fr"),
+			["Allocations familiales comprises dans le chiffre 1 : CHF 3'600.", "Repas payés par l'employeur"],
+		)
+		printed = build_remarks(facts, "fr")
+		self.assertEqual(len(printed), 8)
+		self.assertEqual(printed[5:7], free_remarks(facts, "fr"))
 
 	def test_full_time_says_nothing(self):
 		self.assertEqual(build_remarks({"part_time_rate": 100, "number_of_certificates": 1}, "fr"), [])

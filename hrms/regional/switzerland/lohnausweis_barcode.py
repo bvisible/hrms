@@ -6,17 +6,23 @@
 """Swissdec 2D barcode generation for Swiss Salary Certificates (Form 11).
 
 Implements the official barcode of the salary certificate as specified by
-the Swissdec guidelines, annex 5 ("Richtlinien Barcode"). The specification
-is identical for ELM 5.x and 6.0 (control-character version 3 since release
-20200220); this module targets the ELM 5.x TxAB schema used by the rest of
-the Swiss payroll module:
+the Swissdec guidelines, annex 5 ("Richtlinien Barcode"), for ELM 6.0
+(release 20260306; the control header is unchanged since 20200220):
 
     Certificate data
       → TxAB XML  (root <T>, namespace
-         http://www.swissdec.ch/schema/sd/20200220/SalaryDeclarationTxAB)
+         urn:ch:swissdec:elm:v6:20260306:SalaryDeclarationTxAB)
       → Info-ZIP archive with a single entry named "txab"
       → split into symbols, each prefixed by a 14-byte control header
       → PDF417 (error correction level 2, 15 columns) → PNG
+
+What 6.0 changed in the XML (SalaryDeclarationTxAB.xsd 20260306): <S> needs the
+addresseeIDRef of the tax authority ("#TAX", as TaxSalary in the ELM declaration)
+and a CreationDate after its DocID; the expense regulation approved by a canton is
+ChargesRule; box 15 remarks of the official catalogue (StandardRemarks.xml) are
+StandardRemark elements, and only the other ones go to <Remark> as free text
+(annex 5, 3.3). Lengths follow the official stylesheet (TaxAccountingBcdTrans.xsl):
+company name 30, last name 30, first name 15, ZIP 6.
 
 14-byte control header (annex 5, chapter 2.2):
     bytes 1-4   random identification, identical for all symbols of one file
@@ -43,14 +49,20 @@ import re
 import zipfile
 import xml.etree.ElementTree as ET
 
-# Swissdec TxAB (ELM 5.x) namespace
-TXAB_NS = "http://www.swissdec.ch/schema/sd/20200220/SalaryDeclarationTxAB"
+# Swissdec TxAB (ELM 6.0) namespace
+TXAB_NS = "urn:ch:swissdec:elm:v6:20260306:SalaryDeclarationTxAB"
 _NS = f"{{{TXAB_NS}}}"
 # SID = the vendor SystemID assigned and published by Swissdec during
 # certification (max 3 chars). "0" marks an unassigned system — replace it
 # via certificate_data["system_id"] once Neoffice holds a Swissdec SystemID.
 DEFAULT_SYSTEM_ID = "0"
-DEFAULT_SYSTEM_VERSION = "5.0"  # max 3 chars
+DEFAULT_SYSTEM_VERSION = "6.0"  # max 3 chars
+
+# The salary certificate's addressee: the tax authority, as TaxSalary refers to it in the
+# ELM declaration (samples of annex 5: <TaxSalary addresseeIDRef="#TAX">).
+ADDRESSEE_ID_REF = "#TAX"
+# Lengths of the official stylesheet (TaxAccountingBcdTrans.xsl) and of the 6.0 schema.
+MAX_COMPANY_NAME, MAX_LASTNAME, MAX_FIRSTNAME, MAX_ZIP = 30, 30, 15, 6
 
 # ZIP entry name mandated by annex 5 ("txab — tax accounting barcode")
 ZIP_ENTRY_NAME = "txab"
@@ -68,13 +80,11 @@ PDF417_SCALE = 3
 PDF417_RATIO = 3
 PDF417_PADDING = 20
 
-# Maximum ZIP payload bytes per symbol. PDF417 tops out at 928 codewords;
-# pdf417gen's automatic compaction spends up to ~1.45 codewords per random
-# binary byte (mode switching), so 550 payload bytes + the 14-byte header
-# stay safely below the limit at EC level 2. Real certificates therefore
-# print 1-2 symbols — like official Lohnausweis samples. Bigger files are
-# split across symbols that the scanner reassembles via the control header
-# (max 99 symbols).
+# Maximum ZIP payload bytes per symbol. Annex 5 allows 1000 bytes per symbol, but the
+# first one prints in box H of the form (250 x 120 px): 550 bytes in Byte compaction
+# (pdf417_code_words) make ~33 rows, still readable there. Real certificates print 1-2
+# symbols — like the official samples (TaxSalary of ICHAGCompany: 2). Bigger files are
+# split across symbols that the scanner reassembles via the control header (max 99).
 MAX_PAYLOAD_PER_SYMBOL = 550
 
 # All Form 11 position IDs handled by the print/DocType layer
@@ -130,8 +140,13 @@ def generate_txab_xml(certificate_data):
 	uid = _format_uid(employer.get("uid_bfs", ""))
 	if uid:
 		comp.set("UID-BFS", uid)
-	comp.set("HR-RC-Name", employer.get("name", "") or "-")
-	comp.set("ZIP", employer.get("zip_code", "") or "-")
+	comp.set("HR-RC-Name", _limit(employer.get("name"), MAX_COMPANY_NAME) or "-")
+	comp.set("ZIP", _limit(employer.get("zip_code"), MAX_ZIP) or "-")
+	# Box I: who answers for the certificate (the stylesheet's ContactPerson / ContactPhone).
+	if certificate_data.get("contact_person"):
+		comp.set("Person", _limit(certificate_data["contact_person"]))
+	if certificate_data.get("contact_phone"):
+		comp.set("Phone", _limit(certificate_data["contact_phone"]))
 	street = _extract_street(employer.get("address", ""))
 	if street:
 		comp.set("Street", street)
@@ -141,9 +156,9 @@ def generate_txab_xml(certificate_data):
 	# --- PersonID: identity attributes + choice SV-AS-Nr | DateOfBirth | unknown ---
 	person = ET.SubElement(root, f"{_NS}PersonID")
 	first_name, last_name = _split_person_name(employee)
-	person.set("Lastname", last_name or "-")
-	person.set("Firstname", first_name or "-")
-	person.set("ZIP", employee.get("zip_code", "") or "-")
+	person.set("Lastname", _limit(last_name, MAX_LASTNAME) or "-")
+	person.set("Firstname", _limit(first_name, MAX_FIRSTNAME) or "-")
+	person.set("ZIP", _limit(employee.get("zip_code"), MAX_ZIP) or "-")
 	person.set("City", employee.get("city", "") or "-")
 	if employee.get("street"):
 		person.set("Street", employee["street"])
@@ -157,7 +172,9 @@ def generate_txab_xml(certificate_data):
 
 	# --- S = salary certificate (TaxSalaryType) ---
 	s = ET.SubElement(root, f"{_NS}S")
+	s.set("addresseeIDRef", ADDRESSEE_ID_REF)
 	ET.SubElement(s, f"{_NS}DocID").text = doc_id
+	ET.SubElement(s, f"{_NS}CreationDate").text = _creation_date(certificate_data.get("creation_date"))
 
 	period = ET.SubElement(s, f"{_NS}Period")
 	date_from, date_until = _certificate_period(
@@ -239,7 +256,14 @@ def generate_txab_xml(certificate_data):
 	if amount("12"):
 		add_amount(s, "DeductionAtSource", amount("12"))
 
-	# 13 — expenses
+	# 13 — expenses: first the expense regulation approved by a canton (Wegleitung Rz 55, 56, 65)
+	standard = certificate_data.get("standard_remarks") or {}
+	regulation = standard.get("expense_regulation")
+	if regulation and regulation.get("canton") and regulation.get("date"):
+		rule = ET.SubElement(ET.SubElement(s, f"{_NS}ChargesRule"), f"{_NS}WithRegulation")
+		ET.SubElement(rule, f"{_NS}Allowed").text = str(regulation["date"])[:10]
+		ET.SubElement(rule, f"{_NS}Canton").text = regulation["canton"]
+
 	has_effective = amount("13.1.1") or amount("13.1.2")
 	has_lumpsum = amount("13.2.1") or amount("13.2.2") or amount("13.2.3")
 	if has_effective or has_lumpsum or amount("13.3"):
@@ -272,8 +296,10 @@ def generate_txab_xml(certificate_data):
 	if pos14_text:
 		ET.SubElement(s, f"{_NS}OtherFringeBenefits").text = pos14_text
 
-	# 15 — remarks
-	remarks = positions.get("15") or ""
+	# 15 — remarks: the official catalogue as StandardRemark (the reader prints its own text),
+	# then the free text. A caller without "remark" passes box 15 as printed.
+	_add_standard_remarks(s, standard)
+	remarks = certificate_data["remark"] if "remark" in certificate_data else positions.get("15") or ""
 	if remarks:
 		ET.SubElement(s, f"{_NS}Remark").text = str(remarks)
 
@@ -360,15 +386,11 @@ def parse_symbol_header(symbol_bytes):
 # ---------------------------------------------------------------------------
 def generate_pdf417_barcodes(symbols):
 	"""Render each symbol as a PDF417 PNG (annex 5: EC level 2, 15 columns)."""
-	from pdf417gen import encode, render_image
+	from pdf417gen import render_image
 
 	images = []
 	for symbol in symbols:
-		codes = encode(
-			symbol,
-			columns=PDF417_COLUMNS,
-			security_level=PDF417_SECURITY_LEVEL,
-		)
+		codes = pdf417_code_words(symbol, PDF417_COLUMNS, PDF417_SECURITY_LEVEL)
 		img = render_image(
 			codes,
 			scale=PDF417_SCALE,
@@ -379,6 +401,34 @@ def generate_pdf417_barcodes(symbols):
 		img.save(buf, format="PNG")
 		images.append(buf.getvalue())
 	return images
+
+
+def pdf417_code_words(symbol, columns, security_level):
+	"""The PDF417 rows of ``symbol`` in Byte compaction only: 6 bytes in 5 codewords.
+
+	pdf417gen.encode() splits its input by character class and switches mode at every run,
+	which on compressed data costs up to 1.5 codewords per byte (1477 for 986 random bytes,
+	pdf417gen 0.8.1). The first symbol of a certificate took 59 rows; shrunk into box H of the
+	form (250 x 120 px) its module fell to ~0.17 mm, below what scanners read reliably. One mode
+	gives ~33 rows for the same bytes. Same steps as pdf417gen.encoding.encode otherwise.
+	"""
+	import math
+
+	from pdf417gen.compaction import BYTE_LATCH, BYTE_LATCH_ALT
+	from pdf417gen.compaction.byte import compact_bytes
+	from pdf417gen.encoding import encode_rows, get_padding, validate_barcode_size
+	from pdf417gen.error_correction import compute_error_correction_code_words
+	from pdf417gen.util import chunks
+
+	data = list(symbol)
+	data_words = [BYTE_LATCH_ALT if len(data) % 6 == 0 else BYTE_LATCH, *compact_bytes(data)]
+	ec_count = 2 ** (security_level + 1)
+	padding = get_padding(len(data_words), ec_count, columns)
+	length_descriptor = len(data_words) + len(padding) + 1
+	validate_barcode_size(length_descriptor, math.ceil((length_descriptor + ec_count) / columns))
+	words = [length_descriptor, *data_words, *padding]
+	words += compute_error_correction_code_words(words, security_level)
+	return list(encode_rows(list(chunks(words, columns)), columns, security_level))
 
 
 def generate_code128c(identifier):
@@ -460,6 +510,43 @@ def generate_barcode_page_data(certificate_data):
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+def _add_standard_remarks(salary, standard):
+	"""StandardRemark children, in the order of StandardRemarkType (TxAB 6.0)."""
+	flags = (
+		("tax_at_source", "TaxAtSourcePeriodForObjection"),
+		("short_time_work", "ShortTimeWorkCompensation"),
+		("part_time", "PartTimeEmployment"),
+	)
+	rectificate = standard.get("rectificate")
+	count = int(standard.get("number_of_certificates") or 0)
+	if not (any(standard.get(key) for key, _tag in flags) or count > 1 or rectificate):
+		return
+	remark = ET.SubElement(salary, f"{_NS}StandardRemark")
+	for key, tag in flags:
+		if standard.get(key):
+			ET.SubElement(remark, f"{_NS}{tag}")
+	if count > 1:
+		ET.SubElement(remark, f"{_NS}NumberOfSalaryCertificate").text = str(count)
+	if rectificate:
+		element = ET.SubElement(remark, f"{_NS}Rectificate")
+		ET.SubElement(element, f"{_NS}OriginalDate").text = str(rectificate["date"])[:10]
+		ET.SubElement(element, f"{_NS}OriginalDocID").text = str(rectificate["doc_id"])
+
+
+def _creation_date(value):
+	"""xs:dateTime, to the second: when the certificate was issued (now for a draft)."""
+	from datetime import datetime
+
+	moment = datetime.fromisoformat(str(value)) if value else datetime.now()
+	return moment.replace(microsecond=0, tzinfo=None).isoformat()
+
+
+def _limit(text, length=None):
+	"""Whitespace collapsed (the schema's own rule), then cut to ``length``."""
+	text = " ".join(str(text or "").split())
+	return text[:length] if length else text
+
+
 def _format_uid(uid):
 	"""Normalize a UID to the official CHE-XXX.XXX.XXX presentation."""
 	digits = re.sub(r"\D", "", uid or "")

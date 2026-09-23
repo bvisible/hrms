@@ -419,6 +419,21 @@ def build_remarks(facts, language="fr"):
 		)
 	if facts.get("short_time_work_in_box_1"):
 		lines.append(_text(_STANDARD_REMARKS, "short_time_work_in_box_1", language))
+	lines.extend(free_remarks(facts, language))
+	if facts.get("tax_at_source_year"):
+		lines.append(_text(_STANDARD_REMARKS, "tax_at_source", language, year=facts["tax_at_source_year"]))
+	return lines
+
+
+def free_remarks(facts, language="fr"):
+	"""The box 15 remarks the Swissdec catalogue has no standard text for (StandardRemarks.xml).
+
+	The 2D barcode carries only these as free text in <Remark>; the others travel as
+	StandardRemark elements (annex 5, 3.3: "Seulement les textes qui ne sont pas définis dans ce
+	fichier peuvent être écrits directement dans l'élément <Remark>"). Same facts as build_remarks().
+	"""
+	language = language if language in LANGUAGES else "fr"
+	lines = []
 	for entry in facts.get("replacement_in_box_1") or []:
 		lines.append(
 			_text(
@@ -445,6 +460,36 @@ def build_remarks(facts, language="fr"):
 	additional = (facts.get("additional_remarks") or "").strip()
 	if additional:
 		lines.append(additional)
-	if facts.get("tax_at_source_year"):
-		lines.append(_text(_STANDARD_REMARKS, "tax_at_source", language, year=facts["tax_at_source_year"]))
 	return lines
+
+
+def standard_remarks(facts):
+	"""The box 15 remarks of the Swissdec catalogue, as the 2D barcode codes them (TxAB 6.0):
+	the reader prints the official text from the element, in its own language.
+
+	Returns only what applies: rectificate {date, doc_id} (Rectificate), number_of_certificates
+	(NumberOfSalaryCertificate), part_time (PartTimeEmployment — the schema has no rate),
+	short_time_work (ShortTimeWorkCompensation), tax_at_source (TaxAtSourcePeriodForObjection)
+	and expense_regulation {canton, date}, which is no remark in the barcode but S/ChargesRule.
+	"""
+	standard = {}
+	rectificate = facts.get("rectificate")
+	if rectificate and rectificate.get("doc_id") and rectificate.get("date"):
+		standard["rectificate"] = {"date": str(rectificate["date"])[:10], "doc_id": rectificate["doc_id"]}
+	count = int(facts.get("number_of_certificates") or 0)
+	if count > 1:
+		standard["number_of_certificates"] = count
+	rate = facts.get("part_time_rate")
+	if rate and 0 < float(rate) < 100:
+		standard["part_time"] = True
+	if facts.get("short_time_work_in_box_1"):
+		standard["short_time_work"] = True
+	if facts.get("tax_at_source_year"):
+		standard["tax_at_source"] = True
+	regulation = facts.get("expense_regulation")
+	if regulation and regulation.get("canton") and regulation.get("date"):
+		standard["expense_regulation"] = {
+			"canton": regulation["canton"],
+			"date": str(regulation["date"])[:10],
+		}
+	return standard

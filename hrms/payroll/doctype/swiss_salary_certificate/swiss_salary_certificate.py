@@ -10,7 +10,7 @@ import uuid
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, flt, getdate, now_datetime
+from frappe.utils import cint, flt, get_datetime, getdate, now_datetime
 
 from hrms.regional.switzerland.constants import POSITION_FIELD_MAP
 from hrms.regional.switzerland.salary_certificate import (
@@ -22,6 +22,8 @@ from hrms.regional.switzerland.salary_certificate import (
 	certificate_positions,
 	certificate_totals,
 	employment_period,
+	free_remarks,
+	standard_remarks,
 	to_francs,
 )
 from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
@@ -187,8 +189,15 @@ class SwissSalaryCertificate(Document):
 
 	def _remarks(self):
 		"""Box 15 in the certificate's language (Wegleitung Rz 63-71, Swissdec standard remarks)."""
+		return build_remarks(self._remark_facts(), self._remark_language())
+
+	def _remark_language(self):
+		return self.language if self.language in LANGUAGES else "fr"
+
+	def _remark_facts(self):
+		"""What box 15 is made of: the facts the slips gave, and the fields HR fills beside them."""
 		facts = dict(frappe.parse_json(self.remark_facts) or {})
-		language = self.language if self.language in LANGUAGES else "fr"
+		language = self._remark_language()
 		for key in ("withheld", "replacement_in_box_1"):
 			facts[key] = [
 				{**entry, "label": _(entry.get("label") or "", lang=language)}
@@ -198,7 +207,7 @@ class SwissSalaryCertificate(Document):
 		facts["number_of_certificates"] = self.number_of_certificates
 		facts["benefit_days_by_insurer"] = self.benefit_days_by_insurer
 		facts["additional_remarks"] = self.additional_remarks
-		return build_remarks(facts, language)
+		return facts
 
 	def _rectificate(self):
 		"""The certificate this one replaces: its DocID and creation date (Swissdec 6.0, 9.1.6)."""
@@ -389,7 +398,17 @@ class SwissSalaryCertificate(Document):
 			"free_transport": bool(self.get("free_transport")),
 			"lunch_checks": bool(self.get("lunch_checks")),
 			"certificate_id": self.barcode_doc_id(),
+			# Swissdec 6.0 (TxAB 6.0): when the certificate was issued, who answers for it, and box
+			# 15 split between the standard remarks the reader prints from their code and the
+			# free text. A certificate populated before 2026-09-23 has no facts: its text is kept.
+			"creation_date": str(get_datetime(self.finalized_on or now_datetime()).replace(microsecond=0)),
+			"contact_person": company.get("ch_contact_person") or "",
+			"contact_phone": company.get("ch_contact_phone") or "",
 		}
+		if self.remark_facts:
+			facts = self._remark_facts()
+			certificate_data["standard_remarks"] = standard_remarks(facts)
+			certificate_data["remark"] = "\n".join(free_remarks(facts, self._remark_language()))
 
 		return generate_barcode_page_data(certificate_data)
 

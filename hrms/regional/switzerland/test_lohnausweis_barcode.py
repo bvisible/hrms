@@ -90,7 +90,7 @@ class TestTxabXml(unittest.TestCase):
 		self.assertEqual(root.tag, f"{{{TXAB_NS}}}T")
 		# SysV/SID are limited to 3 chars; SID "0" until Swissdec assigns
 		# Neoffice a SystemID at certification.
-		self.assertEqual(root.get("SysV"), "5.0")
+		self.assertEqual(root.get("SysV"), "6.0")
 		self.assertEqual(root.get("SID"), "0")
 
 	def test_person_identity_attributes(self):
@@ -379,6 +379,80 @@ class TestGenerateBarcodePageData(unittest.TestCase):
 			recovered = zf.read(ZIP_ENTRY_NAME)
 		self.assertEqual(recovered, xml)
 
+
+
+# ===========================================================================
+# Swissdec 6.0 (SalaryDeclarationTxAB.xsd 20260306)
+# ===========================================================================
+class TestTxab60(unittest.TestCase):
+	def salary(self, **overrides):
+		return _parse(generate_txab_xml(_make_certificate_data(**overrides))).find("t:S", NS)
+
+	def test_the_salary_names_its_addressee_the_tax_authority(self):
+		self.assertEqual(self.salary().get("addresseeIDRef"), "#TAX")
+
+	def test_creation_date_follows_the_doc_id_to_the_second(self):
+		salary = self.salary(creation_date="2027-01-10 09:00:00.654321")
+		tags = [child.tag.split("}")[1] for child in salary]
+		self.assertEqual(tags[:3], ["DocID", "CreationDate", "Period"])
+		self.assertEqual(salary.find("t:CreationDate", NS).text, "2027-01-10T09:00:00")
+
+	def test_an_approved_expense_regulation_is_the_charges_rule(self):
+		positions = {**_make_certificate_data()["positions"], "13.2.1": 1200.0}
+		salary = self.salary(
+			positions=positions,
+			standard_remarks={"expense_regulation": {"canton": "VD", "date": "2024-05-01"}},
+		)
+		tags = [child.tag.split("}")[1] for child in salary]
+		self.assertEqual(tags.index("ChargesRule") + 1, tags.index("Charges"))
+		rule = salary.find("t:ChargesRule/t:WithRegulation", NS)
+		self.assertEqual((rule.find("t:Allowed", NS).text, rule.find("t:Canton", NS).text), ("2024-05-01", "VD"))
+
+	def test_standard_remarks_are_elements_in_the_schema_order(self):
+		standard = {
+			"part_time": True,
+			"tax_at_source": True,
+			"short_time_work": True,
+			"number_of_certificates": 2,
+			"rectificate": {"date": "2026-02-01", "doc_id": "a1b2c3"},
+		}
+		remark = self.salary(standard_remarks=standard).find("t:StandardRemark", NS)
+		self.assertEqual(
+			[child.tag.split("}")[1] for child in remark],
+			[
+				"TaxAtSourcePeriodForObjection",
+				"ShortTimeWorkCompensation",
+				"PartTimeEmployment",
+				"NumberOfSalaryCertificate",
+				"Rectificate",
+			],
+		)
+		self.assertEqual(remark.find("t:NumberOfSalaryCertificate", NS).text, "2")
+		self.assertEqual(remark.find("t:Rectificate/t:OriginalDocID", NS).text, "a1b2c3")
+
+	def test_only_the_free_text_goes_to_remark(self):
+		salary = self.salary(remark="APG comprises dans le chiffre 1.", standard_remarks={"part_time": True})
+		self.assertEqual(salary.find("t:Remark", NS).text, "APG comprises dans le chiffre 1.")
+		self.assertIsNone(self.salary(remark="").find("t:Remark", NS))
+
+	def test_without_structured_remarks_box_15_is_kept_as_printed(self):
+		salary = self.salary()
+		self.assertEqual(salary.find("t:Remark", NS).text, "Généré automatiquement.")
+		self.assertIsNone(salary.find("t:StandardRemark", NS))
+
+	def test_lengths_of_the_official_stylesheet(self):
+		data = _make_certificate_data()
+		data["employer"]["name"] = "Une raison sociale nettement plus longue que trente"
+		data["employee"]["first_name"] = "Jean-Christophe Emmanuel"
+		root = _parse(generate_txab_xml(data))
+		self.assertEqual(len(root.find("t:Company", NS).get("HR-RC-Name")), 30)
+		self.assertEqual(root.find("t:PersonID", NS).get("Firstname"), "Jean-Christophe")
+
+	def test_the_company_carries_the_person_in_charge(self):
+		company = _parse(
+			generate_txab_xml(_make_certificate_data(contact_person="Service RH", contact_phone="+41 21 000 00 00"))
+		).find("t:Company", NS)
+		self.assertEqual((company.get("Person"), company.get("Phone")), ("Service RH", "+41 21 000 00 00"))
 
 if __name__ == "__main__":
 	unittest.main()
