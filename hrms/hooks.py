@@ -236,6 +236,9 @@ doc_events = {
 			"hrms.payroll.doctype.salary_slip.salary_slip.unlink_ref_doc_from_salary_slip",
 			"hrms.hr.doctype.full_and_final_statement.full_and_final_statement.update_full_and_final_statement_status",
 			"hrms.payroll.doctype.salary_withholding.salary_withholding.update_salary_withholding_payment_status",
+			# //// Neoffice — added: a cancelled Swiss salary or salary payment entry releases the
+			# //// slips it booked (hrms.regional.switzerland.accounting).
+			"hrms.regional.switzerland.accounting.release_slips_of_cancelled_entry",
 		],
 	},
 	"Loan": {"validate": "hrms.hr.utils.validate_loan_repay_from_salary"},
@@ -258,6 +261,9 @@ doc_events = {
 	# //// social contributions and the source tax at validate, before the totals are frozen.
 	"Salary Slip": {
 		"validate": "hrms.regional.switzerland.payroll_hooks.update_swiss_social_contributions",
+		# //// Neoffice — added: a slip booked by the Swiss payroll accounting is corrected
+		# //// through its journal entries; cancelling it alone would leave the ledger wrong.
+		"before_cancel": "hrms.regional.switzerland.accounting.prevent_cancel_of_booked_slip",
 	},
 }
 

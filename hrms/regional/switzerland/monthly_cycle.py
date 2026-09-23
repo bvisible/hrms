@@ -141,27 +141,21 @@ def preflight(company, year, month):
 					"level": "error",
 					"code": "no_structure",
 					"employee": emp.name,
-					"message": _("{0}: no submitted Salary Structure Assignment").format(
-						emp.employee_name
-					),
+					"message": _("{0}: no submitted Salary Structure Assignment").format(emp.employee_name),
 				}
 			)
 
 		if emp.ch_qst_subject:
-			canton = emp.ch_qst_taxation_canton or emp.ch_fiscal_canton or (
-				config.get("qst_default_canton") if config else None
+			canton = (
+				emp.ch_qst_taxation_canton
+				or emp.ch_fiscal_canton
+				or (config.get("qst_default_canton") if config else None)
 			)
-			code = build_tariff_code(
-				emp.ch_qst_tariff_letter, emp.ch_qst_num_children, emp.ch_qst_church_tax
-			)
+			code = build_tariff_code(emp.ch_qst_tariff_letter, emp.ch_qst_num_children, emp.ch_qst_church_tax)
 			model_label = (
-				_("annual model")
-				if get_calculation_model(canton or "") == "annual"
-				else _("monthly model")
+				_("annual model") if get_calculation_model(canton or "") == "annual" else _("monthly model")
 			)
-			row["notes"].append(
-				_("Source tax: {0} {1} ({2})").format(canton or "?", code, model_label)
-			)
+			row["notes"].append(_("Source tax: {0} {1} ({2})").format(canton or "?", code, model_label))
 			if not canton:
 				issues.append(
 					{
@@ -295,14 +289,20 @@ def summary(company, year, month):
 	_check_payroll_read_permission()
 	start, _end = _period_bounds(year, month)
 
+	# //// Neoffice — the accounting state of each slip too: booked (salary journal entry),
+	# //// in a payment proposal, paid (payment journal entry). See accounting.py.
+	meta = frappe.get_meta("Salary Slip")
+	fields = ["name", "employee", "employee_name", "docstatus", "gross_pay", "net_pay"]
+	fields += [f for f in ("ch_accrual_entry", "ch_payment_entry", "is_proposed") if meta.has_field(f)]
 	slips = frappe.get_all(
 		"Salary Slip",
 		filters={"company": company, "start_date": start, "docstatus": ("<", 2)},
-		fields=["name", "employee", "employee_name", "docstatus", "gross_pay", "net_pay"],
+		fields=fields,
 		order_by="employee_name",
 	)
+	payment_proposals = bool(frappe.db.exists("DocType", "Payment Proposal"))
 	if not slips:
-		return {"slips": [], "components": [], "totals": {}}
+		return {"slips": [], "components": [], "totals": {}, "payment_proposals": payment_proposals}
 
 	names = [s.name for s in slips]
 	details = frappe.get_all(
@@ -327,7 +327,141 @@ def summary(company, year, month):
 			"net": round(sum(flt(s.net_pay) for s in slips), 2),
 			"draft": sum(1 for s in slips if s.docstatus == 0),
 			"submitted": sum(1 for s in slips if s.docstatus == 1),
+			"booked": sum(1 for s in slips if s.docstatus == 1 and s.get("ch_accrual_entry")),
+			"proposed": sum(1 for s in slips if s.docstatus == 1 and s.get("is_proposed")),
+			"paid": sum(1 for s in slips if s.docstatus == 1 and s.get("ch_payment_entry")),
 		},
+		"accrual_entries": sorted({s.ch_accrual_entry for s in slips if s.get("ch_accrual_entry")}),
+		"proposals": _proposals_of([s.name for s in slips]) if payment_proposals else [],
+		"payment_proposals": payment_proposals,
+	}
+
+
+def _proposals_of(slip_names):
+	"""The live payment proposals (draft or submitted) holding some of these slips."""
+	if not slip_names:
+		return []
+	return frappe.db.sql_list(
+		"""SELECT DISTINCT pp.name FROM `tabPayment Proposal` pp
+		JOIN `tabPayment Proposal Salary Slip` row ON row.parent = pp.name
+		WHERE pp.docstatus < 2 AND row.salary_slip IN %s ORDER BY pp.name""",
+		(tuple(slip_names),),
+	)
+
+
+# //// Neoffice — the two last steps of the cycle: book the salaries, then pay them through a
+# //// payment proposal (erpnextswiss), which carries the file, EBICS and the payment entry.
+@frappe.whitelist()
+def book_salaries(company, year, month):
+	"""Fill in the missing payroll accounts from the company's chart, then book the period."""
+	from hrms.regional.switzerland.accounting import configure_payroll_accounts, post_payroll_accrual
+
+	configured = configure_payroll_accounts(company)
+	result = post_payroll_accrual(company, year, month)
+	result["configured"] = configured["set"]
+	return result
+
+
+@frappe.whitelist()
+def create_salary_payment_proposal(company, year, month, execution_date=None):
+	"""A payment proposal holding the period's booked salaries, to pay by file or EBICS."""
+	frappe.only_for(["System Manager", "Accounts Manager", "HR Manager"])
+	if not frappe.db.exists("DocType", "Payment Proposal"):
+		frappe.throw(_("Payment proposals need the ERPNextSwiss app."))
+	start, end = _period_bounds(year, month)
+	slips = frappe.get_all(
+		"Salary Slip",
+		filters={"company": company, "start_date": start, "docstatus": 1},
+		fields=["name", "employee", "employee_name", "net_pay", "ch_accrual_entry", "ch_payment_entry"],
+		order_by="employee_name",
+	)
+	if not slips:
+		frappe.throw(_("No submitted salary slip for this period."))
+	unbooked = [s.employee_name for s in slips if not s.ch_accrual_entry]
+	if unbooked:
+		frappe.throw(_("Book the salaries of the period first: {0}").format(", ".join(unbooked)))
+
+	in_proposal = set(
+		frappe.db.sql_list(
+			"""SELECT row.salary_slip FROM `tabPayment Proposal Salary Slip` row
+			JOIN `tabPayment Proposal` pp ON pp.name = row.parent
+			WHERE pp.docstatus < 2 AND row.salary_slip IN %s""",
+			(tuple(s.name for s in slips),),
+		)
+	)
+	todo = [s for s in slips if s.name not in in_proposal and not s.ch_payment_entry and flt(s.net_pay) > 0]
+	if not todo:
+		existing = _proposals_of([s.name for s in slips])
+		if existing:
+			return {"proposal": existing[-1], "existing": True}
+		frappe.throw(_("Every salary of this period is already paid."))
+
+	# The proposal refuses an employee without IBAN or address when it is submitted: say it now.
+	from hrms.regional.switzerland.payment_file import clean_iban, validate_iban
+
+	problems = []
+	for slip in todo:
+		emp = (
+			frappe.db.get_value("Employee", slip.employee, ["bank_ac_no", "permanent_address"], as_dict=True)
+			or {}
+		)
+		iban = clean_iban(emp.get("bank_ac_no"))
+		if not iban or not validate_iban(iban):
+			problems.append(
+				_("{0}: no valid IBAN on the employee (Bank Account No)").format(slip.employee_name)
+			)
+		if not (emp.get("permanent_address") or "").strip():
+			problems.append(
+				_("{0}: no address on the employee — the payment proposal requires it").format(
+					slip.employee_name
+				)
+			)
+	if problems:
+		frappe.throw("<br>".join(frappe.utils.escape_html(p) for p in problems), title=_("Before paying"))
+
+	settings_changed = False
+	if frappe.db.exists("DocType", "ERPNextSwiss Settings") and not frappe.db.get_single_value(
+		"ERPNextSwiss Settings", "enable_salary_payment"
+	):
+		# Salaries carry the SALA purpose and the confidential account type only when this is on.
+		frappe.db.set_single_value("ERPNextSwiss Settings", "enable_salary_payment", 1)
+		settings_changed = True
+
+	config = get_swiss_social_insurance_config(company, None) or {}
+	pay_from = config.get("payment_account") or frappe.db.get_value(
+		"Company", company, "default_bank_account"
+	)
+	payable = frappe.db.get_value("Company", company, "default_payroll_payable_account")
+	pay_date = getdate(execution_date) if execution_date else end
+	total = round(sum(flt(s.net_pay) for s in todo), 2)
+	proposal = frappe.get_doc(
+		{
+			"doctype": "Payment Proposal",
+			"title": _("Salaries {0}").format(start.strftime("%m.%Y")),
+			"date": pay_date,
+			"company": company,
+			"pay_from_account": pay_from,
+			"total": total,
+			"salaries": [
+				{
+					"salary_slip": s.name,
+					"employee": s.employee,
+					"employee_name": s.employee_name,
+					"amount": flt(s.net_pay, 2),
+					"payable_account": payable,
+					"target_date": pay_date,
+				}
+				for s in todo
+			],
+		}
+	)
+	proposal.insert(ignore_permissions=True)
+	return {
+		"proposal": proposal.name,
+		"count": len(todo),
+		"total": total,
+		"settings_changed": settings_changed,
+		"existing": False,
 	}
 
 
@@ -354,9 +488,7 @@ def submit_cycle(company, year, month):
 		except Exception:
 			frappe.db.rollback()
 			failed.append({"slip": row.name, "error": frappe.get_traceback().splitlines()[-1]})
-			frappe.log_error(
-				"Monthly cycle: slip submission failed", f"{row.name}: {frappe.get_traceback()}"
-			)
+			frappe.log_error("Monthly cycle: slip submission failed", f"{row.name}: {frappe.get_traceback()}")
 
 	frappe.db.commit()
 	return {"submitted": submitted, "failed": failed}

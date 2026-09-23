@@ -11,6 +11,7 @@ msgstr ""
 "PO-Revision-Date: 2026-02-23 18:45+0034\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18226,3 +18227,168 @@ msgstr "{} est un statut de présence invalide."
 #: hrms/hr/doctype/job_requisition/job_requisition.js:22
 msgid "{} {} open for this position."
 msgstr "{} {} ouvert pour cette position."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "{0}: no account for this company"
+msgstr "{0} : aucun compte pour cette société"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "{0}: the employer charge needs both its charge and its liability account"
+msgstr "{0} : la charge patronale doit avoir à la fois un compte de charge et un compte de passif"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "The entry would leave {0} payable where the slips pay {1} net."
+msgstr "L'écriture de salaires laisserait {0} à payer, alors que les fiches de salaire versent {1} net."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Payroll payable: {0}"
+msgstr "Compte de passage des salaires : {0}"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Payroll payable account (salary transit account, 1091)"
+msgstr "Compte de passage des salaires (1091)"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "No submitted salary slip left to book for this period."
+msgstr "Il ne reste aucune fiche de salaire soumise à comptabiliser pour cette période."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Loan repayments on a slip are not booked by the Swiss payroll yet."
+msgstr "Les remboursements de prêt figurant sur une fiche de salaire ne sont pas encore comptabilisés par la paie suisse."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "No payroll payable account on the company."
+msgstr "Aucun compte de passage des salaires défini sur la société."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "No default cost center on the company."
+msgstr "Aucun centre de coûts par défaut défini sur la société."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "The salaries cannot be booked yet"
+msgstr "Les salaires ne peuvent pas encore être comptabilisés"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Salaries {0}"
+msgstr "Salaires {0}"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Salaries {0}: {1} slip(s)"
+msgstr "Salaires {0} : {1} fiche(s)"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Book the salaries of the period first (Swiss payroll cycle): {0}"
+msgstr "Comptabilisez d'abord les salaires de la période (cycle de paie suisse) : {0}"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Salaries not booked"
+msgstr "Salaires non comptabilisés"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "The slips belong to several companies."
+msgstr "Les fiches de salaire appartiennent à plusieurs sociétés."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Salary payment {0}"
+msgstr "Paiement des salaires {0}"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Payment of {0} salary slip(s)"
+msgstr "Paiement de {0} fiche(s) de salaire"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "This salary slip is booked in {0}. Cancel that journal entry first."
+msgstr "Cette fiche de salaire est comptabilisée dans {0}. Annulez d'abord cette écriture comptable."
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Salary slip booked"
+msgstr "Fiche de salaire comptabilisée"
+
+#: hrms/regional/switzerland/monthly_cycle.py
+msgid "Payment proposals need the ERPNextSwiss app."
+msgstr "Les propositions de paiement nécessitent l'application ERPNextSwiss."
+
+#: hrms/regional/switzerland/monthly_cycle.py
+msgid "No submitted salary slip for this period."
+msgstr "Aucune fiche de salaire soumise pour cette période."
+
+#: hrms/regional/switzerland/monthly_cycle.py
+msgid "Book the salaries of the period first: {0}"
+msgstr "Comptabilisez d'abord les salaires de la période : {0}"
+
+#: hrms/regional/switzerland/monthly_cycle.py
+msgid "Every salary of this period is already paid."
+msgstr "Tous les salaires de cette période sont déjà payés."
+
+#: hrms/regional/switzerland/monthly_cycle.py
+msgid "{0}: no valid IBAN on the employee (Bank Account No)"
+msgstr "{0} : aucun IBAN valide sur l'employé (N° de compte bancaire)"
+
+#: hrms/regional/switzerland/monthly_cycle.py
+msgid "{0}: no address on the employee — the payment proposal requires it"
+msgstr "{0} : aucune adresse sur l'employé — la proposition de paiement en a besoin"
+
+#: hrms/regional/switzerland/monthly_cycle.py
+msgid "Before paying"
+msgstr "Avant de payer"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Please select a company"
+msgstr "Veuillez sélectionner une société"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Payment proposal"
+msgstr "Proposition de paiement"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Book salaries"
+msgstr "Comptabiliser les salaires"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Book the salaries of {0} slip(s) in the ledger? One journal entry for the period."
+msgstr "Comptabiliser dans le grand livre les salaires de {0} fiche(s) ? Une seule écriture de salaires pour la période."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Journal entry {0} submitted: {1} slip(s), net payable {2}."
+msgstr "Écriture de salaires {0} soumise : {1} fiche(s), net à payer {2}."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Accounts set from the chart of accounts:"
+msgstr "Comptes définis depuis le plan comptable :"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Not booked (not paid out):"
+msgstr "Non comptabilisé (non versé) :"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Salaries booked"
+msgstr "Salaires comptabilisés"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Salary payments enabled in the ERPNextSwiss settings"
+msgstr "Paiements de salaires activés dans les paramètres ERPNextSwiss"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Pay the salaries"
+msgstr "Payer les salaires"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Create the payment proposal"
+msgstr "Créer la proposition de paiement"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Salary Journal Entry"
+msgstr "Écriture de salaires"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Payment Journal Entry"
+msgstr "Écriture de paiement"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Employer Charge Account"
+msgstr "Compte de charge patronale"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Employer contributions only: the charge debited (5700-5799). The account on the left is the liability credited."
+msgstr "Cotisations patronales uniquement : la charge débitée (5700-5799). Le compte de gauche est le compte de passif crédité."
+

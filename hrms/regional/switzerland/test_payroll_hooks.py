@@ -51,8 +51,11 @@ def _ensure_custom_fields():
 	"""The ch_* fields live in Custom Fields created by the Swiss setup, which only runs for a
 	Swiss company. A test site set up in India (hrms.tests.test_utils.before_tests) has none, and
 	every lookup below would fail on an unknown column."""
-	if not frappe.db.has_column("Salary Component", "ch_subject_to_avs") or not frappe.db.has_column(
-		"Salary Slip", "ch_contribution_bases"
+	if (
+		not frappe.db.has_column("Salary Component", "ch_subject_to_avs")
+		or not frappe.db.has_column("Salary Slip", "ch_contribution_bases")
+		or not frappe.db.has_column("Salary Slip", "ch_accrual_entry")
+		or not frappe.db.has_column("Salary Component Account", "ch_expense_account")
 	):
 		from hrms.regional.switzerland.setup import make_custom_fields
 

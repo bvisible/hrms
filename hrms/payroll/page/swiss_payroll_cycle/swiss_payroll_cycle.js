@@ -227,12 +227,36 @@ class SwissPayrollCycle {
 					</tr>`
 				)
 				.join("");
+			//// Neoffice — the accounting state of the period: booked, in a payment proposal, paid.
+			const link = (doctype, name) =>
+				`<a href="/app/${frappe.router.slug(doctype)}/${encodeURIComponent(name)}">${frappe.utils.escape_html(name)}</a>`;
+			const t = sum.totals;
+			const accounting = t.submitted
+				? `<div class="text-muted small" style="margin: -4px 0 10px;">
+					${__("Salaries booked")}: ${t.booked}/${t.submitted}${
+						(sum.accrual_entries || []).length
+							? " (" + sum.accrual_entries.map((n) => link("Journal Entry", n)).join(", ") + ")"
+							: ""
+					}
+					${
+						sum.payment_proposals
+							? ` · ${__("Payment proposal")}: ${
+									(sum.proposals || []).length
+										? sum.proposals.map((n) => link("Payment Proposal", n)).join(", ")
+										: "—"
+								}`
+							: ""
+					}
+					· ${__("Paid")}: ${t.paid}/${t.submitted}
+				</div>`
+				: "";
 			parts.push(`
 				<div class="frappe-card" style="padding: 15px; margin-bottom: 15px;">
 					<h5>${__("Period totals")} — ${__("Gross")} ${format_currency(
 						sum.totals.gross,
 						"CHF"
 					)} · ${__("Net")} ${format_currency(sum.totals.net, "CHF")}</h5>
+					${accounting}
 					<div style="overflow-x: auto;">
 						<table class="table table-sm">
 							<thead><tr><th>${__("Type")}</th><th>${__("Component")}</th>
@@ -259,9 +283,86 @@ class SwissPayrollCycle {
 				() => this.run_submit()
 			);
 		}
-		if (pf.counts.submitted > 0) {
+		//// Neoffice — after the submission: book the salaries, then pay them through a payment
+		//// proposal (file or EBICS). The standalone pain.001 stays for a site without ERPNextSwiss.
+		const totals = (sum && sum.totals) || {};
+		if (totals.submitted > 0 && totals.booked < totals.submitted) {
+			this.page.add_inner_button(__("Book salaries"), () => this.book_salaries());
+		}
+		if (totals.booked > (totals.paid || 0) && sum.payment_proposals) {
+			this.page.add_inner_button(__("Pay"), () => this.pay());
+		}
+		if (pf.counts.submitted > 0 && !(sum && sum.payment_proposals)) {
 			this.page.add_inner_button(__("Payment file (pain.001)"), () => this.download_payment_file());
 		}
+	}
+
+	book_salaries() {
+		const t = this.state.summary.totals;
+		frappe.confirm(
+			__("Book the salaries of {0} slip(s) in the ledger? One journal entry for the period.", [
+				t.submitted - t.booked,
+			]),
+			async () => {
+				const res = await this.call("book_salaries");
+				let message = __("Journal entry {0} submitted: {1} slip(s), net payable {2}.", [
+					`<a href="/app/journal-entry/${encodeURIComponent(res.journal_entry)}">${frappe.utils.escape_html(
+						res.journal_entry
+					)}</a>`,
+					res.slips.length,
+					format_currency(res.payable, "CHF"),
+				]);
+				if ((res.configured || []).length) {
+					message +=
+						"<br><br>" +
+						__("Accounts set from the chart of accounts:") +
+						"<br>" +
+						res.configured.map((c) => frappe.utils.escape_html(c)).join("<br>");
+				}
+				if ((res.skipped || []).length) {
+					message +=
+						"<br><br>" +
+						__("Not booked (not paid out):") +
+						" " +
+						res.skipped.map((c) => frappe.utils.escape_html(c)).join(", ");
+				}
+				frappe.msgprint({ title: __("Salaries booked"), message: message, indicator: "green" });
+				await this.run_preflight();
+			}
+		);
+	}
+
+	pay() {
+		const args = this.args();
+		// The last day of the PERIOD — frappe.datetime.month_end() only knows the current month.
+		const last_day = moment(`${args.year}-${String(args.month).padStart(2, "0")}-01`)
+			.endOf("month")
+			.format("YYYY-MM-DD");
+		frappe.prompt(
+			[
+				{
+					fieldname: "execution_date",
+					fieldtype: "Date",
+					label: __("Payment date"),
+					default: last_day,
+					reqd: 1,
+				},
+			],
+			async (values) => {
+				const res = await this.call("create_salary_payment_proposal", {
+					execution_date: values.execution_date,
+				});
+				if (res.settings_changed) {
+					frappe.show_alert({
+						message: __("Salary payments enabled in the ERPNextSwiss settings"),
+						indicator: "blue",
+					});
+				}
+				frappe.set_route("Form", "Payment Proposal", res.proposal);
+			},
+			__("Pay the salaries"),
+			__("Create the payment proposal")
+		);
 	}
 
 	async download_payment_file() {

@@ -122,6 +122,51 @@ def get_custom_fields():
 				"no_copy": 1,
 				"print_hide": 1,
 			},
+			# The journal entries that booked this slip (accounting.py): the salary entry of the
+			# period, then its payment. A booked slip is corrected through them, not cancelled.
+			{
+				"fieldname": "ch_accounting_section",
+				"label": "Accounting",
+				"fieldtype": "Section Break",
+				"insert_after": "ch_contribution_bases",
+				"collapsible": 1,
+				"depends_on": "eval:doc.ch_accrual_entry || doc.ch_payment_entry",
+			},
+			{
+				"fieldname": "ch_accrual_entry",
+				"label": "Salary Journal Entry",
+				"fieldtype": "Link",
+				"options": "Journal Entry",
+				"insert_after": "ch_accounting_section",
+				"read_only": 1,
+				"no_copy": 1,
+				"allow_on_submit": 1,
+				"print_hide": 1,
+			},
+			{
+				"fieldname": "ch_payment_entry",
+				"label": "Payment Journal Entry",
+				"fieldtype": "Link",
+				"options": "Journal Entry",
+				"insert_after": "ch_accrual_entry",
+				"read_only": 1,
+				"no_copy": 1,
+				"allow_on_submit": 1,
+				"print_hide": 1,
+			},
+		],
+		"Salary Component Account": [
+			{
+				# An employer contribution is a charge AND a liability: "account" is the
+				# institution's current account credited, this one the charge debited.
+				"fieldname": "ch_expense_account",
+				"label": "Employer Charge Account",
+				"fieldtype": "Link",
+				"options": "Account",
+				"insert_after": "account",
+				"in_list_view": 1,
+				"description": "Employer contributions only: the charge debited (5700-5799). The account on the left is the liability credited.",
+			},
 		],
 		"Salary Component": [
 			# --- Swiss Wage Type (top of form, after abbreviation) ---
