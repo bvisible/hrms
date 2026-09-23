@@ -257,4 +257,15 @@ in a skipped file. The build bot writes the marker into it at the next `yarn bui
   premium), LAAC/IJM rate per code and wage bracket, split by sex — replaces the single
   flat rate per insurance that used to apply to the whole salary (a33896d9f
   "feat(payroll): LAA / LAAC / IJM per insurance solution, LAA cap, Sex as M/F")
+- `hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.json` — added
+  file, Page (Payroll, HR Manager + Accounts Manager + System Manager) — the company
+  payroll setup wizard (canton/UID, person in charge, insurance rates, LPP share, 13th
+  month, source tax, booking method, accounts, certificate header) (bd93e5035
+  "feat(payroll): the Swiss salary certificate, delivered — and the onboarding asks the
+  payroll choices")
+- `hrms/payroll/onboarding_step/configure_the_company_payroll/configure_the_company_payroll.json`
+  — added file, Onboarding Step of the Swiss payroll tour — points to
+  `/app/swiss-company-payroll-setup`, first step of the Swiss Payroll onboarding
+  (bd93e5035 "feat(payroll): the Swiss salary certificate, delivered — and the onboarding
+  asks the payroll choices")
 

@@ -6,6 +6,7 @@ import frappe
 from frappe import _, _lt
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
+# //// Neoffice — removed DEFAULT_LOHNAUSWEIS_MAPPING import (bd93e5035 "feat(payroll): the Swiss salary certificate, delivered — and the onboarding asks the payroll choices"): the certificate now places each slip row by its component's own position, no default mapping to import.
 from hrms.regional.switzerland.constants import (
 	CROSS_BORDER_COUNTRIES,
 	PERMIT_TYPES,
@@ -1490,6 +1491,7 @@ def create_swiss_salary_structure():
 	frappe.db.commit()
 
 
+# //// Neoffice — removed populate_default_lohnausweis_mapping() (bd93e5035 "feat(payroll): the Swiss salary certificate, delivered — and the onboarding asks the payroll choices"): the certificate now places each slip row by its component's own position, so there is nothing left to prefill from a default mapping.
 def ensure_swiss_workspace_hierarchy():
 	"""after_migrate hook: keep the Swiss Payroll workspace and sidebar order.
 
