@@ -268,4 +268,19 @@ in a skipped file. The build bot writes the marker into it at the next `yarn bui
   `/app/swiss-company-payroll-setup`, first step of the Swiss Payroll onboarding
   (bd93e5035 "feat(payroll): the Swiss salary certificate, delivered — and the onboarding
   asks the payroll choices")
+- `hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json` — added file,
+  DocType, submittable — one Swiss Insurer Statement (advance, invoice, final statement,
+  credit note), booked on submit by the company's booking method (33c32f217 "feat(payroll):
+  the insurers' statements, booked by the company's method, and the yearly reconciliation of
+  their accounts")
+- `hrms/payroll/doctype/swiss_insurer_statement_line/swiss_insurer_statement_line.json` —
+  added file, Child table — one line per insurance (AVS/AI/APG/AC, family allowances, LPP,
+  accident, daily sickness, source tax) of a Swiss Insurer Statement (33c32f217 "feat(payroll):
+  the insurers' statements, booked by the company's method, and the yearly reconciliation of
+  their accounts")
+- `hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.json`
+  — added file, Report — sets what the payroll owed, what it booked and what the statements
+  settled side by side, account by account, for the Swiss Social Insurance Reconciliation
+  (33c32f217 "feat(payroll): the insurers' statements, booked by the company's method, and the
+  yearly reconciliation of their accounts")
 
