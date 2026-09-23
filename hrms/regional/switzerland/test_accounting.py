@@ -356,6 +356,7 @@ class TestBookingAndPayment(FrappeTestCase):
 			cancel_salary_payment,
 			post_payroll_accrual,
 			post_salary_payment,
+			salary_payment_entries,
 		)
 
 		booked = post_payroll_accrual(self.company, self.year, self.month)
@@ -376,14 +377,66 @@ class TestBookingAndPayment(FrappeTestCase):
 		self.assertEqual(self._lines(paid)[self.acc["bank"]], (0.0, 5682.0))
 		self.assertIsNone(post_salary_payment([self.slip], self.acc["bank"], self.end))  # paid once only
 
+		# What a proposal lists before offering to cancel its payment.
+		entries = salary_payment_entries([self.slip])
+		self.assertEqual(
+			[(e.name, e.cheque_no, flt(e.total_debit, 2)) for e in entries], [(paid, "TEST-PROPOSAL", 5682.0)]
+		)
+
 		# A booked slip is corrected through its entries, not cancelled on its own.
 		with self.assertRaises(frappe.ValidationError):
 			frappe.get_doc("Salary Slip", self.slip).cancel()
 
 		self.assertEqual(cancel_salary_payment([self.slip]), 1)
 		self.assertFalse(frappe.db.get_value("Salary Slip", self.slip, "ch_payment_entry"))
+		self.assertEqual(salary_payment_entries([self.slip]), [])  # nothing left to cancel
 		frappe.get_doc("Journal Entry", booked["journal_entry"]).cancel()
 		self.assertFalse(frappe.db.get_value("Salary Slip", self.slip, "ch_accrual_entry"))
+
+	def test_salaries_booked_by_a_payroll_entry_are_not_booked_twice(self):
+		"""Slips submitted from a Payroll Entry come with HRMS's own salary entry."""
+		from hrms.regional.switzerland.accounting import payroll_entry_bookings, post_payroll_accrual
+
+		payroll_entry, entry = "_T-Swiss-PE-2031-02", "_T-Swiss-PE-JV-2031-02"
+		frappe.db.set_value("Salary Slip", self.slip, "payroll_entry", payroll_entry, update_modified=False)
+		je = frappe.get_doc(
+			{
+				"doctype": "Journal Entry",
+				"company": self.company,
+				"posting_date": self.end,
+				"voucher_type": "Journal Entry",
+				"docstatus": 1,
+			}
+		)
+		je.name = entry
+		je.db_insert()
+		line = frappe.get_doc(
+			{
+				"doctype": "Journal Entry Account",
+				"parent": entry,
+				"parenttype": "Journal Entry",
+				"parentfield": "accounts",
+				"idx": 1,
+				"account": self.acc["payable"],
+				"credit_in_account_currency": 5682,
+				"reference_type": "Payroll Entry",
+				"reference_name": payroll_entry,
+			}
+		)
+		line.name = f"{entry}-1"
+		line.db_insert()
+		try:
+			self.assertEqual(payroll_entry_bookings([payroll_entry, None]), {payroll_entry: entry})
+			with self.assertRaises(frappe.ValidationError):
+				post_payroll_accrual(self.company, self.year, self.month)
+			self.assertFalse(frappe.db.get_value("Salary Slip", self.slip, "ch_accrual_entry"))
+
+			# HRMS's entry cancelled: nothing stands in the way of the Swiss booking any more.
+			frappe.db.set_value("Journal Entry", entry, "docstatus", 2, update_modified=False)
+			self.assertEqual(payroll_entry_bookings([payroll_entry]), {})
+		finally:
+			frappe.db.delete("Journal Entry Account", {"parent": entry})
+			frappe.db.delete("Journal Entry", {"name": entry})
 
 	def test_a_payment_before_the_booking_is_refused(self):
 		from hrms.regional.switzerland.accounting import post_salary_payment

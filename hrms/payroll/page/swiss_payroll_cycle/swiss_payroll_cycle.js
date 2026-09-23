@@ -1,5 +1,5 @@
 //// Neoffice — added file (no upstream equivalent): desk page driving the monthly Swiss payroll
-//// cycle (preflight, generate, summary, submit).
+//// cycle (preflight, generate, summary, submit, book, pay).
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // License: GNU General Public License v3. See license.txt
 
@@ -11,6 +11,19 @@ frappe.pages["swiss-payroll-cycle"].on_page_load = function (wrapper) {
 	});
 	wrapper.cycle = new SwissPayrollCycle(page);
 };
+
+// Month names in the user's language, from the browser's locale data: the translation catalogues
+// merged from every installed app disagree on their case ("janvier" next to "Mars").
+function month_options() {
+	const format = new Intl.DateTimeFormat(frappe.boot.lang || "en", {
+		month: "long",
+		timeZone: "UTC",
+	});
+	return Array.from({ length: 12 }, (_, i) => {
+		const name = format.format(new Date(Date.UTC(2000, i, 1)));
+		return { value: String(i + 1), label: name.charAt(0).toLocaleUpperCase() + name.slice(1) };
+	});
+}
 
 class SwissPayrollCycle {
 	constructor(page) {
@@ -37,20 +50,7 @@ class SwissPayrollCycle {
 			fieldname: "month",
 			label: __("Month"),
 			fieldtype: "Select",
-			options: [
-				{ value: "1", label: __("January") },
-				{ value: "2", label: __("February") },
-				{ value: "3", label: __("March") },
-				{ value: "4", label: __("April") },
-				{ value: "5", label: __("May") },
-				{ value: "6", label: __("June") },
-				{ value: "7", label: __("July") },
-				{ value: "8", label: __("August") },
-				{ value: "9", label: __("September") },
-				{ value: "10", label: __("October") },
-				{ value: "11", label: __("November") },
-				{ value: "12", label: __("December") },
-			],
+			options: month_options(),
 			default: String(parseInt(today[1], 10)),
 		});
 		this.year_field = this.page.add_field({
@@ -222,7 +222,7 @@ class SwissPayrollCycle {
 					(c) => `
 					<tr>
 						<td>${c.type === "earnings" ? __("Earning") : __("Deduction")}</td>
-						<td>${frappe.utils.escape_html(c.component)}</td>
+						<td>${frappe.utils.escape_html(__(c.component))}</td>
 						<td class="text-right">${format_currency(c.total, "CHF")}</td>
 					</tr>`
 				)
@@ -250,6 +250,18 @@ class SwissPayrollCycle {
 					· ${__("Paid")}: ${t.paid}/${t.submitted}
 				</div>`
 				: "";
+			//// Neoffice — booked by HRMS from a Payroll Entry: say it, the Swiss booking refuses them.
+			const elsewhere = (sum.payroll_entry_bookings || []).length
+				? `<div class="text-warning small" style="margin: -6px 0 10px;">
+					${__(
+						"{0} slip(s) already booked from a Payroll Entry ({1}): cancel that journal entry to book them through the Swiss payroll, which also books the employer charges.",
+						[
+							t.booked_by_payroll_entry,
+							sum.payroll_entry_bookings.map((n) => link("Journal Entry", n)).join(", "),
+						]
+					)}
+				</div>`
+				: "";
 			parts.push(`
 				<div class="frappe-card" style="padding: 15px; margin-bottom: 15px;">
 					<h5>${__("Period totals")} — ${__("Gross")} ${format_currency(
@@ -257,6 +269,7 @@ class SwissPayrollCycle {
 						"CHF"
 					)} · ${__("Net")} ${format_currency(sum.totals.net, "CHF")}</h5>
 					${accounting}
+					${elsewhere}
 					<div style="overflow-x: auto;">
 						<table class="table table-sm">
 							<thead><tr><th>${__("Type")}</th><th>${__("Component")}</th>
@@ -286,7 +299,7 @@ class SwissPayrollCycle {
 		//// Neoffice — after the submission: book the salaries, then pay them through a payment
 		//// proposal (file or EBICS). The standalone pain.001 stays for a site without ERPNextSwiss.
 		const totals = (sum && sum.totals) || {};
-		if (totals.submitted > 0 && totals.booked < totals.submitted) {
+		if (totals.submitted > (totals.booked || 0) + (totals.booked_by_payroll_entry || 0)) {
 			this.page.add_inner_button(__("Book salaries"), () => this.book_salaries());
 		}
 		if (totals.booked > (totals.paid || 0) && sum.payment_proposals) {

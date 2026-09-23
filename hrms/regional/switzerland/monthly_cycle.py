@@ -292,7 +292,7 @@ def summary(company, year, month):
 	# //// Neoffice — the accounting state of each slip too: booked (salary journal entry),
 	# //// in a payment proposal, paid (payment journal entry). See accounting.py.
 	meta = frappe.get_meta("Salary Slip")
-	fields = ["name", "employee", "employee_name", "docstatus", "gross_pay", "net_pay"]
+	fields = ["name", "employee", "employee_name", "docstatus", "gross_pay", "net_pay", "payroll_entry"]
 	fields += [f for f in ("ch_accrual_entry", "ch_payment_entry", "is_proposed") if meta.has_field(f)]
 	slips = frappe.get_all(
 		"Salary Slip",
@@ -316,6 +316,13 @@ def summary(company, year, month):
 		key = (d.parentfield, d.salary_component)
 		components[key] = round(components.get(key, 0) + flt(d.amount), 2)
 
+	# //// Neoffice — slips submitted from a Payroll Entry were booked by HRMS itself: the
+	# //// Swiss booking refuses them (they would count twice), so the page says so instead.
+	from hrms.regional.switzerland.accounting import payroll_entry_bookings
+
+	pending = [s for s in slips if s.docstatus == 1 and not s.get("ch_accrual_entry") and s.payroll_entry]
+	hrms_bookings = payroll_entry_bookings(s.payroll_entry for s in pending)
+
 	return {
 		"slips": slips,
 		"components": [
@@ -328,10 +335,12 @@ def summary(company, year, month):
 			"draft": sum(1 for s in slips if s.docstatus == 0),
 			"submitted": sum(1 for s in slips if s.docstatus == 1),
 			"booked": sum(1 for s in slips if s.docstatus == 1 and s.get("ch_accrual_entry")),
+			"booked_by_payroll_entry": sum(1 for s in pending if s.payroll_entry in hrms_bookings),
 			"proposed": sum(1 for s in slips if s.docstatus == 1 and s.get("is_proposed")),
 			"paid": sum(1 for s in slips if s.docstatus == 1 and s.get("ch_payment_entry")),
 		},
 		"accrual_entries": sorted({s.ch_accrual_entry for s in slips if s.get("ch_accrual_entry")}),
+		"payroll_entry_bookings": sorted(set(hrms_bookings.values())),
 		"proposals": _proposals_of([s.name for s in slips]) if payment_proposals else [],
 		"payment_proposals": payment_proposals,
 	}

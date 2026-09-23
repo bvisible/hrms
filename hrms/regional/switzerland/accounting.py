@@ -295,6 +295,28 @@ def _require_accounting_role():
 	frappe.only_for(["System Manager", "Accounts Manager", "HR Manager"])
 
 
+def payroll_entry_bookings(payroll_entries):
+	"""{payroll entry: journal entry} for those HRMS has already booked.
+
+	Submitting slips from a Payroll Entry makes HRMS post its own salary entry
+	(make_accrual_jv_entry); its lines reference the Payroll Entry.
+	"""
+	payroll_entries = sorted({p for p in payroll_entries if p})
+	if not payroll_entries:
+		return {}
+	rows = frappe.db.sql(
+		"""SELECT jea.reference_name AS payroll_entry, MIN(je.name) AS journal_entry
+		FROM `tabJournal Entry Account` jea
+		JOIN `tabJournal Entry` je ON je.name = jea.parent
+		WHERE jea.reference_type = 'Payroll Entry' AND jea.reference_name IN %(entries)s
+			AND je.docstatus = 1
+		GROUP BY jea.reference_name""",
+		{"entries": tuple(payroll_entries)},
+		as_dict=True,
+	)
+	return {r.payroll_entry: r.journal_entry for r in rows}
+
+
 @frappe.whitelist()
 def post_payroll_accrual(company, year, month):
 	"""Book the salaries of a period: one journal entry for the submitted slips not yet booked."""
@@ -310,10 +332,27 @@ def post_payroll_accrual(company, year, month):
 			"docstatus": 1,
 			"ch_accrual_entry": ["is", "not set"],
 		},
-		fields=["name", "net_pay"] + (["total_loan_repayment"] if with_loans else []),
+		fields=["name", "net_pay", "payroll_entry"] + (["total_loan_repayment"] if with_loans else []),
 	)
 	if not slips:
 		frappe.throw(_("No submitted salary slip left to book for this period."))
+	# Booked once already by HRMS itself: booking them here would count them twice.
+	booked = payroll_entry_bookings(s.payroll_entry for s in slips)
+	if booked:
+		frappe.throw(
+			_(
+				"These salaries were already booked when their slips were submitted from a Payroll Entry: {0}. "
+				"Booking them again would count them twice. To book them through the Swiss payroll, which "
+				"also books the employer charges, cancel that journal entry first."
+			).format(
+				", ".join(
+					f"{frappe.utils.get_link_to_form('Payroll Entry', pe)} → "
+					f"{frappe.utils.get_link_to_form('Journal Entry', je)}"
+					for pe, je in sorted(booked.items())
+				)
+			),
+			title=_("Salaries already booked"),
+		)
 	if any(flt(s.get("total_loan_repayment")) for s in slips):
 		frappe.throw(_("Loan repayments on a slip are not booked by the Swiss payroll yet."))
 
@@ -420,12 +459,10 @@ def post_salary_payment(slip_names, bank_account, posting_date=None, reference=N
 	return je.name
 
 
-def cancel_salary_payment(slip_names):
-	"""Cancel the payment entries of these slips (the payment proposal was cancelled).
-
-	The Journal Entry on_cancel hook then releases the slips: they can be paid again.
-	Returns the number of entries cancelled.
-	"""
+def salary_payment_entries(slip_names):
+	"""The submitted journal entries that paid these slips (name, reference, amount)."""
+	if not frappe.get_meta("Salary Slip").has_field("ch_payment_entry"):
+		return []
 	entries = {
 		entry
 		for entry in frappe.get_all(
@@ -433,13 +470,28 @@ def cancel_salary_payment(slip_names):
 		)
 		if entry
 	}
+	if not entries:
+		return []
+	return frappe.get_all(
+		"Journal Entry",
+		filters={"name": ["in", sorted(entries)], "docstatus": 1},
+		fields=["name", "cheque_no", "total_debit"],
+		order_by="name",
+	)
+
+
+def cancel_salary_payment(slip_names):
+	"""Cancel the payment entries of these slips (the payment proposal was cancelled).
+
+	The Journal Entry on_cancel hook then releases the slips: they can be paid again.
+	Returns the number of entries cancelled.
+	"""
 	cancelled = 0
-	for entry in sorted(entries):
-		je = frappe.get_doc("Journal Entry", entry)
-		if je.docstatus == 1:
-			je.flags.ignore_permissions = True
-			je.cancel()
-			cancelled += 1
+	for entry in salary_payment_entries(slip_names):
+		je = frappe.get_doc("Journal Entry", entry.name)
+		je.flags.ignore_permissions = True
+		je.cancel()
+		cancelled += 1
 	return cancelled
 
 
