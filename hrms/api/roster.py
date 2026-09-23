@@ -262,6 +262,7 @@ def get_shifts(
 	shift_filters: dict[str, str],
 	employees: list[str] | None = None,
 ) -> dict[str, list[dict]]:
+	# //// Neoffice — see the block marker above: empty employee list guard
 	if employees is not None and not employees:
 		return {}
 	ShiftAssignment = frappe.qb.DocType("Shift Assignment")
