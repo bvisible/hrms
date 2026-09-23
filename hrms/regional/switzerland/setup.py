@@ -811,13 +811,26 @@ def get_custom_fields():
 				"depends_on": "eval:doc.ch_third_party_allowance_booking == 'Insurer Receivable'",
 				"description": "Filled from the chart of accounts at the first booking when left empty.",
 			},
+			# //// Neoffice — where the collection commission of the source tax is credited (Swiss
+			# //// insurer statements, line « Source Tax Commission »).
+			{
+				"fieldname": "ch_source_tax_commission_account",
+				"label": "Source Tax Commission Account",
+				"fieldtype": "Link",
+				"options": "Account",
+				"insert_after": "ch_third_party_allowance_account",
+				"description": (
+					"Income where the collection commission the canton leaves the employer on the source tax "
+					"is credited (SME chart: Autres produits). Filled from the chart when left empty."
+				),
+			},
 			# --- Swissdec / ELM fields ---
 			{
 				"fieldname": "ch_swissdec_section",
 				"label": "Swissdec / ELM",
 				"fieldtype": "Section Break",
 				# //// Neoffice — after the payroll accounting choices, which now close the section above.
-				"insert_after": "ch_third_party_allowance_account",
+				"insert_after": "ch_source_tax_commission_account",
 				"collapsible": 1,
 			},
 			{

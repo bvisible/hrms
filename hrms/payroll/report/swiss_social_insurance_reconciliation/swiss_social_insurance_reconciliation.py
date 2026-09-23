@@ -10,6 +10,7 @@ from hrms.regional.switzerland.insurer_statements import reconcile
 
 STATUS_LABELS = {
 	"balanced": "Account settled",
+	"payroll_not_booked": "Payroll not booked",
 	"final_statement_missing": "Final statement missing",
 	"difference": "Difference to explain",
 	"no_activity": "No activity",
@@ -35,6 +36,8 @@ def execute(filters=None):
 				"employer_due": row["employer_due"],
 				"statements": row["statements"],
 				"after": row["after"],
+				"accruals": row["accruals"],
+				"prior": row["prior"],
 				"other": row["other"],
 				"balance": row["balance"],
 				"status": _(STATUS_LABELS[row["status"]]),
@@ -49,16 +52,40 @@ def execute(filters=None):
 
 def get_columns():
 	return [
-		{"fieldname": "account", "label": _("Account"), "fieldtype": "Link", "options": "Account", "width": 240},
+		{
+			"fieldname": "account",
+			"label": _("Account"),
+			"fieldtype": "Link",
+			"options": "Account",
+			"width": 240,
+		},
 		{"fieldname": "insurances", "label": _("Insurances"), "fieldtype": "Data", "width": 190},
-		{"fieldname": "side", "label": _("Booked As"), "fieldtype": "Data", "width": 110},
+		# What needs attention first; the detail of the balance follows.
+		{"fieldname": "status", "label": _("Status"), "fieldtype": "Data", "width": 215},
+		{"fieldname": "balance", "label": _("Balance to Settle"), "fieldtype": "Currency", "width": 140},
+		{"fieldname": "side", "label": _("Booked As"), "fieldtype": "Data", "width": 130},
 		{"fieldname": "opening", "label": _("Opening Balance"), "fieldtype": "Currency", "width": 120},
 		{"fieldname": "due", "label": _("Due per Payroll"), "fieldtype": "Currency", "width": 120},
 		{"fieldname": "booked", "label": _("Booked by Payroll"), "fieldtype": "Currency", "width": 120},
-		{"fieldname": "employer_due", "label": _("Employer Part (Slips)"), "fieldtype": "Currency", "width": 130},
-		{"fieldname": "statements", "label": _("Statements of the Year"), "fieldtype": "Currency", "width": 130},
-		{"fieldname": "after", "label": _("Statements after Year End"), "fieldtype": "Currency", "width": 140},
+		{
+			"fieldname": "employer_due",
+			"label": _("Employer Part (Slips)"),
+			"fieldtype": "Currency",
+			"width": 130,
+		},
+		{
+			"fieldname": "statements",
+			"label": _("Statements of the Year"),
+			"fieldtype": "Currency",
+			"width": 130,
+		},
+		{
+			"fieldname": "after",
+			"label": _("Statements after Year End"),
+			"fieldtype": "Currency",
+			"width": 140,
+		},
+		{"fieldname": "accruals", "label": _("Accruals"), "fieldtype": "Currency", "width": 110},
+		{"fieldname": "prior", "label": _("Entries of Other Years"), "fieldtype": "Currency", "width": 140},
 		{"fieldname": "other", "label": _("Other Entries"), "fieldtype": "Currency", "width": 110},
-		{"fieldname": "balance", "label": _("Balance to Settle"), "fieldtype": "Currency", "width": 130},
-		{"fieldname": "status", "label": _("Status"), "fieldtype": "Data", "width": 170},
 	]

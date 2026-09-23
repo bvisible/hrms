@@ -21010,3 +21010,199 @@ msgstr "{0} fiche(s) de l'exercice pas encore comptabilisée(s)."
 #: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
 msgid "Advance Statement"
 msgstr "Acompte"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+msgid "A year-end payroll accrual: charges of the year still to be invoiced or paid (employer social charges not yet charged, bonuses paid next year), booked against the accrued liabilities at year end and reversed on the first day of the next year."
+msgstr "Un transitoire de paie de fin d'exercice : charges de l'exercice encore à facturer ou à payer (charges sociales patronales pas encore facturées, primes versées l'exercice suivant), comptabilisé en contrepartie des charges à payer en fin d'exercice et extourné le premier jour de l'exercice suivant."
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+msgid "Accrual Account"
+msgstr "Compte transitoire"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+#: hrms/payroll/workspace/swiss_payroll/swiss_payroll.json
+msgid "Accruals"
+msgstr "Transitoires"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+msgid "Accrued liabilities (2300) for charges still to pay, prepaid expenses (1300) for charges booked in advance. Taken from the chart when left empty."
+msgstr "Charges à payer (2300) pour les charges encore à payer, charges payées d'avance (1300) pour les charges comptabilisées d'avance. Rempli depuis le plan comptable s'il est laissé vide."
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Booked by a payroll accrual"
+msgstr "Comptabilisé par un transitoire de paie"
+
+#: hrms/hooks.py
+#: hrms/hr/doctype/expense_claim/expense_claim.js
+#: hrms/hr/doctype/expense_claim/expense_claim.json
+#: hrms/hr/doctype/expense_taxes_and_charges/expense_taxes_and_charges.json
+#: hrms/hr/doctype/expense_taxes_and_charges/expense_taxes_and_charges.py
+#: hrms/patches/post_install/move_doctype_reports_and_notification_from_hr_to_payroll.py
+#: hrms/payroll/doctype/income_tax_slab/income_tax_slab.json
+#: hrms/payroll/doctype/income_tax_slab_other_charges/income_tax_slab_other_charges.json
+#: hrms/payroll/doctype/income_tax_slab_other_charges/income_tax_slab_other_charges.py
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+#: hrms/payroll/report/income_tax_computation/income_tax_computation.py
+#: hrms/regional/switzerland/accounting.py
+#: hrms/regional/switzerland/lohnausweis_barcode.py
+#: hrms/regional/switzerland/salary_certificate.py
+#: hrms/regional/switzerland/setup.py
+#: hrms/regional/switzerland/test_company_setup.py
+#: hrms/regional/switzerland/test_insurer_statements.py
+#: hrms/regional/switzerland/test_lohnausweis_barcode.py
+msgid "Charges"
+msgstr "Charges"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.js
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Collection commission {0} %"
+msgstr "Commission de perception {0} %"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.js
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.py
+msgid "Create the Reversal"
+msgstr "Créer l'extourne"
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Employer social charges of the year not yet invoiced: {0}"
+msgstr "Charges sociales patronales de l'exercice pas encore facturées : {0}"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Entries of Other Years"
+msgstr "Écritures d'autres exercices"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "For a source tax statement: the canton that invoices it. Its collection commission rate (ESTV table) prefills the commission line."
+msgstr "Pour un décompte d'impôt à la source : le canton qui le facture. Son taux de commission de perception (tableau de l'AFC) préremplit la ligne de commission."
+
+#: hrms/regional/switzerland/setup.py
+msgid "Income where the collection commission the canton leaves the employer on the source tax is credited (SME chart: Autres produits). Filled from the chart when left empty."
+msgstr "Produit sur lequel est créditée la commission de perception que le canton laisse à l'employeur sur l'impôt à la source (plan comptable PME : Autres produits). Rempli depuis le plan comptable s'il est laissé vide."
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.py
+msgid "No accrual account in {0}: choose it (2300 accrued liabilities, 1300 prepaid expenses)."
+msgstr "Aucun compte transitoire dans {0} : choisissez-le (2300 charges à payer, 1300 charges payées d'avance)."
+
+#: hrms/payroll/workspace/swiss_payroll/swiss_payroll.json
+msgid "Payroll Accruals"
+msgstr "Transitoires de paie"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.py
+msgid "Payroll accrual {0}"
+msgstr "Transitoire de paie {0}"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual_line/swiss_payroll_accrual_line.json
+msgid "Positive: a charge of the year still to be invoiced or paid; negative: a charge booked for the next year."
+msgstr "Positif : une charge de l'exercice encore à facturer ou à payer ; négatif : une charge comptabilisée pour l'exercice suivant."
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+msgid "Reversal Date"
+msgstr "Date d'extourne"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.js
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+msgid "Reversal Entry"
+msgstr "Écriture d'extourne"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.py
+msgid "Reversal: {0}"
+msgstr "Extourne : {0}"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Source Tax Canton"
+msgstr "Canton de l'impôt à la source"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.js
+#: hrms/payroll/doctype/swiss_insurer_statement_line/swiss_insurer_statement_line.json
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+#: hrms/regional/switzerland/insurer_statements.py
+#: hrms/regional/switzerland/setup.py
+#: hrms/regional/switzerland/test_insurer_statements.py
+msgid "Source Tax Commission"
+msgstr "Commission de perception IS"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Source Tax Commission Account"
+msgstr "Compte de la commission de perception IS"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "Source tax collection commission: {0}"
+msgstr "Commission de perception IS : {0}"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.js
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+#: hrms/payroll/doctype/swiss_payroll_accrual_line/swiss_payroll_accrual_line.json
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+#: hrms/payroll/workspace/swiss_payroll/swiss_payroll.json
+#: hrms/regional/switzerland/insurer_statements.py
+#: hrms/regional/switzerland/test_insurer_statements.py
+msgid "Swiss Payroll Accrual"
+msgstr "Transitoire de paie suisse"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.js
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+#: hrms/payroll/doctype/swiss_payroll_accrual_line/swiss_payroll_accrual_line.json
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Swiss Payroll Accrual Line"
+msgstr "Ligne de transitoire de paie suisse"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.py
+msgid "The accrual has no amount."
+msgstr "Le transitoire n'a pas de montant."
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+msgid "The last day of the fiscal year, when left empty."
+msgstr "Le dernier jour de l'exercice, si elle est laissée vide."
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.py
+msgid "The posting date must fall within the fiscal year {0}."
+msgstr "La date de comptabilisation doit être comprise dans l'exercice fiscal {0}."
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.py
+msgid "The reversal on {0} will be booked once that fiscal year exists: create it, then use Create the Reversal."
+msgstr "L'extourne du {0} sera comptabilisée une fois cet exercice fiscal créé : créez-le, puis utilisez Créer l'extourne."
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+msgid "The year the charges belong to."
+msgstr "L'exercice auquel appartiennent les charges."
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "This entry books the payroll accrual {0}. Cancel the accrual instead."
+msgstr "Cette écriture comptabilise le transitoire de paie {0}. Annulez plutôt le transitoire."
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json
+msgid "Usually the first day of the next fiscal year. Left empty, the entry is an adjustment that is not reversed."
+msgstr "Généralement le premier jour de l'exercice suivant. Si elle est laissée vide, l'écriture est un ajustement qui n'est pas extourné."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Year-End Accruals"
+msgstr "Transitoires de fin d'exercice"
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.py
+msgid "{0} is not an account of {1}."
+msgstr "{0} n'est pas un compte de {1}."
+
+#: hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.py
+msgid "The reversal date must come after the posting date."
+msgstr "La date d'extourne doit suivre la date de comptabilisation."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Source tax: which canton?"
+msgstr "Impôt à la source : quel canton ?"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Already recorded"
+msgstr "Déjà saisi"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "One final statement per canton: each canton invoices its own source tax and leaves its own collection commission."
+msgstr "Un décompte final par canton : chaque canton facture son propre impôt à la source et applique sa propre commission de perception."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Payroll not booked"
+msgstr "Paie non comptabilisée"

@@ -21,7 +21,7 @@ class SwissYearEnd {
 		this.body.html(
 			`<div class="text-muted" style="padding: 40px; text-align: center;">
 				${__("Pick a company and a fiscal year, then run the reconciliation.")}
-			</div>`
+			</div>`,
 		);
 	}
 
@@ -87,27 +87,88 @@ class SwissYearEnd {
 	async record_statement(row) {
 		const args = this.args();
 		const insurance = row.insurances[0];
+		const [period_from, period_to] = this.state.insurance.period;
+		let amount = row.suggested;
+		let canton = "";
+		let rate = null;
+		// The source tax: one statement per canton — each invoices its own tax and leaves its own
+		// collection commission. Several cantons still open: the user picks one.
+		if (insurance === "Source Tax") {
+			const cantons = (
+				(
+					await frappe.call({
+						method: "hrms.regional.switzerland.insurer_statements.source_tax_cantons",
+						args,
+					})
+				).message || []
+			).filter((c) => Math.abs(c.remaining) >= 0.5);
+			const choice = cantons.length > 1 ? await pick_canton(cantons) : cantons[0];
+			if (cantons.length > 1 && !choice) {
+				return;
+			}
+			if (choice) {
+				({ canton, rate } = choice);
+				amount = choice.remaining;
+			}
+		}
 		const defaults =
 			(
 				await frappe.call({
 					method: "hrms.regional.switzerland.insurer_statements.statement_defaults",
-					args: { company: args.company, insurance },
+					args: { company: args.company, insurance, canton },
 				})
 			).message || {};
-		const [period_from, period_to] = this.state.insurance.period;
 		frappe.new_doc("Swiss Insurer Statement", {}, (doc) => {
 			Object.assign(doc, {
 				company: args.company,
 				kind: "Final Statement",
 				period_from,
 				period_to,
+				canton,
 				insurer: defaults.insurer || "",
 			});
 			// The lines table is mandatory: a new document already carries an empty row.
 			const empty = (doc.lines || []).find((line) => !line.insurance);
-			const line = empty || frappe.model.add_child(doc, "Swiss Insurer Statement Line", "lines");
+			const line =
+				empty || frappe.model.add_child(doc, "Swiss Insurer Statement Line", "lines");
 			line.insurance = insurance;
-			line.amount = row.suggested;
+			line.amount = amount;
+			if (rate) {
+				const commission = frappe.model.add_child(
+					doc,
+					"Swiss Insurer Statement Line",
+					"lines",
+				);
+				commission.insurance = "Source Tax Commission";
+				commission.amount = -flt((amount * rate) / 100, 2);
+				commission.description = __("Collection commission {0} %", [rate]);
+			}
+		});
+	}
+
+	//// Neoffice — the year-end accruals (transitoires): under the social charges method, the
+	//// employer charges the slips computed and no statement charged yet; bonuses are added by hand.
+	async record_accruals() {
+		const args = this.args();
+		const proposal = (
+			await frappe.call({
+				method: "hrms.regional.switzerland.insurer_statements.accrual_proposals",
+				args,
+			})
+		).message;
+		frappe.new_doc("Swiss Payroll Accrual", {}, (doc) => {
+			Object.assign(doc, {
+				company: args.company,
+				fiscal_year: args.fiscal_year,
+				posting_date: proposal.posting_date,
+				reversal_date: proposal.reversal_date,
+			});
+			proposal.lines.forEach((values, index) => {
+				const empty = index === 0 && (doc.lines || []).find((line) => !line.account);
+				const line =
+					empty || frappe.model.add_child(doc, "Swiss Payroll Accrual Line", "lines");
+				Object.assign(line, values);
+			});
 		});
 	}
 
@@ -118,6 +179,7 @@ class SwissYearEnd {
 		}
 		const badge = {
 			balanced: `<span class="indicator-pill green" style="white-space: nowrap;">${__("Account settled")}</span>`,
+			payroll_not_booked: `<span class="indicator-pill yellow" style="white-space: nowrap;">${__("Payroll not booked")}</span>`,
 			final_statement_missing: `<span class="indicator-pill orange" style="white-space: nowrap;">${__("Final statement missing")}</span>`,
 			difference: `<span class="indicator-pill red" style="white-space: nowrap;">${__("Difference to explain")}</span>`,
 			no_activity: `<span class="indicator-pill gray" style="white-space: nowrap;">${__("No activity")}</span>`,
@@ -133,18 +195,23 @@ class SwissYearEnd {
 					<td class="text-right">${format_currency(r.balance, "CHF")}</td>
 					<td>${badge[r.status] || ""}</td>
 					<td class="text-right">${
-						["final_statement_missing", "difference"].includes(r.status) && Math.abs(r.suggested) >= 0.5
+						["final_statement_missing", "difference"].includes(r.status) &&
+						Math.abs(r.suggested) >= 0.5
 							? `<button class="btn btn-xs btn-default btn-record-statement" data-index="${index}">
 									${__("Record the final statement")}</button>`
 							: ""
 					}</td>
-				</tr>`
+				</tr>`,
 			)
 			.join("");
 		const method =
 			ins.method === "Social Charges"
-				? __("Social charges method: the statements are charged, the employer part is what remains.")
-				: __("Current account method: after the final statement, each account is back to zero.");
+				? __(
+						"Social charges method: the statements are charged, the employer part is what remains.",
+					)
+				: __(
+						"Current account method: after the final statement, each account is back to zero.",
+					);
 		return `
 			<div class="frappe-card" style="padding: 15px; margin-bottom: 15px;">
 				<h5>${__("Social insurance accounts")}</h5>
@@ -209,9 +276,10 @@ class SwissYearEnd {
 			__("Send {0} salary certificate(s) to the employees by email?", [count]),
 			async () => {
 				const res = await this.call("send_certificates");
-				let message = __("{0} email(s) are being sent. You will be told when they are out.", [
-					res.queued,
-				]);
+				let message = __(
+					"{0} email(s) are being sent. You will be told when they are out.",
+					[res.queued],
+				);
 				if (res.without_email.length) {
 					message +=
 						"<br>" +
@@ -219,8 +287,12 @@ class SwissYearEnd {
 							res.without_email.map((n) => frappe.utils.escape_html(n)).join(", "),
 						]);
 				}
-				frappe.msgprint({ title: __("Certificates"), message: message, indicator: "blue" });
-			}
+				frappe.msgprint({
+					title: __("Certificates"),
+					message: message,
+					indicator: "blue",
+				});
+			},
 		);
 	}
 
@@ -234,7 +306,7 @@ class SwissYearEnd {
 					(i) => `
 					<div class="indicator-pill ${i.level === "error" ? "red" : "orange"}" style="margin: 2px 6px 2px 0;">
 						${frappe.utils.escape_html(i.message)}
-					</div>`
+					</div>`,
 				)
 				.join("");
 			parts.push(`
@@ -272,7 +344,7 @@ class SwissYearEnd {
 								? `<span class="text-success">${__("matches")}</span>`
 								: `<span class="text-danger">${format_currency(e.concordance, "CHF")}</span>`
 					}</td>
-				</tr>`
+				</tr>`,
 			)
 			.join("");
 		parts.push(`
@@ -308,7 +380,7 @@ class SwissYearEnd {
 								<td>${frappe.utils.escape_html(e.tariff_code)}</td>
 								<td class="text-right">${format_currency(e.gross, "CHF")}</td>
 								<td class="text-right">${format_currency(e.withheld, "CHF")}</td>
-							</tr>`
+							</tr>`,
 						)
 						.join("");
 					return `
@@ -345,33 +417,45 @@ class SwissYearEnd {
 		if (rec.counts.certificates_missing > 0) {
 			this.page.add_inner_button(
 				__("Generate {0} certificate(s)", [rec.counts.certificates_missing]),
-				() => this.run_generate()
+				() => this.run_generate(),
 			);
 		}
 		if (rec.counts.certificates_draft > 0) {
 			this.page.add_inner_button(
 				__("Validate {0} certificate(s)", [rec.counts.certificates_draft]),
-				() => this.run_submit()
+				() => this.run_submit(),
 			);
 		}
 		if (rec.counts.certificates_submitted > 0) {
 			this.page.add_inner_button(
-				__("Send {0} certificate(s) to the employees", [rec.counts.certificates_submitted]),
-				() => this.run_send(rec.counts.certificates_submitted)
+				__("Send {0} certificate(s) to the employees", [
+					rec.counts.certificates_submitted,
+				]),
+				() => this.run_send(rec.counts.certificates_submitted),
 			);
 		}
-		//// Neoffice — the insurers' statements and the reconciliation of their accounts.
+		//// Neoffice — the insurers' statements, the reconciliation of their accounts and the
+		//// year-end accruals.
 		if (this.state.insurance) {
 			this.page.add_inner_button(
 				__("New Insurer Statement"),
 				() => frappe.new_doc("Swiss Insurer Statement", { company: this.args().company }),
-				__("Insurers")
+				__("Accounting"),
 			);
 			this.page.add_inner_button(
 				__("Reconciliation Report"),
 				() =>
-					frappe.set_route("query-report", "Swiss Social Insurance Reconciliation", this.args()),
-				__("Insurers")
+					frappe.set_route(
+						"query-report",
+						"Swiss Social Insurance Reconciliation",
+						this.args(),
+					),
+				__("Accounting"),
+			);
+			this.page.add_inner_button(
+				__("Year-End Accruals"),
+				() => this.record_accruals(),
+				__("Accounting"),
 			);
 		}
 		const exports = [
@@ -387,11 +471,67 @@ class SwissYearEnd {
 					window.open(
 						"/api/method/hrms.regional.switzerland.year_end.export_year_end_csv" +
 							`?company=${encodeURIComponent(args.company)}` +
-							`&fiscal_year=${encodeURIComponent(args.fiscal_year)}&kind=${kind}`
+							`&fiscal_year=${encodeURIComponent(args.fiscal_year)}&kind=${kind}`,
 					);
 				},
-				__("Exports")
+				__("Exports"),
 			);
 		});
 	}
+}
+
+//// Neoffice — the canton of a source tax final statement, when several are still open: what the
+//// slips withheld there, what its statements already recorded, and what remains.
+function pick_canton(cantons) {
+	return new Promise((resolve) => {
+		const rows = cantons
+			.map(
+				(c) => `<tr>
+					<td>${frappe.utils.escape_html(c.canton)}</td>
+					<td class="text-right">${format_currency(c.withheld, "CHF")}</td>
+					<td class="text-right">${format_currency(c.recorded, "CHF")}</td>
+					<td class="text-right"><b>${format_currency(c.remaining, "CHF")}</b></td>
+					<td class="text-right">${c.rate ? c.rate + " %" : ""}</td>
+				</tr>`,
+			)
+			.join("");
+		const dialog = new frappe.ui.Dialog({
+			title: __("Source tax: which canton?"),
+			fields: [
+				{
+					fieldtype: "HTML",
+					fieldname: "cantons",
+					options: `<p class="text-muted small">${__(
+						"One final statement per canton: each canton invoices its own source tax and leaves its own collection commission.",
+					)}</p>
+					<table class="table table-sm">
+						<thead><tr>
+							<th>${__("Canton")}</th>
+							<th class="text-right">${__("Withheld")}</th>
+							<th class="text-right">${__("Already recorded")}</th>
+							<th class="text-right">${__("Remaining")}</th>
+							<th class="text-right">${__("Commission")}</th>
+						</tr></thead>
+						<tbody>${rows}</tbody>
+					</table>`,
+				},
+				{
+					fieldtype: "Select",
+					fieldname: "canton",
+					label: __("Canton"),
+					reqd: 1,
+					options: cantons.map((c) => c.canton),
+					default: cantons[0].canton,
+				},
+			],
+			primary_action_label: __("Record the final statement"),
+			primary_action: ({ canton }) => {
+				resolve(cantons.find((c) => c.canton === canton));
+				dialog.hide();
+			},
+		});
+		// Closed without choosing: nothing to record (a resolved promise ignores the second call).
+		dialog.onhide = () => resolve(null);
+		dialog.show();
+	});
 }

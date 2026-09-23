@@ -11,6 +11,7 @@ from frappe.utils import flt, getdate
 from hrms.regional.switzerland import accounting
 from hrms.regional.switzerland.insurer_statements import (
 	INSURANCES,
+	commission_account,
 	component_accounts,
 	journal_rows,
 	statement_account,
@@ -33,10 +34,15 @@ class SwissInsurerStatement(Document):
 		self.booking_method = accounting.booking_method(self.company)
 		by_component = component_accounts(self.company)
 		chart = accounting._company_accounts(self.company)
+		commission = commission_account(self.company)
 		missing = []
 		for line in self.lines:
 			insurance = INSURANCES.get(line.insurance)
-			line.account = statement_account(insurance, self.booking_method, by_component, chart) if insurance else None
+			line.account = (
+				statement_account(insurance, self.booking_method, by_component, chart, commission)
+				if insurance
+				else None
+			)
 			if not line.account:
 				missing.append(_(line.insurance or ""))
 		if missing:
@@ -53,9 +59,15 @@ class SwissInsurerStatement(Document):
 		account = frappe.db.get_value(
 			"Account", self.paid_from, ["company", "account_type", "is_group"], as_dict=True
 		)
-		if not account or account.company != self.company or account.is_group or account.account_type not in (
-			"Bank",
-			"Cash",
+		if (
+			not account
+			or account.company != self.company
+			or account.is_group
+			or account.account_type
+			not in (
+				"Bank",
+				"Cash",
+			)
 		):
 			frappe.throw(_("{0} is not a bank or cash account of {1}.").format(self.paid_from, self.company))
 
@@ -92,12 +104,18 @@ class SwissInsurerStatement(Document):
 		if reference:
 			entry.cheque_no = reference
 			entry.cheque_date = self.posting_date
-		entry.user_remark = _("{0} {1}: {2}").format(_(self.kind), self.insurer_name or self.insurer, self.name)
+		entry.user_remark = _("{0} {1}: {2}").format(
+			_(self.kind), self.insurer_name or self.insurer, self.name
+		)
 		for row in journal_rows([(line.account, line.amount) for line in self.lines], counterpart):
 			entry.append("accounts", {**row, "cost_center": cost_center})
 		# The statement is the authorisation: whoever may submit it may book its entry.
 		entry.flags.ignore_permissions = True
 		entry.insert()
-		entry.db_set("title", _("{0} {1}").format(_(self.kind), self.insurer_name or self.insurer), update_modified=False)
+		entry.db_set(
+			"title",
+			_("{0} {1}").format(_(self.kind), self.insurer_name or self.insurer),
+			update_modified=False,
+		)
 		entry.submit()
 		return entry.name

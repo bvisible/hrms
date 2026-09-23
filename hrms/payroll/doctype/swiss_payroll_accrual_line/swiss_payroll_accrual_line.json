@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "creation": "2026-09-24 00:30:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "account",
+  "amount",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "options": "Account",
+   "in_list_view": 1,
+   "label": "Account",
+   "reqd": 1,
+   "columns": 4
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "reqd": 1,
+   "columns": 2,
+   "description": "Positive: a charge of the year still to be invoiced or paid; negative: a charge booked for the next year."
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description",
+   "columns": 4
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-24 00:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Payroll",
+ "name": "Swiss Payroll Accrual Line",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

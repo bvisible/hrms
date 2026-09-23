@@ -32,6 +32,10 @@ frappe.ui.form.on("Swiss Insurer Statement", {
 		}
 	},
 
+	canton(frm) {
+		update_commission(frm);
+	},
+
 	// The insurances an insurer usually invoices: those of its last statement.
 	insurer(frm) {
 		if (!frm.doc.insurer || !frm.doc.company || (frm.doc.lines || []).some((line) => line.insurance)) {
@@ -55,8 +59,16 @@ frappe.ui.form.on("Swiss Insurer Statement", {
 });
 
 frappe.ui.form.on("Swiss Insurer Statement Line", {
-	amount(frm) {
+	amount(frm, cdt, cdn) {
+		if (locals[cdt][cdn].insurance === "Source Tax") {
+			update_commission(frm);
+		}
 		update_total(frm);
+	},
+	insurance(frm, cdt, cdn) {
+		if (locals[cdt][cdn].insurance === "Source Tax") {
+			update_commission(frm);
+		}
 	},
 	lines_remove(frm) {
 		update_total(frm);
@@ -67,3 +79,38 @@ function update_total(frm) {
 	const total = (frm.doc.lines || []).reduce((sum, line) => sum + flt(line.amount, 2), 0);
 	frm.set_value("total", flt(total, 2));
 }
+
+// The collection commission the canton leaves the employer on the source tax: the canton's rate
+// (ESTV table) applied to the source tax lines, as a negative line credited to an income. Editable:
+// the canton's own statement has the last word.
+async function update_commission(frm) {
+	const source_tax = (frm.doc.lines || [])
+		.filter((line) => line.insurance === "Source Tax")
+		.reduce((sum, line) => sum + flt(line.amount, 2), 0);
+	if (!frm.doc.canton || !source_tax) {
+		return;
+	}
+	const rate = (
+		await frappe.call({
+			method: "hrms.regional.switzerland.insurer_statements.get_source_tax_commission_rate",
+			args: { canton: frm.doc.canton },
+		})
+	).message;
+	if (!rate) {
+		return;
+	}
+	let line = (frm.doc.lines || []).find((row) => row.insurance === "Source Tax Commission");
+	if (!line) {
+		line = frm.add_child("lines", { insurance: "Source Tax Commission" });
+	}
+	frappe.model.set_value(line.doctype, line.name, "amount", -flt((source_tax * rate) / 100, 2));
+	frappe.model.set_value(
+		line.doctype,
+		line.name,
+		"description",
+		__("Collection commission {0} %", [rate])
+	);
+	frm.refresh_field("lines");
+	update_total(frm);
+}
+

@@ -25,7 +25,9 @@ frappe.query_reports["Swiss Social Insurance Reconciliation"] = {
 
 	onload(report) {
 		report.page.add_inner_button(__("New Insurer Statement"), () =>
-			frappe.new_doc("Swiss Insurer Statement", { company: report.get_filter_value("company") })
+			frappe.new_doc("Swiss Insurer Statement", {
+				company: report.get_filter_value("company"),
+			}),
 		);
 	},
 
@@ -34,6 +36,7 @@ frappe.query_reports["Swiss Social Insurance Reconciliation"] = {
 		if (column.fieldname === "status" && data) {
 			const colour = {
 				balanced: "green",
+				payroll_not_booked: "yellow",
 				final_statement_missing: "orange",
 				difference: "red",
 				no_activity: "gray",

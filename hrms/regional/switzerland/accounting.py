@@ -57,6 +57,27 @@ _ROLE_ACCOUNTS = {
 	# //// Neoffice — what the insurers owe back for the allowances the employer paid out
 	# //// (SME chart 1180 « Créances envers les assurances sociales et institutions de prévoyance »).
 	"receivable_insurance": (1180, 1189, r"assuranc|sozial|social|versicherung", ("Asset",)),
+	# //// Neoffice — the source tax collection commission the canton leaves the employer (LIFD 88
+	# //// al. 4) is income (SME chart « Autres produits »), and the year-end accruals of the payroll
+	# //// go to « Charges à payer » / « Charges payées d'avance ».
+	"source_tax_commission": (
+		3600,
+		3899,
+		r"commission de perception|bezugsprovision|autres produits|übrige erträge|other income",
+		("Income",),
+	),
+	"accrued_liabilities": (
+		2300,
+		2309,
+		r"charges à payer|régularisation|transitoire|abgrenzung|accrued",
+		("Liability",),
+	),
+	"accrued_assets": (
+		1300,
+		1309,
+		r"payées d'avance|régularisation|transitoire|abgrenzung|prepaid",
+		("Asset",),
+	),
 }
 
 # The two booking methods (Company.ch_payroll_booking_method).
@@ -280,6 +301,19 @@ def configure_payroll_accounts(company):
 			report["set"].append(_("Payroll payable: {0}").format(role_account["payroll_payable"]))
 		else:
 			report["missing"].append(_("Payroll payable account (salary transit account, 1091)"))
+
+	# //// Neoffice — the income of the source tax collection commission (Swiss insurer statements).
+	meta = frappe.get_meta("Company")
+	if meta.has_field("ch_source_tax_commission_account") and not frappe.db.get_value(
+		"Company", company, "ch_source_tax_commission_account"
+	):
+		if role_account["source_tax_commission"]:
+			frappe.db.set_value(
+				"Company", company, "ch_source_tax_commission_account", role_account["source_tax_commission"]
+			)
+			report["set"].append(
+				_("Source tax collection commission: {0}").format(role_account["source_tax_commission"])
+			)
 
 	# //// Neoffice — the receivable of the third-party allowances, when the company chose it.
 	if third_party_allowance_account(company) is False:

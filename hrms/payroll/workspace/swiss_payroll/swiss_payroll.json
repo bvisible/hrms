@@ -175,6 +175,17 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Payroll Accruals",
+   "link_count": 0,
+   "link_to": "Swiss Payroll Accrual",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link",
+   "dependencies": ""
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Swissdec",
    "link_count": 0,
    "link_type": "DocType",
@@ -241,7 +252,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-23 22:00:00.000000",
+ "modified": "2026-09-24 00:30:00.000000",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "Swiss Payroll",
