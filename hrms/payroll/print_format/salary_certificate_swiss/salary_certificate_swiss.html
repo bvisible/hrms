@@ -3,7 +3,11 @@
 {# //// Neoffice — box I, the employee address and the draft marker come from the certificate #}
 {# //// (get_print_data): Wegleitung Rz 8 and 12, Swissdec guidelines 6.0 9.1.2. #}
 {%- set pd = doc.get_print_data() -%}
-{%- set fiscal_year = frappe.get_cached_doc("Fiscal Year", doc.fiscal_year) -%}
+{# //// Neoffice — the certificate prints from its own period when its fiscal year is gone (a year #}
+{# //// renamed then deleted left one unprintable: "Fiscal Year … not found" at this line). #}
+{%- set fiscal_year = frappe.db.get_value("Fiscal Year", doc.fiscal_year, ["year_start_date", "year_end_date"], as_dict=True) or {} -%}
+{%- set period_start = doc.period_from or fiscal_year.get("year_start_date") -%}
+{%- set period_end = doc.period_to or fiscal_year.get("year_end_date") -%}
 {# //// Neoffice — the document's own method, not frappe.call(...get_barcode_data_for_print): #}
 {# //// frappe.call checks the HTTP method of the current request, and a background job (the #}
 {# //// year-end mailing) has none — the render failed with "request". Printing already #}
@@ -75,13 +79,13 @@
 	<table style="margin-left: 75px; margin-top: 10px; height: 24px; ">
 		<tr>
 			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px !important; width: 145px; ">
-				{% if fiscal_year %}{{ frappe.utils.get_datetime(fiscal_year.year_start_date).strftime('%Y') }}{% endif %}
+				{% if fiscal_year or period_start %}{{ frappe.utils.get_datetime(fiscal_year.get("year_start_date") or period_start).strftime('%Y') }}{% endif %}
 			</td>
 			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px !important; width: 100px; ">
-				{{ frappe.utils.get_datetime(doc.period_from or fiscal_year.year_start_date).strftime('%d.%m.') }}
+				{% if period_start %}{{ frappe.utils.get_datetime(period_start).strftime('%d.%m.') }}{% endif %}
 			</td>
 			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px !important; width: 165px; ">
-				{{ frappe.utils.get_datetime(doc.period_to or fiscal_year.year_end_date).strftime('%d.%m.') }}
+				{% if period_end %}{{ frappe.utils.get_datetime(period_end).strftime('%d.%m.') }}{% endif %}
 			</td>
 			<td style="padding-left: 3px !important; padding-top: 4px !important; padding-bottom: 1px !important; ">
 				{% if doc.lunch_checks == 1 %}X{% else %}&nbsp;{% endif %}

@@ -11,14 +11,18 @@ Run with: python -m pytest hrms/regional/switzerland/test_lohnausweis_barcode.py
 
 import io
 import unittest
-import zipfile
 import xml.etree.ElementTree as ET
+import zipfile
 
 from hrms.regional.switzerland.lohnausweis_barcode import (
 	COMPRESSION_ZIP,
 	CONTROL_VERSION,
 	HEADER_SIZE,
+	MAX_PAYLOAD_PER_SYMBOL,
 	PDF417_COLUMNS,
+	PDF417_PADDING,
+	PDF417_RATIO,
+	PDF417_SCALE,
 	PDF417_SECURITY_LEVEL,
 	TXAB_NS,
 	ZIP_ENTRY_NAME,
@@ -27,6 +31,7 @@ from hrms.regional.switzerland.lohnausweis_barcode import (
 	generate_barcode_page_data,
 	generate_txab_xml,
 	parse_symbol_header,
+	pdf417_code_words,
 	split_into_symbols,
 )
 
@@ -62,13 +67,26 @@ def _make_certificate_data(**overrides):
 		"descriptions": {},
 		"positions": {
 			"1": 96000.0,
-			"2.1": 0, "2.2": 0, "2.3": 0,
-			"3": 8000.0, "4": 0, "5": 0, "6": 0, "7": 0,
+			"2.1": 0,
+			"2.2": 0,
+			"2.3": 0,
+			"3": 8000.0,
+			"4": 0,
+			"5": 0,
+			"6": 0,
+			"7": 0,
 			"8": 104000.0,
-			"9": 6640.0, "10.1": 3600.0, "10.2": 0,
+			"9": 6640.0,
+			"10.1": 3600.0,
+			"10.2": 0,
 			"11": 93760.0,
 			"12": 0,
-			"13.1.1": 0, "13.1.2": 0, "13.2.1": 0, "13.2.2": 0, "13.2.3": 0, "13.3": 0,
+			"13.1.1": 0,
+			"13.1.2": 0,
+			"13.2.1": 0,
+			"13.2.2": 0,
+			"13.2.3": 0,
+			"13.3": 0,
 			"14": 0,
 			"15": "Généré automatiquement.",
 		},
@@ -223,7 +241,14 @@ class TestTxabXml(unittest.TestCase):
 		"""13.x expenses map to Charges/Effective, LumpSum and Education."""
 		data = _make_certificate_data()
 		data["positions"].update(
-			{"13.1.1": 1200.0, "13.1.2": 300.0, "13.2.1": 3600.0, "13.2.2": 2400.0, "13.2.3": 150.0, "13.3": 2000.0}
+			{
+				"13.1.1": 1200.0,
+				"13.1.2": 300.0,
+				"13.2.1": 3600.0,
+				"13.2.2": 2400.0,
+				"13.2.3": 150.0,
+				"13.3": 2000.0,
+			}
 		)
 		root = _parse(generate_txab_xml(data))
 		charges = root.find("t:S/t:Charges", NS)
@@ -311,8 +336,11 @@ class TestControlHeader(unittest.TestCase):
 	def test_random_identification_by_default(self):
 		s1 = split_into_symbols(b"data")
 		s2 = split_into_symbols(b"data")
-		# 4 random bytes: virtually always different between two calls
+		# 4 random bytes: different between two calls (a clash is a 1 in 4 billion chance)
 		self.assertEqual(len(parse_symbol_header(s1[0])["identification"]), 4)
+		self.assertNotEqual(
+			parse_symbol_header(s1[0])["identification"], parse_symbol_header(s2[0])["identification"]
+		)
 
 	def test_identification_must_be_4_bytes(self):
 		with self.assertRaises(ValueError):
@@ -326,6 +354,34 @@ class TestControlHeader(unittest.TestCase):
 		symbols = split_into_symbols(b"q" * 10, identification=b"HHHH")
 		self.assertEqual(len(symbols[0]), HEADER_SIZE + 10)
 		self.assertEqual(symbols[0][4], COMPRESSION_ZIP)
+
+
+class TestSymbolFitsBoxH(unittest.TestCase):
+	"""The first symbol prints in box H of the form (250 x 120 px, the print format's img)."""
+
+	BOX_W, BOX_H = 250, 120
+
+	def test_a_full_symbol_keeps_the_width_of_box_h(self):
+		from pdf417gen import render_image
+
+		# Worst case: zipped data does not compress further, every byte is a random one.
+		payload = bytes((i * 131 + 7) % 256 for i in range(MAX_PAYLOAD_PER_SYMBOL))
+		(symbol,) = split_into_symbols(payload, identification=b"FULL")
+		rows = pdf417_code_words(symbol, PDF417_COLUMNS, PDF417_SECURITY_LEVEL)
+		image = render_image(rows, scale=PDF417_SCALE, ratio=PDF417_RATIO, padding=PDF417_PADDING)
+		width, height = image.size
+		# Scaled to the box's width it stays within its height: the module is not shrunk.
+		self.assertLessEqual(height * self.BOX_W / width, self.BOX_H)
+		self.assertLessEqual(len(rows), 49)
+		# 0.196 mm modules: the box's 250 px (66.1 mm) over the symbol's modules.
+		modules = width / PDF417_SCALE
+		self.assertGreaterEqual(66.1 / modules, 0.195)
+
+	def test_a_certificate_prints_one_symbol(self):
+		# The size real certificates zip to (710-800 bytes): one symbol, hence one page.
+		self.assertEqual(len(split_into_symbols(b"z" * 800, identification=b"ONE1")), 1)
+		self.assertEqual(len(split_into_symbols(b"z" * (MAX_PAYLOAD_PER_SYMBOL + 1))), 2)
+		self.assertLessEqual(MAX_PAYLOAD_PER_SYMBOL, 1000)  # annex 5: at most 1000 bytes
 
 
 # ===========================================================================
@@ -380,7 +436,6 @@ class TestGenerateBarcodePageData(unittest.TestCase):
 		self.assertEqual(recovered, xml)
 
 
-
 # ===========================================================================
 # Swissdec 6.0 (SalaryDeclarationTxAB.xsd 20260306)
 # ===========================================================================
@@ -406,7 +461,9 @@ class TestTxab60(unittest.TestCase):
 		tags = [child.tag.split("}")[1] for child in salary]
 		self.assertEqual(tags.index("ChargesRule") + 1, tags.index("Charges"))
 		rule = salary.find("t:ChargesRule/t:WithRegulation", NS)
-		self.assertEqual((rule.find("t:Allowed", NS).text, rule.find("t:Canton", NS).text), ("2024-05-01", "VD"))
+		self.assertEqual(
+			(rule.find("t:Allowed", NS).text, rule.find("t:Canton", NS).text), ("2024-05-01", "VD")
+		)
 
 	def test_standard_remarks_are_elements_in_the_schema_order(self):
 		standard = {
@@ -450,9 +507,12 @@ class TestTxab60(unittest.TestCase):
 
 	def test_the_company_carries_the_person_in_charge(self):
 		company = _parse(
-			generate_txab_xml(_make_certificate_data(contact_person="Service RH", contact_phone="+41 21 000 00 00"))
+			generate_txab_xml(
+				_make_certificate_data(contact_person="Service RH", contact_phone="+41 21 000 00 00")
+			)
 		).find("t:Company", NS)
 		self.assertEqual((company.get("Person"), company.get("Phone")), ("Service RH", "+41 21 000 00 00"))
+
 
 if __name__ == "__main__":
 	unittest.main()

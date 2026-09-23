@@ -320,7 +320,9 @@ class SwissYearEnd {
 			missing: `<span class="indicator-pill red">${__("missing")}</span>`,
 			draft: `<span class="indicator-pill orange">${__("draft")}</span>`,
 			submitted: `<span class="indicator-pill blue">${__("validated")}</span>`,
-			sent: `<span class="indicator-pill green">${__("sent")}</span>`,
+			//// Neoffice — its own context: "sent" alone is taken by another app's plural ("envoyés")
+			//// and the pill names ONE certificate.
+			sent: `<span class="indicator-pill green">${__("sent", null, "salary certificate status")}</span>`,
 		};
 		const rows = (rec.employees || [])
 			.map(

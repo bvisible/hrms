@@ -21206,3 +21206,8 @@ msgstr "Un décompte final par canton : chaque canton facture son propre impôt 
 #: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
 msgid "Payroll not booked"
 msgstr "Paie non comptabilisée"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgctxt "salary certificate status"
+msgid "sent"
+msgstr "envoyé"

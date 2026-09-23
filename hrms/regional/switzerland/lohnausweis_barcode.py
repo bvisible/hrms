@@ -46,8 +46,8 @@ import base64
 import io
 import os
 import re
-import zipfile
 import xml.etree.ElementTree as ET
+import zipfile
 
 # Swissdec TxAB (ELM 6.0) namespace
 TXAB_NS = "urn:ch:swissdec:elm:v6:20260306:SalaryDeclarationTxAB"
@@ -80,12 +80,14 @@ PDF417_SCALE = 3
 PDF417_RATIO = 3
 PDF417_PADDING = 20
 
-# Maximum ZIP payload bytes per symbol. Annex 5 allows 1000 bytes per symbol, but the
-# first one prints in box H of the form (250 x 120 px): 550 bytes in Byte compaction
-# (pdf417_code_words) make ~33 rows, still readable there. Real certificates print 1-2
-# symbols — like the official samples (TaxSalary of ICHAGCompany: 2). Bigger files are
+# Maximum ZIP payload bytes per symbol. Annex 5 (3.1): "generally all the data fit in one
+# barcode", at most 1000 bytes; the second one goes on an additional page. The first prints in
+# box H of the form (250 x 120 px). 15 columns fill its width (module 0.196 mm); in Byte
+# compaction (pdf417_code_words) 850 + 14 header bytes make 49 rows, which still fit its
+# height at that width, so the module does not shrink. Real certificates zip to 710-800
+# bytes: one symbol, one page (550 put every one of them on two pages). Bigger files are
 # split across symbols that the scanner reassembles via the control header (max 99).
-MAX_PAYLOAD_PER_SYMBOL = 550
+MAX_PAYLOAD_PER_SYMBOL = 850
 
 # All Form 11 position IDs handled by the print/DocType layer
 POSITION_IDS = [
@@ -93,7 +95,7 @@ POSITION_IDS = [
 	"8", "9", "10.1", "10.2", "11", "12",
 	"13.1.1", "13.1.2", "13.2.1", "13.2.2", "13.2.3", "13.3",
 	"14", "15",
-]
+]  # fmt: skip
 
 # Register default namespace so output uses xmlns= on root, not ns0: prefix
 ET.register_namespace("", TXAB_NS)
@@ -274,7 +276,9 @@ def generate_txab_xml(certificate_data):
 				add_amount(eff, "TravelFoodAccommodation", amount("13.1.1"))
 			if amount("13.1.2"):
 				other = ET.SubElement(eff, f"{_NS}Other")
-				ET.SubElement(other, f"{_NS}Text").text = descriptions.get("13.1.2") or "Autres frais effectifs"
+				ET.SubElement(other, f"{_NS}Text").text = (
+					descriptions.get("13.1.2") or "Autres frais effectifs"
+				)
 				ET.SubElement(other, f"{_NS}Sum").text = f"{amount('13.1.2'):.2f}"
 		if has_lumpsum:
 			lump = ET.SubElement(charges, f"{_NS}LumpSum")
@@ -284,7 +288,9 @@ def generate_txab_xml(certificate_data):
 				add_amount(lump, "Car", amount("13.2.2"))
 			if amount("13.2.3"):
 				other = ET.SubElement(lump, f"{_NS}Other")
-				ET.SubElement(other, f"{_NS}Text").text = descriptions.get("13.2.3") or "Autres frais forfaitaires"
+				ET.SubElement(other, f"{_NS}Text").text = (
+					descriptions.get("13.2.3") or "Autres frais forfaitaires"
+				)
 				ET.SubElement(other, f"{_NS}Sum").text = f"{amount('13.2.3'):.2f}"
 		if amount("13.3"):
 			add_amount(charges, "Education", amount("13.3"))
@@ -359,7 +365,7 @@ def split_into_symbols(zip_bytes, identification=None, max_payload=MAX_PAYLOAD_P
 				index // 10, index % 10,
 				total // 10, total % 10,
 			]
-		)
+		)  # fmt: skip
 		symbols.append(header + chunk)
 	return symbols
 
@@ -438,13 +444,15 @@ def generate_code128c(identifier):
 	from barcode.writer import ImageWriter
 
 	writer = ImageWriter()
-	writer.set_options({
-		"module_height": 12.0,
-		"module_width": 0.3,
-		"quiet_zone": 5.0,
-		"font_size": 8,
-		"text_distance": 3.0,
-	})
+	writer.set_options(
+		{
+			"module_height": 12.0,
+			"module_width": 0.3,
+			"quiet_zone": 5.0,
+			"font_size": 8,
+			"text_distance": 3.0,
+		}
+	)
 	code = barcode.get("code128", identifier, writer=writer)
 	buf = io.BytesIO()
 	code.write(buf)
