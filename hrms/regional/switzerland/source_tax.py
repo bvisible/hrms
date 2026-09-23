@@ -146,7 +146,7 @@ def calculate_source_tax_monthly(
 	"""Calculate source tax using the monthly model.
 
 	Used by 21 cantons (all except FR, GE, TI, VD, VS).
-	Rate lookup on the rate-determining salary, tax = gross × rate.
+	Rate lookup on the rate-determining salary, tax = gross x rate.
 
 	For a partial month (entry/exit mid-month) the periodic part of the
 	salary is extrapolated to 30 days to determine the rate; aperiodic
@@ -734,6 +734,10 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 			)
 
 	result["tariff_code"] = tariff_code
+	# //// Neoffice — and the canton whose tariff was applied: the slip records it (ch_qst_canton), so
+	# //// the year-end recap splits the tax by the canton each slip paid it to, not the one the
+	# //// employee lives in when the recap runs (a move mid-year sent the whole year to the new canton).
+	result["canton"] = canton
 
 	# Apply cross-border rules if enabled
 	if config.get("cb_enabled") and employee_doc.get("ch_is_cross_border"):

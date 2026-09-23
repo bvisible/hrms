@@ -20,6 +20,7 @@ from hrms.regional.switzerland.insurer_statements import (
 	journal_rows,
 	reconciliation_rows,
 	source_tax_by_canton,
+	source_tax_cantons,
 	source_tax_commission_rate,
 	source_tax_settled,
 	statement_account,
@@ -139,6 +140,140 @@ class TestSourceTaxByCanton(FrappeTestCase):
 		self.assertEqual(
 			rows, [{"canton": "TI", "withheld": 0, "recorded": 120.0, "remaining": -120.0, "rate": 1.5}]
 		)
+
+
+class TestCantonAtTheTime(FrappeTestCase):
+	"""Past slips get the canton the employee had when the payroll computed them."""
+
+	def test_the_value_before_a_later_change(self):
+		from datetime import datetime
+
+		from hrms.patches.v15_0.set_source_tax_canton_on_salary_slips import value_at
+
+		changes = [(datetime(2026, 3, 15), "VD", "GE"), (datetime(2026, 9, 1), "GE", "ZH")]
+		self.assertEqual(value_at("ZH", changes, datetime(2026, 1, 31)), "VD")
+		self.assertEqual(value_at("ZH", changes, datetime(2026, 4, 30)), "GE")
+		self.assertEqual(value_at("ZH", changes, datetime(2026, 10, 31)), "ZH")
+		self.assertEqual(value_at("ZH", [], datetime(2026, 1, 31)), "ZH")
+
+
+class TestSourceTaxBySlip(FrappeTestCase):
+	"""The recap per canton reads each slip's canton, not the canton the employee has today."""
+
+	COMPANY = "_Test Company"
+	FISCAL_YEAR = "_Test Fiscal Year 2026"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		if not frappe.get_meta("Salary Slip").has_field("ch_qst_canton") or not frappe.db.exists(
+			"Fiscal Year", cls.FISCAL_YEAR
+		):
+			raise cls.skipTest(cls, "no ch_qst_canton on Salary Slip, or no fiscal year 2026")
+
+	def setUp(self):
+		from hrms.regional.switzerland.payroll_hooks import _resolve_component_by_wage_type
+
+		frappe.set_user("Administrator")
+		self.component = _resolve_component_by_wage_type(5060, "Source Tax Employee")
+		if not self.component:
+			self.component = (
+				frappe.get_doc(
+					{
+						"doctype": "Salary Component",
+						"salary_component": "Source Tax Employee",
+						"salary_component_abbr": "QSTE",
+						"type": "Deduction",
+					}
+				)
+				.insert()
+				.name
+			)
+		self.employee = (
+			frappe.get_doc(
+				{
+					"doctype": "Employee",
+					"first_name": "Source",
+					"last_name": "TaxMover",
+					"company": self.COMPANY,
+					"gender": frappe.db.get_value("Gender", {}, "name"),
+					"date_of_birth": "1985-03-10",
+					"date_of_joining": "2020-01-01",
+					"status": "Active",
+					# Today in Geneva: moved there in March.
+					"ch_qst_taxation_canton": "GE",
+					"ch_fiscal_canton": "GE",
+				}
+			)
+			.insert()
+			.name
+		)
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def slip(self, month, canton, code, tax, gross=6000.0):
+		"""A submitted slip written as the payroll leaves it (the hook is not what is tested)."""
+		start = frappe.utils.getdate(f"2026-{month:02d}-01")
+		end = frappe.utils.get_last_day(start)
+		doc = frappe.get_doc(
+			{
+				"doctype": "Salary Slip",
+				"employee": self.employee,
+				"employee_name": "Source TaxMover",
+				"company": self.COMPANY,
+				"start_date": start,
+				"end_date": end,
+				"posting_date": end,
+				"gross_pay": gross,
+				"docstatus": 1,
+				"ch_qst_canton": canton,
+				"ch_qst_tariff_code": code,
+			}
+		)
+		doc.name = frappe.generate_hash(length=12)
+		doc.db_insert()
+		row = frappe.get_doc(
+			{
+				"doctype": "Salary Detail",
+				"parent": doc.name,
+				"parenttype": "Salary Slip",
+				"parentfield": "deductions",
+				"salary_component": self.component,
+				"amount": tax,
+				"idx": 1,
+			}
+		)
+		row.name = frappe.generate_hash(length=12)
+		row.db_insert()
+
+	def recap(self):
+		from hrms.regional.switzerland.year_end import qst_summary
+
+		return {
+			c["canton"]: next(e for e in c["employees"] if e["employee"] == self.employee)
+			for c in qst_summary(self.COMPANY, self.FISCAL_YEAR)["cantons"]
+			if any(e["employee"] == self.employee for e in c["employees"])
+		}
+
+	def test_a_move_splits_the_year_by_the_slips_canton(self):
+		self.slip(1, "VD", "A0N", 480.0)
+		self.slip(2, "VD", "A0N", 480.0)
+		self.slip(3, "GE", "B1Y", 300.0)
+		self.slip(4, "", "", 0.0)  # not settled under source tax: left out
+		self.slip(5, "", "", 55.0)  # settled before the slip kept its canton: today's canton
+		recap = self.recap()
+		self.assertEqual(sorted(recap), ["GE", "VD"])
+		self.assertEqual(
+			(recap["VD"]["withheld"], recap["VD"]["gross"], recap["VD"]["tariff_code"]),
+			(960.0, 12000.0, "A0N"),
+		)
+		self.assertEqual(
+			(recap["GE"]["withheld"], recap["GE"]["gross"], recap["GE"]["tariff_code"]),
+			(355.0, 12000.0, "B1Y"),
+		)
+		cantons = {c["canton"]: c for c in source_tax_cantons(self.COMPANY, self.FISCAL_YEAR)}
+		self.assertGreaterEqual(cantons["VD"]["withheld"], 960.0)
 
 
 class TestClassify(FrappeTestCase):

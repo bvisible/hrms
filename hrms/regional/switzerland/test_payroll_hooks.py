@@ -416,6 +416,13 @@ class TestSourceTaxBase(SwissPayrollHookCase):
 		update_swiss_social_contributions(slip, "validate")
 		self.assertEqual(self._amount(slip, "AVS/AI/APG Employee"), 371.00)  # 7000 x 5.3%
 
+	# //// Neoffice — added: the slip keeps the canton its source tax was computed with.
+	def test_the_slip_keeps_the_canton_it_was_settled_with(self):
+		"""The recap per canton reads it: the employee may live elsewhere by year end."""
+		slip = self._make_slip([(MONTHLY_COMPONENT, 5000)])
+		update_swiss_social_contributions(slip, "validate")
+		self.assertEqual((slip.ch_qst_canton, slip.ch_qst_tariff_code), (self.QST_CANTON, self.QST_CODE))
+
 
 # //// Neoffice — added: the annual AC ceiling is the only contribution here whose amount depends
 # //// on the MONTHS BEFORE the slip, so it is the only one a unit test on a single slip cannot

@@ -91,11 +91,24 @@ def get_custom_fields():
 				"no_copy": 1,
 				"description": "Tariff code this slip was settled with — the audit trail retroactive corrections rely on.",
 			},
+			# //// Neoffice — new field: the canton this slip's source tax was settled with. The recap per
+			# //// canton read the employee's CURRENT canton, so a move mid-year sent the whole year's tax
+			# //// to the new canton; the slip now keeps its own (patch set_source_tax_canton_on_salary_slips).
+			{
+				"fieldname": "ch_qst_canton",
+				"label": "QST Canton Used",
+				"fieldtype": "Data",
+				"insert_after": "ch_qst_tariff_code",
+				"read_only": 1,
+				"no_copy": 1,
+				"description": "Canton this slip was settled with — the canton its source tax is declared and paid to.",
+			},
 			{
 				"fieldname": "ch_qst_aperiodic",
 				"label": "QST Aperiodic Share",
 				"fieldtype": "Currency",
-				"insert_after": "ch_qst_tariff_code",
+				# //// Neoffice — after ch_qst_canton now (was ch_qst_tariff_code).
+				"insert_after": "ch_qst_canton",
 				"read_only": 1,
 				"no_copy": 1,
 				"description": "Aperiodic earnings of this slip (bonuses, lump 13th month) — excluded from the day-extrapolated determinant.",

@@ -80,3 +80,6 @@ hrms.patches.v15_0.switzerland_wage_types_swissdec_60
 # //// position (FAQ 2026 1.6: income replacement in box 7); wage type rows and untouched
 # //// components aligned, default mapping rows removed, the certificate readable by ESS users.
 hrms.patches.v15_0.switzerland_salary_certificate_2026
+# //// Neoffice — 2026-09-23: each slip keeps the canton its source tax was settled with
+# //// (ch_qst_canton), filled on past slips from the employee's version log.
+hrms.patches.v15_0.set_source_tax_canton_on_salary_slips

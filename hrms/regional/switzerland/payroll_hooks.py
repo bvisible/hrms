@@ -931,6 +931,10 @@ def _update_source_tax(doc, config, employee, imp_base):
 	# was settled with, and the corrections applied in this run.
 	if result.get("tariff_code") and hasattr(doc, "ch_qst_tariff_code"):
 		doc.ch_qst_tariff_code = result["tariff_code"]
+	# //// Neoffice — the canton it was settled with, next to the tariff code: the canton this slip's
+	# //// source tax is declared and paid to (year_end.qst_summary, the cantons' final statements).
+	if result.get("canton") and hasattr(doc, "ch_qst_canton"):
+		doc.ch_qst_canton = result["canton"]
 	if hasattr(doc, "ch_qst_aperiodic"):
 		doc.ch_qst_aperiodic = aperiodic
 	if hasattr(doc, "ch_qst_correction_details"):

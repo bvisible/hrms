@@ -403,11 +403,24 @@ def qst_summary(company, fiscal_year):
 	if not qst_component:
 		return {"cantons": []}
 
+	# //// Neoffice — by the slip, not the employee: each slip's canton (ch_qst_canton, the one its
+	# //// tariff came from) and tariff code, and a slip counts when it was settled under source tax
+	# //// (a tariff code, or tax withheld). The employee's CURRENT canton and subject flag sent a
+	# //// whole year to the canton of a move made in December, and dropped the slips of someone no
+	# //// longer subject. The employee's values remain the fallback of slips settled before
+	# //// ch_qst_canton existed (patch set_source_tax_canton_on_salary_slips fills them).
 	rows = frappe.db.sql(
 		"""SELECT
 			ss.employee,
 			ss.employee_name,
-			COALESCE(NULLIF(e.ch_qst_taxation_canton, ''), NULLIF(e.ch_fiscal_canton, '')) AS canton,
+			COALESCE(
+				NULLIF(ss.ch_qst_canton, ''),
+				NULLIF(e.ch_qst_taxation_canton, ''),
+				NULLIF(e.ch_fiscal_canton, '')
+			) AS canton,
+			GROUP_CONCAT(
+				DISTINCT NULLIF(ss.ch_qst_tariff_code, '') ORDER BY ss.ch_qst_tariff_code SEPARATOR ', '
+			) AS tariff_codes,
 			e.ch_qst_tariff_letter,
 			e.ch_qst_num_children,
 			e.ch_qst_church_tax,
@@ -423,7 +436,7 @@ def qst_summary(company, fiscal_year):
 			AND ss.docstatus = 1
 			AND ss.start_date >= %s
 			AND ss.end_date <= %s
-			AND e.ch_qst_subject = 1
+			AND (IFNULL(ss.ch_qst_tariff_code, '') != '' OR sd.amount != 0)
 		GROUP BY ss.employee, canton
 		ORDER BY canton, ss.employee_name""",
 		(qst_component, company, start, end),
@@ -432,7 +445,7 @@ def qst_summary(company, fiscal_year):
 
 	cantons = {}
 	for row in rows:
-		code = build_tariff_code(
+		code = row.tariff_codes or build_tariff_code(
 			row.ch_qst_tariff_letter, row.ch_qst_num_children, row.ch_qst_church_tax
 		)
 		canton = cantons.setdefault(
