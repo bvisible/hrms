@@ -20758,3 +20758,255 @@ msgstr "chaque mois, les retenues salariales et les cotisations patronales sont 
 #: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
 msgid "the employee deductions are credited to the charge accounts (5700-5799) and the employer contributions are not booked monthly: the insurers' invoices are charged in full when paid. Simpler for a small company, the charges are right once the invoices are booked."
 msgstr "les retenues salariales sont créditées aux comptes de charges (5700-5799) et les cotisations patronales ne sont pas comptabilisées mensuellement : les factures des assureurs sont comptabilisées en charges intégralement lors de leur paiement. Plus simple pour une petite société, les charges sont exactes une fois les factures comptabilisées."
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "A statement from a social insurer or the canton (advance, invoice, final statement, refund), booked against the payroll's accounts according to the company's booking method."
+msgstr "Décompte d'un assureur social ou du canton (acompte, facture, décompte final, remboursement), comptabilisé sur les comptes de paie selon la méthode de comptabilisation de la société."
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "AVS/AI/APG/AC"
+msgstr "AVS/AI/APG/AC"
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Accident Insurance"
+msgstr "Assurance-accidents"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.py
+msgid "Account missing"
+msgstr "Compte manquant"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Amounts"
+msgstr "Montants"
+
+#: hrms/payroll/doctype/swiss_insurer_statement_line/swiss_insurer_statement_line.json
+msgid "As on the statement; negative when the insurer refunds."
+msgstr "Comme sur le décompte ; négatif lorsque l'assureur rembourse."
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Balance to Settle"
+msgstr "Solde à régler"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Balance to settle"
+msgstr "Solde à régler"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Account settled"
+msgstr "Compte soldé"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Booked As"
+msgstr "Comptabilisé en"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Booked by Payroll"
+msgstr "Comptabilisé par la paie"
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Booked by an insurer statement"
+msgstr "Comptabilisé par un décompte d'assureur"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Booking Method"
+msgstr "Méthode de comptabilisation"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Booking method: {0}. {1} submitted slip(s) in the year, {2} not booked yet."
+msgstr "Méthode de comptabilisation : {0}. {1} fiche(s) soumise(s) sur l'exercice, {2} pas encore comptabilisée(s)."
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Charge"
+msgstr "Charge"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Credit Note"
+msgstr "Avoir"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Current account"
+msgstr "Compte courant"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Current account method: after the final statement, each account is back to zero."
+msgstr "Méthode dette assurances sociales : après le décompte final, chaque compte revient à zéro."
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Daily Sickness Allowance"
+msgstr "Indemnités journalières maladie"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Difference to explain"
+msgstr "Écart à expliquer"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Due per Payroll"
+msgstr "Dû selon la paie"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Due per payroll"
+msgstr "Dû selon la paie"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Employer Part (Slips)"
+msgstr "Part employeur (fiches)"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.py
+msgid "Enter the amount of at least one insurance."
+msgstr "Saisissez le montant d'au moins une assurance."
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Final Statement"
+msgstr "Décompte final"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Final statement missing"
+msgstr "Décompte final manquant"
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Insurance"
+msgstr "Assurance"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Insurances"
+msgstr "Assurances"
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Insurer"
+msgstr "Assureur"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Insurer Name"
+msgstr "Nom de l'assureur"
+
+#: hrms/payroll/workspace/swiss_payroll/swiss_payroll.json
+msgid "Insurer Statements"
+msgstr "Décomptes d'assureurs"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Insurer's Reference"
+msgstr "Référence de l'assureur"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Insurers"
+msgstr "Assureurs"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Invoice"
+msgstr "Facture"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Kind"
+msgstr "Type"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Lines"
+msgstr "Lignes"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "New Insurer Statement"
+msgstr "Nouveau décompte d'assureur"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.py
+msgid "No account for {0} in {1}. Configure the payroll accounts first (Company Payroll Setup)."
+msgstr "Aucun compte pour {0} dans {1}. Configurez d'abord les comptes de paie (Configuration de la paie de la société)."
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "No activity"
+msgstr "Aucun mouvement"
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Occupational Pension"
+msgstr "Prévoyance professionnelle"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Other Entries"
+msgstr "Autres écritures"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Paid From"
+msgstr "Payé depuis"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Reconciliation"
+msgstr "Rapprochement"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Reconciliation Report"
+msgstr "Rapport de rapprochement"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Record the final statement"
+msgstr "Saisir le décompte final"
+
+#: hrms/payroll/doctype/swiss_insurer_statement_line/swiss_insurer_statement_line.json
+msgid "Set from the company's booking method: the insurance's current account, or its charge account."
+msgstr "Défini par la méthode de comptabilisation de la société : le compte courant de l'assurance, ou son compte de charge."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Social Insurance Reconciliation"
+msgstr "Rapprochement des assurances sociales"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Social charges method: the statements are charged, the employer part is what remains."
+msgstr "Méthode des charges sociales : les décomptes sont passés en charge, la part employeur correspond à ce qui reste."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Social insurance accounts"
+msgstr "Comptes des assurances sociales"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Statements"
+msgstr "Décomptes"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Statements after Year End"
+msgstr "Décomptes après la clôture"
+
+#: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
+msgid "Statements of the Year"
+msgstr "Décomptes de l'exercice"
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Swiss Insurer Statement"
+msgstr "Décompte d'assureur suisse"
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "Swiss Insurer Statement Line"
+msgstr "Ligne de décompte d'assureur suisse"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Swiss Social Insurance Reconciliation"
+msgstr "Rapprochement des assurances sociales suisses"
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "The bank account, when the statement is already paid. Left empty, the total stays owed to the insurer (accounts payable) until it is paid."
+msgstr "Le compte bancaire, lorsque le décompte est déjà payé. Laissé vide, le montant total reste dû à l'assureur (créanciers) jusqu'à son paiement."
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "The compensation fund, pension fund, insurer or cantonal tax office, as a supplier."
+msgstr "La caisse de compensation, la caisse de pension, l'assureur ou l'administration fiscale cantonale, en tant que fournisseur."
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.py
+msgid "The period ends before it starts."
+msgstr "La période se termine avant de commencer."
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "The period the statement covers. A final statement counts for the year it settles, whatever its posting date."
+msgstr "La période couverte par le décompte. Un décompte final compte pour l'exercice qu'il solde, quelle que soit sa date de comptabilisation."
+
+#: hrms/regional/switzerland/insurer_statements.py
+msgid "This entry books the insurer statement {0}. Cancel the statement instead."
+msgstr "Cette écriture comptabilise le décompte d'assureur {0}. Annulez plutôt le décompte."
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.py
+msgid "{0} is not a bank or cash account of {1}."
+msgstr "{0} n'est pas un compte bancaire ou de caisse de {1}."
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "{0} slip(s) of the year not booked yet."
+msgstr "{0} fiche(s) de l'exercice pas encore comptabilisée(s)."
+
+#: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.json
+msgid "Advance Statement"
+msgstr "Acompte"

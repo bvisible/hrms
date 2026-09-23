@@ -236,6 +236,9 @@ doc_events = {
 	},
 	"Journal Entry": {
 		"validate": "hrms.hr.doctype.expense_claim.expense_claim.validate_expense_claim_in_jv",
+		# //// Neoffice — added: the entry of a Swiss insurer statement is cancelled with the statement,
+		# //// never alone (hrms.regional.switzerland.insurer_statements).
+		"before_cancel": "hrms.regional.switzerland.insurer_statements.prevent_cancel_of_statement_entry",
 		"on_submit": [
 			"hrms.hr.doctype.expense_claim.expense_claim.update_payment_for_expense_claim",
 			"hrms.hr.doctype.full_and_final_statement.full_and_final_statement.update_full_and_final_statement_status",

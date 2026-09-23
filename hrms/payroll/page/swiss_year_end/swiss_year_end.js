@@ -69,7 +69,100 @@ class SwissYearEnd {
 		}
 		this.state.reconcile = await this.call("reconcile");
 		this.state.qst = await this.call("qst_summary");
+		//// Neoffice — the insurance accounts, for whoever may read the ledger (the reconciliation
+		//// reads it; an HR user without accounting access simply does not get the card).
+		this.state.insurance = frappe.model.can_read("GL Entry")
+			? (
+					await frappe.call({
+						method: "hrms.regional.switzerland.insurer_statements.reconcile",
+						args: this.args(),
+					})
+				).message
+			: null;
 		this.render();
+	}
+
+	//// Neoffice — the final statement of an account, in one gesture: the insurer last used for it,
+	//// the fiscal year as period, and what is left to settle as amount.
+	async record_statement(row) {
+		const args = this.args();
+		const insurance = row.insurances[0];
+		const defaults =
+			(
+				await frappe.call({
+					method: "hrms.regional.switzerland.insurer_statements.statement_defaults",
+					args: { company: args.company, insurance },
+				})
+			).message || {};
+		const [period_from, period_to] = this.state.insurance.period;
+		frappe.new_doc("Swiss Insurer Statement", {}, (doc) => {
+			Object.assign(doc, {
+				company: args.company,
+				kind: "Final Statement",
+				period_from,
+				period_to,
+				insurer: defaults.insurer || "",
+			});
+			// The lines table is mandatory: a new document already carries an empty row.
+			const empty = (doc.lines || []).find((line) => !line.insurance);
+			const line = empty || frappe.model.add_child(doc, "Swiss Insurer Statement Line", "lines");
+			line.insurance = insurance;
+			line.amount = row.suggested;
+		});
+	}
+
+	render_insurance() {
+		const ins = this.state.insurance;
+		if (!ins || !ins.rows.length) {
+			return "";
+		}
+		const badge = {
+			balanced: `<span class="indicator-pill green" style="white-space: nowrap;">${__("Account settled")}</span>`,
+			final_statement_missing: `<span class="indicator-pill orange" style="white-space: nowrap;">${__("Final statement missing")}</span>`,
+			difference: `<span class="indicator-pill red" style="white-space: nowrap;">${__("Difference to explain")}</span>`,
+			no_activity: `<span class="indicator-pill gray" style="white-space: nowrap;">${__("No activity")}</span>`,
+		};
+		const rows = ins.rows
+			.map(
+				(r, index) => `
+				<tr>
+					<td>${r.insurances.map((label) => frappe.utils.escape_html(__(label))).join(", ")}</td>
+					<td><a href="/app/account/${encodeURIComponent(r.account)}">${frappe.utils.escape_html(r.account)}</a></td>
+					<td class="text-right">${format_currency(r.side === "charge" ? r.employer_due : r.due, "CHF")}</td>
+					<td class="text-right">${format_currency(r.statements + r.after, "CHF")}</td>
+					<td class="text-right">${format_currency(r.balance, "CHF")}</td>
+					<td>${badge[r.status] || ""}</td>
+					<td class="text-right">${
+						["final_statement_missing", "difference"].includes(r.status) && Math.abs(r.suggested) >= 0.5
+							? `<button class="btn btn-xs btn-default btn-record-statement" data-index="${index}">
+									${__("Record the final statement")}</button>`
+							: ""
+					}</td>
+				</tr>`
+			)
+			.join("");
+		const method =
+			ins.method === "Social Charges"
+				? __("Social charges method: the statements are charged, the employer part is what remains.")
+				: __("Current account method: after the final statement, each account is back to zero.");
+		return `
+			<div class="frappe-card" style="padding: 15px; margin-bottom: 15px;">
+				<h5>${__("Social insurance accounts")}</h5>
+				<p class="text-muted small">${method}
+					${ins.unbooked_slips ? " " + __("{0} slip(s) of the year not booked yet.", [ins.unbooked_slips]) : ""}</p>
+				<div style="overflow-x: auto;">
+					<table class="table table-sm">
+						<thead><tr>
+							<th>${__("Insurances")}</th><th>${__("Account")}</th>
+							<th class="text-right">${__("Due per payroll")}</th>
+							<th class="text-right">${__("Statements")}</th>
+							<th class="text-right">${__("Balance to settle")}</th>
+							<th>${__("Status")}</th><th></th>
+						</tr></thead>
+						<tbody>${rows}</tbody>
+					</table>
+				</div>
+			</div>`;
 	}
 
 	async run_generate() {
@@ -242,7 +335,11 @@ class SwissYearEnd {
 				</div>`);
 		}
 
+		parts.push(this.render_insurance());
 		this.body.html(parts.join(""));
+		this.body.find(".btn-record-statement").on("click", (event) => {
+			this.record_statement(this.state.insurance.rows[$(event.currentTarget).data("index")]);
+		});
 
 		this.page.clear_inner_toolbar();
 		if (rec.counts.certificates_missing > 0) {
@@ -261,6 +358,20 @@ class SwissYearEnd {
 			this.page.add_inner_button(
 				__("Send {0} certificate(s) to the employees", [rec.counts.certificates_submitted]),
 				() => this.run_send(rec.counts.certificates_submitted)
+			);
+		}
+		//// Neoffice — the insurers' statements and the reconciliation of their accounts.
+		if (this.state.insurance) {
+			this.page.add_inner_button(
+				__("New Insurer Statement"),
+				() => frappe.new_doc("Swiss Insurer Statement", { company: this.args().company }),
+				__("Insurers")
+			);
+			this.page.add_inner_button(
+				__("Reconciliation Report"),
+				() =>
+					frappe.set_route("query-report", "Swiss Social Insurance Reconciliation", this.args()),
+				__("Insurers")
 			);
 		}
 		const exports = [
