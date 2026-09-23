@@ -144,8 +144,15 @@ class TestWageTypeData(unittest.TestCase):
 			if wt is None:
 				continue
 			total_flags = sum(
-				wt[f] for f in ["subject_to_avs", "subject_to_ac", "subject_to_laa",
-								"subject_to_ijm", "subject_to_lpp", "subject_to_imp"]
+				wt[f]
+				for f in [
+					"subject_to_avs",
+					"subject_to_ac",
+					"subject_to_laa",
+					"subject_to_ijm",
+					"subject_to_lpp",
+					"subject_to_imp",
+				]
 			)
 			# Exception: 6060 (expat flat-rate) is subject to ALL
 			if code != "6060":
@@ -168,8 +175,15 @@ class TestWageTypeData(unittest.TestCase):
 				if 2000 <= int(wt["code"]) < 2100:
 					continue
 				total_flags = sum(
-					wt[f] for f in ["subject_to_avs", "subject_to_ac", "subject_to_laa",
-									"subject_to_ijm", "subject_to_lpp", "subject_to_imp"]
+					wt[f]
+					for f in [
+						"subject_to_avs",
+						"subject_to_ac",
+						"subject_to_laa",
+						"subject_to_ijm",
+						"subject_to_lpp",
+						"subject_to_imp",
+					]
 				)
 				self.assertEqual(
 					total_flags,
@@ -180,9 +194,26 @@ class TestWageTypeData(unittest.TestCase):
 	def test_lohnausweis_positions_valid(self):
 		"""All lohnausweis_position values should be from the valid set."""
 		valid_positions = {
-			"", "1", "2.1", "2.2", "2.3", "3", "4", "5", "6", "7",
-			"9", "10.1", "10.2", "12",
-			"13.1.1", "13.1.2", "13.2.1", "13.2.2", "13.2.3", "14",
+			"",
+			"1",
+			"2.1",
+			"2.2",
+			"2.3",
+			"3",
+			"4",
+			"5",
+			"6",
+			"7",
+			"9",
+			"10.1",
+			"10.2",
+			"12",
+			"13.1.1",
+			"13.1.2",
+			"13.2.1",
+			"13.2.2",
+			"13.2.3",
+			"14",
 		}
 		for wt in self.wage_types:
 			self.assertIn(
@@ -229,7 +260,12 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 		from hrms.regional.switzerland.payroll_hooks import _get_insurance_base_totals
 
 		mock_flags.return_value = {
-			"avs": 1, "ac": 1, "laa": 1, "ijm": 1, "lpp": 1, "imp": 1,
+			"avs": 1,
+			"ac": 1,
+			"laa": 1,
+			"ijm": 1,
+			"lpp": 1,
+			"imp": 1,
 			"has_flags": True,
 		}
 
@@ -302,7 +338,12 @@ class TestInsuranceBaseTotals(unittest.TestCase):
 		from hrms.regional.switzerland.payroll_hooks import _get_insurance_base_totals
 
 		mock_flags.return_value = {
-			"avs": 0, "ac": 0, "laa": 0, "ijm": 0, "lpp": 0, "imp": 0,
+			"avs": 0,
+			"ac": 0,
+			"laa": 0,
+			"ijm": 0,
+			"lpp": 0,
+			"imp": 0,
 			"has_flags": False,
 		}
 
@@ -488,6 +529,37 @@ class TestDefaultLohnausweisMapping(unittest.TestCase):
 		}
 		missing = expected - comp_names
 		self.assertEqual(missing, set(), f"Missing components in mapping: {missing}")
+
+
+class TestComponentNames(unittest.TestCase):
+	"""The payslip prints component names through _(): each one needs a catalogue entry."""
+
+	def test_every_component_is_listed_for_the_catalogue(self):
+		from hrms.regional.switzerland.setup import (
+			COMPONENT_NAME_MESSAGES,
+			get_swiss_salary_component_definitions,
+		)
+
+		listed = {message.msg for message in COMPONENT_NAME_MESSAGES}
+		created = {definition["salary_component"] for definition in get_swiss_salary_component_definitions()}
+		self.assertEqual(created - listed, set())
+
+	def test_every_component_is_translated_to_french(self):
+		"""A French payslip printed "AVS/AI/APG Employee" and "Source Tax Employee"."""
+		from babel.messages.pofile import read_po
+
+		import frappe
+
+		from hrms.regional.switzerland.setup import COMPONENT_NAME_MESSAGES
+
+		with open(frappe.get_app_path("hrms", "locale", "fr.po"), "rb") as po:
+			catalog = read_po(po)
+		missing = [
+			message.msg
+			for message in COMPONENT_NAME_MESSAGES
+			if not (catalog.get(message.msg) and catalog.get(message.msg).string)
+		]
+		self.assertEqual(missing, [])
 
 
 if __name__ == "__main__":

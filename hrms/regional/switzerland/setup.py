@@ -2,7 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
-from frappe import _
+from frappe import _, _lt
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 from hrms.regional.switzerland.constants import (
@@ -765,6 +765,40 @@ def ensure_swiss_salary_components():
 	# would otherwise bump the modified date of every Swiss component on every migrate.
 	_link_paired_components(missing)
 	frappe.db.commit()
+
+
+# The payslip prints each component through _(row.name): the names this module creates are
+# listed here for the translation catalogue. The names themselves stay in English — they are
+# the keys of the documents, shared by every language of the fleet.
+COMPONENT_NAME_MESSAGES = (
+	_lt("AVS/AI/APG Employee"),
+	_lt("AVS/AI/APG Employer"),
+	_lt("AC/ALV Employee"),
+	_lt("AC/ALV Employer"),
+	_lt("LAA Professional Employer"),
+	_lt("LAA Non-Professional Employee"),
+	_lt("LAA Non-Professional Employer"),
+	_lt("LAAC Employee"),
+	_lt("LAAC Employer"),
+	_lt("LPP/BVG Employee"),
+	_lt("LPP/BVG Employer"),
+	_lt("IJM/KTG Employee"),
+	_lt("IJM/KTG Employer"),
+	_lt("Family Allowances Employer"),
+	_lt("Source Tax Employee"),
+	_lt("13th Month Salary"),
+	_lt("Overtime Pay"),
+	_lt("Vacation Allowance"),
+	_lt("Bonus"),
+	_lt("APG Allowance"),
+	_lt("IJM Sickness Allowance"),
+	_lt("Maternity Allowance"),
+	_lt("Child Allowance"),
+	_lt("Travel Expenses"),
+	_lt("Car Expenses"),
+	_lt("Meal Expenses"),
+	_lt("Flat-Rate Representation Expenses"),
+)
 
 
 def get_swiss_salary_component_definitions():

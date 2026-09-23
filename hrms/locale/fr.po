@@ -5027,7 +5027,7 @@ msgstr ""
 #: hrms/payroll/doctype/salary_structure/salary_structure.json
 #: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:190
 msgid "Earnings"
-msgstr "Bénéfices"
+msgstr "Revenus"
 
 #. Label of a Tab Break field in DocType 'Salary Slip'
 #. Label of a Tab Break field in DocType 'Salary Structure'
@@ -18392,3 +18392,1118 @@ msgstr "Compte de charge patronale"
 msgid "Employer contributions only: the charge debited (5700-5799). The account on the left is the liability credited."
 msgstr "Cotisations patronales uniquement : la charge débitée (5700-5799). Le compte de gauche est le compte de passif crédité."
 
+#: hrms/regional/switzerland/setup.py:774
+msgid "AVS/AI/APG Employee"
+msgstr "AVS/AI/APG part salarié"
+
+#: hrms/regional/switzerland/setup.py:775
+msgid "AVS/AI/APG Employer"
+msgstr "AVS/AI/APG part employeur"
+
+#: hrms/regional/switzerland/setup.py:776
+msgid "AC/ALV Employee"
+msgstr "AC/ALV part salarié"
+
+#: hrms/regional/switzerland/setup.py:777
+msgid "AC/ALV Employer"
+msgstr "AC/ALV part employeur"
+
+#: hrms/regional/switzerland/setup.py:778
+msgid "LAA Professional Employer"
+msgstr "LAA AP part employeur"
+
+#: hrms/regional/switzerland/setup.py:779
+msgid "LAA Non-Professional Employee"
+msgstr "LAA ANP part salarié"
+
+#: hrms/regional/switzerland/setup.py:780
+msgid "LAA Non-Professional Employer"
+msgstr "LAA ANP part employeur"
+
+#: hrms/regional/switzerland/setup.py:781
+msgid "LAAC Employee"
+msgstr "LAAC part salarié"
+
+#: hrms/regional/switzerland/setup.py:782
+msgid "LAAC Employer"
+msgstr "LAAC part employeur"
+
+#: hrms/regional/switzerland/setup.py:783
+msgid "LPP/BVG Employee"
+msgstr "LPP/BVG part salarié"
+
+#: hrms/regional/switzerland/setup.py:784
+msgid "LPP/BVG Employer"
+msgstr "LPP/BVG part employeur"
+
+#: hrms/regional/switzerland/setup.py:785
+msgid "IJM/KTG Employee"
+msgstr "IJM/KTG part salarié"
+
+#: hrms/regional/switzerland/setup.py:786
+msgid "IJM/KTG Employer"
+msgstr "IJM/KTG part employeur"
+
+#: hrms/regional/switzerland/setup.py:787
+msgid "Family Allowances Employer"
+msgstr "Allocations familiales (CAF) part employeur"
+
+#: hrms/regional/switzerland/setup.py:788
+msgid "Source Tax Employee"
+msgstr "Impôt à la source"
+
+#: hrms/regional/switzerland/setup.py:790
+msgid "Overtime Pay"
+msgstr "Heures supplémentaires"
+
+#: hrms/regional/switzerland/setup.py:791
+msgid "Vacation Allowance"
+msgstr "Indemnité de vacances"
+
+#: hrms/regional/switzerland/setup.py:793
+msgid "APG Allowance"
+msgstr "Indemnité APG"
+
+#: hrms/regional/switzerland/setup.py:794
+msgid "IJM Sickness Allowance"
+msgstr "Indemnités journalières maladie (IJM)"
+
+#: hrms/regional/switzerland/setup.py:795
+msgid "Maternity Allowance"
+msgstr "Indemnité maternité"
+
+#: hrms/regional/switzerland/setup.py:796
+msgid "Child Allowance"
+msgstr "Allocations pour enfants"
+
+#: hrms/regional/switzerland/setup.py:797
+msgid "Travel Expenses"
+msgstr "Frais de voyage"
+
+#: hrms/regional/switzerland/setup.py:798
+msgid "Car Expenses"
+msgstr "Frais de voiture"
+
+#: hrms/regional/switzerland/setup.py:799
+msgid "Meal Expenses"
+msgstr "Frais de repas"
+
+#: hrms/regional/switzerland/setup.py:800
+msgid "Flat-Rate Representation Expenses"
+msgstr "Frais de représentation forfaitaires"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.1.1 Effective Travel"
+msgstr "13.1.1 Frais de voyage, repas, nuitées"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.1.1 Travel Expenses"
+msgstr "13.1.1 Frais de voyage, repas, nuitées"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.1.2 Description"
+msgstr "13.1.2 Description"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.1.2 Other Effective Expenses"
+msgstr "13.1.2 Autres frais effectifs"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.2.1 Representation Expenses"
+msgstr "13.2.1 Frais de représentation"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.2.2 Car Expenses"
+msgstr "13.2.2 Frais de voiture"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.2.3 Description"
+msgstr "13.2.3 Description"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.2.3 Other Flat-rate"
+msgstr "13.2.3 Autres frais forfaitaires"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "13.3 Education / Training"
+msgstr "13.3 Contributions au perfectionnement"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "14. Description"
+msgstr "14. Description"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "2.1 Board and Lodging"
+msgstr "2.1 Pension et logement"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "2.2 Private Share Company Car"
+msgstr "2.2 Part privée voiture de service"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "2.3 Description"
+msgstr "2.3 Description"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "3. Description"
+msgstr "3. Description"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "4. Description"
+msgstr "4. Description"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "7. Description"
+msgstr "7. Description"
+
+#: hrms/payroll/workspace/swiss_payroll/swiss_payroll.json
+msgid "<span class=\"h4\"><b>Actions</b></span>"
+msgstr "<span class=\"h4\"><b>Actions</b></span>"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "AHV/AVS"
+msgstr "AHV/AVS"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js:148
+msgid "AVS"
+msgstr "AVS"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py:24
+msgid ""
+"AVS Number is required for the salary certificate. Please update the "
+"employee record."
+msgstr ""
+"Le numéro AVS est requis pour le certificat de salaire. Veuillez mettre à "
+"jour la fiche de l'employé."
+
+#: hrms/regional/switzerland/assistant/validators.py:13
+msgid "AVS number is required"
+msgstr "Le numéro AVS est requis"
+
+#: hrms/regional/switzerland/assistant/validators.py:19
+msgid "AVS number must be 13 digits (756.XXXX.XXXX.XX)"
+msgstr "Le numéro AVS doit comporter 13 chiffres (756.XXXX.XXXX.XX)"
+
+#: hrms/regional/switzerland/assistant/validators.py:25
+msgid "AVS number must contain only digits"
+msgstr "Le numéro AVS ne doit contenir que des chiffres"
+
+#: hrms/regional/switzerland/assistant/validators.py:22
+msgid "AVS number must start with 756"
+msgstr "Le numéro AVS doit commencer par 756"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:41
+msgid "AVS, AC, LAA, IJM"
+msgstr "AVS, AC, LAA, IJM"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:602
+msgid ""
+"All information for this step has been collected. Would you like to proceed "
+"to the next step?"
+msgstr ""
+"Toutes les informations pour cette étape ont été collectées. Souhaitez-vous "
+"passer à l'étape suivante ?"
+
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "Annual contribution returned by the pension fund."
+msgstr "Cotisation annuelle retournée par la caisse de pension."
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:83
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:115
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:429
+msgid "Apply Configuration"
+msgstr "Appliquer la configuration"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:357
+msgid "Apply the collected configuration to your Frappe records?"
+msgstr "Appliquer la configuration collectée à vos enregistrements Frappe ?"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.js:36
+msgid "Are you sure you want to transmit this EMA notification?"
+msgstr "Voulez-vous vraiment transmettre cette notification EMA ?"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Austritt"
+msgstr "Sortie"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Auto-populated summary of what changed."
+msgstr "Résumé généré automatiquement des modifications."
+
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "BVG Basis Override"
+msgstr "Remplacement de la base BVG"
+
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "BVG Contribution (Response)"
+msgstr "Cotisation BVG (réponse)"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:487
+msgid "BVG response import is only available for BVG-Projection declarations."
+msgstr ""
+"L'import de la réponse BVG n'est disponible que pour les déclarations BVG-"
+"Projection."
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "BVG-Projection"
+msgstr "BVG-Projection"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "BVG/LPP (Pension Fund)"
+msgstr "BVG/LPP (caisse de pension)"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "BVG/LPP Data Complete"
+msgstr "Données BVG/LPP complètes"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Base month for salary projection (1-12). Typically January."
+msgstr "Mois de base pour la projection salariale (1-12). Généralement janvier."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js:44
+msgid "CODE128C Identifier"
+msgstr "Identifiant CODE128C"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.py:169
+#, python-brace-format
+msgid "Can only check status for 'Transmitted' notifications. Current: {0}"
+msgstr ""
+"Seules les notifications au statut « Transmitted » peuvent être vérifiées. "
+"Statut actuel : {0}"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:36
+msgid "Canton & UID-BFS"
+msgstr "Canton et UID-BFS"
+
+#: hrms/regional/switzerland/assistant/validators.py:78
+msgid "Canton is required"
+msgstr "Le canton est requis"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Certificate Type"
+msgstr "Type de certificat"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Change Details"
+msgstr "Détails du changement"
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Code of the paired employee/employer wage type"
+msgstr "Code du type de salaire employé/employeur apparié"
+
+#: hrms/payroll/doctype/swiss_payroll_chat_session/swiss_payroll_chat_session.json
+msgid "Collected Data"
+msgstr "Données collectées"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:178
+msgid "Company updated with UID-BFS"
+msgstr "Entreprise mise à jour avec l'UID-BFS"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid ""
+"Complementary accident insurance, employee share. Insurer-specific — see the"
+" policy. Leave empty if the company has no LAAC."
+msgstr ""
+"Assurance accidents complémentaire, part salarié. Spécifique à l'assureur — "
+"voir la police. Laissez vide si l'entreprise n'a pas de LAAC."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Complementary accident insurance, employer share."
+msgstr "Assurance accidents complémentaire, part employeur."
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:368
+msgid "Configuration applied successfully"
+msgstr "Configuration appliquée avec succès"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:66
+msgid "Confirm & apply"
+msgstr "Confirmer et appliquer"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Contributions to education and training"
+msgstr "Contributions à la formation et au perfectionnement"
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.js:9
+msgid "Create Salary Component(s)"
+msgstr "Créer composante(s) salariale(s)"
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.js:26
+#, python-brace-format
+msgid "Created {0}"
+msgstr "Créé : {0}"
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.js:21
+#, python-brace-format
+msgid "Created {0} and {1} (linked pair)"
+msgstr "Créé : {0} et {1} (paire liée)"
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.js:14
+msgid "Creating Salary Component(s)..."
+msgstr "Création de composante(s) salariale(s)..."
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:55
+msgid "Cross-Border"
+msgstr "Frontalier"
+
+#: hrms/regional/switzerland/assistant/validators.py:106
+msgid "Cross-border workers (permit G) are always subject to source tax (QST)"
+msgstr "Les frontaliers (permis G) sont toujours soumis à l'impôt à la source (IS)"
+
+#: hrms/regional/switzerland/assistant/validators.py:108
+msgid "Cross-border workers (permit G) must be flagged as cross-border"
+msgstr "Les frontaliers (permis G) doivent être marqués comme frontaliers"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Data Completeness"
+msgstr "Complétude des données"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py:26
+msgid ""
+"Date of Birth is required for the salary certificate. Please update the "
+"employee record."
+msgstr ""
+"La date de naissance est requise pour le certificat de salaire. Veuillez "
+"mettre à jour la fiche de l'employé."
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:88
+msgid "Describe your company setup..."
+msgstr "Décrivez la configuration de votre entreprise..."
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Description (FR)"
+msgstr "Description (FR)"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.py:106
+#, python-brace-format
+msgid "EMA XML exported: {0}"
+msgstr "XML EMA exporté : {0}"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.py:143
+#, python-brace-format
+msgid "EMA accepted. ID: {0}"
+msgstr "EMA accepté. ID : {0}"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.py:121
+#, python-brace-format
+msgid "EMA must be in 'Exported' status to transmit. Current status: {0}"
+msgstr ""
+"L'EMA doit être au statut « Exported » pour être transmis. Statut actuel : "
+"{0}"
+
+#: hrms/regional/switzerland/ema_hooks.py:149
+#, python-brace-format
+msgid "EMA notification ({0}) created for {1}."
+msgstr "Notification EMA ({0}) créée pour {1}."
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.py:154
+#, python-brace-format
+msgid "EMA rejected: {0}"
+msgstr "EMA rejeté : {0}"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.py:148
+#, python-brace-format
+msgid "EMA sent. Awaiting response. TX ID: {0}"
+msgstr "EMA envoyé. En attente de réponse. ID TX : {0}"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Effective travel expenses"
+msgstr "Frais de voyage effectifs"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Eintritt"
+msgstr "Entrée"
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "Employee Rate (%)"
+msgstr "Taux salarié (%)"
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "Employee Rate, Women (%)"
+msgstr "Taux salarié, femmes (%)"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Employee Snapshot"
+msgstr "Instantané de l'employé"
+
+#: hrms/regional/switzerland/assistant/actions.py:171
+msgid "Employee and base salary are required"
+msgstr "L'employé et le salaire de base sont requis"
+
+#: hrms/regional/switzerland/assistant/actions.py:116
+msgid "Employee name is required"
+msgstr "Le nom de l'employé est requis"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.py:47
+msgid "Employee snapshot updated."
+msgstr "Instantané de l'employé mis à jour."
+
+#: hrms/regional/switzerland/payroll_hooks.py:902
+#, python-brace-format
+msgid ""
+"Employee {0} is subject to source tax but no salary component is linked to "
+"wage type 5060 (and 'Source Tax Employee' does not exist). Run the Swiss "
+"payroll setup or create the component."
+msgstr ""
+"L'employé {0} est soumis à l'impôt à la source, mais aucune composante "
+"salariale n'est liée au type de salaire 5060 (et « Source Tax Employee » "
+"n'existe pas). Lancez la configuration de la paie suisse ou créez la "
+"composante."
+
+#: hrms/regional/switzerland/assistant/chat_service.py:201
+#, python-brace-format
+msgid "Employee {0} updated"
+msgstr "Employé {0} mis à jour"
+
+#: hrms/regional/switzerland/payroll_hooks.py:513
+#: hrms/regional/switzerland/payroll_hooks.py:518
+#, python-brace-format
+msgid "Employee {0}: {1}"
+msgstr "Employé {0} : {1}"
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Employer Contribution"
+msgstr "Cotisation employeur"
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "Employer Rate (%)"
+msgstr "Taux employeur (%)"
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "Employer Rate, Women (%)"
+msgstr "Taux employeur, femmes (%)"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Entry Date"
+msgstr "Date d'entrée"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:229
+#, python-brace-format
+msgid "Error applying configuration: {0}"
+msgstr "Erreur lors de l'application de la configuration : {0}"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Event Date"
+msgstr "Date de l'événement"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Exit Date"
+msgstr "Date de sortie"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "FAK (Family Allowances)"
+msgstr "FAK (allocations familiales)"
+
+#: hrms/regional/switzerland/assistant/actions.py:270
+#, python-brace-format
+msgid "Failed to fetch QST tariffs for {0}: {1}"
+msgstr "Échec de la récupération des barèmes IS pour {0} : {1}"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Flat-rate car expenses"
+msgstr "Frais de voiture forfaitaires"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Flat-rate representation expenses"
+msgstr "Frais de représentation forfaitaires"
+
+#: hrms/regional/switzerland/assistant/validators.py:115
+#, python-brace-format
+msgid "Foreign workers with permit {0} are typically subject to source tax (QST)"
+msgstr ""
+"Les travailleurs étrangers titulaires du permis {0} sont généralement soumis"
+" à l'impôt à la source (IS)"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Free Transport"
+msgstr "Transport gratuit"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Free transport provided by employer"
+msgstr "Transport gratuit fourni par l'employeur"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:56
+msgid "Frontalier details"
+msgstr "Détails du frontalier"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js:22
+msgid "Generating barcode..."
+msgstr "Génération du code-barres..."
+
+#: hrms/regional/switzerland/assistant/chat_service.py:612
+#, python-brace-format
+msgid ""
+"I still need the following information: {0}\n"
+"\n"
+"Please provide these details to continue."
+msgstr ""
+"Il me manque encore les informations suivantes : {0}\n"
+"\n"
+"Veuillez fournir ces détails pour continuer."
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "IJM"
+msgstr "IJM"
+
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "If set, replaces the automatic projection for this employee."
+msgstr "Si renseigné, remplace la projection automatique pour cet employé."
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:115
+msgid "Import BVG Contributions"
+msgstr "Importer les cotisations BVG"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:89
+msgid "Import BVG Response"
+msgstr "Importer la réponse BVG"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Include 13th Month"
+msgstr "Inclure le 13e salaire"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Insurance Solutions"
+msgstr "Solutions d'assurance"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Insurance Solutions (LAA units, LAAC and IJM codes)"
+msgstr "Solutions d'assurance (unités LAA, codes LAAC et IJM)"
+
+#: hrms/regional/switzerland/payroll_hooks.py:514
+msgid "Insurance code not configured"
+msgstr "Code d'assurance non configuré"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:184
+#, python-brace-format
+msgid "Insurance configuration created: {0}"
+msgstr "Configuration d'assurance créée : {0}"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:671
+msgid "Insurance rates"
+msgstr "Taux d'assurance"
+
+#: hrms/regional/switzerland/assistant/validators.py:35
+msgid "Invalid AVS check digit"
+msgstr "Chiffre de contrôle AVS invalide"
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:36
+msgid "Invalid Tariff Type"
+msgstr "Type de barème invalide"
+
+#: hrms/regional/switzerland/assistant/validators.py:81
+#, python-brace-format
+msgid "Invalid canton code: {0}"
+msgstr "Code de canton invalide : {0}"
+
+#: hrms/regional/switzerland/payroll_hooks.py:519
+msgid "Invalid insurance code"
+msgstr "Code d'assurance invalide"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "KTG/IJM Data Complete"
+msgstr "Données KTG/IJM complètes"
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "LAA"
+msgstr "LAA"
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid ""
+"LAA: one row per business unit. LAAC / IJM: one row per insurance code (and "
+"per wage bracket)."
+msgstr ""
+"LAA : une ligne par unité d'entreprise. LAAC / IJM : une ligne par code "
+"d'assurance (et par tranche de salaire)."
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid ""
+"LAA: the business unit letter (A-Z) — the scope digit is set per employee. "
+"LAAC / IJM: the two-character code (person group + category), as "
+"communicated by the insurer."
+msgstr ""
+"LAA : la lettre de l'unité d'entreprise (A-Z) — le chiffre de portée est "
+"défini par employé. LAAC / IJM : le code à deux caractères (groupe de "
+"personnes + catégorie), tel que communiqué par l'assureur."
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid ""
+"LAA: the non-occupational premium (NBUV/AANP) of the unit. LAAC / IJM: "
+"employee share, men (or everyone if the insurer does not differentiate)."
+msgstr ""
+"LAA : la prime non professionnelle (NBUV/AANP) de l'unité. LAAC / IJM : part"
+" salarié, hommes (ou tout le monde si l'assureur ne différencie pas)."
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid ""
+"LAA: the occupational premium (BUV/AAP) of the unit, always the employer's. "
+"LAAC / IJM: employer share, men (or everyone)."
+msgstr ""
+"LAA : la prime professionnelle (BUV/AAP) de l'unité, toujours à la charge de"
+" l'employeur. LAAC / IJM : part employeur, hommes (ou tout le monde)."
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "LAAC"
+msgstr "LAAC"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAAC Employee Rate (%)"
+msgstr "Taux salarié LAAC (%)"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAAC Employer GL Account"
+msgstr "Compte comptable employeur LAAC"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAAC Employer Rate (%)"
+msgstr "Taux employeur LAAC (%)"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "LAAC/UVGZ (Complementary Accident Insurance)"
+msgstr "LAAC/UVGZ (assurance accidents complémentaire)"
+
+#: hrms/regional/switzerland/payroll_hooks.py:300
+msgid "LPP/BVG skipped"
+msgstr "LPP/BVG ignoré"
+
+#: hrms/regional/switzerland/payroll_hooks.py:294
+#, python-brace-format
+msgid ""
+"LPP/BVG was not computed for {0}: no base salary could be determined on this"
+" slip (no earning carries a base wage type, and none is subject to LPP). The"
+" other Swiss contributions were computed normally."
+msgstr ""
+"Le LPP/BVG n'a pas été calculé pour {0} : aucun salaire de base n'a pu être "
+"déterminé sur cette fiche de salaire (aucun gain ne porte un type de salaire"
+" de base, et aucun n'est soumis à la LPP). Les autres cotisations suisses "
+"ont été calculées normalement."
+
+#: hrms/regional/switzerland/assistant/chat_service.py:630
+msgid "Let's configure cross-border worker details."
+msgstr "Configurons les détails du frontalier."
+
+#: hrms/regional/switzerland/assistant/chat_service.py:629
+msgid "Let's configure source tax (QST) for your foreign employees."
+msgstr "Configurons l'impôt à la source (IS) pour vos employés étrangers."
+
+#: hrms/regional/switzerland/assistant/chat_service.py:623
+msgid "Let's configure your company. Which company would you like to set up?"
+msgstr "Configurons votre entreprise. Quelle entreprise souhaitez-vous configurer ?"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:628
+msgid "Let's configure your employees. Which employee should we start with?"
+msgstr "Configurons vos employés. Par quel employé souhaitez-vous commencer ?"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:635
+msgid "Let's review all the configuration before applying it."
+msgstr "Passons en revue toute la configuration avant de l'appliquer."
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Linked Wage Type Code"
+msgstr "Code du type de salaire lié"
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "Lower bound of the insured salary, per year, as the insurer publishes it."
+msgstr ""
+"Limite inférieure du salaire assuré, par année, telle que publiée par "
+"l'assureur."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Lunch Checks"
+msgstr "Chèques-repas"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Lunch checks or canteen meals provided"
+msgstr "Chèques-repas ou repas de cantine fournis"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Mutation"
+msgstr "Mutation"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:222
+msgid "No actions taken"
+msgstr "Aucune action effectuée"
+
+#: hrms/regional/switzerland/assistant/actions.py:233
+msgid "No canton was given for the tariff import."
+msgstr "Aucun canton n'a été indiqué pour l'import du barème."
+
+#: hrms/regional/switzerland/source_tax.py:459
+#, python-brace-format
+msgid ""
+"No source tax bracket found for canton {0}, tariff code {1}, date {2}. "
+"Import the ESTV tariffs for this year or fix the employee's tariff code.{3}"
+msgstr ""
+"Aucune tranche d'impôt à la source trouvée pour le canton {0}, code de "
+"barème {1}, date {2}. Importez les barèmes ESTV pour cette année ou corrigez"
+" le code de barème de l'employé.{3}"
+
+#: hrms/regional/switzerland/assistant/actions.py:188
+msgid "No submitted Swiss Salary Structure found. Please create one first."
+msgstr ""
+"Aucune structure salariale suisse validée trouvée. Veuillez d'abord en créer"
+" une."
+
+#: hrms/regional/switzerland/source_tax.py:455
+msgid ""
+"Note: some cantons (e.g. GE) levy no church tax at source and only publish "
+"'…N' codes."
+msgstr ""
+"Remarque : certains cantons (p. ex. GE) ne prélèvent pas d'impôt "
+"ecclésiastique à la source et ne publient que des codes « …N »."
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Notify Institutions"
+msgstr "Institutions à notifier"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:624
+msgid ""
+"Now let's configure social insurance rates. I'll suggest the legal defaults "
+"— you just need to provide insurer-specific rates (LAA, IJM)."
+msgstr ""
+"Configurons maintenant les taux d'assurances sociales. Je vais vous proposer"
+" les valeurs légales par défaut — il vous suffit de fournir les taux "
+"spécifiques à votre assureur (LAA, IJM)."
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "Only when the insurer charges women differently. Empty = same as above."
+msgstr ""
+"Uniquement si l'assureur applique un tarif différent aux femmes. Vide = "
+"identique à ci-dessus."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid ""
+"Optional. Leave empty and the flat rates above apply to everyone. Fill it "
+"when the LAA insurer assigns several business units, or when LAAC / IJM "
+"rates depend on the category, the wage bracket or the employee's sex — then "
+"set each employee's codes on the employee record."
+msgstr ""
+"Facultatif. Laissez vide et les taux forfaitaires ci-dessus s'appliquent à "
+"tout le monde. À renseigner lorsque l'assureur LAA attribue plusieurs unités"
+" d'entreprise, ou lorsque les taux LAAC / IJM dépendent de la catégorie, de "
+"la tranche de salaire ou du sexe de l'employé — définissez alors les codes "
+"de chaque employé sur sa fiche."
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Original Declaration"
+msgstr "Déclaration d'origine"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Other effective expenses"
+msgstr "Autres frais effectifs"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js:37
+msgid "PDF417 Barcode"
+msgstr "Code-barres PDF417"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:95
+msgid "Paste CSV (employee,contribution)"
+msgstr "Coller le CSV (employé,cotisation)"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
+msgid "Pension"
+msgstr "Pension"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:46
+msgid "Permits, AVS, salaries"
+msgstr "Permis, AVS, salaires"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.py:28
+msgid "Posting Date (certificate date) is required."
+msgstr "La date de comptabilisation (date du certificat) est requise."
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js:17
+msgid "Preview Barcode"
+msgstr "Aperçu du code-barres"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Project using 13 months (13th salary) instead of 12."
+msgstr "Effectue la projection sur 13 mois (13e salaire) au lieu de 12."
+
+#: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
+msgid "Projected Annual Salary (BVG)"
+msgstr "Salaire annuel projeté (BVG)"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Projection Base Month"
+msgstr "Mois de base de la projection"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:54
+msgid "Projection base month (1-12) is required for BVG projections."
+msgstr "Le mois de base de la projection (1-12) est requis pour les projections BVG."
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:60
+msgid "QST Import"
+msgstr "Import IS"
+
+#: hrms/regional/switzerland/assistant/validators.py:121
+msgid "QST tariff letter is required for source-taxed employees"
+msgstr ""
+"La lettre de barème IS est requise pour les employés soumis à l'impôt à la "
+"source"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:51
+msgid "QST tariffs"
+msgstr "Barèmes IS"
+
+#: hrms/regional/switzerland/assistant/actions.py:257
+#, python-brace-format
+msgid "QST tariffs fetched for {0} {1}"
+msgstr "Barèmes IS récupérés pour {0} {1}"
+
+#: hrms/regional/switzerland/assistant/validators.py:123
+msgid "QST taxation canton is required"
+msgstr "Le canton d'imposition IS est requis"
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:252
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html:303
+msgid "Qty/Rate"
+msgstr "Qté/Taux"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Reference to the original declaration being corrected."
+msgstr "Référence à la déclaration d'origine en cours de correction."
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.js:11
+msgid "Refresh Snapshot"
+msgstr "Actualiser l'instantané"
+
+#: hrms/regional/switzerland/assistant/validators.py:110
+msgid "Residence country is required for cross-border workers"
+msgstr "Le pays de résidence est requis pour les frontaliers"
+
+#: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js:55
+msgid "Salary Certificate Barcode Preview"
+msgstr "Aperçu du code-barres du certificat de salaire"
+
+#: hrms/regional/switzerland/api.py:74
+#, python-brace-format
+msgid "Salary Component '{0}' already exists."
+msgstr "La composante salariale « {0} » existe déjà."
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Salary Component Template"
+msgstr "Modèle de composante salariale"
+
+#: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
+msgid "Salary Component abbreviation (e.g., AVS_EE, AC_ER)"
+msgstr "Abréviation de la composante salariale (p. ex. AVS_EE, AC_ER)"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:207
+#, python-brace-format
+msgid "Salary assignment created for {0}: {1}"
+msgstr "Affectation salariale créée pour {0} : {1}"
+
+#: hrms/regional/switzerland/api.py:155
+msgid "Session ID and message are required"
+msgstr "L'ID de session et le message sont requis"
+
+#: hrms/regional/switzerland/payroll_hooks.py:907
+msgid "Source Tax Component Missing"
+msgstr "Composante d'impôt à la source manquante"
+
+#: hrms/regional/switzerland/source_tax.py:463
+msgid "Source Tax Tariff Missing"
+msgstr "Barème d'impôt à la source manquant"
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "Swiss Insurance Solution"
+msgstr "Solution d'assurance suisse"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:87
+msgid "Swiss Payroll Assistant"
+msgstr "Assistant paie suisse"
+
+#: hrms/payroll/doctype/swiss_payroll_chat_message/swiss_payroll_chat_message.json
+msgid "Swiss Payroll Chat Message"
+msgstr "Message de chat de paie suisse"
+
+#: hrms/payroll/doctype/swiss_payroll_chat_session/swiss_payroll_chat_session.json
+#: hrms/payroll/workspace/payroll/payroll.json
+msgid "Swiss Payroll Chat Session"
+msgstr "Session de chat de paie suisse"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:76
+msgid "Swiss Payroll Configuration"
+msgstr "Configuration de la paie suisse"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:15
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:115
+msgid "Swiss Payroll Setup"
+msgstr "Paramétrage de la paie suisse"
+
+#: hrms/payroll/workspace/swiss_payroll/swiss_payroll.json
+msgid "Swissdec"
+msgstr "Swissdec"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Swissdec EMA Notification"
+msgstr "Notification EMA Swissdec"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:61
+msgid "Tariff tables"
+msgstr "Tables de barèmes"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:96
+msgid "This session is no longer active"
+msgstr "Cette session n'est plus active"
+
+#: hrms/regional/switzerland/assistant/validators.py:51
+msgid "UID-BFS is required"
+msgstr "L'UID-BFS est requis"
+
+#: hrms/regional/switzerland/assistant/validators.py:61
+msgid "UID-BFS must have 9 digits after CHE"
+msgstr "L'UID-BFS doit comporter 9 chiffres après CHE"
+
+#: hrms/regional/switzerland/assistant/validators.py:57
+msgid "UID-BFS must start with CHE"
+msgstr "L'UID-BFS doit commencer par CHE"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "UVG/LAA Data Complete"
+msgstr "Données UVG/LAA complètes"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Uncheck if BVG/LPP data is still incomplete."
+msgstr "Décochez si les données BVG/LPP sont encore incomplètes."
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Uncheck if KTG/IJM data is still incomplete."
+msgstr "Décochez si les données KTG/IJM sont encore incomplètes."
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
+msgid "Uncheck if LAA/UVG data is still incomplete."
+msgstr "Décochez si les données LAA/UVG sont encore incomplètes."
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py:33
+#, python-brace-format
+msgid "Unknown tariff type {0}. Expected one of: {1}"
+msgstr "Type de barème inconnu : {0}. Valeurs attendues : {1}"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:503
+#, python-brace-format
+msgid "Updated BVG contributions for {0} employees."
+msgstr "Cotisations BVG mises à jour pour {0} employés."
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid ""
+"Upper bound per year. Leave empty for no upper bound. LAA is always capped "
+"at the legal ceiling."
+msgstr ""
+"Limite supérieure par année. Laissez vide pour aucune limite supérieure. La "
+"LAA est toujours plafonnée au plafond légal."
+
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid "Verify TLS Certificate"
+msgstr "Vérifier le certificat TLS"
+
+#: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
+msgid ""
+"Verify the gateway's TLS certificate. Leave enabled: the request carries the"
+" API key and the ELM payload (AVS numbers, every employee's salary). Only "
+"turn this off against a test gateway using a self-signed certificate."
+msgstr ""
+"Vérifiez le certificat TLS de la passerelle. Laissez cette option activée : "
+"la requête transporte la clé API et les données ELM (numéros AVS, salaire de"
+" chaque employé). Ne la désactivez que face à une passerelle de test "
+"utilisant un certificat auto-signé."
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "Wage From (per year)"
+msgstr "Salaire dès (par année)"
+
+#: hrms/payroll/doctype/swiss_insurance_solution/swiss_insurance_solution.json
+msgid "Wage To (per year)"
+msgstr "Salaire jusqu'à (par année)"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:241
+#, python-brace-format
+msgid ""
+"Welcome! I'll help you configure the Swiss payroll module for **{0}**.\n"
+"\n"
+"We'll go through these steps:\n"
+"1. Company setup (canton, UID-BFS)\n"
+"2. Social insurance rates (AVS, AC, LAA, IJM, family allowances)\n"
+"3. Employee configuration (permits, AVS numbers, salaries)\n"
+"4. Source tax (QST) if applicable\n"
+"5. Cross-border workers if applicable\n"
+"\n"
+"Let's start! In which canton is **{0}** located?"
+msgstr ""
+"Bienvenue ! Je vais vous aider à configurer le module de paie suisse pour "
+"**{0}**.\n"
+"\n"
+"Nous allons passer par les étapes suivantes :\n"
+"1. Configuration de l'entreprise (canton, UID-BFS)\n"
+"2. Taux des assurances sociales (AVS, AC, LAA, IJM, allocations familiales)\n"
+"3. Configuration des employés (permis, numéros AVS, salaires)\n"
+"4. Impôt à la source (IS), le cas échéant\n"
+"5. Frontaliers, le cas échéant\n"
+"\n"
+"Commençons ! Dans quel canton se trouve **{0}** ?"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:253
+msgid ""
+"Welcome! I'll help you configure the Swiss payroll module step by step.\n"
+"\n"
+"First, which company would you like to configure?"
+msgstr ""
+"Bienvenue ! Je vais vous aider à configurer le module de paie suisse étape "
+"par étape.\n"
+"\n"
+"Pour commencer, quelle entreprise souhaitez-vous configurer ?"
+
+#: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
+msgid "Work Percentage"
+msgstr "Taux d'activité"
+
+#: hrms/regional/switzerland/assistant/chat_service.py:631
+msgid ""
+"Would you like to import QST tariff tables? This is needed for automatic "
+"source tax calculation."
+msgstr ""
+"Souhaitez-vous importer les tables de barèmes IS ? Cela est nécessaire pour "
+"le calcul automatique de l'impôt à la source."
+
+#: hrms/regional/switzerland/payroll_hooks.py:886
+#, python-brace-format
+msgid "{0} ({1}): {2} -> {3}"
+msgstr "{0} ({1}) : {2} -> {3}"
+
+#: hrms/regional/switzerland/assistant/validators.py:90
+#, python-brace-format
+msgid "{0} must be a number"
+msgstr "{0} doit être un nombre"
+
+#: hrms/regional/switzerland/assistant/validators.py:93
+#, python-brace-format
+msgid "{0} must be between {1} and {2}"
+msgstr "{0} doit être compris entre {1} et {2}"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js:259
+#, python-brace-format
+msgid ""
+"{0} slip(s) already booked from a Payroll Entry ({1}): cancel that journal "
+"entry to book them through the Swiss payroll, which also books the employer "
+"charges."
+msgstr ""
+"{0} fiche(s) déjà comptabilisée(s) depuis une Entrée de la paie ({1}) : "
+"annulez cette écriture de journal pour les comptabiliser via la paie suisse,"
+" qui comptabilise aussi les charges patronales."
+
+#: hrms/regional/switzerland/accounting.py:343
+#, python-brace-format
+msgid ""
+"These salaries were already booked when their slips were submitted from a "
+"Payroll Entry: {0}. Booking them again would count them twice. To book them "
+"through the Swiss payroll, which also books the employer charges, cancel "
+"that journal entry first."
+msgstr ""
+"Ces salaires ont déjà été comptabilisés lorsque leurs fiches ont été "
+"validées depuis une Entrée de la paie : {0}. Les comptabiliser de nouveau "
+"reviendrait à les compter deux fois. Pour les comptabiliser via la paie "
+"suisse, qui comptabilise aussi les charges patronales, annulez d'abord cette"
+" écriture de journal."
+
+#: hrms/regional/switzerland/accounting.py:354
+msgid "Salaries already booked"
+msgstr "Salaires déjà comptabilisés"
