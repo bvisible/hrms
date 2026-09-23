@@ -12625,7 +12625,7 @@ msgstr "Remplir les employés"
 
 #: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js:7
 msgid "Populate from Salary Slips"
-msgstr "Remplir depuis les fiches de paie"
+msgstr "Remplir depuis les fiches de salaire"
 
 #: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:82
 msgid "Populated {0} employees from salary slips."
