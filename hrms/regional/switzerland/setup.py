@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
+# //// Neoffice — _lt import added for COMPONENT_NAME_MESSAGES below (e4a2e4abf "fix(i18n): the Swiss payroll speaks French, payslip first")
 import frappe
 from frappe import _, _lt
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
@@ -767,6 +768,11 @@ def ensure_swiss_salary_components():
 	frappe.db.commit()
 
 
+# //// Neoffice ▼▼▼ — the payslip prints each component through _(row.name), but the names this
+# module creates were never extracted for translation, so a French payslip read "AVS/AI/APG
+# Employee", "Source Tax Employee"; this list feeds _lt() into the catalogue while the names
+# themselves stay English, since they are the document keys shared by every language
+# (e4a2e4abf "fix(i18n): the Swiss payroll speaks French, payslip first")
 # The payslip prints each component through _(row.name): the names this module creates are
 # listed here for the translation catalogue. The names themselves stay in English — they are
 # the keys of the documents, shared by every language of the fleet.
@@ -799,6 +805,7 @@ COMPONENT_NAME_MESSAGES = (
 	_lt("Meal Expenses"),
 	_lt("Flat-Rate Representation Expenses"),
 )
+# //// Neoffice ▲▲▲
 
 
 def get_swiss_salary_component_definitions():
