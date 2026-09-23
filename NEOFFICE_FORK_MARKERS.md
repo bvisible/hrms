@@ -283,4 +283,13 @@ in a skipped file. The build bot writes the marker into it at the next `yarn bui
   settled side by side, account by account, for the Swiss Social Insurance Reconciliation
   (33c32f217 "feat(payroll): the insurers' statements, booked by the company's method, and the
   yearly reconciliation of their accounts")
+- `hrms/payroll/doctype/swiss_payroll_accrual/swiss_payroll_accrual.json` — added file,
+  DocType, submittable — a year-end payroll accrual booking the charges of a year still to
+  be invoiced or paid against the accrued liabilities account, reversed on the first day of
+  the next fiscal year (3fa9b5ff1 "feat(payroll): the source tax collection commission, one
+  final statement per canton, and the year-end payroll accruals")
+- `hrms/payroll/doctype/swiss_payroll_accrual_line/swiss_payroll_accrual_line.json` — added
+  file, Child table — one charge line (account, amount, description) of a Swiss Payroll
+  Accrual (3fa9b5ff1 "feat(payroll): the source tax collection commission, one final
+  statement per canton, and the year-end payroll accruals")
 
