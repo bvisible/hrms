@@ -21248,3 +21248,21 @@ msgstr "Remboursements de frais"
 #: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html
 msgid "Net to Pay"
 msgstr "Net à payer"
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html
+msgid "Personal and confidential"
+msgstr "Personnel et confidentiel"
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html
+msgid "Contribution bases"
+msgstr "Bases de cotisation"
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html
+msgctxt "wage type code"
+msgid "WT"
+msgstr "GS"
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html
+msgctxt "contribution rate"
+msgid "Rate"
+msgstr "Taux"

@@ -1,415 +1,401 @@
 {# //// Neoffice — added file (no upstream equivalent): Swiss pay slip layout (employer/employee #}
 {# //// contribution columns, rates and bases as Swiss law requires them shown). #}
 {%- set d = get_salary_slip_print_data(doc) -%}
+{#- //// Neoffice — laid out as a Swiss letter for a window envelope (2026-09-24): the recipient in
+    //// the right-hand window of SN 010 130 (100 x 45 mm, 12 mm from the right; C5/6, C6/5 and C5
+    //// alike), fold marks at the thirds of the sheet, the sender's return line and "personal"
+    //// above the address. Positions are in millimetres from the paper edge: the PDF gets a 12 mm
+    //// top margin and none on the sides (the .print-format rule below), so a block placed at
+    //// "top: Y" in .ss lands at Y + 12 mm on the paper. -#}
+{%- set sender = [doc.company] + d.company_address -%}
+{%- set facts = [
+	(_("AVS No."), d.employee.get("ch_avs_number") or "-"),
+	(_("Position", context="job title"), _(d.employment.designation) if d.employment.designation else ""),
+	(_("Entry Date"), frappe.format(d.employment.date_of_joining, {"fieldtype": "Date"}) if d.employment.date_of_joining else ""),
+	(_("Exit Date"), frappe.format(d.employment.relieving_date, {"fieldtype": "Date"}) if d.employment.relieving_date else ""),
+	(_("Work Percentage"), d.employment.work_percentage ~ "&nbsp;%" if d.employment.work_percentage else ""),
+	(_("Pay days"), d.employment.pay_days),
+	(_("Source Tax"), (d.source_tax.canton ~ " · " if d.source_tax.canton else "") ~ d.source_tax.tariff if d.source_tax else ""),
+	(_("Canton"), d.employee.get("ch_fiscal_canton") if not d.source_tax else ""),
+] | selectattr("1") | list -%}
 
 <style>
-	/* //// Neoffice — laid out for printing (2026-09-24): no filled bars or shaded headers, which
-	   //// print muddy and cost ink; black text, thin rules and white space carry the structure.
-	   //// The net stands between a rule and an accounting double rule. */
-	@page { size: A4; margin: 12mm 16mm; }
+	/* //// Neoffice — laid out for printing: no filled bars or shaded headers (they print muddy
+	   //// and cost ink); black text, thin rules and white space carry the structure. */
+
+	/* Page geometry, read by frappe.utils.pdf as wkhtmltopdf margins (this exact selector only). */
+	.print-format { margin-top: 12mm; margin-bottom: 12mm; margin-left: 0mm; margin-right: 0mm; }
+	/* ...and the sheet itself flush with them: the instance print style pads it by 10 mm. */
+	body .print-format { margin: 0 !important; padding: 0 !important; }
 
 	.ss {
+		position: relative;
 		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-		font-size: 8.5pt;
+		font-size: 9pt;
 		color: #1a1a1a;
 		line-height: 1.35;
 	}
 
-	/* ── Letterhead ── */
-	.ss-letterhead {
-		display: table;
-		width: 100%;
-		margin-bottom: 8px;
-	}
-	.ss-lh-left {
-		display: table-cell;
-		vertical-align: top;
-		width: 60%;
-	}
-	.ss-lh-right {
-		display: table-cell;
-		vertical-align: top;
-		width: 40%;
-		text-align: right;
-	}
-	.ss-co { font-size: 11pt; font-weight: 700; margin: 0 0 2px; }
-	.ss-co-addr { font-size: 7.5pt; color: #555; line-height: 1.45; }
-	.ss-co-addr .co-line { display: inline; }
+	/* ── Fold marks: A4 in thirds for a C5/6 or C6/5 envelope ── */
+	/* A zero-width character inside: wkhtmltopdf draws no border on an empty box. */
+	.ss-fold { position: absolute; left: 5mm; width: 5mm; height: 0; line-height: 0; font-size: 0; border-top: 0.75pt solid #666; }
 
-	/* ── Recipient address block (envelope window) ── */
-	.ss-recipient {
-		margin: 20px 0 30px;
-		min-height: 60px;
-	}
-	.ss-emp-name { font-weight: 700; font-size: 9pt; }
-	.ss-emp-addr { font-size: 8.5pt; color: #333; line-height: 1.45; }
+	/* ── Letterhead (Swiss letterhead zone: within 38 mm of the top) ── */
+	.ss-letterhead { position: absolute; top: 3mm; left: 20mm; right: 16mm; }
+	.ss-letterhead table { width: 100%; border-collapse: collapse; }
+	.ss-letterhead td { vertical-align: top; padding: 0; }
+	.ss-co { font-size: 13pt; font-weight: 700; letter-spacing: 0.2px; }
+	.ss-co-addr { margin-top: 2px; font-size: 8pt; color: #444; }
+	.ss-logo { text-align: right; }
+	.ss-logo img { max-height: 16mm; max-width: 60mm; }
 
-	/* ── Title: dark text over a rule ── */
-	.ss-title {
-		font-size: 13pt;
-		font-weight: 700;
-		letter-spacing: 0.2px;
-		padding-bottom: 6px;
-		border-bottom: 1.5px solid #1a1a1a;
-		margin-bottom: 10px;
-	}
+	/* ── Document block, left of the window ── */
+	.ss-doc { position: absolute; top: 38mm; left: 20mm; width: 88mm; }
+	.ss-doc-kind { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #444; }
+	.ss-doc-period { margin-top: 2mm; font-size: 20pt; font-weight: 700; line-height: 1.1; }
+	.ss-doc-dates { margin-top: 1.5mm; font-size: 9pt; color: #333; }
 
-	/* ── Employment facts ── */
-	.ss-info {
-		display: table;
-		width: 100%;
-		margin-bottom: 20px;
-		font-size: 8pt;
-	}
-	.ss-info-l, .ss-info-r { display: table-cell; vertical-align: top; width: 50%; }
-	.ss-info .il { display: block; padding: 2px 0; }
-	.ss-info .ik { color: #777; font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.4px; display: inline-block; width: 104px; }
-	.ss-info .iv { font-weight: 600; }
-
-	/* ── Tables ── */
-	.ss table { width: 100%; border-collapse: collapse; }
-	.ss .t { margin-top: 20px; }
-	.ss .t th {
-		padding: 0 6px 5px;
+	/* ── Window address: SN 010 130, window on the right, 118 mm from the left edge ── */
+	.ss-window { position: absolute; top: 36.5mm; left: 118mm; width: 76mm; }
+	.ss-return {
 		font-size: 6.5pt;
+		color: #333;
+		padding-bottom: 0.6mm;
+		border-bottom: 0.5pt solid #333;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+	.ss-endorse { margin-top: 1.4mm; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.4px; }
+	.ss-address { margin-top: 1.2mm; font-size: 10pt; line-height: 1.32; }
+	.ss-address b { font-weight: 700; }
+
+	/* ── Flow content, below the window zone ── */
+	.ss-body { padding: 72mm 16mm 0 20mm; }
+
+	/* Employment facts */
+	.ss-facts { width: 100%; border-collapse: collapse; border-top: 1.5pt solid #1a1a1a; border-bottom: 0.5pt solid #bbb; }
+	.ss-facts td { vertical-align: top; padding: 2.2mm 3mm 2.2mm 0; }
+	.ss-facts .fk { font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #555; }
+	.ss-facts .fv { margin-top: 0.8mm; font-size: 9.5pt; font-weight: 700; }
+
+	/* Tables */
+	.ss table.t { width: 100%; border-collapse: collapse; margin-top: 6mm; }
+	.ss .t .t-title th {
+		padding: 0 0 1.6mm;
+		font-size: 11pt;
+		font-weight: 700;
+		color: #1a1a1a;
+		text-transform: none;
+		letter-spacing: 0.1px;
+		text-align: left;
+		border-bottom: none;
+	}
+	.ss .t .t-cols th {
+		padding: 0 6px 1.4mm;
+		font-size: 7.5pt;
 		font-weight: 700;
 		text-transform: uppercase;
-		letter-spacing: 0.6px;
-		color: #666;
+		letter-spacing: 0.5px;
+		color: #333;
 		text-align: left;
-		border-bottom: 1px solid #1a1a1a;
+		border-bottom: 1pt solid #1a1a1a;
 	}
-	.ss .t th.r { text-align: right; }
-	.ss .t td { padding: 5px 6px; border-bottom: 1px solid #e3e6e9; font-size: 8.5pt; }
+	.ss .t .t-cols th.r { text-align: right; }
+	.ss .t td { padding: 5px 6px; border-bottom: 0.5pt solid #d6d9dc; font-size: 9pt; }
 	.ss .r { text-align: right; }
-	/* The instance's print style shades every header and stripes every other row, with
-	   !important, and takes the header rule away: this format prints on white. */
+	.ss .gs { width: 36px; color: #666; font-size: 8pt; font-family: "SF Mono", Menlo, Consolas, monospace; }
+	.ss .c-base { width: 92px; }
+	.ss .c-qty { width: 62px; }
+	.ss .c-amt { width: 92px; }
+	.ss .t .t-row td { font-weight: 700; border-top: 1pt solid #1a1a1a; border-bottom: none; }
+
+	/* The instance print style shades every header and stripes every other row, with !important,
+	   pads every cell 6px and takes the header rule away: this format prints on white. */
 	.print-format .ss th, .print-format .ss td { background: none !important; }
-	.print-format .ss .t th { padding: 0 6px 6px !important; border-bottom: 1px solid #1a1a1a !important; }
-	.print-format .ss .t td { padding: 7px 6px !important; }
-	.print-format .ss-er .t th { border-bottom-color: #bbb !important; }
+	.print-format .ss .t .t-title th { padding: 0 0 1.6mm !important; border-bottom: none !important; }
+	.print-format .ss .t .t-cols th { padding: 0 6px 1.4mm !important; border-bottom: 1pt solid #1a1a1a !important; }
+	.print-format .ss .t td { padding: 5px 6px !important; }
+	.print-format .ss .t .t-row td { padding-top: 6px !important; }
+	.print-format .ss-facts td { padding: 2.2mm 3mm 2.2mm 0 !important; }
+	.print-format .ss-letterhead td { padding: 0 !important; }
 
-	/* GS code */
-	.ss .gs { width: 34px; font-size: 7pt; color: #999; font-family: "SF Mono", Menlo, Consolas, monospace; }
+	/* Bases */
+	.ss .bases { padding: 2mm 6px 0; font-size: 7.5pt; color: #444; }
+	.ss .bases .bk { font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: #555; margin-right: 6px; }
+	.ss .bases span { margin-right: 12px; }
+	.ss .bases b { font-weight: 700; color: #1a1a1a; }
 
-	/* Column widths */
-	.ss .c-base { width: 90px; }
-	.ss .c-qty { width: 60px; }
-	.ss .c-amt { width: 90px; }
-
-	/* Totals */
-	.ss .t-row td {
-		font-weight: 700;
-		border-top: 1px solid #1a1a1a;
-		border-bottom: none;
-		padding-top: 6px;
-	}
-
-	/* Bases summary */
-	.ss .bases {
-		padding: 5px 6px 0;
-		font-size: 7pt;
-		color: #777;
-	}
-	.ss .bases span { margin-right: 14px; }
-	.ss .bases b { color: #444; font-weight: 600; }
-
-	/* ── Net pay: between a rule and a double rule ── */
-	.ss-net {
-		display: table;
-		width: 100%;
-		margin: 26px 0 4px;
-		border-top: 1.5px solid #1a1a1a;
-		border-bottom: 4px double #1a1a1a;
-	}
-	.ss-net-l { display: table-cell; vertical-align: middle; padding: 9px 6px; font-size: 10.5pt; font-weight: 700; }
-	.ss-net-r { display: table-cell; vertical-align: middle; padding: 9px 6px; text-align: right; font-size: 12.5pt; font-weight: 700; }
-	.ss-net-sub {
-		display: table;
-		width: 100%;
-		padding: 3px 6px;
-		font-size: 7.5pt;
-		color: #666;
-	}
+	/* Net pay, between a rule and an accounting double rule */
+	.ss-net { display: table; width: 100%; margin-top: 7mm; border-top: 1.5pt solid #1a1a1a; border-bottom: 4px double #1a1a1a; }
+	.ss-net-l { display: table-cell; vertical-align: middle; padding: 2.5mm 6px; font-size: 11pt; font-weight: 700; }
+	.ss-net-r { display: table-cell; vertical-align: middle; padding: 2.5mm 6px; text-align: right; font-size: 14pt; font-weight: 700; white-space: nowrap; }
+	.ss-net-bank { margin-top: 0.8mm; font-size: 7.5pt; font-weight: 400; color: #444; }
+	.ss-net-r .cur { font-size: 9pt; font-weight: 700; color: #444; margin-right: 2mm; }
+	.ss-net-sub { display: table; width: 100%; padding: 1mm 6px; font-size: 8pt; color: #555; }
 	.ss-net-sub div { display: table-cell; }
 	.ss-net-sub .r { text-align: right; }
 
-	/* ── Employer section — screen only ── */
-	.ss-er { margin-top: 18px; }
-	.ss-er .er-label {
-		font-size: 6.5pt;
-		text-transform: uppercase;
-		letter-spacing: 1px;
-		color: #999;
-		font-weight: 600;
-		padding: 6px 0 0;
-	}
-	.ss-er .t { margin-top: 6px; }
-	.ss-er .t th { color: #999; border-bottom-color: #bbb; }
-	.ss-er .t td { color: #777; font-size: 8pt; }
-	.ss-er .gs { color: #bbb; }
-	.ss-er .t-row td { color: #555; border-top-color: #bbb; }
 
+	/* Employer section: screen only */
+	.ss-er { margin-top: 9mm; }
+	.ss-er .er-label { font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+	.ss-er .t { margin-top: 2mm; }
+	.ss-er .t td { color: #666; }
 	@media print {
 		.ss-er { display: none; }
 	}
-
-	/* ── Footer ── */
-	.ss-footer {
-		margin-top: 28px;
-		padding-top: 8px;
-		border-top: 1px solid #d0d4d8;
-		font-size: 7.5pt;
-		color: #555;
-	}
-	.ss-footer .ft-label { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.6px; color: #999; font-weight: 600; margin-bottom: 3px; }
 </style>
 
 <div class="ss">
 
-	<!-- Letterhead: company info top-left, small inline -->
+	<div class="ss-fold" style="top: 87mm;">&#8203;</div>
+	<div class="ss-fold" style="top: 186mm;">&#8203;</div>
+
+	<!-- Letterhead -->
 	<div class="ss-letterhead">
-		<div class="ss-lh-left">
-			<div class="ss-co">{{ doc.company }}</div>
-			<div class="ss-co-addr">
-				{% for line in d.company_address %}<span class="co-line">{{ line }}</span>{% if not loop.last %} &middot; {% endif %}{% endfor %}
-				{# //// Neoffice — the employer's UID, as the certified engine's payslip prints it. #}
-				{% if d.company_uid %}{% if d.company_address %} &middot; {% endif %}<span class="co-line">{{ d.company_uid }}</span>{% endif %}
-			</div>
-		</div>
-		<div class="ss-lh-right">
-			{% if d.company_logo %}
-			<img src="{{ d.company_logo }}" style="max-height: 40px; max-width: 120px;">
-			{% endif %}
-		</div>
-	</div>
-
-	<!-- Recipient address block -->
-	<div class="ss-recipient">
-		{% if d.salutation %}<div class="ss-emp-addr">{{ d.salutation }}</div>{% endif %}
-		<div class="ss-emp-name">{{ doc.employee_name }}</div>
-		<div class="ss-emp-addr">
-			{% for line in d.address_lines %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}
-		</div>
-	</div>
-
-	<!-- Title bar -->
-	<div class="ss-title">{{ _("Salary Slip") }} &mdash; {{ d.period_label }}</div>
-
-	<!-- Info bar -->
-	{# //// Neoffice — position, entry and exit dates, activity rate and the source tax tariff of the #}
-	{# //// slip, as the certified engine's payslip prints them; paid days only for a partial month. #}
-	<div class="ss-info">
-		<div class="ss-info-l">
-			<span class="il"><span class="ik">{{ _("AVS No.") }}</span> <span class="iv">{{ d.employee.get("ch_avs_number") or "-" }}</span></span>
-			{% if d.employment.designation %}<span class="il"><span class="ik">{{ _("Position", context="job title") }}</span> <span class="iv">{{ _(d.employment.designation) }}</span></span>{% endif %}
-			{% if d.employment.date_of_joining %}<span class="il"><span class="ik">{{ _("Entry Date") }}</span> <span class="iv">{{ frappe.format(d.employment.date_of_joining, {"fieldtype": "Date"}) }}</span></span>{% endif %}
-			{% if d.employment.relieving_date %}<span class="il"><span class="ik">{{ _("Exit Date") }}</span> <span class="iv">{{ frappe.format(d.employment.relieving_date, {"fieldtype": "Date"}) }}</span></span>{% endif %}
-			{% if d.employment.work_percentage %}<span class="il"><span class="ik">{{ _("Work Percentage") }}</span> <span class="iv">{{ d.employment.work_percentage }}&nbsp;%</span></span>{% endif %}
-		</div>
-		<div class="ss-info-r">
-			<span class="il"><span class="ik">{{ _("Period") }}</span> <span class="iv">{{ frappe.format(doc.start_date, {"fieldtype": "Date"}) }} &ndash; {{ frappe.format(doc.end_date, {"fieldtype": "Date"}) }}</span></span>
-			{% if d.employment.pay_days %}<span class="il"><span class="ik">{{ _("Pay days") }}</span> <span class="iv">{{ d.employment.pay_days }}</span></span>{% endif %}
-			{% if d.source_tax %}
-			<span class="il"><span class="ik">{{ _("Source Tax") }}</span> <span class="iv">{{ d.source_tax.canton }}{% if d.source_tax.canton %} &middot; {% endif %}{{ d.source_tax.tariff }}</span></span>
-			{% elif d.employee.get("ch_fiscal_canton") %}
-			<span class="il"><span class="ik">{{ _("Canton") }}</span> <span class="iv">{{ d.employee.ch_fiscal_canton }}</span></span>
-			{% endif %}
-		</div>
-	</div>
-
-	<!-- Earnings -->
-	<table class="t">
-		<thead>
+		<table>
 			<tr>
-				<th class="gs">GS</th>
-				<th>{{ _("Earnings") }}</th>
-				<th class="c-base"></th>
-				<th class="c-qty"></th>
-				<th class="c-amt r">CHF</th>
+				<td>
+					<div class="ss-co">{{ doc.company }}</div>
+					<div class="ss-co-addr">
+						{% for line in d.company_address %}{{ line }}{% if not loop.last %} &middot; {% endif %}{% endfor %}
+						{# //// Neoffice — the employer's UID, as the certified engine's payslip prints it. #}
+						{% if d.company_uid %}{% if d.company_address %} &middot; {% endif %}{{ d.company_uid }}{% endif %}
+					</div>
+				</td>
+				<td class="ss-logo">
+					{% if d.company_logo %}<img src="{{ d.company_logo }}">{% endif %}
+				</td>
 			</tr>
-		</thead>
-		<tbody>
-			{% for row in d.earnings %}
+		</table>
+	</div>
+
+	<!-- Document -->
+	<div class="ss-doc">
+		<div class="ss-doc-kind">{{ _("Salary Slip") }}</div>
+		<div class="ss-doc-period">{{ d.period_label }}</div>
+		<div class="ss-doc-dates">{{ frappe.format(doc.start_date, {"fieldtype": "Date"}) }} &ndash; {{ frappe.format(doc.end_date, {"fieldtype": "Date"}) }}</div>
+	</div>
+
+	<!-- Recipient, in the envelope window -->
+	<div class="ss-window">
+		<div class="ss-return">{{ sender | join(" · ") }}</div>
+		<div class="ss-endorse">{{ _("Personal and confidential") }}</div>
+		<div class="ss-address">
+			{% if d.salutation %}{{ d.salutation }}<br>{% endif %}
+			<b>{{ doc.employee_name }}</b>
+			{% for line in d.address_lines %}<br>{{ line }}{% endfor %}
+		</div>
+	</div>
+
+	<div class="ss-body">
+
+		<!-- Employment facts -->
+		{# //// Neoffice — position, entry and exit dates, activity rate and the source tax tariff of #}
+		{# //// the slip, as the certified engine's payslip prints them; paid days only for a partial month. #}
+		<table class="ss-facts">
+			{% for row in facts | batch(6, ("", "")) %}
 			<tr>
-				<td class="gs">{{ row.gs_code }}</td>
-				<td>{{ _(row.name) }}</td>
-				{# //// Neoffice — a row not paid (a bases-only wage type) shows as a base, so the #}
-				{# //// amounts in the CHF column add up to the gross. #}
-				<td class="r">{% if not row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
-				<td></td>
-				<td class="r">{% if row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
+				{% for label, value in row %}
+				<td><div class="fk">{{ label }}</div><div class="fv">{{ value }}</div></td>
+				{% endfor %}
 			</tr>
 			{% endfor %}
-		</tbody>
-		<tfoot>
-			<tr class="t-row">
-				<td class="gs"></td>
-				<td>{{ _("Gross Pay") }}</td>
-				<td></td>
-				<td></td>
-				<td class="r">{{ format_chf(d.totals.gross) }}</td>
-			</tr>
-		</tfoot>
-	</table>
-	<div class="bases">
-		<span><b>AVS</b> {{ format_chf(d.insurance_bases.avs) }}</span>
-		<span><b>AC</b> {{ format_chf(d.insurance_bases.ac) }}</span>
-		<span><b>LAA</b> {{ format_chf(d.insurance_bases.laa) }}</span>
-		{# //// Neoffice — against the gross printed above, which no longer counts the expenses. #}
-		{% if d.insurance_bases.lpp and d.insurance_bases.lpp != d.totals.gross %}
-		<span><b>LPP</b> {{ format_chf(d.insurance_bases.lpp) }}</span>
-		{% endif %}
-	</div>
+		</table>
 
-	<!-- Deductions -->
-	<table class="t">
-		<thead>
-			<tr>
-				<th class="gs">GS</th>
-				<th>{{ _("Deductions") }}</th>
-				<th class="c-base r">{{ _("Base") }}</th>
-				<th class="c-qty r">{{ _("Qty/Rate") }}</th>
-				<th class="c-amt r">CHF</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for row in d.deductions_ee %}
-			<tr>
-				<td class="gs">{{ row.gs_code }}</td>
-				<td>{{ _(row.name) }}</td>
-				<td class="r">{{ format_chf(row.determinant) }}</td>
-				<td class="r">{% if row.rate %}{{ row.rate }}&nbsp;%{% endif %}</td>
-				<td class="r">{{ format_chf(-1 * row.amount if row.amount > 0 else row.amount) }}</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-		<tfoot>
-			<tr class="t-row">
-				<td class="gs"></td>
-				<td>{{ _("Total Deductions") }}</td>
-				<td></td>
-				<td></td>
-				<td class="r">{{ format_chf(-1 * d.totals.ee_deductions if d.totals.ee_deductions > 0 else d.totals.ee_deductions) }}</td>
-			</tr>
-		</tfoot>
-	</table>
-
-	{# //// Neoffice — expense reimbursements (6000-6499) after the deductions, then the net salary; #}
-	{# //// advances and loan repayments come off it, down to the net paid (Swissdec layout). #}
-	{% if d.expenses %}
-	<table class="t">
-		<thead>
-			<tr>
-				<th class="gs">GS</th>
-				<th>{{ _("Expense reimbursements") }}</th>
-				<th class="c-base"></th>
-				<th class="c-qty"></th>
-				<th class="c-amt r">CHF</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for row in d.expenses %}
-			<tr>
-				<td class="gs">{{ row.gs_code }}</td>
-				<td>{{ _(row.name) }}</td>
-				<td class="r">{% if not row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
-				<td></td>
-				<td class="r">{% if row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-	{% endif %}
-
-	{% if d.after_net %}
-	<table class="t">
-		<tbody>
-			<tr class="t-row">
-				<td class="gs"></td>
-				<td>{{ _("Net Pay") }}</td>
-				<td class="c-base"></td>
-				<td class="c-qty"></td>
-				<td class="c-amt r">{{ format_chf(d.totals.net_salary) }}</td>
-			</tr>
-			{% for row in d.after_net %}
-			<tr>
-				<td class="gs">{{ row.gs_code }}</td>
-				<td>{{ _(row.name) }}</td>
-				<td></td>
-				<td></td>
-				<td class="r">{{ format_chf(-1 * row.amount if row.amount > 0 else row.amount) }}</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-	{% endif %}
-
-	<!-- Net Pay -->
-	<div class="ss-net">
-		<div class="ss-net-l">{% if d.after_net %}{{ _("Net to Pay") }}{% else %}{{ _("Net Pay") }}{% endif %}</div>
-		<div class="ss-net-r">{{ format_chf(d.totals.net) }}</div>
-	</div>
-	{% if d.totals.rounded %}
-	<div class="ss-net-sub">
-		<div>{{ _("Rounded Total") }}</div>
-		<div class="r">CHF {{ format_chf(d.totals.rounded) }}</div>
-	</div>
-	{% endif %}
-
-	<!-- Employer Contributions (hidden on print) -->
-	{% if d.deductions_er %}
-	<div class="ss-er">
-		<div class="er-label">{{ _("Employer Contributions") }}</div>
+		<!-- Earnings -->
 		<table class="t">
 			<thead>
-				<tr>
-					<th class="gs">GS</th>
-					<th></th>
-					<th class="c-base r">{{ _("Base") }}</th>
-					<th class="c-qty r">{{ _("Qty/Rate") }}</th>
+				<tr class="t-title"><th colspan="5">{{ _("Earnings") }}</th></tr>
+				<tr class="t-cols">
+					<th class="gs">{{ _("WT", context="wage type code") }}</th>
+					<th>{{ _("Description") }}</th>
+					<th class="c-base r"></th>
+					<th class="c-qty r"></th>
 					<th class="c-amt r">CHF</th>
 				</tr>
 			</thead>
 			<tbody>
-				{% for row in d.deductions_er %}
+				{% for row in d.earnings %}
 				<tr>
 					<td class="gs">{{ row.gs_code }}</td>
 					<td>{{ _(row.name) }}</td>
-					<td class="r">{{ format_chf(row.determinant) }}</td>
-					<td class="r">{% if row.rate %}{{ row.rate }}&nbsp;%{% endif %}</td>
-					<td class="r">{{ format_chf(row.amount) }}</td>
+					{# //// Neoffice — a row not paid (a bases-only wage type) shows as a base, so the #}
+					{# //// amounts in the CHF column add up to the gross. #}
+					<td class="r">{% if not row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
+					<td></td>
+					<td class="r">{% if row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
 				</tr>
 				{% endfor %}
 			</tbody>
 			<tfoot>
 				<tr class="t-row">
 					<td class="gs"></td>
-					<td>{{ _("Total") }}</td>
+					<td>{{ _("Gross Pay") }}</td>
 					<td></td>
 					<td></td>
-					<td class="r">{{ format_chf(d.totals.er_contributions) }}</td>
-				</tr>
-				<tr class="t-row">
-					<td class="gs"></td>
-					<td>{{ _("Total Employer Cost") }}</td>
-					<td></td>
-					<td></td>
-					<td class="r">{{ format_chf(d.totals.employer_cost) }}</td>
+					<td class="r">{{ format_chf(d.totals.gross) }}</td>
 				</tr>
 			</tfoot>
 		</table>
-	</div>
-	{% endif %}
+		<div class="bases">
+			<span class="bk">{{ _("Contribution bases") }}</span>
+			<span><b>AVS</b> {{ format_chf(d.insurance_bases.avs) }}</span>
+			<span><b>AC</b> {{ format_chf(d.insurance_bases.ac) }}</span>
+			<span><b>LAA</b> {{ format_chf(d.insurance_bases.laa) }}</span>
+			{# //// Neoffice — against the gross printed above, which no longer counts the expenses. #}
+			{% if d.insurance_bases.lpp and d.insurance_bases.lpp != d.totals.gross %}
+			<span><b>LPP</b> {{ format_chf(d.insurance_bases.lpp) }}</span>
+			{% endif %}
+		</div>
 
-	<!-- Bank Details Footer -->
-	{# //// Neoffice — the account masked but for its ends, and named IBAN when it is one. #}
-	{% if d.bank.bank_name or d.bank.masked %}
-	<div class="ss-footer">
-		<div class="ft-label">{{ _("Bank Details") }}</div>
-		{% if d.bank.bank_name %}<span>{{ _("Bank") }}: <b>{{ d.bank.bank_name }}</b></span>{% endif %}
-		{% if d.bank.masked %}<span{% if d.bank.bank_name %} style="margin-left: 12px;"{% endif %}>{% if d.bank.is_iban %}IBAN{% else %}{{ _("Account") }}{% endif %}: <b>{{ d.bank.masked }}</b></span>{% endif %}
-	</div>
-	{% endif %}
+		<!-- Deductions -->
+		<table class="t">
+			<thead>
+				<tr class="t-title"><th colspan="5">{{ _("Deductions") }}</th></tr>
+				<tr class="t-cols">
+					<th class="gs">{{ _("WT", context="wage type code") }}</th>
+					<th>{{ _("Description") }}</th>
+					<th class="c-base r">{{ _("Base") }}</th>
+					<th class="c-qty r">{{ _("Rate", context="contribution rate") }}</th>
+					<th class="c-amt r">CHF</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for row in d.deductions_ee %}
+				<tr>
+					<td class="gs">{{ row.gs_code }}</td>
+					<td>{{ _(row.name) }}</td>
+					<td class="r">{{ format_chf(row.determinant) }}</td>
+					<td class="r">{% if row.rate %}{{ row.rate }}&nbsp;%{% endif %}</td>
+					<td class="r">{{ format_chf(-1 * row.amount if row.amount > 0 else row.amount) }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+			<tfoot>
+				<tr class="t-row">
+					<td class="gs"></td>
+					<td>{{ _("Total Deductions") }}</td>
+					<td></td>
+					<td></td>
+					<td class="r">{{ format_chf(-1 * d.totals.ee_deductions if d.totals.ee_deductions > 0 else d.totals.ee_deductions) }}</td>
+				</tr>
+			</tfoot>
+		</table>
 
+		{# //// Neoffice — expense reimbursements (6000-6499) after the deductions, then the net salary; #}
+		{# //// advances and loan repayments come off it, down to the net paid (Swissdec layout). #}
+		{% if d.expenses %}
+		<table class="t">
+			<thead>
+				<tr class="t-title"><th colspan="5">{{ _("Expense reimbursements") }}</th></tr>
+				<tr class="t-cols">
+					<th class="gs">{{ _("WT", context="wage type code") }}</th>
+					<th>{{ _("Description") }}</th>
+					<th class="c-base r"></th>
+					<th class="c-qty r"></th>
+					<th class="c-amt r">CHF</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for row in d.expenses %}
+				<tr>
+					<td class="gs">{{ row.gs_code }}</td>
+					<td>{{ _(row.name) }}</td>
+					<td class="r">{% if not row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
+					<td></td>
+					<td class="r">{% if row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% endif %}
+
+		{% if d.after_net %}
+		<table class="t">
+			<tbody>
+				<tr class="t-row">
+					<td class="gs"></td>
+					<td>{{ _("Net Pay") }}</td>
+					<td class="c-base"></td>
+					<td class="c-qty"></td>
+					<td class="c-amt r">{{ format_chf(d.totals.net_salary) }}</td>
+				</tr>
+				{% for row in d.after_net %}
+				<tr>
+					<td class="gs">{{ row.gs_code }}</td>
+					<td>{{ _(row.name) }}</td>
+					<td></td>
+					<td></td>
+					<td class="r">{{ format_chf(-1 * row.amount if row.amount > 0 else row.amount) }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% endif %}
+
+		<!-- Net Pay -->
+		{# //// Neoffice — the account the net is paid to, under it: masked but for its ends, named IBAN when it is one. #}
+		<div class="ss-net">
+			<div class="ss-net-l">
+				{% if d.after_net %}{{ _("Net to Pay") }}{% else %}{{ _("Net Pay") }}{% endif %}
+				{% if d.bank.masked %}
+				<div class="ss-net-bank">{{ _("Bank Details") }}: {% if d.bank.is_iban %}IBAN{% else %}{{ _("Account") }}{% endif %} {{ d.bank.masked }}{% if d.bank.bank_name %} &middot; {{ d.bank.bank_name }}{% endif %}</div>
+				{% endif %}
+			</div>
+			<div class="ss-net-r"><span class="cur">CHF</span>{{ format_chf(d.totals.net) }}</div>
+		</div>
+		{% if d.totals.rounded %}
+		<div class="ss-net-sub">
+			<div>{{ _("Rounded Total") }}</div>
+			<div class="r">CHF {{ format_chf(d.totals.rounded) }}</div>
+		</div>
+		{% endif %}
+
+		<!-- Employer Contributions (screen only) -->
+		{% if d.deductions_er %}
+		<div class="ss-er">
+			<div class="er-label">{{ _("Employer Contributions") }}</div>
+			<table class="t">
+				<thead>
+					<tr class="t-cols">
+						<th class="gs">{{ _("WT", context="wage type code") }}</th>
+						<th></th>
+						<th class="c-base r">{{ _("Base") }}</th>
+						<th class="c-qty r">{{ _("Rate", context="contribution rate") }}</th>
+						<th class="c-amt r">CHF</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for row in d.deductions_er %}
+					<tr>
+						<td class="gs">{{ row.gs_code }}</td>
+						<td>{{ _(row.name) }}</td>
+						<td class="r">{{ format_chf(row.determinant) }}</td>
+						<td class="r">{% if row.rate %}{{ row.rate }}&nbsp;%{% endif %}</td>
+						<td class="r">{{ format_chf(row.amount) }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+				<tfoot>
+					<tr class="t-row">
+						<td class="gs"></td>
+						<td>{{ _("Total") }}</td>
+						<td></td>
+						<td></td>
+						<td class="r">{{ format_chf(d.totals.er_contributions) }}</td>
+					</tr>
+					<tr class="t-row">
+						<td class="gs"></td>
+						<td>{{ _("Total Employer Cost") }}</td>
+						<td></td>
+						<td></td>
+						<td class="r">{{ format_chf(d.totals.employer_cost) }}</td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+		{% endif %}
+
+	</div>
 </div>

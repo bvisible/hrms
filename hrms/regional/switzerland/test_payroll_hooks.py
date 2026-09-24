@@ -1062,10 +1062,19 @@ class TestThePayslipPrintsTheSwissdecLayout(SwissPayrollHookCase):
 			html = frappe.render_template(template.read(), {"doc": slip})
 		self.assertIn("Expense reimbursements", html)
 		self.assertIn("Net to Pay", html)
-		self.assertIn("ZH &middot; A0N", html)
+		self.assertIn("ZH · A0N", html)
 		self.assertNotIn("Work days", html)
 		if slip.total_in_words:
 			self.assertNotIn(slip.total_in_words, html)
+		# A letter for a window envelope: the recipient in the right-hand window (SN 010 130),
+		# "personal" above it, fold marks at the thirds of the sheet, and no filled background.
+		self.assertIn('class="ss-window"', html)
+		self.assertIn("left: 118mm", html)
+		self.assertIn("Personal and confidential", html)
+		self.assertEqual(html.count('class="ss-fold"'), 2)
+		self.assertNotIn(
+			"background:", html.split("<style>")[1].split("</style>")[0].replace("background: none", "")
+		)
 
 
 def _male_gender():
