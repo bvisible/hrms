@@ -13,8 +13,15 @@ frappe.ui.form.on("Employee", {
 		});
 
 		// hide naming series field based on hr settings
-		frappe.db.get_single_value("HR Settings", "emp_created_by").then((value) => {
-			frm.toggle_display("naming_series", value === "Naming Series");
+		//// Neoffice — silent: HR Settings may be closed to the HR staff (a Custom DocPerm keeps it
+		//// to the administrators), and frappe.db.get_single_value then opened « No permission for
+		//// HR Settings » on every employee they opened. Unreadable, the naming series keeps its
+		//// default display.
+		frappe.call({
+			method: "frappe.client.get_single_value",
+			args: { doctype: "HR Settings", field: "emp_created_by" },
+			silent: true,
+			callback: (r) => frm.toggle_display("naming_series", r.message === "Naming Series"),
 		});
 	},
 
