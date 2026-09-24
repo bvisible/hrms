@@ -160,6 +160,16 @@ def create_employee(data):
 	# //// Neoffice — the company is checked before anything is created: staff limited to company A
 	# //// hired into company B, the insert only checking the right on Employee.
 	check_company_access(data.get("company"))
+	# //// Neoffice — the source tax follows the permit when the caller does not say (art. 83 LIFD),
+	# //// as the desk wizard does after its permit step: an API caller hiring a B permit without
+	# //// qst_subject created an employee never taxed at source, the employer then liable for the
+	# //// tax not withheld (art. 88 LIFD). An explicit 0 or 1 is kept: ordinary taxation (married to
+	# //// a Swiss or a C permit holder) is the caller's call.
+	if data.get("qst_subject") in (None, ""):
+		suggestion = suggest_source_tax(data)
+		data["qst_subject"] = 1 if suggestion["qst_subject"] else 0
+		if data["qst_subject"] and not data.get("tariff_letter") and suggestion.get("suggested_letter"):
+			data["tariff_letter"] = suggestion["suggested_letter"]
 
 	avs = data.get("avs_number")
 	if avs and not is_valid_avs_number(avs):

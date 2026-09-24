@@ -165,3 +165,18 @@ class TestEmployeeWizardPaymentDetails(FrappeTestCase):
 	def test_a_wrong_iban_is_refused(self):
 		with patch("frappe.db.commit"), self.assertRaises(frappe.ValidationError):
 			create_employee(self.data(iban="CH93 0076 2011 6238 5295 8"))
+
+	# //// Neoffice — 2026-09-24: hired through the API without qst_subject, a B permit was created
+	# //// not subject to source tax (found by the HR assistant's end-to-end test).
+	def _subject(self, **values):
+		with patch("frappe.db.commit"):
+			employee = create_employee(self.data(canton="ZH", **values))["employee"]
+		return frappe.db.get_value("Employee", employee, "ch_qst_subject")
+
+	def test_the_permit_decides_the_source_tax_when_the_caller_does_not(self):
+		self.assertEqual(self._subject(permit_type="Permit B (Residence)"), 1)
+		self.assertEqual(self._subject(permit_type="Permit C (Settlement)"), 0)
+
+	def test_an_explicit_choice_is_kept(self):
+		"""Ordinary taxation of a B permit married to a Swiss: the caller says so."""
+		self.assertEqual(self._subject(permit_type="Permit B (Residence)", qst_subject=0), 0)
