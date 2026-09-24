@@ -20,7 +20,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate
+from frappe.utils import cint, date_diff, flt, get_year_ending, getdate
 
 from hrms.regional.switzerland.cross_border import suggest_tariff_letter
 from hrms.regional.switzerland.permissions import check_company_access
@@ -68,6 +68,73 @@ def validate_avs_number(avs):
 	return {"valid": valid, "formatted": format_avs_number(avs) if valid else None}
 
 
+# The ordinary tariff letter of a personal situation (ESTV): A single, H single living with children
+# or other dependants, B married with one income, C married with two. A registered partnership is
+# a marriage for the source tax.
+def personal_letter(marital_status, spouse_works, children):
+	if marital_status == "Married":
+		return "C" if cint(spouse_works) else "B"
+	return "H" if cint(children) > 0 else "A"
+
+
+# The same situations for cross-border commuters: the German ones holding the Gre-1 certificate
+# (L, M, N, P) and the Italian ones under the 2023 agreement (R, S, T, U).
+CROSS_BORDER_LETTERS = {
+	"L": {"A": "L", "B": "M", "C": "N", "H": "P"},
+	"R": {"A": "R", "B": "S", "C": "T", "H": "U"},
+}
+
+
+def _employee_like(data):
+	return frappe._dict(
+		ch_is_cross_border=1 if data.get("is_cross_border") else 0,
+		ch_residence_country=data.get("residence_country"),
+		ch_de_gre1_attestation=1 if data.get("de_gre1") else 0,
+		ch_is_italian_new_frontalier=1 if data.get("it_new_frontalier") else 0,
+		ch_fr_2041as_attestation=1 if data.get("fr_2041as") else 0,
+		ch_cross_border_start_date=data.get("cross_border_start_date"),
+	)
+
+
+def tariff_letter(data):
+	"""The tariff letter of the wizard's personal situation, in its cross-border family if any."""
+	letter = personal_letter(data.get("marital_status"), data.get("spouse_works"), data.get("num_children"))
+	family = suggest_tariff_letter(_employee_like(data)) if data.get("is_cross_border") else None
+	return CROSS_BORDER_LETTERS.get(family, {}).get(letter, letter)
+
+
+def extend_bootinfo(bootinfo):
+	"""Tell the desk whether the Swiss payroll runs on this site: only then does the Employee list's
+	"Add" open this wizard (public/js/erpnext/employee_list.js). The whole fleet is Swiss, so a Swiss
+	company is not enough — a company with a Swiss Social Insurance Config is."""
+	bootinfo.swiss_payroll = bool(
+		frappe.db.table_exists("Swiss Social Insurance Config")
+		and frappe.db.count("Swiss Social Insurance Config")
+	)
+
+
+@frappe.whitelist()
+def wizard_defaults(company):
+	"""What the wizard proposes for ``company``: the canton of its payroll, its salary structures,
+	its default holiday list and the leave type of the vacation."""
+	check_company_access(company)
+	from hrms.regional.switzerland.setup import existing_leave_type
+
+	return {
+		"canton": frappe.db.get_value(
+			"Swiss Social Insurance Config", {"company": company, "is_default": 1}, "canton"
+		),
+		"structures": frappe.get_all(
+			"Salary Structure",
+			filters={"company": company, "docstatus": 1, "is_active": "Yes"},
+			pluck="name",
+			order_by="modified desc",
+		),
+		"holiday_list": frappe.db.get_value("Company", company, "default_holiday_list"),
+		"vacation_leave_type": existing_leave_type("Privilege Leave"),
+	}
+
+
 @frappe.whitelist()
 def suggest_source_tax(data):
 	"""Derive the source-tax situation from permit / residence data.
@@ -96,15 +163,7 @@ def suggest_source_tax(data):
 
 	suggested_letter = None
 	if qst_subject and data.get("is_cross_border"):
-		employee_like = frappe._dict(
-			ch_is_cross_border=1,
-			ch_residence_country=data.get("residence_country"),
-			ch_de_gre1_attestation=1 if data.get("de_gre1") else 0,
-			ch_is_italian_new_frontalier=1 if data.get("it_new_frontalier") else 0,
-			ch_fr_2041as_attestation=1 if data.get("fr_2041as") else 0,
-			ch_cross_border_start_date=data.get("cross_border_start_date"),
-		)
-		suggested_letter = suggest_tariff_letter(employee_like)
+		suggested_letter = suggest_tariff_letter(_employee_like(data))
 		if suggested_letter:
 			notes.append(_("Cross-border situation suggests tariff letter {0}.").format(suggested_letter))
 		if data.get("residence_country") == "FR" and data.get("fr_2041as"):
@@ -114,9 +173,17 @@ def suggest_source_tax(data):
 				)
 			)
 
+	# The wizard gives the personal situation (marital status, spouse's income, children): the letter
+	# follows from it; an explicit letter still wins.
+	if data.get("marital_status") and qst_subject:
+		suggested_letter = tariff_letter(data)
 	letter = data.get("tariff_letter") or suggested_letter or "A"
 	code = build_tariff_code(letter, data.get("num_children") or 0, data.get("church_tax"))
 
+	# A resident pays the source tax to the canton they live in; a cross-border commuter to the canton
+	# where they work.
+	if not data.get("is_cross_border") and data.get("residence_canton"):
+		canton = data["residence_canton"].upper()
 	model = get_calculation_model(canton) if canton else None
 	tariff_available = None
 	if qst_subject and canton:
@@ -170,6 +237,8 @@ def create_employee(data):
 		data["qst_subject"] = 1 if suggestion["qst_subject"] else 0
 		if data["qst_subject"] and not data.get("tariff_letter") and suggestion.get("suggested_letter"):
 			data["tariff_letter"] = suggestion["suggested_letter"]
+	elif cint(data.get("qst_subject")) and not data.get("tariff_letter") and data.get("marital_status"):
+		data["tariff_letter"] = tariff_letter(data)
 
 	avs = data.get("avs_number")
 	if avs and not is_valid_avs_number(avs):
@@ -185,6 +254,19 @@ def create_employee(data):
 		line.strip()
 		for line in (data.get("address_street"), data.get("address_town"))
 		if (line or "").strip()
+	)
+
+	email = (data.get("email") or "").strip()
+	designation = (data.get("designation") or "").strip()
+	if designation and not frappe.db.exists("Designation", designation):
+		frappe.get_doc({"doctype": "Designation", "designation_name": designation}).insert(
+			ignore_permissions=True
+		)
+	work_canton = (data.get("canton") or "").upper()
+	# A resident's source tax goes to the canton they live in (art. 107 LIFD); a cross-border
+	# commuter's to the canton of the workplace.
+	qst_canton = (
+		work_canton if data.get("is_cross_border") else (data.get("residence_canton") or work_canton).upper()
 	)
 
 	employee = frappe.get_doc(
@@ -216,11 +298,28 @@ def create_employee(data):
 			"permanent_address": address or None,
 			"bank_ac_no": iban or None,
 			"salary_mode": "Bank" if iban else None,
+			"personal_email": email or None,
+			"prefered_contact_email": "Personal Email" if email else None,
+			"cell_number": (data.get("mobile") or "").strip() or None,
+			"designation": designation or None,
+			"marital_status": data.get("marital_status") or None,
+			"ch_qst_taxation_canton": qst_canton or None,
+			# The payslip reaches the employee by e-mail when there is an address, else by hand.
+			"ch_payslip_delivery": "Email" if email else "By Hand",
 		}
 	)
 	employee.insert()
 
 	assignment = None
+	if not data.get("salary_structure") and flt(data.get("base")):
+		# The company's only active structure is the obvious one; with several, the caller chooses.
+		structures = frappe.get_all(
+			"Salary Structure",
+			filters={"company": data.get("company"), "docstatus": 1, "is_active": "Yes"},
+			pluck="name",
+		)
+		if len(structures) == 1:
+			data["salary_structure"] = structures[0]
 	if data.get("salary_structure") and flt(data.get("base")):
 		ssa = frappe.get_doc(
 			{
@@ -236,9 +335,46 @@ def create_employee(data):
 		ssa.submit()
 		assignment = ssa.name
 
+	allocation = _allocate_vacation(employee, cint(data.get("vacation_days")))
+
 	frappe.db.commit()
 	return {
 		"employee": employee.name,
 		"employee_name": employee.employee_name,
 		"structure_assignment": assignment,
+		"leave_allocation": allocation,
 	}
+
+
+def _allocate_vacation(employee, days_a_year):
+	"""The vacation of the year of entry, pro rata of the days left in it (to the half day).
+
+	The balance paid at the exit reads this allocation: an employee hired without one leaves with
+	no vacation to pay."""
+	if days_a_year <= 0:
+		return None
+	from hrms.regional.switzerland.setup import existing_leave_type
+
+	leave_type = existing_leave_type("Privilege Leave")
+	if not leave_type:
+		return None
+	start = getdate(employee.date_of_joining)
+	end = get_year_ending(start)
+	year_days = date_diff(end, start.replace(month=1, day=1)) + 1
+	days = round(days_a_year * (date_diff(end, start) + 1) / year_days * 2) / 2
+	if days <= 0:
+		return None
+	allocation = frappe.get_doc(
+		{
+			"doctype": "Leave Allocation",
+			"employee": employee.name,
+			"leave_type": leave_type,
+			"from_date": start,
+			"to_date": end,
+			"new_leaves_allocated": days,
+			"description": _("{0} days a year, pro rata of the year of entry").format(days_a_year),
+		}
+	)
+	allocation.insert()
+	allocation.submit()
+	return allocation.name

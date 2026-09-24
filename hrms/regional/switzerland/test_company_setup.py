@@ -182,6 +182,110 @@ class TestEmployeeWizardPaymentDetails(FrappeTestCase):
 		self.assertEqual(self._subject(permit_type="Permit B (Residence)", qst_subject=0), 0)
 
 
+class TestEmployeeWizardHiring(FrappeTestCase):
+	"""« C'est très compliqué de créer un employé » (24.09): the wizard asks the situation, not the
+	tariff letter, and records what the payroll needs afterwards — e-mail for the payslips, the
+	vacation of the year, the canton the source tax goes to."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("Company", COMPANY):
+			self.skipTest(f"{COMPANY} missing on this site")
+		from hrms.regional.switzerland.setup import existing_leave_type
+
+		# The install's vacation type: a test site may have no leave type at all.
+		if not existing_leave_type("Privilege Leave"):
+			frappe.get_doc({"doctype": "Leave Type", "leave_type_name": "Privilege Leave"}).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_the_boot_says_whether_the_swiss_payroll_runs(self):
+		# The whole fleet is Swiss: only a site with a payroll configuration hires through the wizard.
+		from hrms.regional.switzerland import employee_wizard
+
+		for configs, expected in ((2, True), (0, False)):
+			bootinfo = frappe._dict()
+			with patch.object(employee_wizard.frappe.db, "count", return_value=configs):
+				employee_wizard.extend_bootinfo(bootinfo)
+			self.assertIs(bootinfo.swiss_payroll, expected)
+
+	def test_the_letter_follows_the_personal_situation(self):
+		from hrms.regional.switzerland.employee_wizard import tariff_letter
+
+		cases = [
+			({"marital_status": "Single"}, "A"),
+			({"marital_status": "Divorced", "num_children": 1}, "H"),
+			({"marital_status": "Married"}, "B"),
+			({"marital_status": "Married", "spouse_works": 1, "num_children": 2}, "C"),
+			# A German commuter with the Gre-1 certificate, married with one income.
+			(
+				{"marital_status": "Married", "is_cross_border": 1, "residence_country": "DE", "de_gre1": 1},
+				"M",
+			),
+			# An Italian commuter since 2024, single with a child.
+			(
+				{
+					"marital_status": "Single",
+					"num_children": 1,
+					"is_cross_border": 1,
+					"residence_country": "IT",
+					"cross_border_start_date": "2024-03-01",
+				},
+				"U",
+			),
+		]
+		for situation, letter in cases:
+			with self.subTest(situation=situation):
+				self.assertEqual(tariff_letter(situation), letter)
+
+	def hire(self, **values):
+		data = {
+			"first_name": "Wizard",
+			"last_name": "HiringTest",
+			"gender": frappe.db.get_value("Gender", {}, "name"),
+			"date_of_birth": "1990-01-01",
+			"company": COMPANY,
+			"date_of_joining": "2026-10-01",
+			**values,
+		}
+		with patch("frappe.db.commit"):
+			return create_employee(data)
+
+	def test_a_hire_records_what_the_payroll_needs(self):
+		result = self.hire(
+			email="wizard.hiring@example.com",
+			mobile="+41 79 000 00 00",
+			designation="_Test Wizard Role",
+			permit_type="Permit B (Residence)",
+			marital_status="Married",
+			num_children=2,
+			canton="VD",
+			residence_canton="GE",
+			vacation_days=25,
+		)
+		employee = frappe.get_doc("Employee", result["employee"])
+		self.assertEqual(employee.personal_email, "wizard.hiring@example.com")
+		self.assertEqual(employee.prefered_contact_email, "Personal Email")
+		self.assertEqual(employee.designation, "_Test Wizard Role")
+		self.assertEqual((employee.ch_qst_subject, employee.ch_qst_tariff_letter), (1, "B"))
+		# The source tax goes to the canton of residence, the social insurances to the workplace's.
+		self.assertEqual((employee.ch_qst_taxation_canton, employee.ch_fiscal_canton), ("GE", "VD"))
+		self.assertEqual(employee.ch_payslip_delivery, "Email")
+		# 25 days a year from 1 October: 25 x 92 / 365 = 6.3, to the half day.
+		allocation = frappe.db.get_value(
+			"Leave Allocation",
+			result["leave_allocation"],
+			["new_leaves_allocated", "docstatus"],
+			as_dict=True,
+		)
+		self.assertEqual((allocation.new_leaves_allocated, allocation.docstatus), (6.5, 1))
+
+	def test_without_an_email_the_payslip_is_handed_out(self):
+		employee = self.hire(permit_type="Permit C (Settlement)", canton="VD")["employee"]
+		self.assertEqual(frappe.db.get_value("Employee", employee, "ch_payslip_delivery"), "By Hand")
+
+
 # //// Neoffice — 2026-09-24: sickness is no quota in Switzerland; an application for it was refused
 # //// for lack of an allocation (found by the HR assistant recording "sick from the 22nd to the 26th").
 class TestSwissAbsenceTypes(FrappeTestCase):

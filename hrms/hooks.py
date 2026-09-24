@@ -64,7 +64,11 @@ doctype_js = {
 	# //// envelope window (public/js/salary_slip_swiss.js, regional/switzerland/webstamp.py).
 	"Salary Slip": "public/js/salary_slip_swiss.js",
 }
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+# //// Neoffice — added: the Employee list's "Add" opens the hiring wizard instead of the full form
+# //// (public/js/erpnext/employee_list.js), on a site that runs the Swiss payroll only — the boot
+# //// says so (employee_wizard.extend_bootinfo); elsewhere "Add" keeps the form.
+doctype_list_js = {"Employee": "public/js/erpnext/employee_list.js"}
+extend_bootinfo = ["hrms.regional.switzerland.employee_wizard.extend_bootinfo"]
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
