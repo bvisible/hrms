@@ -1009,6 +1009,7 @@ COMPONENT_NAME_MESSAGES = (
 	_lt("AVS Administrative Fees Employer"),
 	_lt("Source Tax Employee"),
 	_lt("13th Month Salary"),
+	# //// Neoffice — 14th/15th salary and vacation payout translations for the new extra salaries table (728c34b26 "feat(payroll): Swiss salary rules — 13th to 15th salaries and their provision, vacation paid at the exit, flat-rate expenses, public holidays, one bank debit")
 	_lt("14th Month Salary"),
 	_lt("15th Month Salary"),
 	_lt("Vacation Payout"),
