@@ -91,3 +91,46 @@ class TestTheEncashmentHook(unittest.TestCase):
 
 	def test_no_salary_to_value_a_day_from_keeps_the_standard_amount(self):
 		self.assertEqual(self.value({"name": "_T-config"}, 0), 999)
+
+
+# A site installed in French, and what its leave types are called there.
+FRENCH = {
+	"Privilege Leave": "Congé de privilège",
+	"Accident": "Congé Accident",
+	"Sick Leave": "Congé Maladie",
+}
+ON_THE_SITE = {"Congé de privilège", "Congé Accident", "Congé Maladie", "Congé Sans Solde"}
+
+
+class TestTheLeaveTypesWhateverTheLanguage(unittest.TestCase):
+	"""A leave type keeps the name it was created under: a user reading English on a site installed
+	in French still finds the vacation and the absences."""
+
+	def lookup(self):
+		from hrms.regional.switzerland import setup
+
+		def translate(msg, lang=None, context=None):
+			return FRENCH.get(msg, msg) if lang == "fr" else msg  # the user reads English
+
+		return (
+			patch.object(setup, "_", side_effect=translate),
+			patch("frappe.db.get_single_value", return_value="fr"),
+			patch("frappe.db.exists", side_effect=lambda doctype, name: name in ON_THE_SITE),
+		)
+
+	def test_the_vacation_under_the_site_language(self):
+		from hrms.regional.switzerland import setup
+
+		first, second, third = self.lookup()
+		with first, second, third:
+			self.assertEqual(vacation.vacation_leave_type(), "Congé de privilège")
+			self.assertIsNone(setup.existing_leave_type("Compensatory Off"))
+
+	def test_the_absences_that_interrupt_a_flat_rate_allowance(self):
+		from hrms.regional.switzerland import expenses
+
+		first, second, third = self.lookup()
+		with first, second, third, patch("frappe.get_all", return_value=["Congé Sans Solde"]):
+			self.assertEqual(
+				expenses.absence_types(), {"Congé Maladie", "Congé Accident", "Congé Sans Solde"}
+			)

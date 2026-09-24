@@ -1649,6 +1649,28 @@ def swiss_absence_type_name(label):
 	return _(label, context="leave type")
 
 
+def leave_type_names(label):
+	"""The names the leave type ``label`` may have on this site, most likely first.
+
+	A leave type keeps the name it was created under, translated in the language of whoever created
+	it (the install's "Privilege Leave" is « Congé de privilège » on a French site). The user's
+	language, the site's and English are all tried, so the lookup does not depend on who asks: a
+	payroll run by a German-speaking manager must find the absences a French one would.
+	"""
+	context = None if label in INSTALL_LEAVE_TYPES else "leave type"
+	names = [_(label, context=context)]
+	site_language = frappe.db.get_single_value("System Settings", "language")
+	if site_language:
+		names.append(_(label, lang=site_language, context=context))
+	names.append(label)
+	return list(dict.fromkeys(names))
+
+
+def existing_leave_type(label):
+	"""The leave type ``label`` as it exists on this site, or None."""
+	return next((name for name in leave_type_names(label) if frappe.db.exists("Leave Type", name)), None)
+
+
 def ensure_swiss_leave_types():
 	"""The Swiss absences, as leave types an application never lacks the balance for, and every
 	leave counted the Swiss way (working or calendar days).
@@ -1661,7 +1683,7 @@ def ensure_swiss_leave_types():
 	report = {"created": [], "aligned": []}
 	for label in SWISS_ABSENCE_TYPES:
 		name = swiss_absence_type_name(label)
-		existing = next((n for n in (name, label) if frappe.db.exists("Leave Type", n)), None)
+		existing = existing_leave_type(label)
 		if existing:
 			if not cint(frappe.db.get_value("Leave Type", existing, "allow_negative")):
 				frappe.db.set_value("Leave Type", existing, "allow_negative", 1)
@@ -1686,9 +1708,7 @@ def ensure_swiss_leave_types():
 	# //// working days"): an *existing* working-day leave type (created before this fix, or under its
 	# //// English name) also loses include_holiday, so past installs get aligned, not just new ones.
 	for label in WORKING_DAY_LEAVE_TYPES:
-		existing = next(
-			(n for n in (swiss_absence_type_name(label), label) if frappe.db.exists("Leave Type", n)), None
-		)
+		existing = existing_leave_type(label)
 		if existing and cint(frappe.db.get_value("Leave Type", existing, "include_holiday")):
 			frappe.db.set_value("Leave Type", existing, "include_holiday", 0)
 			if existing not in report["aligned"]:
@@ -1696,14 +1716,7 @@ def ensure_swiss_leave_types():
 	# //// Neoffice — 2026-09-24: the vacation days left at the exit are paid through a Leave
 	# //// Encashment on "Vacation Payout" (vacation.py values them); an earning component the company
 	# //// chose already stays.
-	vacation = next(
-		(
-			n
-			for n in (swiss_absence_type_name("Privilege Leave"), "Privilege Leave")
-			if frappe.db.exists("Leave Type", n)
-		),
-		None,
-	)
+	vacation = existing_leave_type("Privilege Leave")
 	if vacation and frappe.db.exists("Salary Component", "Vacation Payout"):
 		values = frappe.db.get_value(
 			"Leave Type", vacation, ["allow_encashment", "earning_component"], as_dict=True

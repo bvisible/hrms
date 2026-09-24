@@ -42,11 +42,11 @@ def _wage_type(component):
 def absence_types():
 	"""The leave types that interrupt the allowance: the Swiss absences (sickness, accident, service,
 	maternity, the other parent's leave) and unpaid leave — never the vacation (CSI model)."""
-	from hrms.regional.switzerland.setup import SWISS_ABSENCE_TYPES, swiss_absence_type_name
+	from hrms.regional.switzerland.setup import SWISS_ABSENCE_TYPES, existing_leave_type
 
-	names = {swiss_absence_type_name(label) for label in SWISS_ABSENCE_TYPES}
+	names = {existing_leave_type(label) for label in SWISS_ABSENCE_TYPES} - {None}
 	names.update(frappe.get_all("Leave Type", filters={"is_lwp": 1}, pluck="name"))
-	return {name for name in names if frappe.db.exists("Leave Type", name)}
+	return names
 
 
 def absence_spans(employee, start, end):

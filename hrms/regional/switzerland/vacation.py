@@ -38,13 +38,11 @@ DEFAULT_ENTITLEMENT = 20
 
 
 def vacation_leave_type():
-	"""The site's vacation leave type (the install's "Privilege Leave", under its translation)."""
-	from hrms.regional.switzerland.setup import swiss_absence_type_name
+	"""The site's vacation leave type: the install's "Privilege Leave", under the name it was created
+	with, whatever the language of the one asking."""
+	from hrms.regional.switzerland.setup import existing_leave_type
 
-	for name in (swiss_absence_type_name("Privilege Leave"), "Privilege Leave"):
-		if frappe.db.exists("Leave Type", name):
-			return name
-	return None
+	return existing_leave_type("Privilege Leave")
 
 
 def monthly_base(employee, on_date):
