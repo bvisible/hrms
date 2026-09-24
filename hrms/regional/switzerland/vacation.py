@@ -227,6 +227,31 @@ def value_leave_encashment(doc, method=None):
 	doc.encashment_amount = round_to_5_centimes(flt(doc.encashment_days) * rate)
 
 
+def leave_period_for(company, on_date):
+	"""The company's leave period covering ``on_date``, which a Leave Encashment requires. A company
+	that never set one up (its vacation is allocated by calendar year) gets that year's."""
+	name = frappe.db.get_value(
+		"Leave Period",
+		{"company": company, "from_date": ("<=", on_date), "to_date": (">=", on_date)},
+		"name",
+		order_by="is_active desc",
+	)
+	if name:
+		return name
+	year = getdate(on_date).year
+	period = frappe.get_doc(
+		{
+			"doctype": "Leave Period",
+			"from_date": f"{year}-01-01",
+			"to_date": f"{year}-12-31",
+			"company": company,
+			"is_active": 1,
+		}
+	)
+	period.insert(ignore_permissions=True)
+	return period.name
+
+
 @frappe.whitelist(methods=["POST"])
 def pay_exit_balances(company, year, month):
 	"""A Leave Encashment for each leaver of the period with vacation days left and none yet: the
@@ -254,6 +279,7 @@ def pay_exit_balances(company, year, month):
 					"doctype": "Leave Encashment",
 					"employee": row["employee"],
 					"leave_type": leave_type,
+					"leave_period": leave_period_for(company, row["relieving_date"]),
 					"encashment_date": row["relieving_date"],
 					"encashment_days": row["balance"],
 				}

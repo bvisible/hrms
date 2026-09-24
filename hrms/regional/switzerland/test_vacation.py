@@ -134,3 +134,21 @@ class TestTheLeaveTypesWhateverTheLanguage(unittest.TestCase):
 			self.assertEqual(
 				expenses.absence_types(), {"Congé Maladie", "Congé Accident", "Congé Sans Solde"}
 			)
+
+
+class TestTheLeavePeriodOfAnEncashment(unittest.TestCase):
+	"""A Leave Encashment requires a leave period, which a company allocating by year never set up."""
+
+	def test_the_company_period_covering_the_exit(self):
+		with patch("frappe.db.get_value", return_value="LP-2026"), patch("frappe.get_doc") as get_doc:
+			self.assertEqual(vacation.leave_period_for("_T-co", "2026-09-30"), "LP-2026")
+		get_doc.assert_not_called()
+
+	def test_the_calendar_year_when_the_company_has_none(self):
+		with patch("frappe.db.get_value", return_value=None), patch("frappe.get_doc") as get_doc:
+			get_doc.return_value.name = "LP-new"
+			self.assertEqual(vacation.leave_period_for("_T-co", "2026-09-30"), "LP-new")
+		values = get_doc.call_args.args[0]
+		self.assertEqual(
+			(values["from_date"], values["to_date"], values["company"]), ("2026-01-01", "2026-12-31", "_T-co")
+		)
