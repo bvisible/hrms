@@ -6,6 +6,9 @@ import frappe
 from frappe import _, _lt
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
+# //// Neoffice — cint import added for ensure_swiss_leave_types below.
+from frappe.utils import cint
+
 # //// Neoffice — removed DEFAULT_LOHNAUSWEIS_MAPPING import (bd93e5035 "feat(payroll): the Swiss salary certificate, delivered — and the onboarding asks the payroll choices"): the certificate now places each slip row by its component's own position, no default mapping to import.
 from hrms.regional.switzerland.constants import (
 	CROSS_BORDER_COUNTRIES,
@@ -1484,6 +1487,59 @@ def create_swiss_salary_structure():
 
 
 # //// Neoffice — old create_swiss_salary_structure() returned early when a draft "Salary Structure" already existed for the structure name; removed together with that check (073533643 "feat(payroll): a hired employee is payable, and each company gets its Swiss salary structure"): ensure_company_salary_structure below looks up, creates and submits the structure per company instead.
+# //// Neoffice — added: the Swiss absences that are not an annual quota. Sickness, accident, military
+# //// or civil service, maternity and the other parent's leave are paid on by the employer (CO 324a)
+# //// or compensated (IJM, LAA, APG): upstream's leave types refuse such an application for lack of
+# //// an allocation (validate_balance_leaves), so "sick from the 22nd to the 26th" could not be
+# //// recorded. The first is the one hrms creates at install (_("Sick Leave")).
+SWISS_ABSENCE_TYPES = (
+	"Sick Leave",
+	"Accident",
+	"Military or civil service",
+	"Maternity leave",
+	"Other-parent leave",
+)
+
+
+def swiss_absence_type_name(label):
+	"""The name a Swiss absence type has on this site: the install's own translation for sickness,
+	the "leave type" context for the others ("Accident" alone is a word of the whole interface)."""
+	if label == "Sick Leave":
+		return _(label)
+	return _(label, context="leave type")
+
+
+def ensure_swiss_leave_types():
+	"""The Swiss absences, as leave types an application never lacks the balance for.
+
+	An existing type (under its translated or its English name) only gets allow_negative: whether it
+	is paid (is_lwp) stays the company's choice. A missing one is created in the site's language,
+	paid, without allocation. Returns what was created and what was aligned.
+	"""
+	report = {"created": [], "aligned": []}
+	for label in SWISS_ABSENCE_TYPES:
+		name = swiss_absence_type_name(label)
+		existing = next((n for n in (name, label) if frappe.db.exists("Leave Type", n)), None)
+		if existing:
+			if not cint(frappe.db.get_value("Leave Type", existing, "allow_negative")):
+				frappe.db.set_value("Leave Type", existing, "allow_negative", 1)
+				report["aligned"].append(existing)
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Leave Type",
+				"leave_type_name": name,
+				"allow_negative": 1,
+				"is_lwp": 0,
+				"include_holiday": 1,
+				"allow_encashment": 0,
+				"is_carry_forward": 0,
+			}
+		).insert(ignore_permissions=True)
+		report["created"].append(name)
+	return report
+
+
 def ensure_company_salary_structure(company):
 	"""The name of ``company``'s Swiss salary structure — created, submitted and active when the
 	company has none: the monthly salary (wage type 1000) as its earning, the Swiss deductions,

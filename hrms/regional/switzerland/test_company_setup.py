@@ -180,3 +180,43 @@ class TestEmployeeWizardPaymentDetails(FrappeTestCase):
 	def test_an_explicit_choice_is_kept(self):
 		"""Ordinary taxation of a B permit married to a Swiss: the caller says so."""
 		self.assertEqual(self._subject(permit_type="Permit B (Residence)", qst_subject=0), 0)
+
+
+# //// Neoffice — 2026-09-24: sickness is no quota in Switzerland; an application for it was refused
+# //// for lack of an allocation (found by the HR assistant recording "sick from the 22nd to the 26th").
+class TestSwissAbsenceTypes(FrappeTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_the_swiss_absences_never_lack_a_balance(self):
+		from hrms.regional.switzerland.setup import (
+			SWISS_ABSENCE_TYPES,
+			ensure_swiss_leave_types,
+			swiss_absence_type_name,
+		)
+
+		sick = next(
+			(n for n in (frappe._("Sick Leave"), "Sick Leave") if frappe.db.exists("Leave Type", n)), None
+		)
+		if sick:
+			frappe.db.set_value("Leave Type", sick, {"allow_negative": 0, "is_lwp": 0})
+		report = ensure_swiss_leave_types()
+		for label in SWISS_ABSENCE_TYPES:
+			name = next(
+				n for n in (swiss_absence_type_name(label), label) if frappe.db.exists("Leave Type", n)
+			)
+			self.assertEqual(frappe.db.get_value("Leave Type", name, "allow_negative"), 1, name)
+		if sick:
+			self.assertIn(sick, report["aligned"])
+		self.assertEqual(ensure_swiss_leave_types(), {"created": [], "aligned": []})  # idempotent
+
+	def test_whether_an_absence_is_paid_stays_the_company_choice(self):
+		from hrms.regional.switzerland.setup import ensure_swiss_leave_types, swiss_absence_type_name
+
+		ensure_swiss_leave_types()
+		name = next(
+			n for n in (swiss_absence_type_name("Accident"), "Accident") if frappe.db.exists("Leave Type", n)
+		)
+		frappe.db.set_value("Leave Type", name, {"is_lwp": 1, "allow_negative": 0})
+		ensure_swiss_leave_types()
+		self.assertEqual(frappe.db.get_value("Leave Type", name, ["is_lwp", "allow_negative"]), (1, 1))

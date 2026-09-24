@@ -21322,3 +21322,23 @@ msgstr "Seule une fiche de salaire validée peut être affranchie."
 #: hrms/regional/switzerland/webstamp.py
 msgid "The postal address of {0} is incomplete: a street line and a postcode and town line are needed."
 msgstr "L'adresse postale de {0} est incomplète : une ligne de rue et une ligne de NPA et localité sont nécessaires."
+
+#: hrms/regional/switzerland/setup.py
+msgctxt "leave type"
+msgid "Accident"
+msgstr "Congé Accident"
+
+#: hrms/regional/switzerland/setup.py
+msgctxt "leave type"
+msgid "Military or civil service"
+msgstr "Service Militaire/Civil"
+
+#: hrms/regional/switzerland/setup.py
+msgctxt "leave type"
+msgid "Maternity leave"
+msgstr "Congé Maternité"
+
+#: hrms/regional/switzerland/setup.py
+msgctxt "leave type"
+msgid "Other-parent leave"
+msgstr "Congé de l'Autre Parent"

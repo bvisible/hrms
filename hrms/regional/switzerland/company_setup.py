@@ -192,4 +192,8 @@ def apply_company_setup(data):
 	from hrms.regional.switzerland.setup import ensure_company_salary_structure
 
 	result["salary_structure"] = ensure_company_salary_structure(company)
+	# //// Neoffice — and the Swiss absences an application must never be refused for (setup.py).
+	from hrms.regional.switzerland.setup import ensure_swiss_leave_types
+
+	result["leave_types"] = ensure_swiss_leave_types()
 	return result
