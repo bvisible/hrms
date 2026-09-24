@@ -904,6 +904,12 @@ def _is_aperiodic_component(component_name):
 	if code in APERIODIC_WAGE_TYPES:
 		return True
 	wage_type = frappe.get_cached_value("Salary Component", component_name, "ch_wage_type")
+	if not wage_type and code:
+		# //// Neoffice — 2026-09-24: a component carrying only its wage type code (typed by hand, or
+		# //// made before the link existed) was taken for periodic: in the annual model its bonus was
+		# //// annualized (the Odoo bench, VD June: 3'061.30 instead of 2'582.90). The catalogue
+		# //// answers by code.
+		wage_type = frappe.db.get_value("Swiss Wage Type", {"code": code}, "name")
 	if not wage_type:
 		return False
 	return frappe.get_cached_value("Swiss Wage Type", wage_type, "statistical_category") == "VU"

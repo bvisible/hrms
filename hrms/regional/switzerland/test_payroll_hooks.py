@@ -6,6 +6,8 @@
 # License: GNU General Public License v3. See license.txt
 
 import json
+import unittest
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -1231,3 +1233,34 @@ class TestAvsAdministrativeFees(SwissPayrollHookCase):
 		slip = self._make_slip([(MONTHLY_COMPONENT, 6000)])
 		update_swiss_social_contributions(slip, "validate")
 		self.assertIsNone(self._amount(slip, self.FEES))
+
+
+class TestAperiodicByWageType(unittest.TestCase):
+	"""A one-off payment ("VU") is aperiodic for the source tax, whether the component links its wage
+	type or only carries its code: the annual model must never annualize a bonus."""
+
+	def classify(self, values, wage_type_found="CH-WT-1210"):
+		from hrms.regional.switzerland import payroll_hooks
+
+		def cached(doctype, name, field):
+			if doctype == "Salary Component":
+				return values.get(field)
+			return {"CH-WT-1210": "VU", "CH-WT-1200": "SMS"}.get(name)
+
+		with (
+			patch("frappe.get_cached_value", side_effect=cached),
+			patch("frappe.db.get_value", return_value=wage_type_found),
+		):
+			return payroll_hooks._is_aperiodic_component("_T Bonus")
+
+	def test_a_linked_bonus(self):
+		self.assertTrue(self.classify({"ch_wage_type_code": "1210", "ch_wage_type": "CH-WT-1210"}))
+
+	def test_a_bonus_with_only_its_code(self):
+		self.assertTrue(self.classify({"ch_wage_type_code": "1210", "ch_wage_type": None}))
+
+	def test_the_13th_stays_periodic(self):
+		self.assertFalse(self.classify({"ch_wage_type_code": "1200", "ch_wage_type": None}, "CH-WT-1200"))
+
+	def test_the_vacation_paid_at_the_exit(self):
+		self.assertTrue(self.classify({"ch_wage_type_code": "1165", "ch_wage_type": None}, None))
