@@ -206,7 +206,9 @@ def exit_balances(company, start, end, config=None):
 
 
 def value_leave_encashment(doc, method=None):
-	"""Leave Encashment validate: the vacation days of a Swiss company valued from the salary."""
+	"""Leave Encashment validate: the vacation days of a company on the Swiss payroll valued from the
+	salary. A company without it, or an employee without a salary to value a day from, keeps the
+	standard valuation of the salary structure."""
 	company = frappe.db.get_value("Employee", doc.employee, "company")
 	if frappe.get_cached_value("Company", company, "country") != "Switzerland":
 		return
@@ -218,8 +220,12 @@ def value_leave_encashment(doc, method=None):
 	)
 
 	canton = frappe.db.get_value("Employee", doc.employee, "ch_fiscal_canton")
-	config = get_company_payroll_config(company, get_swiss_social_insurance_config(company, canton)) or {}
+	config = get_company_payroll_config(company, get_swiss_social_insurance_config(company, canton))
+	if not config:
+		return
 	rate, _detail = daily_rate(doc.employee, company, doc.encashment_date, config, doc.leave_type)
+	if not rate:
+		return
 	doc.encashment_amount = round_to_5_centimes(flt(doc.encashment_days) * rate)
 
 

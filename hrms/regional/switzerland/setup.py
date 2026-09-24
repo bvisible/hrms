@@ -71,6 +71,23 @@ def create_swiss_wage_types():
 	frappe.db.commit()
 
 
+def ensure_swiss_wage_types():
+	"""Create, on a site with the Swiss payroll, the wage types added to the catalogue since.
+
+	Wired in after_migrate, before ensure_swiss_salary_components: a component added later (14th and
+	15th salaries, 2026-09-24) links to its wage type, which must exist first. A site without the
+	Swiss payroll gets nothing — neither the catalogue nor its Swiss components exist there, and
+	the payroll setup creates the whole catalogue when it runs.
+	"""
+	if not frappe.db.table_exists("Swiss Wage Type"):
+		return
+	if not (
+		frappe.db.count("Swiss Wage Type") or frappe.db.exists("Salary Component", "AVS/AI/APG Employee")
+	):
+		return  # not a Swiss payroll site
+	create_swiss_wage_types()
+
+
 def get_custom_fields():
 	canton_options = "\n" + "\n".join(SWISS_CANTONS)
 	permit_options = "\n".join(PERMIT_TYPES)

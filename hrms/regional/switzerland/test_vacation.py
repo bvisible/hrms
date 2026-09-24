@@ -62,3 +62,32 @@ class TestTheBalanceAtTheExit(unittest.TestCase):
 			[(i["code"], i["employee"]) for i in issues],
 			[("vacation_balance", "A"), ("vacation_negative", "B")],
 		)
+
+
+class TestTheEncashmentHook(unittest.TestCase):
+	"""The whole fleet is Swiss: only a company on the Swiss payroll gets its days valued here."""
+
+	def value(self, config, rate):
+		doc = frappe._dict(
+			employee="_T-emp", leave_type="_T-vacation", encashment_days=5, encashment_date="2027-05-31"
+		)
+		doc.encashment_amount = 999
+		with (
+			patch("frappe.db.get_value", return_value="_T-co"),
+			patch("frappe.get_cached_value", return_value="Switzerland"),
+			patch.object(vacation, "vacation_leave_type", return_value="_T-vacation"),
+			patch("hrms.regional.switzerland.utils.get_swiss_social_insurance_config", return_value=config),
+			patch("hrms.regional.switzerland.utils.get_company_payroll_config", return_value=config),
+			patch.object(vacation, "daily_rate", return_value=(rate, {})),
+		):
+			vacation.value_leave_encashment(doc)
+		return doc.encashment_amount
+
+	def test_a_company_on_the_swiss_payroll_values_the_days_from_the_salary(self):
+		self.assertEqual(self.value({"name": "_T-config"}, 400), 2000)
+
+	def test_a_company_without_the_swiss_payroll_keeps_the_standard_amount(self):
+		self.assertEqual(self.value(None, 400), 999)
+
+	def test_no_salary_to_value_a_day_from_keeps_the_standard_amount(self):
+		self.assertEqual(self.value({"name": "_T-config"}, 0), 999)

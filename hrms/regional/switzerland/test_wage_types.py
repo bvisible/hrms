@@ -651,5 +651,31 @@ class TestComponentNames(unittest.TestCase):
 		self.assertEqual(missing, [])
 
 
+class TestEnsureSwissWageTypes(unittest.TestCase):
+	"""after_migrate tops the catalogue up only where the Swiss payroll lives."""
+
+	def topped_up(self, wage_types, swiss_components):
+		from hrms.regional.switzerland import setup
+
+		with (
+			patch.object(setup.frappe.db, "table_exists", return_value=True),
+			patch.object(setup.frappe.db, "count", return_value=wage_types),
+			patch.object(setup.frappe.db, "exists", return_value=swiss_components),
+			patch.object(setup, "create_swiss_wage_types") as create,
+		):
+			setup.ensure_swiss_wage_types()
+		return create.called
+
+	def test_a_site_without_the_swiss_payroll_gets_nothing(self):
+		self.assertFalse(self.topped_up(0, False))
+
+	def test_a_site_with_the_catalogue_is_topped_up(self):
+		self.assertTrue(self.topped_up(180, False))
+
+	def test_swiss_components_without_the_catalogue_get_it(self):
+		# the components link to their wage type: it must exist before a new one is created
+		self.assertTrue(self.topped_up(0, True))
+
+
 if __name__ == "__main__":
 	unittest.main()

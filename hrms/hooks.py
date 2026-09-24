@@ -131,8 +131,9 @@ after_migrate = [
 	# //// replaying it on every migrate is cheap and keeps the fleet aligned.
 	"hrms.regional.switzerland.setup.make_custom_fields",
 	# //// Neoffice — the wage types added to the catalogue since (1205, 1206, 1168 on 2026-09-24)
-	# //// before the components that point at them: only the missing ones are created.
-	"hrms.regional.switzerland.setup.create_swiss_wage_types",
+	# //// before the components that point at them: only the missing ones, and only on a site
+	# //// with the Swiss payroll (a site without it gets no catalogue).
+	"hrms.regional.switzerland.setup.ensure_swiss_wage_types",
 	# //// Neoffice — same reason for the salary components: a component added to the
 	# //// definitions never reached an already-provisioned site (LAAC, 2026-09-22).
 	"hrms.regional.switzerland.setup.ensure_swiss_salary_components",
