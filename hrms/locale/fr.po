@@ -5107,7 +5107,7 @@ msgstr "Email envoyé à"
 #. Label of a Link field in DocType 'Payroll Settings'
 #: hrms/payroll/doctype/payroll_settings/payroll_settings.json
 msgid "Email Template"
-msgstr "Modèle d&#39;email"
+msgstr "Modèle d'email"
 
 #: hrms/hr/doctype/leave_application/leave_application.py:728
 msgid "Email sent to {0}"
@@ -6366,17 +6366,17 @@ msgstr "Journal Energy Point"
 #. Label of a Link in the Performance Workspace
 #: hrms/hr/workspace/performance/performance.json
 msgid "Energy Point Rule"
-msgstr "Règle de point d&#39;énergie"
+msgstr "Règle de point d'énergie"
 
 #. Label of a Link in the Performance Workspace
 #: hrms/hr/workspace/performance/performance.json
 msgid "Energy Point Settings"
-msgstr "Paramètres de points d&#39;énergie"
+msgstr "Paramètres de points d'énergie"
 
 #. Label of a Card Break in the Performance Workspace
 #: hrms/hr/workspace/performance/performance.json
 msgid "Energy Points"
-msgstr "Points d&#39;énergie"
+msgstr "Points d'énergie"
 
 #: hrms/hr/doctype/hr_settings/hr_settings.js:34
 msgid ""
@@ -6423,7 +6423,7 @@ msgstr "Journal des Erreurs"
 #. Label of a Small Text field in DocType 'Payroll Entry'
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
 msgid "Error Message"
-msgstr "Message d&#39;erreur"
+msgstr "Message d'erreur"
 
 #: frontend/src/components/FormView.vue:531
 msgid "Error creating {0}"
@@ -7433,7 +7433,7 @@ msgstr "Horaire de Début"
 #. Label of a Link field in DocType 'PWA Notification'
 #: hrms/hr/doctype/pwa_notification/pwa_notification.json
 msgid "From User"
-msgstr "De l&#39;utilisateur"
+msgstr "De l'utilisateur"
 
 #: hrms/payroll/doctype/additional_salary/additional_salary.py:114
 msgid ""
@@ -12582,14 +12582,14 @@ msgstr "Veuillez définir {0}."
 msgid "Please setup Employee Naming System in Human Resource > HR Settings"
 msgstr ""
 "Veuillez configurer le système de dénomination des employés dans Ressources "
-"humaines&gt; Paramètres RH"
+"humaines> Paramètres RH"
 
 #: hrms/hr/doctype/upload_attendance/upload_attendance.py:159
 msgid ""
 "Please setup numbering series for Attendance via Setup > Numbering Series"
 msgstr ""
 "Veuillez configurer la série de numérotation pour l'assistance via "
-"Configuration&gt; Série de numérotation"
+"Configuration> Série de numérotation"
 
 #: hrms/hr/notification/training_feedback/training_feedback.html:6
 msgid ""
@@ -14458,7 +14458,7 @@ msgstr "Expéditeur"
 #: hrms/hr/doctype/hr_settings/hr_settings.json
 #: hrms/payroll/doctype/payroll_settings/payroll_settings.json
 msgid "Sender Email"
-msgstr "Email d&#39;expéditeur"
+msgstr "Email d'expéditeur"
 
 #: hrms/hr/doctype/exit_interview/exit_interview.py:136
 msgid "Sending Failed due to missing email information for employee(s): {1}"
@@ -16250,7 +16250,7 @@ msgstr "Horaire de Fin"
 #. Label of a Link field in DocType 'PWA Notification'
 #: hrms/hr/doctype/pwa_notification/pwa_notification.json
 msgid "To User"
-msgstr "À l&#39;utilisateur"
+msgstr "À l'utilisateur"
 
 #: hrms/hr/doctype/shift_assignment/shift_assignment.py:104
 msgid "To allow this, enable {0} under {1}."
