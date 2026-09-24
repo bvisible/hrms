@@ -220,3 +220,25 @@ class TestSwissAbsenceTypes(FrappeTestCase):
 		frappe.db.set_value("Leave Type", name, {"is_lwp": 1, "allow_negative": 0})
 		ensure_swiss_leave_types()
 		self.assertEqual(frappe.db.get_value("Leave Type", name, ["is_lwp", "allow_negative"]), (1, 1))
+
+	def test_vacation_and_the_other_parent_count_working_days(self):
+		"""A fortnight off from Monday to Friday is 10 days, not 12; sickness keeps calendar days."""
+		from hrms.regional.switzerland.setup import (
+			WORKING_DAY_LEAVE_TYPES,
+			ensure_swiss_leave_types,
+			swiss_absence_type_name,
+		)
+
+		ensure_swiss_leave_types()
+		for label in WORKING_DAY_LEAVE_TYPES:
+			name = next(
+				(n for n in (swiss_absence_type_name(label), label) if frappe.db.exists("Leave Type", n)),
+				None,
+			)
+			if name:
+				self.assertEqual(frappe.db.get_value("Leave Type", name, "include_holiday"), 0, name)
+		sick = swiss_absence_type_name("Sick Leave")
+		if frappe.db.exists("Leave Type", sick):
+			frappe.db.set_value("Leave Type", sick, "include_holiday", 1)
+			ensure_swiss_leave_types()
+			self.assertEqual(frappe.db.get_value("Leave Type", sick, "include_holiday"), 1)

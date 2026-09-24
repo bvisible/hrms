@@ -1499,22 +1499,33 @@ SWISS_ABSENCE_TYPES = (
 	"Maternity leave",
 	"Other-parent leave",
 )
+# //// Neoffice — leave counted in WORKING days in Switzerland: vacation (4 weeks = 20 days for a
+# //// five-day week, CO 329a) and the install's casual and compensatory leave, and the other
+# //// parent's two weeks (10 days, CO 329g). Upstream creates every type with include_holiday, so a
+# //// fortnight off consumed 12 days, a week spanning a weekend 7 of 25. Sickness, accident,
+# //// service and maternity keep the calendar count their daily allowances (IJM, LAA, APG) use.
+WORKING_DAY_LEAVE_TYPES = ("Privilege Leave", "Casual Leave", "Compensatory Off", "Other-parent leave")
+# Created by the hrms install under their plain translation (hrms/setup.py).
+INSTALL_LEAVE_TYPES = ("Sick Leave", "Privilege Leave", "Casual Leave", "Compensatory Off")
 
 
 def swiss_absence_type_name(label):
-	"""The name a Swiss absence type has on this site: the install's own translation for sickness,
-	the "leave type" context for the others ("Accident" alone is a word of the whole interface)."""
-	if label == "Sick Leave":
+	"""The name a Swiss leave type has on this site: the install's own translation for the types
+	hrms creates, the "leave type" context for ours ("Accident" alone is a word of the whole
+	interface)."""
+	if label in INSTALL_LEAVE_TYPES:
 		return _(label)
 	return _(label, context="leave type")
 
 
 def ensure_swiss_leave_types():
-	"""The Swiss absences, as leave types an application never lacks the balance for.
+	"""The Swiss absences, as leave types an application never lacks the balance for, and every
+	leave counted the Swiss way (working or calendar days).
 
-	An existing type (under its translated or its English name) only gets allow_negative: whether it
-	is paid (is_lwp) stays the company's choice. A missing one is created in the site's language,
-	paid, without allocation. Returns what was created and what was aligned.
+	An existing absence type (under its translated or its English name) gets allow_negative, a leave
+	counted in working days loses include_holiday; whether a type is paid (is_lwp) stays the
+	company's choice. A missing absence type is created in the site's language, paid, without
+	allocation. Returns what was created and what was aligned.
 	"""
 	report = {"created": [], "aligned": []}
 	for label in SWISS_ABSENCE_TYPES:
@@ -1531,12 +1542,20 @@ def ensure_swiss_leave_types():
 				"leave_type_name": name,
 				"allow_negative": 1,
 				"is_lwp": 0,
-				"include_holiday": 1,
+				"include_holiday": 0 if label in WORKING_DAY_LEAVE_TYPES else 1,
 				"allow_encashment": 0,
 				"is_carry_forward": 0,
 			}
 		).insert(ignore_permissions=True)
 		report["created"].append(name)
+	for label in WORKING_DAY_LEAVE_TYPES:
+		existing = next(
+			(n for n in (swiss_absence_type_name(label), label) if frappe.db.exists("Leave Type", n)), None
+		)
+		if existing and cint(frappe.db.get_value("Leave Type", existing, "include_holiday")):
+			frappe.db.set_value("Leave Type", existing, "include_holiday", 0)
+			if existing not in report["aligned"]:
+				report["aligned"].append(existing)
 	return report
 
 
