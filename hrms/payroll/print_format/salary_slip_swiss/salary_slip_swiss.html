@@ -3,146 +3,152 @@
 {%- set d = get_salary_slip_print_data(doc) -%}
 
 <style>
-	@page { size: A4; margin: 10mm 15mm; }
+	/* //// Neoffice — laid out for printing (2026-09-24): no filled bars or shaded headers, which
+	   //// print muddy and cost ink; black text, thin rules and white space carry the structure.
+	   //// The net stands between a rule and an accounting double rule. */
+	@page { size: A4; margin: 12mm 16mm; }
 
 	.ss {
 		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-		font-size: 8pt;
+		font-size: 8.5pt;
 		color: #1a1a1a;
-		line-height: 1.25;
+		line-height: 1.35;
 	}
 
-	/* ── Letterhead header ── */
+	/* ── Letterhead ── */
 	.ss-letterhead {
 		display: table;
 		width: 100%;
-		margin-bottom: 6px;
+		margin-bottom: 8px;
 	}
 	.ss-lh-left {
 		display: table-cell;
 		vertical-align: top;
-		width: 55%;
+		width: 60%;
 	}
 	.ss-lh-right {
 		display: table-cell;
 		vertical-align: top;
-		width: 45%;
+		width: 40%;
 		text-align: right;
 	}
-	.ss-co { font-size: 10pt; font-weight: 700; margin: 0 0 1px; }
-	.ss-co-addr { font-size: 7pt; color: #555; line-height: 1.35; }
+	.ss-co { font-size: 11pt; font-weight: 700; margin: 0 0 2px; }
+	.ss-co-addr { font-size: 7.5pt; color: #555; line-height: 1.45; }
 	.ss-co-addr .co-line { display: inline; }
 
 	/* ── Recipient address block (envelope window) ── */
 	.ss-recipient {
-		margin-top: 12px;
-		margin-bottom: 16px;
-		padding: 8px 0;
-		min-height: 55px;
+		margin: 20px 0 30px;
+		min-height: 60px;
 	}
-	.ss-emp-name { font-weight: 700; font-size: 8.5pt; }
-	.ss-emp-addr { font-size: 7.5pt; color: #333; line-height: 1.4; }
+	.ss-emp-name { font-weight: 700; font-size: 9pt; }
+	.ss-emp-addr { font-size: 8.5pt; color: #333; line-height: 1.45; }
 
-	/* ── Title bar ── */
+	/* ── Title: dark text over a rule ── */
 	.ss-title {
-		background: #2c3e50;
-		color: #fff;
-		padding: 5px 10px;
-		font-size: 9.5pt;
-		font-weight: 600;
+		font-size: 13pt;
+		font-weight: 700;
 		letter-spacing: 0.2px;
+		padding-bottom: 6px;
+		border-bottom: 1.5px solid #1a1a1a;
+		margin-bottom: 10px;
 	}
 
-	/* ── Info bar ── */
+	/* ── Employment facts ── */
 	.ss-info {
 		display: table;
 		width: 100%;
-		background: #f5f6f7;
-		border-bottom: 1px solid #ddd;
-		padding: 4px 10px;
-		margin-bottom: 10px;
-		font-size: 7.5pt;
+		margin-bottom: 20px;
+		font-size: 8pt;
 	}
 	.ss-info-l, .ss-info-r { display: table-cell; vertical-align: top; width: 50%; }
-	.ss-info .il { display: block; padding: 0.5px 0; }
-	.ss-info .ik { color: #888; font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3px; display: inline-block; width: 96px; }
+	.ss-info .il { display: block; padding: 2px 0; }
+	.ss-info .ik { color: #777; font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.4px; display: inline-block; width: 104px; }
 	.ss-info .iv { font-weight: 600; }
 
 	/* ── Tables ── */
 	.ss table { width: 100%; border-collapse: collapse; }
+	.ss .t { margin-top: 20px; }
 	.ss .t th {
-		background: #e8eaed;
-		padding: 3px 6px;
-		font-size: 6pt;
+		padding: 0 6px 5px;
+		font-size: 6.5pt;
 		font-weight: 700;
 		text-transform: uppercase;
-		letter-spacing: 0.5px;
-		color: #556;
-		border-bottom: 1px solid #ccc;
+		letter-spacing: 0.6px;
+		color: #666;
+		text-align: left;
+		border-bottom: 1px solid #1a1a1a;
 	}
-	.ss .t td { padding: 3px 6px; border-bottom: 1px solid #eef0f2; font-size: 8pt; }
+	.ss .t th.r { text-align: right; }
+	.ss .t td { padding: 5px 6px; border-bottom: 1px solid #e3e6e9; font-size: 8.5pt; }
 	.ss .r { text-align: right; }
+	/* The instance's print style shades every header and stripes every other row, with
+	   !important, and takes the header rule away: this format prints on white. */
+	.print-format .ss th, .print-format .ss td { background: none !important; }
+	.print-format .ss .t th { padding: 0 6px 6px !important; border-bottom: 1px solid #1a1a1a !important; }
+	.print-format .ss .t td { padding: 7px 6px !important; }
+	.print-format .ss-er .t th { border-bottom-color: #bbb !important; }
 
 	/* GS code */
-	.ss .gs { width: 32px; font-size: 6.5pt; color: #aab; font-family: "SF Mono", "Consolas", monospace; }
+	.ss .gs { width: 34px; font-size: 7pt; color: #999; font-family: "SF Mono", Menlo, Consolas, monospace; }
 
 	/* Column widths */
 	.ss .c-base { width: 90px; }
-	.ss .c-qty { width: 55px; }
-	.ss .c-amt { width: 85px; }
+	.ss .c-qty { width: 60px; }
+	.ss .c-amt { width: 90px; }
 
 	/* Totals */
 	.ss .t-row td {
 		font-weight: 700;
-		border-top: 1.5px solid #999;
+		border-top: 1px solid #1a1a1a;
 		border-bottom: none;
-		padding-top: 4px;
+		padding-top: 6px;
 	}
 
 	/* Bases summary */
 	.ss .bases {
-		padding: 3px 6px 8px;
-		font-size: 6.5pt;
-		color: #889;
+		padding: 5px 6px 0;
+		font-size: 7pt;
+		color: #777;
 	}
-	.ss .bases span { margin-right: 10px; }
-	.ss .bases b { color: #556; font-weight: 600; }
+	.ss .bases span { margin-right: 14px; }
+	.ss .bases b { color: #444; font-weight: 600; }
 
-	/* ── Net pay ── */
+	/* ── Net pay: between a rule and a double rule ── */
 	.ss-net {
-		background: #2c3e50;
-		color: #fff;
-		padding: 6px 10px;
-		margin: 8px 0 2px;
 		display: table;
 		width: 100%;
+		margin: 26px 0 4px;
+		border-top: 1.5px solid #1a1a1a;
+		border-bottom: 4px double #1a1a1a;
 	}
-	.ss-net-l { display: table-cell; vertical-align: middle; font-size: 9.5pt; font-weight: 600; }
-	.ss-net-r { display: table-cell; vertical-align: middle; text-align: right; font-size: 11pt; font-weight: 700; }
+	.ss-net-l { display: table-cell; vertical-align: middle; padding: 9px 6px; font-size: 10.5pt; font-weight: 700; }
+	.ss-net-r { display: table-cell; vertical-align: middle; padding: 9px 6px; text-align: right; font-size: 12.5pt; font-weight: 700; }
 	.ss-net-sub {
 		display: table;
 		width: 100%;
-		padding: 2px 10px;
-		font-size: 7pt;
+		padding: 3px 6px;
+		font-size: 7.5pt;
 		color: #666;
 	}
 	.ss-net-sub div { display: table-cell; }
 	.ss-net-sub .r { text-align: right; }
 
-	/* ── Employer section — hidden on print by default ── */
-	.ss-er { margin-top: 8px; }
+	/* ── Employer section — screen only ── */
+	.ss-er { margin-top: 18px; }
 	.ss-er .er-label {
-		font-size: 6pt;
+		font-size: 6.5pt;
 		text-transform: uppercase;
 		letter-spacing: 1px;
-		color: #aab;
+		color: #999;
 		font-weight: 600;
-		padding: 6px 0 3px;
+		padding: 6px 0 0;
 	}
-	.ss-er .t th { background: #f9fafb; color: #aab; }
-	.ss-er .t td { color: #889; border-bottom-color: #f0f1f3; font-size: 7.5pt; }
-	.ss-er .gs { color: #ccd; }
-	.ss-er .t-row td { color: #667; border-top-color: #bbc; }
+	.ss-er .t { margin-top: 6px; }
+	.ss-er .t th { color: #999; border-bottom-color: #bbb; }
+	.ss-er .t td { color: #777; font-size: 8pt; }
+	.ss-er .gs { color: #bbb; }
+	.ss-er .t-row td { color: #555; border-top-color: #bbb; }
 
 	@media print {
 		.ss-er { display: none; }
@@ -150,12 +156,13 @@
 
 	/* ── Footer ── */
 	.ss-footer {
-		margin-top: 10px;
-		padding-top: 6px;
-		border-top: 1px solid #ddd;
-		font-size: 6.5pt;
-		color: #aaa;
+		margin-top: 28px;
+		padding-top: 8px;
+		border-top: 1px solid #d0d4d8;
+		font-size: 7.5pt;
+		color: #555;
 	}
+	.ss-footer .ft-label { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.6px; color: #999; font-weight: 600; margin-bottom: 3px; }
 </style>
 
 <div class="ss">
@@ -272,7 +279,7 @@
 				<td class="gs">{{ row.gs_code }}</td>
 				<td>{{ _(row.name) }}</td>
 				<td class="r">{{ format_chf(row.determinant) }}</td>
-				<td class="r">{% if row.rate %}{{ row.rate }}%{% endif %}</td>
+				<td class="r">{% if row.rate %}{{ row.rate }}&nbsp;%{% endif %}</td>
 				<td class="r">{{ format_chf(-1 * row.amount if row.amount > 0 else row.amount) }}</td>
 			</tr>
 			{% endfor %}
@@ -370,7 +377,7 @@
 					<td class="gs">{{ row.gs_code }}</td>
 					<td>{{ _(row.name) }}</td>
 					<td class="r">{{ format_chf(row.determinant) }}</td>
-					<td class="r">{% if row.rate %}{{ row.rate }}%{% endif %}</td>
+					<td class="r">{% if row.rate %}{{ row.rate }}&nbsp;%{% endif %}</td>
 					<td class="r">{{ format_chf(row.amount) }}</td>
 				</tr>
 				{% endfor %}
@@ -399,7 +406,7 @@
 	{# //// Neoffice — the account masked but for its ends, and named IBAN when it is one. #}
 	{% if d.bank.bank_name or d.bank.masked %}
 	<div class="ss-footer">
-		<div style="font-size: 6pt; text-transform: uppercase; letter-spacing: 0.5px; color: #aab; font-weight: 600; margin-bottom: 3px;">{{ _("Bank Details") }}</div>
+		<div class="ft-label">{{ _("Bank Details") }}</div>
 		{% if d.bank.bank_name %}<span>{{ _("Bank") }}: <b>{{ d.bank.bank_name }}</b></span>{% endif %}
 		{% if d.bank.masked %}<span{% if d.bank.bank_name %} style="margin-left: 12px;"{% endif %}>{% if d.bank.is_iban %}IBAN{% else %}{{ _("Account") }}{% endif %}: <b>{{ d.bank.masked }}</b></span>{% endif %}
 	</div>
