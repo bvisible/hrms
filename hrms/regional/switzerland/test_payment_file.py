@@ -11,6 +11,7 @@ from hrms.regional.switzerland.payment_file import (
 	PAIN_NAMESPACE,
 	build_pain001,
 	clean_iban,
+	salary_batch_booking,
 	sanitize_swift_text,
 	split_swiss_address,
 	validate_iban,
@@ -121,6 +122,17 @@ class TestBuildPain001(unittest.TestCase):
 
 	def test_salary_category_purpose(self):
 		self.assertEqual(self.root.find(".//p:PmtTpInf/p:CtgyPurp/p:Cd", NS).text, "SALA")
+
+	def test_one_debit_for_all_the_salaries_unless_asked(self):
+		"""Batch booking: the statement shows the total, not each salary (SPS 2.1.8-2.1.9)."""
+		self.assertEqual(self.root.find(".//p:PmtInf/p:BtchBookg", NS).text, "true")
+		single = ET.fromstring(
+			build_pain001(DEBTOR, PAYMENTS, execution_date="2099-01-25", batch_booking=False)
+		)
+		self.assertEqual(single.find(".//p:PmtInf/p:BtchBookg", NS).text, "false")
+		self.assertTrue(salary_batch_booking({}))
+		self.assertTrue(salary_batch_booking({"salary_batch_booking": 1}))
+		self.assertFalse(salary_batch_booking({"salary_batch_booking": 0}))
 
 	def test_debtor_block(self):
 		self.assertEqual(self.root.find(".//p:DbtrAcct/p:Id/p:IBAN", NS).text, DEBTOR["iban"])

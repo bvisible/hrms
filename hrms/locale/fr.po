@@ -20391,16 +20391,6 @@ msgstr "{0} : le certificat ({1} brut, {2} net) ne correspond plus aux fiches de
 msgid "13th month salary"
 msgstr "13e salaire"
 
-#: hrms/payroll/onboarding_step/configure_the_company_payroll/configure_the_company_payroll.json
-msgid ""
-"<h3>Company Payroll Setup</h3>\n"
-"\n"
-"Five short steps, prefilled with what the company already has: canton, UID and the person in charge of the payroll; the rates of the AVS fund, LAA, IJM, LAAC and family allowance policies; how salaries and social charges are booked and on which accounts; the salary certificate header. It creates the company's default social insurance configuration. Run it again any time to change a choice."
-msgstr ""
-"<h3>Configuration de la paie de la société</h3>\n"
-"\n"
-"Cinq étapes courtes, préremplies avec ce que la société possède déjà : le canton, le numéro IDE et le responsable des salaires ; les taux de la caisse AVS, de la LAA, de l'IJM, de la LAAC et des allocations familiales ; la façon dont les salaires et les charges sociales sont comptabilisés et sur quels comptes ; l'en-tête du certificat de salaire. Il crée la configuration des assurances sociales par défaut de la société. Relancez-le à tout moment pour modifier un choix."
-
 #: hrms/payroll/onboarding_step/import_swiss_source_tax_tariffs/import_swiss_source_tax_tariffs.json
 msgid ""
 "<h3>Source Tax Tariffs (ESTV)</h3>\n"
@@ -20548,10 +20538,6 @@ msgid "From 58, after a salary cut of half at most, the annual salary the employ
 msgstr "Dès 58 ans, après une réduction de salaire de moitié au plus, le salaire annuel que l'employé garde assuré jusqu'à l'âge de référence, si le règlement de la caisse le permet. Les cotisations supplémentaires sont à la charge de l'employé, sauf si l'employeur a accepté d'en prendre une part."
 
 #: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
-msgid "Go to the monthly payroll cycle"
-msgstr "Aller au cycle de paie mensuel"
-
-#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
 msgid "How are the social charges booked?"
 msgstr "Comment les charges sociales sont-elles comptabilisées ?"
 
@@ -20682,10 +20668,6 @@ msgstr "Enregistrement de la configuration de la paie en cours..."
 #: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.js
 msgid "Sent to employee"
 msgstr "Envoyé à l'employé"
-
-#: hrms/payroll/onboarding_step/configure_the_company_payroll/configure_the_company_payroll.json
-msgid "Set up the company's payroll: insurances, accounting, certificate"
-msgstr "Configurer la paie de la société : assurances, comptabilité, certificat"
 
 #: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
 msgid "Social insurances"
@@ -21619,3 +21601,554 @@ msgstr "Autres pays"
 #: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
 msgid "No letter product for {0} in the WebStamp catalogue: {1} payslip(s) left out."
 msgstr "Aucun produit de lettre pour {0} dans le catalogue WebStamp : {1} fiche(s) de salaire laissée(s) de côté."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/vacation.py
+msgid "13th"
+msgstr "13e"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "13th Month Mode (Legacy)"
+msgstr "Mode 13e mois (historique)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/accounting.py
+msgid "13th, 14th and 15th salaries"
+msgstr "13e, 14e et 15e salaires"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "13th, 14th and 15th salaries, each with its share and schedule. They are accrued every month from the base salary paid (the base paid since the previous payment ÷ 12) and paid pro rata at the exit. Replaces the 13th Month Mode above."
+msgstr "13e, 14e et 15e salaires, chacun avec sa part et sa périodicité. Ils sont acquis chaque mois sur le salaire de base versé (le salaire de base versé depuis le versement précédent ÷ 12) et versés au prorata à la sortie. Remplace le Mode 13e mois ci-dessus."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/accounting.py
+msgid "14th"
+msgstr "14e"
+
+#: hrms/regional/switzerland/setup.py
+msgid "14th Month Salary"
+msgstr "Salaire 14e mois"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/accounting.py
+msgid "15th"
+msgstr "15e"
+
+#: hrms/regional/switzerland/setup.py
+msgid "15th Month Salary"
+msgstr "Salaire 15e mois"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "21.75 (261 ÷ 12) is the usual one; courts have used 21.7 and 21.75."
+msgstr "21.75 (261 ÷ 12) est la valeur usuelle ; les tribunaux ont retenu 21.7 et 21.75."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/vacation.py
+msgid "After the contract"
+msgstr "Après le contrat"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Annual salary ÷ (260 − vacation days)"
+msgstr "Salaire annuel ÷ (260 − jours de vacances)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "As the employment contracts say. Earned month by month on the base salary paid and paid pro rata at the exit, whatever the schedule."
+msgstr "Selon ce que disent les contrats de travail. Acquis mois par mois sur le salaire de base versé et versé au prorata à la sortie, quelle que soit la périodicité."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Beyond 4 weeks, the part not reduced is salary: subject to AVS/AC/LAA and source tax, and declared in box 1 of the salary certificate."
+msgstr "Au-delà de 4 semaines, la part non réduite est un salaire : soumise à l'AVS/AC/LAA et à l'impôt à la source, et déclarée au chiffre 1 du certificat de salaire."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/vacation.py
+msgid "Calendar days"
+msgstr "Jours civils"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Current list: {0}"
+msgstr "Liste actuelle : {0}"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/vacation.py
+msgid "Divisor"
+msgstr "Diviseur"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "During an uninterrupted absence of more than 4 weeks"
+msgstr "Lors d'une absence ininterrompue de plus de 4 semaines"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Every month, the extra salaries accrued and not yet paid are booked as an expense against a provision, released when they are paid."
+msgstr "Chaque mois, les 13e, 14e et 15e salaires acquis et pas encore versés sont comptabilisés en charge par contrepartie d'une provision, dissoute lors de leur versement."
+
+#: hrms/regional/switzerland/setup.py
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Extra Salaries"
+msgstr "13e, 14e et 15e salaires"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Extra Salaries (13th, 14th, 15th)"
+msgstr "13e, 14e et 15e salaires"
+
+#: hrms/regional/switzerland/company_setup.py
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Extra Salary"
+msgstr "Mois de salaire"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Extra Salary Provision Account"
+msgstr "Compte de provision des 13e, 14e et 15e salaires"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Flat-rate Expenses"
+msgstr "Frais forfaitaires"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Flat-rate Expenses During a Long Absence"
+msgstr "Frais forfaitaires lors d'une longue absence"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Flat-rate Expenses in an Entry or Exit Month"
+msgstr "Frais forfaitaires lors d'un mois d'entrée ou de sortie"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Flat-rate expenses (representation, car, other)"
+msgstr "Frais forfaitaires (représentation, véhicule, autres)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Four times a year"
+msgstr "Quatre fois par an"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "How a vacation day is valued: the monthly salary with the extra salaries' share and the 12-month average of the variable pay of the vacation base, divided by the divisor (Divisor, 21.75 when empty); or the annual salary ÷ (260 − the yearly vacation days) (After the contract); or ÷ 30 for a balance counted in calendar days (Calendar days)."
+msgstr "Comment un jour de vacances est valorisé : le salaire mensuel avec la part des 13e, 14e et 15e salaires et la moyenne sur 12 mois de la part variable de la base de vacances, divisé par le diviseur (Diviseur, 21.75 si vide) ; ou le salaire annuel ÷ (260 − les jours de vacances annuels) (Après le contrat) ; ou ÷ 30 pour un solde compté en jours civils (Jours civils)."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "In an entry or exit month"
+msgstr "Lors d'un mois d'entrée ou de sortie"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Legacy single setting, used only while Extra Salaries is empty. Disabled: no 13th. Annual: in December (or at the exit). Monthly: 1/12 each month."
+msgstr "Réglage unique historique, utilisé seulement tant que le tableau 13e, 14e et 15e salaires est vide. Désactivé : pas de 13e. Annuel : en décembre (ou à la sortie). Mensuel : 1/12 chaque mois."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Liability credited with the monthly provision (e.g. 2350 Provision 13th salary, or 2300 Accrued expenses)."
+msgstr "Passif crédité par la provision mensuelle (p. ex. 2350 Provision 13e salaire, ou 2300 Charges à payer)."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/setup.py
+msgid "Maintained"
+msgstr "Maintenus"
+
+#: hrms/payroll/doctype/swiss_extra_salary/swiss_extra_salary.json
+msgid "Month Paid"
+msgstr "Mois de versement"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Month paid"
+msgstr "Mois de versement"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Monthly salary ÷ 30 (vacation counted in calendar days)"
+msgstr "Salaire mensuel ÷ 30 (vacances comptées en jours civils)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Monthly salary ÷ working days of a month (usual)"
+msgstr "Salaire mensuel ÷ jours ouvrables d'un mois (habituel)"
+
+#: hrms/payroll/doctype/swiss_extra_salary/swiss_extra_salary.json
+msgid "Monthly: a twelfth with every salary. Annual: once, in the month below. Half-yearly: June and December. Quarterly: March, June, September, December. Always paid pro rata at the exit."
+msgstr "Mensuel : un douzième à chaque salaire. Annuel : une fois, dans le mois ci-dessous. Semestriel : juin et décembre. Trimestriel : mars, juin, septembre, décembre. Toujours versé au prorata à la sortie."
+
+#: hrms/regional/switzerland/monthly_cycle.py
+msgid "No value chosen for a vacation day paid at the exit: the monthly salary ÷ 21.75 is used. Choose it in the company payroll setup."
+msgstr "Aucune valeur choisie pour un jour de vacances versé à la sortie : le salaire mensuel ÷ 21.75 est utilisé. Choisissez-la dans la configuration de la paie de l'entreprise."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Observed in part of the canton only"
+msgstr "Observé seulement dans une partie du canton"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Once a year"
+msgstr "Une fois par an"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Paid in full"
+msgstr "Payés en entier"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Pay the vacation balances ({0})"
+msgstr "Payer les soldes de vacances ({0})"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Pay their vacation days left with the exit salary?"
+msgstr "Payer leurs jours de vacances restants avec le salaire de sortie ?"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Payroll Holiday List"
+msgstr "Liste des jours fériés de la paie"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/company_setup.py
+msgid "Prorated"
+msgstr "Au prorata"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Prorated by the calendar days (recommended)"
+msgstr "Au prorata des jours civils (recommandé)"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Prorated: by the calendar days employed in the entry or exit month. Full: the whole monthly amount."
+msgstr "Au prorata : selon les jours civils travaillés dans le mois d'entrée ou de sortie. En entier : le montant mensuel complet."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Provision account"
+msgstr "Compte de provision"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Provision the Extra Salaries Every Month"
+msgstr "Provisionner chaque mois les 13e, 14e et 15e salaires"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Provision them every month"
+msgstr "Les provisionner chaque mois"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Public Holiday Choices"
+msgstr "Choix des jours fériés"
+
+#: hrms/regional/switzerland/public_holidays.py
+msgid "Public holidays {0} — {1}"
+msgstr "Jours fériés {0} — {1}"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Reading the public holidays of {0}..."
+msgstr "Lecture des jours fériés de {0}..."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/company_setup.py
+msgid "Reduced after 4 weeks"
+msgstr "Réduits après 4 semaines"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Reduced beyond the 4th week (recommended)"
+msgstr "Réduits au-delà de la 4e semaine (recommandé)"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Representation (6040), car (6050), expatriate (6060) and other (6070) flat-rate allowances, as the company's expense regulation says."
+msgstr "Frais forfaitaires de représentation (6040), de véhicule (6050), d'expatriation (6060) et autres (6070), selon le règlement de frais de l'entreprise."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Salaries as One Bank Debit (Confidential)"
+msgstr "Salaires en un seul débit bancaire (confidentiel)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Salary rules"
+msgstr "Règles de salaire"
+
+#: hrms/payroll/doctype/swiss_extra_salary/swiss_extra_salary.json
+msgid "Share of a Monthly Salary"
+msgstr "Part d'un salaire mensuel"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Share of a monthly salary (%)"
+msgstr "Part d'un salaire mensuel (%)"
+
+#: hrms/payroll/doctype/swiss_extra_salary/swiss_extra_salary.json
+msgid "Share of a monthly salary: 100 for a full extra month."
+msgstr "Part d'un salaire mensuel : 100 pour un mois supplémentaire complet."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Sickness, accident, maternity or other parent's leave, military service, unpaid leave; vacation never counts (Swiss Tax Conference model regulation)."
+msgstr "Maladie, accident, congé de maternité ou de l'autre parent, service militaire, congé non payé ; les vacances ne comptent jamais (règlement type de la Conférence suisse des impôts)."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Suspended from the first day"
+msgstr "Suspendus dès le premier jour"
+
+#: hrms/regional/switzerland/company_setup.py
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Swiss Extra Salary"
+msgstr "Mois de salaire supplémentaire (Suisse)"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Swiss Tax Conference model regulation (II 1.3): reduced beyond four weeks of uninterrupted absence (sickness, accident, maternity or other parent, service, unpaid leave; never vacation). Maintained, the part beyond is salary: subject to AVS/AC and source tax."
+msgstr "Règlement type de la Conférence suisse des impôts (II 1.3) : réduits au-delà de quatre semaines d'absence ininterrompue (maladie, accident, maternité ou autre parent, service, congé non payé ; jamais les vacances). Maintenus, la part au-delà est un salaire : soumise à l'AVS/AC et à l'impôt à la source."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "The bank statement shows the total of the salaries, not each employee's amount (confidential). Unticked, one booking per employee."
+msgstr "Le relevé bancaire indique le total des salaires, pas le montant de chaque employé (confidentiel). Décoché, une écriture par employé."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "The days left when an employee leaves are paid with the last salary. A day is worth the monthly salary with the extra salaries' share and the 12-month average of the variable pay (commissions)."
+msgstr "Les jours restants lorsqu'un employé quitte l'entreprise sont versés avec le dernier salaire. Un jour vaut le salaire mensuel avec la part des 13e, 14e et 15e salaires et la moyenne sur 12 mois de la part variable (commissions)."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "The local holidays could not be read (provider unreachable): only the legal ones are shown."
+msgstr "Les jours fériés locaux n'ont pas pu être lus (fournisseur injoignable) : seuls les jours fériés légaux sont affichés."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "The public holidays of {0} in {1} falling on a weekday. Tick those your company closes: the local ones are observed in part of the canton only. Weekends are always in the list; the next years follow the same choice."
+msgstr "Les jours fériés de {0} en {1} tombant un jour de semaine. Cochez ceux que votre entreprise chôme : les locaux ne sont observés que dans une partie du canton. Les week-ends sont toujours dans la liste ; les années suivantes reprennent le même choix."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "The public holidays the company closes, by name: legal ones unticked (legal_off), local ones ticked (local_on)."
+msgstr "Les jours fériés que l'entreprise chôme, par nom : les légaux décochés (legal_off), les locaux cochés (local_on)."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "The salaries as one bank debit"
+msgstr "Les salaires en un seul débit bancaire"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "The salaries booking charges each month's share against a provision, released when they are paid: the monthly accounts carry their cost. Nothing to do for a salary paid every month."
+msgstr "La comptabilisation des salaires impute la part de chaque mois à une provision, dissoute lors du versement : les comptes mensuels en portent le coût. Rien à faire pour un salaire versé chaque mois."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "The salaries leave the bank account as one debit: the statement shows their total, not each employee's amount (batch booking, Swiss Payment Standards 2.1.8; category SALA). Unticked, one booking per employee."
+msgstr "Les salaires quittent le compte bancaire en un seul débit : le relevé indique leur total, pas le montant de chaque employé (écriture groupée, Swiss Payment Standards 2.1.8 ; catégorie SALA). Décoché, une écriture par employé."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "The vacation days left at the exit, paid through a Leave Encashment on Vacation Payout (1165)."
+msgstr "Les jours de vacances restants à la sortie, versés par un encaissement de congés sur « Paiement des vacances » (1165)."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Twice a year (June, December)"
+msgstr "Deux fois par an (juin, décembre)"
+
+#: hrms/regional/switzerland/company_setup.py
+msgid "Unknown schedule for the {0} salary: {1}"
+msgstr "Périodicité inconnue pour le salaire « {0} » : {1}"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Use this list for the company and its employees"
+msgstr "Utiliser cette liste pour l'entreprise et ses employés"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Vacation Day Divisor"
+msgstr "Diviseur du jour de vacances"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Vacation Day Value"
+msgstr "Valeur du jour de vacances"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Vacation Paid at the Exit"
+msgstr "Vacances versées à la sortie"
+
+#: hrms/regional/switzerland/vacation.py
+#: hrms/regional/switzerland/setup.py
+msgid "Vacation Payout"
+msgstr "Paiement des vacances"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Vacation paid at the exit"
+msgstr "Vacances versées à la sortie"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Value of a vacation day"
+msgstr "Valeur d'un jour de vacances"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Weekends and the public holidays of the canton chosen in the company payroll setup. Topped up every month with the next year."
+msgstr "Les week-ends et les jours fériés du canton choisi dans la configuration de la paie de l'entreprise. Complétée chaque mois avec l'année suivante."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "What your expense regulation says."
+msgstr "Ce que dit votre règlement de frais."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "With every salary (a twelfth)"
+msgstr "Avec chaque salaire (un douzième)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Working days of a month"
+msgstr "Jours ouvrables d'un mois"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Working days of an average month: 21.75 (261 ÷ 12) is the usual one."
+msgstr "Jours ouvrables d'un mois moyen : 21.75 (261 ÷ 12) est la valeur usuelle."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "day(s)"
+msgstr "jour(s)"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+#: hrms/regional/switzerland/public_holidays.py
+msgid "legal"
+msgstr "légal"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "list not assigned"
+msgstr "liste non assignée"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "local"
+msgstr "local"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "the exit slip {0} is already submitted: cancel and amend it to pay them"
+msgstr "la fiche de salaire de sortie {0} est déjà validée : annulez-la et corrigez-la pour les payer"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "{0} day(s) closed"
+msgstr "{0} jour(s) chômé(s)"
+
+#: hrms/regional/switzerland/vacation.py
+msgid "{0} leaves on {1} having taken {2} vacation day(s) beyond the entitlement: not deducted — only by agreement, or after a dismissal for cause."
+msgstr "{0} quitte l'entreprise le {1} en ayant pris {2} jour(s) de vacances au-delà du droit : non déduits — seulement par accord, ou après un licenciement pour justes motifs."
+
+#: hrms/regional/switzerland/vacation.py
+msgid "{0} leaves on {1} with {2} vacation day(s) left: pay them (about CHF {3}) or have them taken before."
+msgstr "{0} quitte l'entreprise le {1} avec {2} jour(s) de vacances restant(s) : payez-les (environ CHF {3}) ou faites-les prendre avant."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "{0} salary"
+msgstr "{0} salaire"
+
+#: hrms/regional/switzerland/accounting.py
+msgid "{0}: its provision needs the component's expense account and a provision account"
+msgstr "{0} : sa provision nécessite le compte de charge de la composante et un compte de provision"
+
+#: hrms/regional/switzerland/api.py
+msgid "Only an HR Manager can configure the payroll with the assistant."
+msgstr "Seul un responsable RH peut configurer la paie avec l'assistant."
+
+#: hrms/regional/switzerland/permissions.py
+msgid "Only payroll staff can see the payroll of the whole company."
+msgstr "Seul le personnel de paie peut voir la paie de toute la société."
+
+#: hrms/regional/switzerland/permissions.py
+msgid "Your access is limited to some employees: it does not cover the payroll of the whole company."
+msgstr "Votre accès est limité à certains employés : il ne couvre pas la paie de toute la société."
+
+#: hrms/regional/switzerland/permissions.py
+msgid "You have no access to the company {0}."
+msgstr "Vous n'avez pas accès à la société {0}."
+
+#: hrms/regional/switzerland/assistant/chat_service.py
+msgid "Not set"
+msgstr "Non défini"
+
+#: hrms/regional/switzerland/assistant/chat_service.py
+msgid "Let's continue with the next step."
+msgstr "Continuons avec l'étape suivante."
+
+#: hrms/regional/switzerland/assistant/actions.py
+msgid "Company is required"
+msgstr "La société est requise"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Switzerland"
+msgstr "Suisse"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "E-mail"
+msgstr "E-mail"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Nothing to pay."
+msgstr "Rien à payer."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Payment date"
+msgstr "Date de paiement"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Print {0}"
+msgstr "Imprimer {0}"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Net"
+msgstr "Net"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Gross"
+msgstr "Brut"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Public holidays"
+msgstr "Jours fériés"
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js
+msgid "Type your message..."
+msgstr "Tapez votre message..."
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js
+msgid "An error occurred. Please try again."
+msgstr "Une erreur s'est produite. Veuillez réessayer."
+
+#: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js
+msgid "Applying configuration..."
+msgstr "Application de la configuration..."
+
+#: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.py
+msgid "(empty)"
+msgstr "(vide)"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Public Holidays"
+msgstr "Jours fériés"
+
+#: hrms/payroll/doctype/swiss_payroll_chat_message/swiss_payroll_chat_message.json
+msgid "Buttons"
+msgstr "Boutons"
+
+#: hrms/payroll/doctype/swiss_payroll_chat_message/swiss_payroll_chat_message.json
+msgid "Extracted Data"
+msgstr "Données extraites"
+
+#: hrms/payroll/doctype/swiss_payroll_chat_session/swiss_payroll_chat_session.json
+msgid "Session"
+msgstr "Session"
+
+#: hrms/payroll/doctype/swiss_payroll_chat_session/swiss_payroll_chat_session.json
+msgid "Abandoned"
+msgstr "Abandonnée"
+
+#: hrms/payroll/doctype/swiss_payroll_chat_session/swiss_payroll_chat_session.json
+msgid "Current Step"
+msgstr "Étape actuelle"
+
+#: hrms/payroll/onboarding_step/configure_the_company_payroll/configure_the_company_payroll.json
+msgid "Set up the company's payroll: insurances, salary rules, holidays, accounting"
+msgstr "Configurer la paie de la société : assurances, règles de salaire, jours fériés, comptabilité"
+
+#: hrms/payroll/onboarding_step/configure_the_company_payroll/configure_the_company_payroll.json
+msgid ""
+"<h3>Company Payroll Setup</h3>\n"
+"\n"
+"Short steps, prefilled with what the company already has: canton, UID and the person in charge of the payroll; the rates of the AVS fund, LAA, IJM, LAAC and family allowance policies; the salary rules of the contracts (13th, 14th and 15th salaries and their provision, the value of a vacation day paid at the exit, the flat-rate expenses); the canton's public holidays; how salaries and social charges are booked, on which accounts, and whether the salaries leave the bank as one debit; the salary certificate header. It creates the company's default social insurance configuration. Run it again any time to change a choice."
+msgstr ""
+"<h3>Configuration de la paie de la société</h3>\n"
+"\n"
+"Des étapes courtes, préremplies avec ce que la société possède déjà : le canton, le numéro IDE et le responsable des salaires ; les taux de la caisse AVS, de la LAA, de l'IJM, de la LAAC et des allocations familiales ; les règles de salaire des contrats (les 13e, 14e et 15e salaires et leur provision, la valeur d'un jour de vacances versé à la sortie, les frais forfaitaires) ; les jours fériés du canton ; la façon dont les salaires et les charges sociales sont comptabilisés, sur quels comptes, et si les salaires sortent de la banque en un seul débit ; l'en-tête du certificat de salaire. Il crée la configuration des assurances sociales par défaut de la société. Relancez-le à tout moment pour modifier un choix."
+
+#: hrms/payroll/onboarding_step/run_your_first_swiss_payroll_cycle/run_your_first_swiss_payroll_cycle.json
+msgid "Run your first monthly payroll"
+msgstr "Faire votre première paie mensuelle"
+
+#: hrms/payroll/onboarding_step/run_your_first_swiss_payroll_cycle/run_your_first_swiss_payroll_cycle.json
+msgid ""
+"<h3>Monthly Payroll</h3>\n"
+"\n"
+"Three steps a month: do the payroll (the checks list anything missing, then the slips are generated and submitted), pay the salaries (booked, then a payment proposal for the bank file or EBICS), and hand the payslips out: by e-mail, by post with a WebStamp, or printed."
+msgstr ""
+"<h3>Paie mensuelle</h3>\n"
+"\n"
+"Trois étapes par mois : faire la paie (les contrôles listent ce qui manque, puis les fiches sont générées et validées), payer les salaires (comptabilisés, puis une proposition de paiement pour le fichier bancaire ou EBICS), et remettre les fiches de salaire : par e-mail, par la poste avec un WebStamp, ou imprimées."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Holiday list {0}: {1} public holiday(s) over {2}, assigned to {3} employee(s)."
+msgstr "Liste des jours fériés {0} : {1} jour(s) férié(s) sur {2}, assignée à {3} employé(s)."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Go to the monthly payroll"
+msgstr "Aller à la paie mensuelle"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "{0}: {1}, {2} %"
+msgstr "{0} : {1}, {2} %"

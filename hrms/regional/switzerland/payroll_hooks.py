@@ -27,13 +27,16 @@ from hrms.regional.switzerland.constants import (
 	LAA_INSURABLE_SALARY_CAP,
 	RATE_BASED_COMPONENTS,
 )
+from hrms.regional.switzerland.expenses import apply_flat_rate_rules
+from hrms.regional.switzerland.extra_salaries import compute as compute_extra_salaries
+from hrms.regional.switzerland.extra_salaries import salaries_per_year
 from hrms.regional.switzerland.insurance_solutions import normalize_sex
 from hrms.regional.switzerland.rounding import round_to_5_centimes
 from hrms.regional.switzerland.source_tax import calculate_source_tax
 from hrms.regional.switzerland.utils import (
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
-	calculate_thirteenth_month,
+	get_company_payroll_config,
 	get_lpp_age,
 	get_lpp_maintenance,
 	get_swiss_social_insurance_config,
@@ -67,11 +70,16 @@ def update_swiss_social_contributions(doc, method):
 	# The base and rate of every contribution, as computed below — the payslip prints them.
 	doc.flags.ch_contribution_bases = {}
 
-	# Add 13th month earning if applicable (before computing gross)
-	updated = _add_thirteenth_month_earning(doc, config)
+	# //// Neoffice — 2026-09-24: the 13th, 14th and 15th salaries, each on its schedule, from the
+	# //// base salary paid (extra_salaries.py); was the 13th alone, computed from the days of the year.
+	company_config = get_company_payroll_config(doc.company, config)
+	updated = _add_extra_salary_earnings(doc, company_config, employee)
 	# //// Neoffice — a "-" wage type (2050, 2060) is entered positive and deducted here, before
 	# //// anything is summed: see _apply_negative_wage_types.
 	updated = _apply_negative_wage_types(doc) or updated
+	# //// Neoffice — 2026-09-24: the flat-rate expense allowances (6040-6070) in an entry or exit
+	# //// month and during a long absence, by the company's expense regulation (expenses.py).
+	updated = apply_flat_rate_rules(doc, company_config, employee) or updated
 
 	# //// Neoffice — the early return that stood here aborted the WHOLE hook whenever no base
 	# //// salary component was found on the slip: an employee paid by the hour (wage type 1005)
@@ -111,8 +119,8 @@ def update_swiss_social_contributions(doc, method):
 	)
 
 	# Update LPP/BVG: annualize using base_monthly * multiplier (13 if 13th enabled)
-	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
-	lpp_multiplier = 13 if thirteenth_mode != "Disabled" else 12
+	# //// Neoffice — 12 and each extra salary's share: 13 with a full 13th, 14 with a 14th too.
+	lpp_multiplier = salaries_per_year(company_config)
 	# //// Neoffice — an employee paid by the hour has no fixed monthly base: annualize the
 	# //// LPP-subject earnings actually paid this month, which is what the annualization
 	# //// approximates for a monthly salary anyway. With nothing to annualize at all, skip LPP
@@ -669,7 +677,7 @@ def _update_lpp_components(doc, config, base_monthly, lpp_multiplier, employee):
 	# //// Neoffice — the LPP age (calendar year minus year of birth), 0 past the reference age:
 	# //// was the age to the day, see utils.get_lpp_age.
 	age = get_lpp_age(doc.employee, doc.start_date, doc.end_date)
-	annual_salary = base_monthly * lpp_multiplier  # 13 if 13th month enabled, 12 otherwise
+	annual_salary = base_monthly * lpp_multiplier  # 12 and the extra salaries (extra_salaries.py)
 
 	from frappe.utils import getdate
 
@@ -808,35 +816,38 @@ def _add_deduction_row(doc, component_name, amount, prorate=True):
 	row.amount = _prorate_amount(doc, row, row.default_amount) if prorate else row.default_amount
 
 
-def _add_thirteenth_month_earning(doc, config):
-	"""Add 13th month salary earning to the slip if applicable.
+def _add_extra_salary_earnings(doc, config, employee):
+	"""Add each extra salary due on the slip (13th, 14th, 15th) and record what it accrued.
 
-	Returns True if an earning row was added, False otherwise.
-	Skips if the component already exists (manual override via Additional Salary).
+	A row an Additional Salary brought is the user's amount and stays; a row this hook added before
+	(no Additional Salary) is recomputed, so a draft saved again follows its base salary. Returns
+	True when an earning changed.
 	"""
-	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
-	if thirteenth_mode == "Disabled":
-		return False
-
-	# Skip if already present (manual override)
-	for row in doc.get("earnings"):
-		if row.salary_component == "13th Month Salary":
-			return False
-
-	if not frappe.db.exists("Salary Component", "13th Month Salary"):
-		return False
-
-	base_monthly = _get_base_from_earnings(doc)
-	if not base_monthly:
-		return False
-
-	amount = calculate_thirteenth_month(base_monthly, doc.employee, doc.start_date, doc.end_date, config)
-
-	if not amount:
-		return False
-
-	_add_earning_row(doc, "13th Month Salary", amount)
-	return True
+	results = compute_extra_salaries(doc, config, employee)
+	updated = False
+	for result in results:
+		component = result["component"]
+		if not component:
+			continue
+		existing = [row for row in doc.get("earnings") or [] if row.salary_component == component]
+		if any(row.get("additional_salary") for row in existing):
+			result["paid"] = flt(sum(flt(row.amount) for row in existing))
+			continue
+		if existing:
+			if not result["paid"]:
+				for row in existing:
+					doc.remove(row)
+				updated = True
+			elif flt(existing[0].amount) != result["paid"]:
+				existing[0].default_amount = existing[0].amount = result["paid"]
+				updated = True
+			continue
+		if result["paid"]:
+			_add_earning_row(doc, component, result["paid"])
+			updated = True
+	if doc.meta.has_field("ch_extra_salaries"):
+		doc.ch_extra_salaries = json.dumps(results) if results else None
+	return updated
 
 
 def _add_earning_row(doc, component_name, amount):
@@ -873,26 +884,29 @@ def _resolve_component_by_wage_type(code, fallback_name):
 	return None
 
 
-def _is_aperiodic_component(component_name, thirteenth_mode):
-	"""True when the component's wage type is an aperiodic payment.
+# //// Neoffice — 2026-09-24: vacation paid at or after the exit (C45 6.6, 7.3.1).
+APERIODIC_WAGE_TYPES = ("1165", "1168")
 
-	Derived from the catalog's statistical category: "VU" (one-off
-	payments — bonuses, gratifications, anniversary gifts) is always
-	aperiodic; "SMS" (13th month) only when it is NOT paid monthly —
-	Annex 1 treats the monthly twelfth and the pro-rata exit payment as
-	periodic (M17/M21) but a lump 13th as aperiodic.
+
+def _is_aperiodic_component(component_name):
+	"""True when the component's wage type is an aperiodic payment for the source tax.
+
+	//// Neoffice — 2026-09-24: "VU" one-off payments (bonuses, gratifications, anniversary gifts)
+	//// and the vacation paid at or after the exit (1165, 1168: C45 6.6 and 7.3.1; annex 1 cases
+	//// M33, M35, M36). The 13th, 14th and 15th are periodic, extrapolated with the salary in an
+	//// entry or exit month whatever their schedule (annex 1 M17, M18, M20, M21, M22: June of M17
+	//// is 5'750 x 30/15 = 11'500). Treating a 13th paid otherwise than monthly as aperiodic gave
+	//// 8'750 there.
 	"""
 	if not component_name:
 		return False
+	code = str(frappe.get_cached_value("Salary Component", component_name, "ch_wage_type_code") or "")
+	if code in APERIODIC_WAGE_TYPES:
+		return True
 	wage_type = frappe.get_cached_value("Salary Component", component_name, "ch_wage_type")
 	if not wage_type:
 		return False
-	category = frappe.get_cached_value("Swiss Wage Type", wage_type, "statistical_category")
-	if category == "VU":
-		return True
-	if category == "SMS":
-		return (thirteenth_mode or "Disabled") != "Monthly"
-	return False
+	return frappe.get_cached_value("Swiss Wage Type", wage_type, "statistical_category") == "VU"
 
 
 # //// Neoffice — restricted to the source-tax base with the imp_base fix below: the caller
@@ -900,7 +914,6 @@ def _is_aperiodic_component(component_name, thirteenth_mode):
 # //// NOT subject to source tax would make the periodic part too small — negative, even.
 def _get_aperiodic_total(doc, config):
 	"""Sum of the aperiodic earnings actually paid on this slip and subject to source tax."""
-	thirteenth_mode = config.get("thirteenth_month_mode") or "Disabled"
 	total = 0.0
 	for row in doc.get("earnings"):
 		if cint(row.get("do_not_include_in_total")):
@@ -909,7 +922,7 @@ def _get_aperiodic_total(doc, config):
 		values = _get_component_insurance_flags(row.salary_component)
 		if is_configured_component(values) and not cint(values.get("ch_subject_to_imp")):
 			continue
-		if _is_aperiodic_component(row.salary_component, thirteenth_mode):
+		if _is_aperiodic_component(row.salary_component):
 			total += flt(row.default_amount if row.get("amount") is None else row.amount)
 	return round(total, 2)
 

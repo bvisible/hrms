@@ -214,6 +214,25 @@ def preflight(company, year, month):
 				}
 			)
 
+	# //// Neoffice — 2026-09-24: the leavers' vacation days — left to pay at the exit, or taken
+	# //// beyond the entitlement (vacation.py) — and the valuation the company has not chosen yet.
+	from hrms.regional.switzerland.vacation import exit_warnings
+
+	exit_issues = exit_warnings(company, start, end)
+	issues.extend(exit_issues)
+	if any(i["code"] == "vacation_balance" for i in exit_issues) and not (config or {}).get(
+		"vacation_payout_method"
+	):
+		issues.append(
+			{
+				"level": "warning",
+				"code": "vacation_method",
+				"message": _(
+					"No value chosen for a vacation day paid at the exit: the monthly salary ÷ 21.75 is used. Choose it in the company payroll setup."
+				),
+			}
+		)
+
 	return {
 		"period": {"start": str(start), "end": str(end)},
 		"ok": not any(i["level"] == "error" for i in issues),
@@ -225,6 +244,7 @@ def preflight(company, year, month):
 			"draft": sum(1 for e in employees if e["status"] == "draft"),
 			"submitted": sum(1 for e in employees if e["status"] == "submitted"),
 			"no_structure": sum(1 for e in employees if e["status"] == "no_structure"),
+			"vacation_balances": sum(1 for i in exit_issues if i["code"] == "vacation_balance"),
 		},
 	}
 
@@ -406,6 +426,8 @@ def create_salary_payment_proposal(company, year, month, execution_date=None):
 	check_company_access(company)
 	if not frappe.db.exists("DocType", "Payment Proposal"):
 		frappe.throw(_("Payment proposals need the ERPNextSwiss app."))
+	from hrms.regional.switzerland.payment_file import salary_batch_booking
+
 	start, end = _period_bounds(year, month)
 	slips = frappe.get_all(
 		"Salary Slip",
@@ -480,6 +502,13 @@ def create_salary_payment_proposal(company, year, month, execution_date=None):
 			"company": company,
 			"pay_from_account": pay_from,
 			"total": total,
+			# //// Neoffice — 2026-09-24: the salaries leave as ONE debit on the bank statement unless the
+			# //// company chose otherwise: grouped by date, they share one Payment Information with
+			# //// batch booking and the SALA category (Swiss Payment Standards 2.1.8-2.1.9). Left to
+			# //// the proposal's default, one Payment Information per salary put every employee's
+			# //// amount on the statement.
+			"group_by_date": 1 if salary_batch_booking(config) else 0,
+			"single_payment": 0,
 			"salaries": [
 				{
 					"salary_slip": s.name,

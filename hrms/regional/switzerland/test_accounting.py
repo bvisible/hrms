@@ -18,6 +18,7 @@ from hrms.regional.switzerland.accounting import (
 	insurance_of,
 	is_third_party_allowance,
 	pick_account,
+	provision_lines,
 )
 
 # The payroll accounts of a real Swiss SME chart (a test company on osiris), duplicates included.
@@ -283,6 +284,61 @@ class TestAccrualLines(unittest.TestCase):
 		_b, _p, problems, _s = accrual_lines(self._slip(), [6865.90], BOOKING_CHARGES)
 		self.assertTrue(any("AVS/AI/APG Employee" in p for p in problems))
 		self.assertFalse(any("Source Tax" in p for p in problems))
+
+
+EXPENSE = {"13th Month Salary": "5005 - 13e salaire - T"}
+PROVISION = "2350 - Provision 13e salaire - T"
+
+
+class TestExtraSalaryProvision(unittest.TestCase):
+	"""The 13th accrued month by month against a provision, released when paid."""
+
+	def test_a_month_accrues_the_payment_month_releases(self):
+		may = [
+			{
+				"extra_salary": "13th",
+				"schedule": "Annual",
+				"component": "13th Month Salary",
+				"accrued": 625,
+				"paid": 0,
+			}
+		]
+		lines, missing = provision_lines(may, EXPENSE, PROVISION)
+		self.assertEqual((lines, missing), ({"5005 - 13e salaire - T": 625, PROVISION: -625}, []))
+		# December: its own accrual, and the year's 7'500 paid releases the provision.
+		december = [
+			{
+				"extra_salary": "13th",
+				"schedule": "Annual",
+				"component": "13th Month Salary",
+				"accrued": 625,
+				"paid": 7500,
+			}
+		]
+		lines, _missing = provision_lines(december, EXPENSE, PROVISION)
+		self.assertEqual(lines, {"5005 - 13e salaire - T": -6875, PROVISION: 6875})
+
+	def test_monthly_is_not_provisioned_and_a_missing_account_is_said(self):
+		monthly = [
+			{
+				"extra_salary": "13th",
+				"schedule": "Monthly",
+				"component": "13th Month Salary",
+				"accrued": 625,
+				"paid": 625,
+			}
+		]
+		self.assertEqual(provision_lines(monthly, EXPENSE, PROVISION), ({}, []))
+		annual = [
+			{
+				"extra_salary": "14th",
+				"schedule": "Annual",
+				"component": "14th Month Salary",
+				"accrued": 300,
+				"paid": 0,
+			}
+		]
+		self.assertEqual(provision_lines(annual, EXPENSE, PROVISION), ({}, ["14th Month Salary"]))
 
 
 class TestBookingAndPayment(FrappeTestCase):

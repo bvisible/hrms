@@ -61,7 +61,11 @@ def create_insurance_config(data):
 
 	# Thirteenth month
 	if "thirteenth_month_mode" in data:
-		doc.thirteenth_month_mode = data["thirteenth_month_mode"]
+		# //// Neoffice — 2026-09-24: through the extra salaries table (13th, 14th, 15th), which the
+		# //// payroll reads first; the legacy field alone would be ignored once the table has rows.
+		from hrms.regional.switzerland.extra_salaries import set_thirteenth
+
+		set_thirteenth(doc, data["thirteenth_month_mode"])
 
 	# GL accounts
 	account_fields = [

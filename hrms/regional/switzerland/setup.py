@@ -197,6 +197,19 @@ def get_custom_fields():
 				"allow_on_submit": 1,
 				"print_hide": 1,
 			},
+			# //// Neoffice — new field (2026-09-24): what each extra salary (13th, 14th, 15th) accrued
+			# //// and paid on this slip (extra_salaries.py); the booking provisions and releases it.
+			{
+				"fieldname": "ch_extra_salaries",
+				"label": "Extra Salaries",
+				"fieldtype": "Code",
+				"options": "JSON",
+				"insert_after": "ch_printed_on",
+				"hidden": 1,
+				"read_only": 1,
+				"no_copy": 1,
+				"print_hide": 1,
+			},
 		],
 		"Salary Component Account": [
 			{
@@ -996,6 +1009,9 @@ COMPONENT_NAME_MESSAGES = (
 	_lt("AVS Administrative Fees Employer"),
 	_lt("Source Tax Employee"),
 	_lt("13th Month Salary"),
+	_lt("14th Month Salary"),
+	_lt("15th Month Salary"),
+	_lt("Vacation Payout"),
 	_lt("Overtime Pay"),
 	_lt("Vacation Allowance"),
 	_lt("Bonus"),
@@ -1245,6 +1261,68 @@ def get_swiss_salary_component_definitions():
 			# //// Migrated on existing sites by patches/v15_0/switzerland_13th_month_code_1200.
 			"ch_wage_type": "CH-WT-1200",
 			"ch_wage_type_code": "1200",
+			"ch_subject_to_avs": 1,
+			"ch_subject_to_ac": 1,
+			"ch_subject_to_laa": 1,
+			"ch_subject_to_ijm": 1,
+			"ch_subject_to_lpp": 1,
+			"ch_subject_to_imp": 1,
+			"ch_lohnausweis_position": "1",
+		},
+		# //// Neoffice — 2026-09-24: the 14th and 15th salaries (extra_salaries.py), and the vacation
+		# //// balance paid at the exit (vacation.py, through a Leave Encashment).
+		{
+			"name": "14th Month Salary",
+			"salary_component": "14th Month Salary",
+			"salary_component_abbr": "14M",
+			"type": "Earning",
+			"description": "14th month salary (Quatorzième salaire) — calculated automatically by the Swiss payroll hook",
+			"depends_on_payment_days": 0,
+			"amount_based_on_formula": 0,
+			"amount": 0,
+			"do_not_include_in_total": 0,
+			"ch_wage_type": "CH-WT-1205",
+			"ch_wage_type_code": "1205",
+			"ch_subject_to_avs": 1,
+			"ch_subject_to_ac": 1,
+			"ch_subject_to_laa": 1,
+			"ch_subject_to_ijm": 1,
+			"ch_subject_to_lpp": 1,
+			"ch_subject_to_imp": 1,
+			"ch_lohnausweis_position": "1",
+		},
+		{
+			"name": "15th Month Salary",
+			"salary_component": "15th Month Salary",
+			"salary_component_abbr": "15M",
+			"type": "Earning",
+			"description": "15th month salary (Quinzième salaire) — calculated automatically by the Swiss payroll hook",
+			"depends_on_payment_days": 0,
+			"amount_based_on_formula": 0,
+			"amount": 0,
+			"do_not_include_in_total": 0,
+			"ch_wage_type": "CH-WT-1206",
+			"ch_wage_type_code": "1206",
+			"ch_subject_to_avs": 1,
+			"ch_subject_to_ac": 1,
+			"ch_subject_to_laa": 1,
+			"ch_subject_to_ijm": 1,
+			"ch_subject_to_lpp": 1,
+			"ch_subject_to_imp": 1,
+			"ch_lohnausweis_position": "1",
+		},
+		{
+			"name": "Vacation Payout",
+			"salary_component": "Vacation Payout",
+			"salary_component_abbr": "VACP",
+			"type": "Earning",
+			"description": "Vacation balance paid at the exit (Paiement des vacances) — Code 1165",
+			"depends_on_payment_days": 0,
+			"amount_based_on_formula": 0,
+			"amount": 0,
+			"do_not_include_in_total": 0,
+			"ch_wage_type": "CH-WT-1165",
+			"ch_wage_type_code": "1165",
 			"ch_subject_to_avs": 1,
 			"ch_subject_to_ac": 1,
 			"ch_subject_to_laa": 1,
@@ -1596,6 +1674,29 @@ def ensure_swiss_leave_types():
 			frappe.db.set_value("Leave Type", existing, "include_holiday", 0)
 			if existing not in report["aligned"]:
 				report["aligned"].append(existing)
+	# //// Neoffice — 2026-09-24: the vacation days left at the exit are paid through a Leave
+	# //// Encashment on "Vacation Payout" (vacation.py values them); an earning component the company
+	# //// chose already stays.
+	vacation = next(
+		(
+			n
+			for n in (swiss_absence_type_name("Privilege Leave"), "Privilege Leave")
+			if frappe.db.exists("Leave Type", n)
+		),
+		None,
+	)
+	if vacation and frappe.db.exists("Salary Component", "Vacation Payout"):
+		values = frappe.db.get_value(
+			"Leave Type", vacation, ["allow_encashment", "earning_component"], as_dict=True
+		)
+		if not cint(values.allow_encashment) or not values.earning_component:
+			frappe.db.set_value(
+				"Leave Type",
+				vacation,
+				{"allow_encashment": 1, "earning_component": values.earning_component or "Vacation Payout"},
+			)
+			if vacation not in report["aligned"]:
+				report["aligned"].append(vacation)
 	return report
 
 

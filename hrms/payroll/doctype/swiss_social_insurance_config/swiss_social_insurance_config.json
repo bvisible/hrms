@@ -54,6 +54,15 @@
   "family_allowance_account",
   "section_thirteenth_month",
   "thirteenth_month_mode",
+  "extra_salaries",
+  "extra_salary_provision",
+  "extra_salary_provision_account",
+  "section_vacation_payout",
+  "vacation_payout_method",
+  "vacation_payout_divisor",
+  "section_holidays",
+  "holiday_list",
+  "holiday_choices",
   "section_qst",
   "qst_enabled",
   "qst_default_canton",
@@ -82,10 +91,15 @@
   "lohnausweis_employer_address",
   "lohnausweis_expense_regulation_canton",
   "lohnausweis_expense_regulation_date",
+  "section_flat_expenses",
+  "flat_expenses_partial_month",
+  "column_break_flat_expenses",
+  "flat_expenses_long_absence",
   "section_salary_payment",
   "payment_iban",
   "payment_bic",
-  "payment_account"
+  "payment_account",
+  "salary_batch_booking"
  ],
  "fields": [
   {
@@ -327,15 +341,81 @@
   {
    "fieldname": "section_thirteenth_month",
    "fieldtype": "Section Break",
-   "label": "13th Month Salary"
+   "label": "Extra Salaries (13th, 14th, 15th)"
   },
   {
    "default": "Disabled",
-   "description": "Disabled: no 13th month. Annual: paid as lump sum in December (or on departure). Monthly: 1/12 added to each salary slip.",
+   "description": "Legacy single setting, used only while Extra Salaries is empty. Disabled: no 13th. Annual: in December (or at the exit). Monthly: 1/12 each month.",
    "fieldname": "thirteenth_month_mode",
    "fieldtype": "Select",
-   "label": "13th Month Mode",
+   "label": "13th Month Mode (Legacy)",
    "options": "Disabled\nAnnual\nMonthly"
+  },
+  {
+   "description": "13th, 14th and 15th salaries, each with its share and schedule. They are accrued every month from the base salary paid (the base paid since the previous payment ÷ 12) and paid pro rata at the exit. Replaces the 13th Month Mode above.",
+   "fieldname": "extra_salaries",
+   "fieldtype": "Table",
+   "label": "Extra Salaries",
+   "options": "Swiss Extra Salary"
+  },
+  {
+   "default": "1",
+   "description": "Every month, the extra salaries accrued and not yet paid are booked as an expense against a provision, released when they are paid.",
+   "fieldname": "extra_salary_provision",
+   "fieldtype": "Check",
+   "label": "Provision the Extra Salaries Every Month"
+  },
+  {
+   "depends_on": "eval:doc.extra_salary_provision",
+   "description": "Liability credited with the monthly provision (e.g. 2350 Provision 13th salary, or 2300 Accrued expenses).",
+   "fieldname": "extra_salary_provision_account",
+   "fieldtype": "Link",
+   "label": "Extra Salary Provision Account",
+   "options": "Account"
+  },
+  {
+   "collapsible": 1,
+   "description": "The vacation days left at the exit, paid through a Leave Encashment on Vacation Payout (1165).",
+   "fieldname": "section_vacation_payout",
+   "fieldtype": "Section Break",
+   "label": "Vacation Paid at the Exit"
+  },
+  {
+   "description": "How a vacation day is valued: the monthly salary with the extra salaries' share and the 12-month average of the variable pay of the vacation base, divided by the divisor (Divisor, 21.75 when empty); or the annual salary ÷ (260 − the yearly vacation days) (After the contract); or ÷ 30 for a balance counted in calendar days (Calendar days).",
+   "fieldname": "vacation_payout_method",
+   "fieldtype": "Select",
+   "label": "Vacation Day Value",
+   "options": "\nDivisor\nAfter the contract\nCalendar days"
+  },
+  {
+   "default": "21.75",
+   "depends_on": "eval:!doc.vacation_payout_method || doc.vacation_payout_method == 'Divisor'",
+   "description": "Working days of an average month: 21.75 (261 ÷ 12) is the usual one.",
+   "fieldname": "vacation_payout_divisor",
+   "fieldtype": "Float",
+   "label": "Vacation Day Divisor"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_holidays",
+   "fieldtype": "Section Break",
+   "label": "Public Holidays"
+  },
+  {
+   "description": "Weekends and the public holidays of the canton chosen in the company payroll setup. Topped up every month with the next year.",
+   "fieldname": "holiday_list",
+   "fieldtype": "Link",
+   "label": "Payroll Holiday List",
+   "options": "Holiday List"
+  },
+  {
+   "description": "The public holidays the company closes, by name: legal ones unticked (legal_off), local ones ticked (local_on).",
+   "fieldname": "holiday_choices",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Public Holiday Choices",
+   "options": "JSON",
+   "read_only": 1
   },
   {
    "fieldname": "section_qst",
@@ -520,6 +600,33 @@
   },
   {
    "collapsible": 1,
+   "description": "Representation (6040), car (6050), expatriate (6060) and other (6070) flat-rate allowances, as the company's expense regulation says.",
+   "fieldname": "section_flat_expenses",
+   "fieldtype": "Section Break",
+   "label": "Flat-rate Expenses"
+  },
+  {
+   "default": "Prorated",
+   "description": "Prorated: by the calendar days employed in the entry or exit month. Full: the whole monthly amount.",
+   "fieldname": "flat_expenses_partial_month",
+   "fieldtype": "Select",
+   "label": "Flat-rate Expenses in an Entry or Exit Month",
+   "options": "Prorated\nFull"
+  },
+  {
+   "fieldname": "column_break_flat_expenses",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Reduced after 4 weeks",
+   "description": "Swiss Tax Conference model regulation (II 1.3): reduced beyond four weeks of uninterrupted absence (sickness, accident, maternity or other parent, service, unpaid leave; never vacation). Maintained, the part beyond is salary: subject to AVS/AC and source tax.",
+   "fieldname": "flat_expenses_long_absence",
+   "fieldtype": "Select",
+   "label": "Flat-rate Expenses During a Long Absence",
+   "options": "Reduced after 4 weeks\nMaintained\nSuspended"
+  },
+  {
+   "collapsible": 1,
    "fieldname": "section_salary_payment",
    "fieldtype": "Section Break",
    "label": "Salary Payments"
@@ -542,6 +649,13 @@
    "fieldtype": "Link",
    "label": "Payment Account",
    "options": "Account"
+  },
+  {
+   "default": "1",
+   "description": "The salaries leave the bank account as one debit: the statement shows their total, not each employee's amount (batch booking, Swiss Payment Standards 2.1.8; category SALA). Unticked, one booking per employee.",
+   "fieldname": "salary_batch_booking",
+   "fieldtype": "Check",
+   "label": "Salaries as One Bank Debit (Confidential)"
   },
   {
    "fieldname": "section_laac",
@@ -588,7 +702,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-23 21:00:00.000000",
+ "modified": "2026-09-24 16:30:00.000000",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "Swiss Social Insurance Config",

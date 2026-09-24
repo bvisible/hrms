@@ -86,3 +86,5 @@ hrms.patches.v15_0.set_source_tax_canton_on_salary_slips
 # //// Neoffice — 2026-09-24: advances (6510, 6520) and effective expenses (6010-6030) are paid or
 # //// recovered in full; the catalogue had them prorated by the days paid like a salary.
 hrms.patches.v15_0.switzerland_unprorated_advances_and_expenses
+hrms.patches.v15_0.switzerland_flat_rate_expenses
+hrms.patches.v15_0.switzerland_extra_salaries_table

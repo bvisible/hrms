@@ -37,7 +37,7 @@ from collections import defaultdict
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate
+from frappe.utils import cint, flt, getdate
 
 from hrms.regional.switzerland.permissions import check_company_access
 
@@ -79,6 +79,15 @@ _ROLE_ACCOUNTS = {
 		1309,
 		r"payées d'avance|régularisation|transitoire|abgrenzung|prepaid",
 		("Asset",),
+	),
+	# //// Neoffice — 2026-09-24: the monthly provision of the 13th, 14th and 15th salaries: a
+	# //// dedicated account when the chart has one (2350 « Provision 13e salaire »), else the
+	# //// accrued expenses (2300) — see provision_account().
+	"provision_extra_salary": (
+		2310,
+		2399,
+		r"13|treizi|dreizehn|thirteenth",
+		("Liability",),
 	),
 }
 
@@ -377,6 +386,85 @@ def _period(year, month):
 	return date(year, month, 1), date(year, month, calendar.monthrange(year, month)[1])
 
 
+def provision_account(company):
+	"""The liability of the extra salaries' provision: the one set on the company's configuration,
+	else a dedicated account of the chart, else its accrued expenses."""
+	account = frappe.db.get_value(
+		"Swiss Social Insurance Config",
+		{"company": company, "is_default": 1},
+		"extra_salary_provision_account",
+	)
+	if account:
+		return account
+	accounts = _company_accounts(company)
+	return pick_account(accounts, "provision_extra_salary") or pick_account(accounts, "accrued_liabilities")
+
+
+def extra_salary_provision(company, slip_names, problems):
+	"""{account: amount} of the extra salaries' provision for these slips.
+
+	Each slip records what its extra salaries accrued and paid (Salary Slip.ch_extra_salaries). The
+	accrual of one not paid monthly is debited to its expense account and credited to the provision;
+	its payment, which the slip's own row charges to that expense account, releases the provision
+	the other way — so the year's expense is the sum of the monthly accruals. Empty when the company
+	does not provision them.
+	"""
+	from hrms.regional.switzerland.extra_salaries import slip_extra_salaries
+
+	provision = cint(
+		frappe.db.get_value(
+			"Swiss Social Insurance Config", {"company": company, "is_default": 1}, "extra_salary_provision"
+		)
+	)
+	if not provision or not frappe.db.has_column("Salary Slip", "ch_extra_salaries"):
+		return {}
+	liability = provision_account(company)
+	entries = []
+	for name in slip_names:
+		recorded = frappe.db.get_value("Salary Slip", name, "ch_extra_salaries")
+		entries.extend(slip_extra_salaries(frappe._dict(ch_extra_salaries=recorded)))
+	components = {entry.get("component") for entry in entries if entry.get("component")}
+	expense_of = {
+		component: frappe.db.get_value(
+			"Salary Component Account",
+			{"parent": component, "parenttype": "Salary Component", "company": company},
+			"account",
+		)
+		for component in components
+	}
+	lines, missing = provision_lines(entries, expense_of, liability)
+	problems.extend(
+		_("{0}: its provision needs the component's expense account and a provision account").format(name)
+		for name in missing
+	)
+	return lines
+
+
+def provision_lines(entries, expense_of, liability):
+	"""({account: amount}, [what could not be booked]) of the extra salaries recorded on slips.
+
+	The accrual of an extra salary not paid monthly: debit its expense account, credit the
+	provision. Its payment, charged to that expense account by the slip's own row, releases the
+	provision: debit the provision, credit the expense account.
+	"""
+	from hrms.regional.switzerland.extra_salaries import MONTHLY
+
+	lines, missing = defaultdict(float), []
+	for entry in entries:
+		if entry.get("schedule") == MONTHLY:
+			continue
+		accrued, paid = flt(entry.get("accrued"), 2), flt(entry.get("paid"), 2)
+		if not accrued and not paid:
+			continue
+		expense = expense_of.get(entry.get("component"))
+		if not expense or not liability:
+			missing.append(entry.get("component") or entry.get("extra_salary"))
+			continue
+		lines[expense] += accrued - paid
+		lines[liability] += paid - accrued
+	return {account: flt(amount, 2) for account, amount in lines.items() if flt(amount, 2)}, missing
+
+
 def _slip_rows(company, slip_names):
 	return frappe.db.sql(
 		"""SELECT sd.parent, sd.parentfield, sd.salary_component, sd.amount,
@@ -470,6 +558,11 @@ def post_payroll_accrual(company, year, month):
 		method,
 		third_party_account=third_party_account,
 	)
+	# //// Neoffice — 2026-09-24: the extra salaries not paid monthly, provisioned month by month and
+	# //// released when paid (extra_salary_provision); the net payable does not move.
+	for account, amount in extra_salary_provision(company, [s.name for s in slips], problems).items():
+		balances[account] = flt(balances.get(account, 0) + amount, 2)
+	balances = {account: amount for account, amount in balances.items() if flt(amount, 2)}
 	if third_party_account is False:
 		problems.append(
 			_(

@@ -1,0 +1,60 @@
+{
+	"actions": [],
+	"creation": "2026-09-24 16:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"extra_salary",
+		"percent",
+		"schedule",
+		"payment_month"
+	],
+	"fields": [
+		{
+			"fieldname": "extra_salary",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Extra Salary",
+			"options": "13th\n14th\n15th",
+			"reqd": 1
+		},
+		{
+			"default": "100",
+			"description": "Share of a monthly salary: 100 for a full extra month.",
+			"fieldname": "percent",
+			"fieldtype": "Percent",
+			"in_list_view": 1,
+			"label": "Share of a Monthly Salary"
+		},
+		{
+			"default": "Annual",
+			"description": "Monthly: a twelfth with every salary. Annual: once, in the month below. Half-yearly: June and December. Quarterly: March, June, September, December. Always paid pro rata at the exit.",
+			"fieldname": "schedule",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Schedule",
+			"options": "Monthly\nAnnual\nHalf-yearly\nQuarterly",
+			"reqd": 1
+		},
+		{
+			"default": "12",
+			"depends_on": "eval:doc.schedule == 'Annual'",
+			"fieldname": "payment_month",
+			"fieldtype": "Int",
+			"in_list_view": 1,
+			"label": "Month Paid"
+		}
+	],
+	"istable": 1,
+	"links": [],
+	"modified": "2026-09-24 16:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Swiss Extra Salary",
+	"naming_rule": "Random",
+	"owner": "Administrator",
+	"permissions": [],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"track_changes": 1
+}

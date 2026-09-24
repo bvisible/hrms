@@ -130,6 +130,9 @@ after_migrate = [
 	# //// Employee.ch_avs_status. create_custom_fields(update=True) is idempotent, so
 	# //// replaying it on every migrate is cheap and keeps the fleet aligned.
 	"hrms.regional.switzerland.setup.make_custom_fields",
+	# //// Neoffice — the wage types added to the catalogue since (1205, 1206, 1168 on 2026-09-24)
+	# //// before the components that point at them: only the missing ones are created.
+	"hrms.regional.switzerland.setup.create_swiss_wage_types",
 	# //// Neoffice — same reason for the salary components: a component added to the
 	# //// definitions never reached an already-provisioned site (LAAC, 2026-09-22).
 	"hrms.regional.switzerland.setup.ensure_swiss_salary_components",
@@ -210,6 +213,11 @@ override_doctype_class = {
 # Hook on document methods and events
 
 doc_events = {
+	# //// Neoffice — 2026-09-24: a Swiss company values the vacation paid at the exit from the salary
+	# //// (divisor, after-contract or calendar days), not a fixed amount typed on the structure.
+	"Leave Encashment": {
+		"validate": "hrms.regional.switzerland.vacation.value_leave_encashment",
+	},
 	"User": {
 		"validate": [
 			"erpnext.setup.doctype.employee.employee.validate_employee_role",
@@ -319,7 +327,12 @@ scheduler_events = {
 		"hrms.hr.utils.allocate_earned_leaves",
 	],
 	"weekly": ["hrms.controllers.employee_reminders.send_reminders_in_advance_weekly"],
-	"monthly": ["hrms.controllers.employee_reminders.send_reminders_in_advance_monthly"],
+	"monthly": [
+		"hrms.controllers.employee_reminders.send_reminders_in_advance_monthly",
+		# //// Neoffice — the Swiss payroll's holiday lists hold this year and the next: the public
+		# //// holidays of each new year are written before it starts (public_holidays.py).
+		"hrms.regional.switzerland.public_holidays.top_up_holiday_lists",
+	],
 }
 
 advance_payment_doctypes = ["Leave Encashment", "Gratuity", "Employee Advance"]

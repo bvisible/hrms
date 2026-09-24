@@ -60,6 +60,19 @@ def get_swiss_social_insurance_config(company, canton=None):
 	return config
 
 
+def get_company_payroll_config(company, config=None):
+	"""The company's default Swiss Social Insurance Config, for the rules that are the company's and
+	not a canton's: its extra salaries, the value of a vacation day paid at the exit, its flat-rate
+	expenses, how its salaries leave the bank. A canton's own configuration (an employee taxed
+	elsewhere) keeps its insurance rates, not these. ``config`` is returned when the company has no
+	default configuration."""
+	# //// Neoffice — added (2026-09-24): see the docstring.
+	default = frappe.db.get_value(
+		"Swiss Social Insurance Config", {"company": company, "is_default": 1}, "*", as_dict=True
+	)
+	return default or config
+
+
 def get_lpp_rate_for_age(age):
 	"""Return the LPP/BVG contribution rate based on employee age.
 
@@ -513,71 +526,6 @@ def get_ytd_insurance_bases(employee, company, start_date):
 	starts = [getdate(row.slip_start) for row in rows]
 	result["first_start"] = min(starts) if starts else None
 	return result
-
-
-def calculate_thirteenth_month(base_monthly, employee, slip_start, slip_end, config):
-	"""Calculate 13th month salary amount for a salary slip.
-
-	Args:
-		base_monthly: Base monthly salary (Basic component amount)
-		employee: Employee name (string) or dict/doc with date_of_joining, relieving_date
-		slip_start: Salary slip start date
-		slip_end: Salary slip end date
-		config: Swiss Social Insurance Config dict
-
-	Returns:
-		13th month amount for this salary slip (float)
-	"""
-	mode = (config.get("thirteenth_month_mode") or "Disabled") if config else "Disabled"
-	base_monthly = flt(base_monthly)
-
-	if mode == "Disabled" or not base_monthly:
-		return 0
-
-	if mode == "Monthly":
-		# //// Neoffice — a paid amount: 5 centimes (Swissdec guidelines 4.1.1), was the centime.
-		return round_to_5_centimes(base_monthly / 12)
-
-	# Annual mode: pay only in December or on the relieving month
-	slip_end_date = getdate(slip_end)
-	is_december = slip_end_date.month == 12
-
-	# Get employee data
-	if isinstance(employee, str):
-		emp_doc = frappe.get_cached_doc("Employee", employee)
-	else:
-		emp_doc = employee
-
-	relieving_date = emp_doc.get("relieving_date")
-	is_relieving_month = (
-		relieving_date
-		and getdate(relieving_date).month == slip_end_date.month
-		and getdate(relieving_date).year == slip_end_date.year
-	)
-
-	if not is_december and not is_relieving_month:
-		return 0
-
-	# Calculate pro-rata based on days worked in the year
-	year_start = slip_end_date.replace(month=1, day=1)
-	year_end = slip_end_date.replace(month=12, day=31)
-
-	date_of_joining = getdate(emp_doc.get("date_of_joining"))
-	period_start = max(date_of_joining, year_start)
-
-	if relieving_date:
-		period_end = min(getdate(relieving_date), year_end)
-	else:
-		period_end = year_end
-
-	if period_start > period_end:
-		return 0
-
-	total_days_in_year = (year_end - year_start).days + 1
-	days_worked = (period_end - period_start).days + 1
-	pro_rata = days_worked / total_days_in_year
-
-	return round_to_5_centimes(base_monthly * pro_rata)
 
 
 def get_component_rates_for_salary_slip(doc):

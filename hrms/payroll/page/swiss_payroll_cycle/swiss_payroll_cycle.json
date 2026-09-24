@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2026-08-21 14:00:00.000000",
+ "modified": "2026-09-24 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "swiss-payroll-cycle",
@@ -22,5 +22,5 @@
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "Swiss Payroll Cycle"
+ "title": "Monthly Payroll"
 }

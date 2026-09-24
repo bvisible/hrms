@@ -177,6 +177,15 @@ class SwissPayrollCycle {
 					to_do > 0
 						? { label: __("Do the payroll"), run: () => this.make_slips() }
 						: null,
+				// Leavers with vacation days left: paid with the exit slip, so before it is submitted.
+				extra_action: pf.counts.vacation_balances
+					? {
+							label: __("Pay the vacation balances ({0})", [
+								pf.counts.vacation_balances,
+							]),
+							run: () => this.pay_vacation_balances(),
+					  }
+					: null,
 			},
 			{
 				key: "pay",
@@ -236,6 +245,11 @@ class SwissPayrollCycle {
 						: `<span class="indicator-pill ${
 								state === "current" ? "blue" : "gray"
 						  }" style="min-width: 28px; justify-content: center;">${i + 1}</span>`;
+				const extra = step.extra_action
+					? `<button class="btn btn-default btn-sm spc-extra" data-step="${
+							step.key
+					  }">${esc(step.extra_action.label)}</button>`
+					: "";
 				const button = step.action
 					? `<button class="btn ${
 							state === "current" ? "btn-primary" : "btn-default"
@@ -252,7 +266,7 @@ class SwissPayrollCycle {
 							<div style="font-weight: 600;">${esc(step.title)}</div>
 							<div class="text-muted small">${step.status}</div>
 						</div>
-						${button}
+						${extra}${button}
 					</div>`;
 			})
 			.join("");
@@ -271,6 +285,10 @@ class SwissPayrollCycle {
 		this.body.find(".spc-action").on("click", (e) => {
 			const step = steps.find((s) => s.key === $(e.currentTarget).attr("data-step"));
 			if (step && step.action) step.action.run();
+		});
+		this.body.find(".spc-extra").on("click", (e) => {
+			const step = steps.find((s) => s.key === $(e.currentTarget).attr("data-step"));
+			if (step && step.extra_action) step.extra_action.run();
 		});
 		this.render_distribution();
 		this.render_details(this.body.find(".spc-details"));
@@ -318,6 +336,41 @@ class SwissPayrollCycle {
 									failed.length,
 							  ])}</b><br>${failed.join("<br>")}`
 							: ""),
+				});
+				await this.load();
+			},
+		);
+	}
+
+	pay_vacation_balances() {
+		const issues = (this.state.preflight.issues || []).filter(
+			(i) => i.code === "vacation_balance",
+		);
+		frappe.confirm(
+			__("Pay their vacation days left with the exit salary?") +
+				"<br><br>" +
+				issues.map((i) => esc(i.message)).join("<br>"),
+			async () => {
+				const res = await this.call("pay_exit_balances", {}, "vacation");
+				const lines = res.created.map(
+					(c) =>
+						`${esc(c.employee_name)}: ${c.days} ${__("day(s)")}, ${format_currency(
+							c.amount,
+							"CHF",
+						)}${
+							c.submitted_slip
+								? ` — <span class="text-warning">${__(
+										"the exit slip {0} is already submitted: cancel and amend it to pay them",
+										[esc(c.submitted_slip)],
+								  )}</span>`
+								: ""
+						}`,
+				);
+				const failed = res.failed.map((f) => `${esc(f.employee_name)}: ${esc(f.error)}`);
+				frappe.msgprint({
+					title: __("Vacation paid at the exit"),
+					indicator: failed.length ? "orange" : "green",
+					message: lines.concat(failed).join("<br>") || __("Nothing to pay."),
 				});
 				await this.load();
 			},

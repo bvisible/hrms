@@ -19,6 +19,8 @@ from hrms.regional.switzerland import (
 	insurer_statements,
 	monthly_cycle,
 	payment_file,
+	public_holidays,
+	vacation,
 	webstamp,
 	year_end,
 )
@@ -411,6 +413,9 @@ class TestPayrollOfTheCompanyRefusesAnEmployee(SwissEndpointPermissionCase):
 			(distribution.get_stamp_plan, (self.company, 2026, 1, [])),
 			(distribution.mark_printed, (self.company, 2026, 1, [])),
 			(distribution.set_channel, (self.company, self.employee, "Email")),
+			# //// Neoffice — 2026-09-24: the leavers' vacation paid, the canton's holidays of the setup.
+			(vacation.pay_exit_balances, (self.company, 2026, 1)),
+			(public_holidays.get_proposed_holidays, (self.company, "VS", 2026)),
 		)
 
 	def test_the_company_payroll_refuses_an_employee(self):

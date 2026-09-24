@@ -5,7 +5,11 @@
 # License: GNU General Public License v3. See license.txt
 
 import unittest
+from unittest.mock import patch
 
+import frappe
+
+from hrms.regional.switzerland import extra_salaries
 from hrms.regional.switzerland.constants import (
 	AC_ANNUAL_CEILING,
 	LPP_COORDINATION_DEDUCTION,
@@ -19,7 +23,6 @@ from hrms.regional.switzerland.utils import (
 	calculate_ac_contribution,
 	calculate_lpp_contribution,
 	calculate_lpp_coordinated_salary,
-	calculate_thirteenth_month,
 	get_employee_age,  # //// Neoffice — added with TestGetEmployeeAge at the end of the file.
 	get_lpp_rate_for_age,
 )
@@ -250,86 +253,108 @@ class TestACContribution(unittest.TestCase):
 			calculate_ac_contribution(8000, 40000)
 
 
-class TestThirteenthMonth(unittest.TestCase):
-	"""Tests for 13th month salary calculation."""
+EMPLOYED = {"date_of_joining": "2020-01-01", "relieving_date": None}
 
-	def test_disabled_mode(self):
-		"""Mode Disabled: returns 0."""
-		config = {"thirteenth_month_mode": "Disabled"}
-		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
-		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", config)
-		self.assertEqual(result, 0)
 
-	def test_monthly_mode(self):
-		"""Monthly mode: returns base/12 regardless of month."""
+class TestExtraSalaries(unittest.TestCase):
+	"""The 13th, 14th and 15th salaries (extra_salaries.py): the base paid since the previous
+	payment, divided by twelve; a month employed without a slip here counts the current base."""
+
+	def slip(self, start, end, paid=8000, full=8000):
+		row = frappe._dict(salary_component="Basic", abbr="B", amount=paid, default_amount=full)
+		return frappe._dict(
+			name="_T-slip", employee="_T-emp", company="_T-co", start_date=start, end_date=end, earnings=[row]
+		)
+
+	def compute(self, config, slip, employee, history=None):
+		with patch.object(extra_salaries, "_base_paid_by_month", return_value=history or {}):
+			return {r["extra_salary"]: r for r in extra_salaries.compute(slip, config, employee)}
+
+	def test_none_without_an_extra_salary(self):
+		self.assertEqual(
+			extra_salaries.compute(
+				self.slip("2025-12-01", "2025-12-31"), {"thirteenth_month_mode": "Disabled"}, EMPLOYED
+			),
+			[],
+		)
+		self.assertEqual(extra_salaries.compute(self.slip("2025-12-01", "2025-12-31"), None, EMPLOYED), [])
+
+	def test_monthly_a_twelfth_of_the_base_paid(self):
 		config = {"thirteenth_month_mode": "Monthly"}
-		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
-		result = calculate_thirteenth_month(6000, employee, "2025-06-01", "2025-06-30", config)
-		self.assertAlmostEqual(result, 500.0, places=2)  # 6000 / 12
-
-	def test_monthly_mode_any_month(self):
-		"""Monthly mode: same amount in January and July."""
-		config = {"thirteenth_month_mode": "Monthly"}
-		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
-		jan = calculate_thirteenth_month(8000, employee, "2025-01-01", "2025-01-31", config)
-		jul = calculate_thirteenth_month(8000, employee, "2025-07-01", "2025-07-31", config)
+		june = self.compute(config, self.slip("2025-06-01", "2025-06-30", 6000, 6000), EMPLOYED)
+		self.assertEqual(june["13th"]["paid"], 500)
 		# 8000 / 12 = 666.666... -> 666.65: a computed wage rounds to 5 centimes (guidelines 4.1.1)
-		self.assertAlmostEqual(jan, 666.65, places=2)
-		self.assertEqual(jan, jul)
+		jan = self.compute(config, self.slip("2025-01-01", "2025-01-31"), EMPLOYED)
+		self.assertEqual(jan["13th"]["paid"], 666.65)
+		# A partial month pays a twelfth of what it paid, not of the full base.
+		half = self.compute(config, self.slip("2025-01-01", "2025-01-31", 4000), EMPLOYED)
+		self.assertEqual(half["13th"]["paid"], 333.35)
 
-	def test_annual_mode_december_full_year(self):
-		"""Annual mode, December: full year employee gets full base."""
+	def test_annual_in_december_the_year_employed(self):
 		config = {"thirteenth_month_mode": "Annual"}
-		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
-		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", config)
-		self.assertAlmostEqual(result, 8000.0, places=2)
+		december = self.compute(config, self.slip("2025-12-01", "2025-12-31"), EMPLOYED)
+		self.assertEqual(december["13th"]["paid"], 8000)  # no slip here before: the current base
+		june = self.compute(config, self.slip("2025-06-01", "2025-06-30"), EMPLOYED)
+		self.assertEqual((june["13th"]["paid"], june["13th"]["accrued"]), (0, 666.67))
 
-	def test_annual_mode_not_december(self):
-		"""Annual mode, not December and not leaving: returns 0."""
+	def test_annual_counts_what_was_paid(self):
+		"""An unpaid half-month in June: the 13th is short of it."""
+		history = {(2025, m): 8000 for m in range(1, 12)}
+		history[(2025, 6)] = 4000
+		december = self.compute(
+			{"thirteenth_month_mode": "Annual"}, self.slip("2025-12-01", "2025-12-31"), EMPLOYED, history
+		)
+		self.assertEqual(december["13th"]["paid"], round_to_5_centimes(92000 / 12))
+
+	def test_annual_entry_and_exit_pro_rata(self):
 		config = {"thirteenth_month_mode": "Annual"}
-		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
-		result = calculate_thirteenth_month(8000, employee, "2025-06-01", "2025-06-30", config)
-		self.assertEqual(result, 0)
+		hired = {"date_of_joining": "2025-04-01", "relieving_date": None}
+		self.assertEqual(
+			self.compute(config, self.slip("2025-12-01", "2025-12-31"), hired)["13th"]["paid"], 6000
+		)
+		leaving = {"date_of_joining": "2020-01-01", "relieving_date": "2025-09-30"}
+		exit_month = self.compute(config, self.slip("2025-09-01", "2025-09-30"), leaving)
+		self.assertEqual(exit_month["13th"]["paid"], 6000)  # January to September
+		late = {"date_of_joining": "2025-12-15", "relieving_date": None}
+		december = self.compute(config, self.slip("2025-12-01", "2025-12-31", 4387.10), late)
+		self.assertEqual(december["13th"]["paid"], round_to_5_centimes(4387.10 / 12))
 
-	def test_annual_mode_prorata_hire(self):
-		"""Annual mode, employee hired April 1: pro-rata based on days worked."""
-		config = {"thirteenth_month_mode": "Annual"}
-		employee = {"date_of_joining": "2025-04-01", "relieving_date": None}
-		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", config)
-		# April 1 to Dec 31 = 275 days out of 365, rounded to 5 centimes
-		expected = round_to_5_centimes(8000 * 275 / 365)
-		self.assertAlmostEqual(result, expected, places=2)
+	def test_half_yearly_quarterly_and_a_14th_in_june(self):
+		base = {(2025, m): 6000 for m in range(1, 6)}
+		config = {"extra_salaries": [{"extra_salary": "13th", "percent": 100, "schedule": "Half-yearly"}]}
+		june = self.compute(config, self.slip("2025-06-01", "2025-06-30", 6000, 6000), EMPLOYED, base)
+		self.assertEqual(june["13th"]["paid"], 3000)
+		config = {"extra_salaries": [{"extra_salary": "13th", "percent": 100, "schedule": "Quarterly"}]}
+		march = self.compute(config, self.slip("2025-03-01", "2025-03-31", 6000, 6000), EMPLOYED, base)
+		self.assertEqual(march["13th"]["paid"], 1500)
+		config = {
+			"extra_salaries": [
+				{"extra_salary": "14th", "percent": 50, "schedule": "Annual", "payment_month": 6}
+			]
+		}
+		history = {(2024, m): 6000 for m in range(7, 13)} | base
+		june = self.compute(config, self.slip("2025-06-01", "2025-06-30", 6000, 6000), EMPLOYED, history)
+		self.assertEqual(june["14th"]["paid"], 3000)  # July to June, half a month
 
-	def test_annual_mode_prorata_departure(self):
-		"""Annual mode, employee leaving September 30: pro-rata on final slip."""
-		config = {"thirteenth_month_mode": "Annual"}
-		employee = {"date_of_joining": "2020-01-01", "relieving_date": "2025-09-30"}
-		result = calculate_thirteenth_month(8000, employee, "2025-09-01", "2025-09-30", config)
-		# Jan 1 to Sep 30 = 273 days out of 365: 5'983.5616 -> 5'983.55
-		expected = round_to_5_centimes(8000 * 273 / 365)
-		self.assertAlmostEqual(result, expected, places=2)
+	def test_accrual_periods(self):
+		row = frappe._dict(schedule="Annual", payment_month=6)
+		self.assertEqual(str(extra_salaries.accrual_start(row, "2025-05-01")), "2024-07-01")
+		self.assertEqual(str(extra_salaries.accrual_start(row, "2025-08-01")), "2025-07-01")
+		row = frappe._dict(schedule="Quarterly")
+		self.assertEqual(str(extra_salaries.accrual_start(row, "2025-05-01")), "2025-04-01")
+		row = frappe._dict(schedule="Annual", payment_month=12)
+		self.assertEqual(str(extra_salaries.accrual_start(row, "2025-12-01")), "2025-01-01")
 
-	def test_annual_mode_hired_december_15(self):
-		"""Employee hired December 15: tiny pro-rata."""
-		config = {"thirteenth_month_mode": "Annual"}
-		employee = {"date_of_joining": "2025-12-15", "relieving_date": None}
-		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", config)
-		# Dec 15 to Dec 31 = 17 days out of 365, rounded to 5 centimes
-		expected = round_to_5_centimes(8000 * 17 / 365)
-		self.assertAlmostEqual(result, expected, places=2)
-
-	def test_zero_base(self):
-		"""Zero base salary: returns 0."""
-		config = {"thirteenth_month_mode": "Monthly"}
-		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
-		result = calculate_thirteenth_month(0, employee, "2025-06-01", "2025-06-30", config)
-		self.assertEqual(result, 0)
-
-	def test_no_config(self):
-		"""No config: returns 0."""
-		employee = {"date_of_joining": "2020-01-01", "relieving_date": None}
-		result = calculate_thirteenth_month(8000, employee, "2025-12-01", "2025-12-31", None)
-		self.assertEqual(result, 0)
+	def test_salaries_per_year_for_the_lpp(self):
+		self.assertEqual(extra_salaries.salaries_per_year({"thirteenth_month_mode": "Annual"}), 13)
+		self.assertEqual(extra_salaries.salaries_per_year({"thirteenth_month_mode": "Disabled"}), 12)
+		config = {
+			"extra_salaries": [
+				{"extra_salary": "13th", "percent": 100, "schedule": "Annual"},
+				{"extra_salary": "14th", "percent": 50, "schedule": "Annual"},
+			]
+		}
+		self.assertEqual(extra_salaries.salaries_per_year(config), 13.5)
 
 
 class TestThirteenthMonthIntegration(unittest.TestCase):
@@ -504,20 +529,21 @@ class TestYearlyConstants(unittest.TestCase):
 		self.assertEqual(calculate_lpp_coordinated_salary(90_000, year=2026), 63_540)
 
 
+BORN_1985 = {"date_of_birth": "1985-03-10"}
+
+
 # //// Neoffice — tests of an added file (no upstream equivalent).
 class TestGetEmployeeAge(unittest.TestCase):
 	"""The BVG projection used to pass the year as an int; getdate() answers None to that."""
 
-	EMPLOYEE = {"date_of_birth": "1985-03-10"}
-
 	def test_age_at_the_end_of_the_year(self):
-		self.assertEqual(get_employee_age(self.EMPLOYEE, "2026-12-31"), 41)
+		self.assertEqual(get_employee_age(BORN_1985, "2026-12-31"), 41)
 
 	def test_age_before_the_birthday(self):
-		self.assertEqual(get_employee_age(self.EMPLOYEE, "2026-01-31"), 40)
+		self.assertEqual(get_employee_age(BORN_1985, "2026-01-31"), 40)
 
 	def test_age_on_the_birthday(self):
-		self.assertEqual(get_employee_age(self.EMPLOYEE, "2026-03-10"), 41)
+		self.assertEqual(get_employee_age(BORN_1985, "2026-03-10"), 41)
 
 	def test_no_date_of_birth(self):
 		self.assertEqual(get_employee_age({}, "2026-12-31"), 0)
@@ -526,4 +552,4 @@ class TestGetEmployeeAge(unittest.TestCase):
 		"""An int year used to reach reference_date.year as None: AttributeError, pointing at
 		the wrong line. It names the value it was given now."""
 		with self.assertRaises(ValueError):
-			get_employee_age(self.EMPLOYEE, 2026)
+			get_employee_age(BORN_1985, 2026)

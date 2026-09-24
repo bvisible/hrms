@@ -1,0 +1,64 @@
+# //// Neoffice — added file (no upstream equivalent): tests of the vacation balance paid at the exit
+# //// (vacation.py).
+# Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
+# License: GNU General Public License v3. See license.txt
+
+import unittest
+from unittest.mock import patch
+
+import frappe
+
+from hrms.regional.switzerland import vacation
+
+WITH_13TH = {"thirteenth_month_mode": "Annual"}
+
+
+class TestTheValueOfADay(unittest.TestCase):
+	def rate(self, config, base=8000, variable=300, entitlement=20):
+		with (
+			patch.object(vacation, "monthly_base", return_value=base),
+			patch.object(vacation, "variable_average", return_value=variable),
+			patch.object(vacation, "yearly_entitlement", return_value=entitlement),
+		):
+			return vacation.daily_rate("_T-emp", "_T-co", "2027-05-31", config, "_T-vacation")
+
+	def test_the_divisor_on_the_salary_with_the_13th_and_the_variable_pay(self):
+		rate, detail = self.rate(dict(WITH_13TH))
+		self.assertEqual(rate, round((8000 * 13 / 12 + 300) / 21.75, 2))
+		self.assertEqual((detail["divisor"], detail["salaries_per_year"]), (21.75, 13))
+		rate, _detail = self.rate({**WITH_13TH, "vacation_payout_divisor": 21.7})
+		self.assertEqual(rate, round((8000 * 13 / 12 + 300) / 21.7, 2))
+
+	def test_after_the_contract_and_calendar_days(self):
+		rate, detail = self.rate({**WITH_13TH, "vacation_payout_method": vacation.AFTER_CONTRACT})
+		self.assertEqual((rate, detail["divisor"]), (round((8000 * 13 / 12 + 300) * 12 / 240, 2), 240))
+		rate, _detail = self.rate({"vacation_payout_method": vacation.CALENDAR_DAYS}, variable=0)
+		self.assertEqual(rate, round(8000 / 30, 2))
+
+
+class TestTheBalanceAtTheExit(unittest.TestCase):
+	def test_the_entitlement_of_the_year_worked(self):
+		allocation = frappe._dict(new_leaves_allocated=20, from_date="2027-01-01", to_date="2027-12-31")
+		with (
+			patch(
+				"hrms.hr.doctype.leave_application.leave_application.get_leave_balance_on", return_value=20
+			),
+			patch("frappe.get_cached_value", return_value=0),
+			patch("frappe.db.get_value", return_value=allocation),
+		):
+			balance = vacation.exit_balance("_T-emp", "_T-vacation", "2027-05-31")
+		# 151 days of 365 worked: 20 x 151/365 = 8.27 days earned, none taken.
+		self.assertEqual(balance, round(20 - 20 * (1 - 151 / 365), 2))
+
+	def test_the_warnings_of_the_leavers(self):
+		rows = [
+			{"employee": "A", "employee_name": "Anne", "relieving_date": "2027-05-31", "balance": 3.5, "encashment": None, "rate": 400, "amount": 1400},
+			{"employee": "B", "employee_name": "Bruno", "relieving_date": "2027-05-15", "balance": -2, "encashment": None, "rate": 0, "amount": 0},
+			{"employee": "C", "employee_name": "Cleo", "relieving_date": "2027-05-20", "balance": 4, "encashment": "LE-1", "rate": 380, "amount": 1520},
+		]  # fmt: skip
+		with patch.object(vacation, "exit_balances", return_value=rows):
+			issues = vacation.exit_warnings("_T-co", "2027-05-01", "2027-05-31")
+		self.assertEqual(
+			[(i["code"], i["employee"]) for i in issues],
+			[("vacation_balance", "A"), ("vacation_negative", "B")],
+		)

@@ -27,10 +27,10 @@ from decimal import Decimal
 
 import frappe
 from frappe import _
-from frappe.utils import getdate, nowdate
+from frappe.utils import cint, getdate, nowdate
 
 from hrms.regional.switzerland.permissions import check_payroll_staff
-from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
+from hrms.regional.switzerland.utils import get_company_payroll_config, get_swiss_social_insurance_config
 
 PAIN_NAMESPACE = "urn:iso:std:iso:20022:tech:xsd:pain.001.001.09"
 
@@ -338,7 +338,7 @@ def _postal_address_element(parent, address, default_country="CH"):
 	ET.SubElement(pstl, "Ctry").text = address.get("country_code") or default_country
 
 
-def build_pain001(debtor, payments, execution_date, msg_id=None, remittance_text=None):
+def build_pain001(debtor, payments, execution_date, msg_id=None, remittance_text=None, batch_booking=True):
 	"""Build the pain.001.001.09 XML document. Pure function, no DB access.
 
 	Args:
@@ -347,6 +347,7 @@ def build_pain001(debtor, payments, execution_date, msg_id=None, remittance_text
 		execution_date: requested execution date (date or string).
 		msg_id: optional message id (defaults to a timestamped id).
 		remittance_text: optional unstructured remittance line shown to the employee.
+		batch_booking: one debit on the statement for all the salaries (SPS 2.1.8), else one each.
 
 	Returns:
 		XML string with declaration.
@@ -376,7 +377,10 @@ def build_pain001(debtor, payments, execution_date, msg_id=None, remittance_text
 	pmt = ET.SubElement(cstmr, "PmtInf")
 	ET.SubElement(pmt, "PmtInfId").text = sanitize_swift_text(f"{msg_id}-P1", 35)
 	ET.SubElement(pmt, "PmtMtd").text = "TRF"
-	ET.SubElement(pmt, "BtchBookg").text = "true"
+	# //// Neoffice — 2026-09-24: the company chooses (salary_batch_booking). TRUE books every salary
+	# //// of this block as ONE debit, the amounts of each employee staying off the statement
+	# //// (Swiss Payment Standards 2.1.8-2.1.9); FALSE, one booking per employee.
+	ET.SubElement(pmt, "BtchBookg").text = "true" if batch_booking else "false"
 	pmt_tp = ET.SubElement(pmt, "PmtTpInf")
 	ctgy = ET.SubElement(pmt_tp, "CtgyPurp")
 	# SALA marks the batch as salary payments (bank statement confidentiality)
@@ -434,12 +438,20 @@ def generate_pain001(company, year, month, execution_date=None):
 		frappe.throw(_("No submitted salary slip found for {0}-{1}.").format(year, f"{month:02d}"))
 
 	remittance = _("Salary {0}").format(f"{year}-{month:02d}")
+	config = get_company_payroll_config(company) or frappe._dict()
 	return build_pain001(
 		debtor=data["debtor"],
 		payments=data["payments"],
 		execution_date=execution_date or nowdate(),
 		remittance_text=remittance,
+		batch_booking=salary_batch_booking(config),
 	)
+
+
+def salary_batch_booking(config):
+	"""True unless the company asked for one bank booking per employee (default: one debit)."""
+	value = (config or {}).get("salary_batch_booking")
+	return True if value is None else bool(cint(value))
 
 
 @frappe.whitelist()
