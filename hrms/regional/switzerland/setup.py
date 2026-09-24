@@ -71,6 +71,7 @@ def create_swiss_wage_types():
 	frappe.db.commit()
 
 
+# //// Neoffice — added (141c9a396 "fix(payroll): a site without the Swiss payroll is left alone by the migrate and the encashment hook"): after_migrate used to top up the Swiss wage type catalogue on every site, including ones without the Swiss payroll; now runs only where the catalogue or the Swiss components already exist, and before ensure_swiss_salary_components since new components link to these wage types.
 def ensure_swiss_wage_types():
 	"""Create, on a site with the Swiss payroll, the wage types added to the catalogue since.
 
