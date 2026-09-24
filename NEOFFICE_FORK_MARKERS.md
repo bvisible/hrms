@@ -292,4 +292,10 @@ in a skipped file. The build bot writes the marker into it at the next `yarn bui
   file, Child table — one charge line (account, amount, description) of a Swiss Payroll
   Accrual (3fa9b5ff1 "feat(payroll): the source tax collection commission, one final
   statement per canton, and the year-end payroll accruals")
+- `hrms/payroll/doctype/swiss_extra_salary/swiss_extra_salary.json` — added file, Child
+  table — one extra salary (13th/14th/15th), its share of a monthly salary and its
+  payment schedule (monthly, annual, half-yearly, quarterly); the legacy 13th month mode
+  becomes a row of this table (728c34b26 "feat(payroll): Swiss salary rules — 13th to
+  15th salaries and their provision, vacation paid at the exit, flat-rate expenses,
+  public holidays, one bank debit")
 
