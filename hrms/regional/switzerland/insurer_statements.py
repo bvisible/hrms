@@ -28,6 +28,7 @@ from frappe import _
 from frappe.utils import add_days, flt, getdate
 
 from hrms.regional.switzerland import accounting
+from hrms.regional.switzerland.permissions import check_company_access
 
 # What a statement line settles (its stored Select value) → the insurance key of accounting.
 INSURANCES = {
@@ -454,6 +455,8 @@ def statement_defaults(company, insurance=None, insurer=None, canton=None):
 	for the source tax: each canton is its own tax office), and the insurances of the last statement
 	of ``insurer``."""
 	frappe.has_permission("Swiss Insurer Statement", "create", throw=True)
+	# //// Neoffice — and the company: the right on the doctype is not a right on every company.
+	check_company_access(company)
 	result = {"insurer": None, "insurances": []}
 	if insurance:
 		last = frappe.db.sql(

@@ -39,6 +39,8 @@ import frappe
 from frappe import _
 from frappe.utils import flt, getdate
 
+from hrms.regional.switzerland.permissions import check_company_access
+
 # Roles, as (lowest account number, highest, wording that must appear, root types).
 _ROLE_ACCOUNTS = {
 	"salaries": (5000, 5009, r"salair|lohn|stipend", ("Expense",)),
@@ -289,6 +291,8 @@ def configure_payroll_accounts(company):
 	already there and what could not be found.
 	"""
 	frappe.only_for(["System Manager", "Accounts Manager", "HR Manager"])
+	# //// Neoffice — the company too: called directly, a role on any company set the accounts of all.
+	check_company_access(company)
 	accounts = _company_accounts(company)
 	role_account = {role: pick_account(accounts, role) for role in _ROLE_ACCOUNTS}
 	report = {"set": [], "kept": [], "missing": []}
@@ -419,6 +423,8 @@ def payroll_entry_bookings(payroll_entries):
 def post_payroll_accrual(company, year, month):
 	"""Book the salaries of a period: one journal entry for the submitted slips not yet booked."""
 	_require_accounting_role()
+	# //// Neoffice — the company too: only book_salaries checked it, this endpoint is whitelisted.
+	check_company_access(company)
 	start, end = _period(year, month)
 	# Loan repayments come with the Lending app; without it the field does not exist.
 	with_loans = frappe.get_meta("Salary Slip").has_field("total_loan_repayment")

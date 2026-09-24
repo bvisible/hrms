@@ -11,7 +11,15 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from hrms.regional.switzerland import api, monthly_cycle, year_end
+from hrms.regional.switzerland import (
+	accounting,
+	api,
+	employee_wizard,
+	insurer_statements,
+	monthly_cycle,
+	payment_file,
+	year_end,
+)
 
 WEBSITE_USER = "swiss-payroll-portal-test@yopmail.com"
 
@@ -391,6 +399,9 @@ class TestPayrollOfTheCompanyRefusesAnEmployee(SwissEndpointPermissionCase):
 			(year_end.export_year_end_csv, (self.company, self.fiscal_year, "avs")),
 			(monthly_cycle.preflight, (self.company, 2026, 1)),
 			(monthly_cycle.summary, (self.company, 2026, 1)),
+			# //// Neoffice — 2026-09-24: IBANs and nets of the whole company, role-gated only before.
+			(payment_file.get_salary_payments, (self.company, 2026, 1)),
+			(payment_file.download_pain001, (self.company, 2026, 1)),
 		)
 
 	def test_the_company_payroll_refuses_an_employee(self):
@@ -422,3 +433,55 @@ class TestPayrollOfTheCompanyRefusesAnEmployee(SwissEndpointPermissionCase):
 		_restrict(self.hr_user, "Company", other)
 		frappe.set_user(self.hr_user)
 		self.assertRefused(year_end.qst_summary, self.company, self.fiscal_year)
+
+
+# //// Neoffice — added (2026-09-24): the endpoints the audit for the HR assistant found checking a
+# //// role and not the company. Staff limited to one company read the IBANs and nets of another,
+# //// booked its salaries, set its accounts, hired into it, or had the assistant write into it.
+HR_MANAGER_USER = "swiss-payroll-hr-manager-test@yopmail.com"
+
+
+class TestCompanyScopedEndpointsRefuseAnotherCompany(SwissEndpointPermissionCase):
+	"""Payroll staff limited to one company act on that company only."""
+
+	def setUp(self):
+		self.company = frappe.db.get_value(
+			"Company", {"country": "Switzerland"}, "name"
+		) or frappe.db.get_value("Company", {}, "name")
+		self.other = frappe.db.get_value("Company", {"name": ["!=", self.company]}, "name")
+		if not self.other:
+			self.skipTest("a single company on this site")
+		self.manager = _ensure_desk_user(HR_MANAGER_USER, ["HR Manager", "Desk User"])
+		_restrict(self.manager, "Company", self.other)
+
+	def test_the_other_company_is_refused(self):
+		frappe.set_user(self.manager)
+		for fn, args in (
+			(payment_file.get_salary_payments, (self.company, 2026, 1)),
+			(payment_file.download_pain001, (self.company, 2026, 1)),
+			(accounting.configure_payroll_accounts, (self.company,)),
+			(accounting.post_payroll_accrual, (self.company, 2026, 1)),
+			(insurer_statements.statement_defaults, (self.company,)),
+			(employee_wizard.create_employee, ({"company": self.company, "first_name": "Refused"},)),
+		):
+			with self.subTest(fn.__name__):
+				self.assertRefused(fn, *args)
+
+	def test_the_assistant_refuses_a_company_named_in_the_conversation(self):
+		session = frappe.get_doc(
+			{
+				"doctype": "Swiss Payroll Chat Session",
+				"user": self.manager,
+				"status": "Active",
+				"current_step": "company_setup",
+			}
+		).insert(ignore_permissions=True)
+		session.set_collected_data({"company": self.company, "uid_bfs": "CHE-123.456.789"})
+		session.save(ignore_permissions=True)
+		frappe.set_user(self.manager)
+		self.assertRefused(api.chat_apply_step, session.name)
+
+	def test_their_own_company_still_passes(self):
+		frappe.set_user(self.manager)
+		self.assertIn("insurer", insurer_statements.statement_defaults(self.other))
+		self.assertIsInstance(payment_file.get_salary_payments(self.other, 2026, 1), dict)

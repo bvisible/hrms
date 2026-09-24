@@ -29,6 +29,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, nowdate
 
+from hrms.regional.switzerland.permissions import check_payroll_staff
 from hrms.regional.switzerland.utils import get_swiss_social_insurance_config
 
 PAIN_NAMESPACE = "urn:iso:std:iso:20022:tech:xsd:pain.001.001.09"
@@ -221,7 +222,9 @@ def get_salary_payments(company, year, month):
 	Lists the submitted salary slips of the month with the bank details
 	needed for pain.001, and every blocking or non-blocking issue found.
 	"""
-	frappe.only_for(["HR Manager", "HR User", "System Manager"])
+	# //// Neoffice — was frappe.only_for: any HR role read the IBANs and nets of any company, staff
+	# //// limited to company A those of company B (2026-09-24 audit of the NORA-facing endpoints).
+	check_payroll_staff(company)
 	year, month = int(year), int(month)
 	start = date(year, month, 1)
 	end = date(year, month, monthrange(year, month)[1])
@@ -442,7 +445,8 @@ def generate_pain001(company, year, month, execution_date=None):
 @frappe.whitelist()
 def download_pain001(company, year, month, execution_date=None):
 	"""Download endpoint for the salary payment file of one cycle."""
-	frappe.only_for(["HR Manager", "HR User", "System Manager"])
+	# //// Neoffice — was frappe.only_for, see get_salary_payments.
+	check_payroll_staff(company)
 	content = generate_pain001(company, year, month, execution_date)
 	frappe.response["filename"] = f"pain001-salaries-{frappe.scrub(company)}-{int(year)}-{int(month):02d}.xml"
 	frappe.response["filecontent"] = content

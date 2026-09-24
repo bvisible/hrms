@@ -180,6 +180,7 @@ class SwissPayrollChatService:
 		collected = self.session.get_collected_data()
 		step = self.session.current_step
 		results = []
+		self._check_collected_scope(collected)
 
 		try:
 			if step == "company_setup" or collected.get("company"):
@@ -240,6 +241,28 @@ class SwissPayrollChatService:
 			}
 
 	# ─── Internal Methods ─────────────────────────────────────────
+
+	@staticmethod
+	def _check_collected_scope(collected):
+		"""Refuse, before any write, a company or an employee the caller may not act on.
+
+		//// Neoffice — the company and the employees come out of the conversation (the model's
+		//// extraction), and the writes of apply_step run with ignore_permissions: only the
+		//// company picked from the button list was checked (2026-09-24 audit).
+		"""
+		company = collected.get("company")
+		check_company_access(company)
+		for emp in collected.get("employees") or []:
+			name = emp.get("employee")
+			if not name:
+				continue
+			emp_company = frappe.db.get_value("Employee", name, "company")
+			check_company_access(emp_company)
+			if company and emp_company != company:
+				frappe.throw(
+					_("Employee {0} does not belong to the company {1}.").format(name, company),
+					frappe.PermissionError,
+				)
 
 	def _build_welcome_message(self, company=None):
 		"""Build the initial welcome message with context."""

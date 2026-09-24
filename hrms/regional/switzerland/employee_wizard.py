@@ -23,6 +23,7 @@ from frappe import _
 from frappe.utils import flt, getdate
 
 from hrms.regional.switzerland.cross_border import suggest_tariff_letter
+from hrms.regional.switzerland.permissions import check_company_access
 from hrms.regional.switzerland.source_tax import (
 	build_tariff_code,
 	get_calculation_model,
@@ -156,6 +157,9 @@ def create_employee(data):
 	"""
 	if isinstance(data, str):
 		data = json.loads(data)
+	# //// Neoffice — the company is checked before anything is created: staff limited to company A
+	# //// hired into company B, the insert only checking the right on Employee.
+	check_company_access(data.get("company"))
 
 	avs = data.get("avs_number")
 	if avs and not is_valid_avs_number(avs):
