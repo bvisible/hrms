@@ -1649,6 +1649,10 @@ def swiss_absence_type_name(label):
 	return _(label, context="leave type")
 
 
+# //// Neoffice — new: a leave type keeps the name it was created under, translated in the language
+# //// of whoever created it. Looking it up only in the asking user's language missed it for anyone
+# //// else, so this now tries the user's language, the site's and English in turn (ac08fc561
+# //// "fix(payroll): the Swiss leave types are found whatever the language of the one asking").
 def leave_type_names(label):
 	"""The names the leave type ``label`` may have on this site, most likely first.
 
@@ -1683,6 +1687,10 @@ def ensure_swiss_leave_types():
 	report = {"created": [], "aligned": []}
 	for label in SWISS_ABSENCE_TYPES:
 		name = swiss_absence_type_name(label)
+		# //// Neoffice — was `next((n for n in (name, label) if frappe.db.exists("Leave Type", n)), None)`;
+		# //// now goes through existing_leave_type so the asking user's language, the site's and English
+		# //// are all tried (ac08fc561 "fix(payroll): the Swiss leave types are found whatever the
+		# //// language of the one asking").
 		existing = existing_leave_type(label)
 		if existing:
 			if not cint(frappe.db.get_value("Leave Type", existing, "allow_negative")):
