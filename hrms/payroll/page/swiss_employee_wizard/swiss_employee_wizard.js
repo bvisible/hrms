@@ -34,7 +34,8 @@ class SwissEmployeeWizard {
 			this.page.main,
 		);
 		// The badge step exists where the terminals do (the Neoffice theme).
-		this.with_badges = !!(frappe.boot.versions && frappe.boot.versions.neoffice_theme);
+		// The badge step needs neoffice_theme and a terminal that is on (its boot flag says both).
+		this.with_badges = !!frappe.boot.neoffice_bornes;
 		this.reset();
 		this.start();
 	}
