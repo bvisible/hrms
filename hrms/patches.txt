@@ -83,3 +83,6 @@ hrms.patches.v15_0.switzerland_salary_certificate_2026
 # //// Neoffice — 2026-09-23: each slip keeps the canton its source tax was settled with
 # //// (ch_qst_canton), filled on past slips from the employee's version log.
 hrms.patches.v15_0.set_source_tax_canton_on_salary_slips
+# //// Neoffice — 2026-09-24: advances (6510, 6520) and effective expenses (6010-6030) are paid or
+# //// recovered in full; the catalogue had them prorated by the days paid like a salary.
+hrms.patches.v15_0.switzerland_unprorated_advances_and_expenses

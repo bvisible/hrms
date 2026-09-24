@@ -569,9 +569,11 @@ def get_swiss_wage_types():
 			6002, "Frais de repas", "Earning", "13.1.1", _EXEMPT, stat="", common=1,
 			abbr="MEAL", desc_fr="Remboursement frais de repas", payment_days=0,
 		),
-		_wt(6010, "Frais de nuitées", "Earning", "13.1.1", _EXEMPT, stat=""),
-		_wt(6020, "Frais effectifs expatriés", "Earning", "13.1.2", _EXEMPT, stat=""),
-		_wt(6030, "Autres frais effectifs", "Earning", "13.1.2", _EXEMPT, stat=""),
+		# //// Neoffice — 2026-09-24: effective expenses are costs reimbursed, never prorated by the
+		# //// days paid (a hotel night of 150 would come back as 97 on an entry month); like 6000-6002.
+		_wt(6010, "Frais de nuitées", "Earning", "13.1.1", _EXEMPT, stat="", payment_days=0),
+		_wt(6020, "Frais effectifs expatriés", "Earning", "13.1.2", _EXEMPT, stat="", payment_days=0),
+		_wt(6030, "Autres frais effectifs", "Earning", "13.1.2", _EXEMPT, stat="", payment_days=0),
 		_wt(
 			6040, "Frais forfaitaires de représentation", "Earning", "13.2.1", _EXEMPT,
 			stat="", common=1, abbr="REPR",
@@ -583,6 +585,8 @@ def get_swiss_wage_types():
 		# =====================================================================
 		# 6510-6520: Advances (deductions from net pay)
 		# =====================================================================
-		_wt(6510, "Avance sur salaire", "Deduction", "", _DEDUCTION, stat="", common=1),
-		_wt(6520, "Acomptes reçus", "Deduction", "", _DEDUCTION, stat=""),
+		# //// Neoffice — 2026-09-24: an advance is recovered in full. Prorated by the days paid, an
+		# //// advance of 500 came back as 322.60 on an entry month (payslip compared with Odoo).
+		_wt(6510, "Avance sur salaire", "Deduction", "", _DEDUCTION, stat="", common=1, payment_days=0),
+		_wt(6520, "Acomptes reçus", "Deduction", "", _DEDUCTION, stat="", payment_days=0),
 	]
