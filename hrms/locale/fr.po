@@ -21342,3 +21342,280 @@ msgstr "Congé Maternité"
 msgctxt "leave type"
 msgid "Other-parent leave"
 msgstr "Congé de l'Autre Parent"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Monthly Payroll"
+msgstr "Paie mensuelle"
+
+#: hrms/regional/switzerland/distribution.py
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+#: hrms/regional/switzerland/setup.py
+msgid "By Post"
+msgstr "Par la poste"
+
+#: hrms/regional/switzerland/distribution.py
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+#: hrms/regional/switzerland/setup.py
+msgid "By Hand"
+msgstr "En main propre"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Pick a company and a month: the payroll of the month appears here."
+msgstr "Choisissez une société et un mois : la paie du mois s'affiche ici."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Salary slips"
+msgstr "Fiches de salaire"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "{0} salary slip(s) submitted"
+msgstr "{0} fiche(s) de salaire validée(s)"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "{0} to generate, {1} draft(s), {2} submitted"
+msgstr "{0} à générer, {1} brouillon(s), {2} validée(s)"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Do the payroll"
+msgstr "Faire la paie"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Booked {0}/{1} · paid {2}/{1}"
+msgstr "Comptabilisés {0}/{1} · payés {2}/{1}"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "After the salary slips."
+msgstr "Après les fiches de salaire."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Payment file (pain.001)"
+msgstr "Fichier de paiement (pain.001)"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Payslips to the employees"
+msgstr "Fiches de salaire aux employés"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Payroll of {0}"
+msgstr "Paie de {0}"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Details: checks, employees, totals"
+msgstr "Détails : contrôles, employés, totaux"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "{0} blocking check(s): those employees get no slip until fixed (see the details)."
+msgstr "{0} contrôle(s) bloquant(s) : ces employés n'ont pas de fiche tant que ce n'est pas corrigé (voir les détails)."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Generate and submit the salary slips of {0} for {1} employee(s)? Submitted slips are final: a correction is a cancellation and an amendment."
+msgstr "Générer et valider les fiches de salaire de {0} pour {1} employé(s) ? Les fiches validées sont définitives : une correction est une annulation et un avenant."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "{0} slip(s) created"
+msgstr "{0} fiche(s) créée(s)"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "{0} slip(s) submitted"
+msgstr "{0} fiche(s) validée(s)"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "The salaries are booked in the ledger, then a payment proposal is created: send it to the bank from there (file or EBICS)."
+msgstr "Les salaires sont comptabilisés, puis une proposition de paiement est créée : envoyez-la à la banque depuis celle-ci (fichier ou EBICS)."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "The salaries are booked in the ledger, then the payment file is offered."
+msgstr "Les salaires sont comptabilisés, puis le fichier de paiement est proposé."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Net to pay: {0}"
+msgstr "Net à payer : {0}"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Salaries booked and payment proposal {0} created: open it to send the payments to the bank."
+msgstr "Salaires comptabilisés et proposition de paiement {0} créée : ouvrez-la pour envoyer les paiements à la banque."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Book and pay"
+msgstr "Comptabiliser et payer"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Payment file"
+msgstr "Fichier de paiement"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "{0} payment(s), total {1}"
+msgstr "{0} paiement(s), total {1}"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Salary payment file (pain.001)"
+msgstr "Fichier de paiement des salaires (pain.001)"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "e-mailed"
+msgstr "envoyée par e-mail"
+
+#: hrms/regional/switzerland/distribution.py
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "no e-mail address"
+msgstr "pas d'adresse e-mail"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "no postal address"
+msgstr "pas d'adresse postale"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "How each payslip reaches its employee"
+msgstr "Comment chaque fiche de salaire parvient à son employé"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Send {0} e-mail(s)"
+msgstr "Envoyer {0} e-mail(s)"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Frank {0} for the post"
+msgstr "Affranchir {0} pour la poste"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+#: hrms/regional/switzerland/setup.py
+msgid "Payslip Delivery"
+msgstr "Envoi de la fiche de salaire"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Send their payslip by e-mail to {0} employee(s)?"
+msgstr "Envoyer leur fiche de salaire par e-mail à {0} employé(s) ?"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "{0} e-mail(s) on their way"
+msgstr "{0} e-mail(s) en cours d'envoi"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "No standard letter product in the WebStamp catalogue."
+msgstr "Aucun produit de lettre standard dans le catalogue WebStamp."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Each payslip gets a WebStamp carrying the postage and the address, printed in the envelope window."
+msgstr "Chaque fiche de salaire reçoit un WebStamp portant l'affranchissement et l'adresse, imprimé dans la fenêtre de l'enveloppe."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Order {0} stamp(s) for CHF {1}? Swiss Post bills them."
+msgstr "Commander {0} timbre(s) pour CHF {1} ? La Poste les facture."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Frank {0} payslip(s) — TEST"
+msgstr "Affranchir {0} fiche(s) de salaire — TEST"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Frank {0} payslip(s)"
+msgstr "Affranchir {0} fiche(s) de salaire"
+
+#: hrms/regional/switzerland/distribution.py
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Frank"
+msgstr "Affranchir"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "{0} payslip(s) franked"
+msgstr "{0} fiche(s) de salaire affranchie(s)"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Print them now: the stamp is on each payslip."
+msgstr "Imprimez-les maintenant : le timbre est sur chaque fiche de salaire."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "issues found"
+msgstr "problèmes détectés"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "All checks passed"
+msgstr "Tous les contrôles ont réussi"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "to generate"
+msgstr "à générer"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+#: hrms/regional/switzerland/monthly_cycle.py
+msgid "Period totals"
+msgstr "Totaux de la période"
+
+#: hrms/regional/switzerland/distribution.py
+msgid "Unknown payslip delivery: {0}"
+msgstr "Mode d'envoi de la fiche de salaire inconnu : {0}"
+
+#: hrms/regional/switzerland/distribution.py
+msgid "Employee {0} does not belong to the company {1}."
+msgstr "L'employé {0} n'appartient pas à la société {1}."
+
+#: hrms/regional/switzerland/distribution.py
+msgid "Salary slip {0} — {1}"
+msgstr "Fiche de salaire {0} — {1}"
+
+#: hrms/regional/switzerland/distribution.py
+msgid "Please find attached your salary slip for {0}."
+msgstr "Veuillez trouver ci-joint votre fiche de salaire pour {0}."
+
+#: hrms/regional/switzerland/setup.py
+msgid "Email: sent by e-mail. By Post: franked with a WebStamp and mailed. By Hand: printed and handed out. Empty: by e-mail when the employee has an address, else by hand."
+msgstr "E-mail : envoyée par e-mail. Par la poste : affranchie avec un WebStamp et postée. En main propre : imprimée et remise. Vide : par e-mail si l'employé a une adresse, sinon en main propre."
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "{0} without a salary structure: no slip (see the details)"
+msgstr "{0} sans structure salariale : pas de fiche (voir les détails)"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "{0} of {1} sent or printed"
+msgstr "{0} sur {1} envoyées par e-mail ou imprimées"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgctxt "payslip status"
+msgid "printed"
+msgstr "imprimée"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "to send"
+msgstr "à envoyer par e-mail"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "franked, to print"
+msgstr "affranchie, à imprimer"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "to frank"
+msgstr "à affranchir"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "to print"
+msgstr "à imprimer"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Print {0} again"
+msgstr "Imprimer {0} à nouveau"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "no salary structure"
+msgstr "pas de structure salariale"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "without a salary structure"
+msgstr "sans structure salariale"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Printed on"
+msgstr "Imprimée le"
+
+#: hrms/regional/switzerland/distribution.py
+msgid "Salary slip"
+msgstr "Fiche de salaire"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Europe"
+msgstr "Europe"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "Other countries"
+msgstr "Autres pays"
+
+#: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js
+msgid "No letter product for {0} in the WebStamp catalogue: {1} payslip(s) left out."
+msgstr "Aucun produit de lettre pour {0} dans le catalogue WebStamp : {1} fiche(s) de salaire laissée(s) de côté."

@@ -137,10 +137,13 @@ def preflight(company, year, month):
 			days = qst_days_in_period(emp, start, end)
 			row["notes"].append(_("{0}/30 source-tax days").format(days))
 
-		if not frappe.db.exists(
-			"Salary Structure Assignment",
-			{"employee": emp.name, "docstatus": 1, "from_date": ("<=", end)},
-		):
+		if not _has_salary_structure(emp.name, end):
+			# //// Neoffice — 2026-09-24: an employee with no salary structure is outside the payroll
+			# //// (a partner, an account made for another app, or a hire whose structure is still to
+			# //// assign): no slip can be made for them. Counted as "to generate", they kept the
+			# //// "salary slips" step open forever and "do the payroll" failed on each of them.
+			if row["status"] == "to_generate":
+				row["status"] = "no_structure"
 			issues.append(
 				{
 					"level": "error",
@@ -221,8 +224,18 @@ def preflight(company, year, month):
 			"to_generate": sum(1 for e in employees if e["status"] == "to_generate"),
 			"draft": sum(1 for e in employees if e["status"] == "draft"),
 			"submitted": sum(1 for e in employees if e["status"] == "submitted"),
+			"no_structure": sum(1 for e in employees if e["status"] == "no_structure"),
 		},
 	}
+
+
+def _has_salary_structure(employee, end):
+	return bool(
+		frappe.db.exists(
+			"Salary Structure Assignment",
+			{"employee": employee, "docstatus": 1, "from_date": ("<=", end)},
+		)
+	)
 
 
 @frappe.whitelist()
@@ -242,7 +255,7 @@ def generate(company, year, month, employees=None):
 	start, end = _period_bounds(year, month)
 	only = set(json.loads(employees)) if isinstance(employees, str) and employees else None
 
-	created, skipped, failed = [], [], []
+	created, skipped, failed, no_structure = [], [], [], []
 	for emp in _active_employees(company, start, end):
 		if only and emp.name not in only:
 			continue
@@ -251,6 +264,10 @@ def generate(company, year, month, employees=None):
 			{"employee": emp.name, "start_date": start, "docstatus": ("<", 2)},
 		):
 			skipped.append(emp.name)
+			continue
+		# //// Neoffice — outside the payroll (see preflight): not a failure, and no Error Log each month.
+		if not _has_salary_structure(emp.name, end):
+			no_structure.append(emp.name)
 			continue
 		try:
 			slip = frappe.get_doc(
@@ -284,7 +301,7 @@ def generate(company, year, month, employees=None):
 			)
 
 	frappe.db.commit()
-	return {"created": created, "skipped": skipped, "failed": failed}
+	return {"created": created, "skipped": skipped, "failed": failed, "no_structure": no_structure}
 
 
 @frappe.whitelist()
@@ -500,16 +517,25 @@ def submit_cycle(company, year, month):
 		fields=["name", "employee_name"],
 	)
 	submitted, failed = [], []
-	for row in drafts:
-		try:
-			slip = frappe.get_doc("Salary Slip", row.name)
-			slip.submit()
-			frappe.db.commit()
-			submitted.append(row.name)
-		except Exception:
-			frappe.db.rollback()
-			failed.append({"slip": row.name, "error": frappe.get_traceback().splitlines()[-1]})
-			frappe.log_error("Monthly cycle: slip submission failed", f"{row.name}: {frappe.get_traceback()}")
+	# //// Neoffice — no e-mail at submission: the cycle hands the payslips out at its last step, by
+	# //// each employee's channel (distribution.py). via_payroll_entry is the flag hrms itself sets to
+	# //// hold that e-mail back (salary_slip.on_submit); it does nothing else.
+	frappe.flags.via_payroll_entry = True
+	try:
+		for row in drafts:
+			try:
+				slip = frappe.get_doc("Salary Slip", row.name)
+				slip.submit()
+				frappe.db.commit()
+				submitted.append(row.name)
+			except Exception:
+				frappe.db.rollback()
+				failed.append({"slip": row.name, "error": frappe.get_traceback().splitlines()[-1]})
+				frappe.log_error(
+					"Monthly cycle: slip submission failed", f"{row.name}: {frappe.get_traceback()}"
+				)
+	finally:
+		frappe.flags.via_payroll_entry = False
 
 	frappe.db.commit()
 	return {"submitted": submitted, "failed": failed}

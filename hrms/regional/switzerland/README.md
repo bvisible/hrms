@@ -31,7 +31,8 @@ opens the right screen:
 5. **Add employees** through the Swiss employee wizard (AVS checksum, permit,
    suggested source-tax code).
 6. **Assign the salary structure**, then
-7. **Run the first monthly cycle** — preflight, slips, submission, pain.001.
+7. **Run the first monthly payroll** — the **Monthly Payroll** page: do the
+   payroll, pay the salaries, hand the payslips out (see below).
 
 The HR workspace carries the generic HR onboarding (settings, holiday list,
 leaves) and ends with a bridge step into Swiss payroll. Interactive NORA Learn
@@ -170,16 +171,31 @@ ESTV publishes next year's tariffs in early December. A daily scheduled task che
 
 ## Pay Slip (Art. 323b CO)
 
-The **Salary Slip Swiss** print format (`hrms/payroll/print_format/salary_slip_swiss/`) provides a professional monthly pay slip with:
+The **Salary Slip Swiss** print format (`hrms/payroll/print_format/salary_slip_swiss/`) lays the monthly pay slip out the way a Swissdec-certified payroll does, on white (it is printed):
 
-- **Employee info**: name, AVS number, permit type, fiscal canton, department, designation
-- **Bank details**: bank name and account number
-- **Earnings table**: component name, amount, year-to-date (YTD)
-- **Employee deductions**: component name, rate (%), amount, YTD — employer components are filtered out
-- **Net pay**: net amount, rounded total, amount in words, YTD
-- **Employer contributions** (informational, greyed out): component name, rate (%), amount, YTD + total employer cost
+- **A letter for a window envelope** (SN 010 130, window on the right): the employee's address sits in the window band, sender line and "Personal and confidential" above it, fold marks at 99/198 mm
+- **Employment facts**: designation, date of joining, activity rate, source-tax canton and tariff
+- **Earnings**, then **deductions** with their rate (%), then the **net salary**; expenses (wage types 6000–6499) outside the gross, advances and loan repayments after the net, down to the **net to pay** and the (masked) IBAN it goes to
+- **Contribution bases** and, on screen only, the **employer contributions**
+
+A submitted slip can be **franked** with a Swiss Post WebStamp (`webstamp.py`, app `swisspost_barcode`): the stamp, which carries postage and address, then replaces the address in the window.
 
 Rates are fetched dynamically from the Swiss Social Insurance Config via `get_component_rates_for_salary_slip()`.
+
+## Monthly Payroll
+
+The **Monthly Payroll** page (`/app/swiss-payroll-cycle`) runs the month-end in three steps, one button each, as soon as a company and a month are picked:
+
+1. **Salary slips** — *Do the payroll* generates the missing slips and submits them (`monthly_cycle.py`). Submitting sends no e-mail: the payslips leave at step 3. An employee without a salary structure is outside the payroll: counted apart, never holding the step open.
+2. **Payment** — *Pay the salaries* books the salaries (`accounting.py`) and creates the ERPNextSwiss payment proposal (or offers the pain.001 file, `payment_file.py`).
+3. **Payslips to the employees** (`distribution.py`) — one row per payslip, with the employee's channel (`Employee.ch_payslip_delivery`, remembered from month to month):
+   - **Email**: the Swiss print attached, subject and message in the user's language;
+   - **By Post**: a WebStamp per payslip, printed in the envelope window;
+   - **By Hand**: all printed in one PDF.
+
+   A payslip counts as delivered once e-mailed (its Email Queue) or printed from the page (`Salary Slip.ch_printed_on`). A stamp alone is not delivery.
+
+Every endpoint is for payroll staff of the company only (`permissions.check_payroll_staff`).
 
 ## Annual Salary Certificate (Lohnausweis Form 11)
 
@@ -300,6 +316,11 @@ hrms/regional/switzerland/
 ├── swissdec_data.py          # Salary data aggregation + BVG projection for ELM
 ├── swissdec_transmitter.py   # Gateway transmission engine (multi-DocType)
 ├── ema_hooks.py              # Employee change detection for EMA notifications
+├── monthly_cycle.py          # Monthly Payroll page: preflight, generate, summary, submit, book, pay
+├── distribution.py           # Monthly Payroll page: payslips by e-mail, by post (WebStamp), by hand
+├── webstamp.py               # Frank a submitted payslip with a Swiss Post WebStamp
+├── payment_file.py           # pain.001 salary payment file
+├── accounting.py             # Book the payroll and its payment
 ├── test_swissdec.py          # ~136 unit tests (XML + validation + EMA + BVG)
 └── README.md
 

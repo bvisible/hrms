@@ -28,6 +28,20 @@ TOWN_LINE = re.compile(r"^(?:(?P<prefix>[A-Z]{1,2})-)?(?P<zip>\d{4,5})\s+(?P<cit
 # Country prefixes of a postcode line, as written on Swiss mail.
 PREFIX_COUNTRY = {"CH": "CH", "FL": "LI", "F": "FR", "D": "DE", "I": "IT", "A": "AT"}
 STANDARD_LETTER = "lettre standard"
+# Swiss Post zones (the WebStamp get_zones list): a product serves one of them only, and an order
+# whose address lies in another zone is refused ("une adresse ne peut pas être utilisée avec le
+# produit sélectionné") — a payslip for a cross-border worker living in Germany needs an
+# international letter, not an A-mail stamp.
+EUROPE_ZONE, WORLD_ZONE, DOMESTIC_ZONE = 1, 2, 3
+DOMESTIC = ("CH", "LI")
+# Zone 1 when the WebStamp country list cannot be read: Europe. The list itself decides otherwise.
+EUROPE = {
+	"AD", "AL", "AT", "BA", "BE", "BG", "BY", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FO", "FR",
+	"GB", "GI", "GR", "HR", "HU", "IE", "IS", "IT", "LT", "LU", "LV", "MC", "MD", "ME", "MK", "MT",
+	"NL", "NO", "PL", "PT", "RO", "RS", "SE", "SI", "SK", "SM", "UA", "VA", "XK",
+}  # fmt: skip
+# An international standard letter up to 20 g, "Documents Std 20g Z1" (a payslip weighs 5 to 10 g).
+INTERNATIONAL_LETTER = "documents std 20g"
 
 
 def payslip_recipient(slip):
@@ -65,6 +79,63 @@ def payslip_recipient(slip):
 	return recipient
 
 
+def recipient_zone(country, config=None):
+	"""The Swiss Post zone of a recipient country: domestic, Europe (1) or the other countries (2)."""
+	code = (country or "CH").upper()
+	if code in DOMESTIC:
+		return DOMESTIC_ZONE
+	zones = _country_zones(config) if config else {}
+	return zones.get(code) or (EUROPE_ZONE if code in EUROPE else WORLD_ZONE)
+
+
+def _country_zones(config):
+	"""ISO code -> zone, from the WebStamp country list, cached for a day.
+
+	The list gives names only, in the service's language ("Allemagne"): they are matched to codes
+	through the territory names Babel (a Frappe dependency) knows in the national languages.
+	"""
+	key = f"hrms_webstamp_zones_{config}"
+	zones = frappe.cache.get_value(key)
+	if zones is not None:
+		return zones
+	zones = {}
+	try:
+		from babel import Locale
+		from swisspost_barcode.swisspost_barcode.webstamp.client import WebstampClient
+
+		codes = {}
+		for language in ("fr", "de", "it", "en"):
+			for code, name in Locale(language).territories.items():
+				if len(code) == 2 and code.isalpha():
+					codes.setdefault(name.casefold(), code)
+		for country in WebstampClient(config).get_countries():
+			code = (country.get("code") or "").upper() or codes.get((country.get("name") or "").casefold())
+			if code and country.get("zone"):
+				zones[code] = int(country["zone"])
+	except Exception:
+		# The static European list stands in; said once an hour, not at every payslip.
+		frappe.log_error("WebStamp country zones unavailable", frappe.get_traceback())
+		frappe.cache.set_value(key, {}, expires_in_sec=3600)
+		return {}
+	frappe.cache.set_value(key, zones, expires_in_sec=86400)
+	return zones
+
+
+def letter_products(products, zone):
+	"""The catalogue's standard letters for a zone, the plain one (no registered or other option)
+	first: A- and B-mail letters at home, "Documents Std 20g Z1/Z2" abroad."""
+
+	def serves(product):
+		name = (product.get("product_name") or "").lower()
+		if zone == DOMESTIC_ZONE:
+			return STANDARD_LETTER in name
+		return name.startswith(INTERNATIONAL_LETTER) and f"z{zone}" in name.split()
+
+	chosen = [p for p in products if serves(p)]
+	# Stable sort: the catalogue's own order (favourites first) within plain, then optioned.
+	return sorted(chosen, key=lambda p: "&" in (p.get("product_name") or ""))
+
+
 def _slip_for_payroll_staff(salary_slip):
 	slip = frappe.get_doc("Salary Slip", salary_slip)
 	check_payroll_staff(slip.company)
@@ -90,23 +161,33 @@ def get_stamp_options(salary_slip):
 	already ordered for this slip."""
 	slip = _slip_for_payroll_staff(salary_slip)
 	config = _require_app()
+	from hrms.regional.switzerland.utils import get_webstamp_image
+
+	recipient = payslip_recipient(slip)
+	zone = recipient_zone(recipient["country"], config)
+	return {
+		"config": config,
+		"environment": _environment(config),
+		"recipient": recipient,
+		"zone": zone,
+		"products": letter_products(_catalogue(config), zone),
+		"stamp_url": get_webstamp_image(slip),
+		"submitted": slip.docstatus == 1,
+	}
+
+
+def _catalogue(config):
+	"""The live WebStamp product catalogue (swisspost_barcode, cached there for an hour)."""
 	from swisspost_barcode.swisspost_barcode.doctype.swisspost_webstamp_settings.swisspost_webstamp_settings import (
 		get_webstamp_products,
 	)
 
-	from hrms.regional.switzerland.utils import get_webstamp_image
+	return get_webstamp_products(config)
 
-	products = [
-		p for p in get_webstamp_products(config) if STANDARD_LETTER in (p.get("product_name") or "").lower()
-	]
-	return {
-		"config": config,
-		"environment": frappe.db.get_value("SwissPost Webstamp Settings", config, "environment"),
-		"recipient": payslip_recipient(slip),
-		"products": products,
-		"stamp_url": get_webstamp_image(slip),
-		"submitted": slip.docstatus == 1,
-	}
+
+def _environment(config):
+	"""Production bills the stamps; the test environment answers with a preview marked TEST."""
+	return frappe.db.get_value("SwissPost Webstamp Settings", config, "environment")
 
 
 @frappe.whitelist(methods=["POST"])

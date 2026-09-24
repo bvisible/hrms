@@ -3,10 +3,15 @@
 # License: GNU General Public License v3. See license.txt
 
 import base64
+import sys
+import types
+from types import SimpleNamespace
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
+from hrms.regional.switzerland import webstamp
 from hrms.regional.switzerland.utils import get_webstamp_image
 from hrms.regional.switzerland.webstamp import payslip_recipient
 
@@ -86,6 +91,66 @@ class TestTheStampOfASlip(FrappeTestCase):
 		self.assertEqual(
 			get_webstamp_image(frappe._dict(doctype="Salary Slip", name=self.SLIP)), stamp.file_url
 		)
+
+
+# A slice of the WebStamp catalogue, as get_webstamp_products returns it (names in French).
+CATALOGUE = [
+	{"product_number": 38610, "product_name": "Courrier A Lettre standard", "price": 1.2},
+	{"product_number": 38617, "product_name": "Courrier B Lettre standard", "price": 1.0},
+	{"product_number": 38611, "product_name": "Courrier A Lettre standard & pj", "price": 1.7},
+	{"product_number": 38635, "product_name": "Courrier B standard en nombre", "price": 0.64},
+	{"product_number": 38642, "product_name": "Documents Std 20g Z1 & R", "price": 8.7},
+	{"product_number": 38641, "product_name": "Documents Std 20g Z1", "price": 2.3},
+	{"product_number": 38647, "product_name": "Documents Std 50g Z1 ", "price": 3.1},
+	{"product_number": 38695, "product_name": "Documents Std 20g Z2", "price": 2.5},
+	{"product_number": 38616, "product_name": "Grande lettre A (001 - 1000g)", "price": 2.5},
+]
+
+
+class TestPostalZones(FrappeTestCase):
+	"""A product serves one Swiss Post zone: an A-mail stamp is refused for an address in Germany."""
+
+	def test_the_zone_of_a_country(self):
+		self.assertEqual(webstamp.recipient_zone("CH"), webstamp.DOMESTIC_ZONE)
+		self.assertEqual(webstamp.recipient_zone("li"), webstamp.DOMESTIC_ZONE)
+		self.assertEqual(webstamp.recipient_zone("DE"), webstamp.EUROPE_ZONE)
+		self.assertEqual(webstamp.recipient_zone("US"), webstamp.WORLD_ZONE)
+		# The WebStamp country list decides over the static European list.
+		with patch.object(webstamp, "_country_zones", return_value={"US": 1}):
+			self.assertEqual(webstamp.recipient_zone("US", "CFG"), webstamp.EUROPE_ZONE)
+
+	def test_the_letters_of_each_zone_plain_first(self):
+		def names(zone):
+			return [p["product_name"] for p in webstamp.letter_products(CATALOGUE, zone)]
+
+		self.assertEqual(
+			names(webstamp.DOMESTIC_ZONE),
+			["Courrier A Lettre standard", "Courrier B Lettre standard", "Courrier A Lettre standard & pj"],
+		)
+		self.assertEqual(names(webstamp.EUROPE_ZONE), ["Documents Std 20g Z1", "Documents Std 20g Z1 & R"])
+		self.assertEqual(names(webstamp.WORLD_ZONE), ["Documents Std 20g Z2"])
+
+	def test_the_country_list_is_read_by_name(self):
+		"""The service lists names only, in its language: "Allemagne" is Germany."""
+		countries = [
+			{"code": "", "name": "Allemagne", "zone": 1},
+			{"code": "", "name": "États-Unis", "zone": 2},
+			{"code": "", "name": "Atlantide", "zone": 1},
+		]
+		client = types.ModuleType("swisspost_barcode.swisspost_barcode.webstamp.client")
+		client.WebstampClient = lambda config: SimpleNamespace(get_countries=lambda: countries)
+		packages = (
+			"swisspost_barcode",
+			"swisspost_barcode.swisspost_barcode",
+			"swisspost_barcode.swisspost_barcode.webstamp",
+		)
+		modules = {name: types.ModuleType(name) for name in packages}
+		modules[client.__name__] = client
+		key = "hrms_webstamp_zones_CFG-TEST"
+		frappe.cache.delete_value(key)
+		self.addCleanup(frappe.cache.delete_value, key)
+		with patch.dict(sys.modules, modules):
+			self.assertEqual(webstamp._country_zones("CFG-TEST"), {"DE": 1, "US": 2})
 
 
 def _male_gender():

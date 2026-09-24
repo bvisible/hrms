@@ -14,6 +14,7 @@ from frappe.tests.utils import FrappeTestCase
 from hrms.regional.switzerland import (
 	accounting,
 	api,
+	distribution,
 	employee_wizard,
 	insurer_statements,
 	monthly_cycle,
@@ -403,6 +404,13 @@ class TestPayrollOfTheCompanyRefusesAnEmployee(SwissEndpointPermissionCase):
 			# //// Neoffice — 2026-09-24: IBANs and nets of the whole company, role-gated only before.
 			(payment_file.get_salary_payments, (self.company, 2026, 1)),
 			(payment_file.download_pain001, (self.company, 2026, 1)),
+			# //// Neoffice — 2026-09-24: the payslips of the company, e-mailed, franked or printed.
+			(distribution.get_distribution, (self.company, 2026, 1)),
+			(distribution.send_payslips, (self.company, 2026, 1, [])),
+			(distribution.stamp_payslips, (self.company, 2026, 1, [], 1)),
+			(distribution.get_stamp_plan, (self.company, 2026, 1, [])),
+			(distribution.mark_printed, (self.company, 2026, 1, [])),
+			(distribution.set_channel, (self.company, self.employee, "Email")),
 		)
 
 	def test_the_company_payroll_refuses_an_employee(self):

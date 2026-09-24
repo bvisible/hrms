@@ -176,6 +176,27 @@ def get_custom_fields():
 				"print_hide": 1,
 			},
 			# //// Neoffice ▲▲▲
+			# //// Neoffice — new fields: when the payslip was printed from the monthly payroll page
+			# //// (distribution.mark_printed), to hand out or to post with its WebStamp. An e-mail is
+			# //// already traced by its Email Queue, a stamp by its WebStamp order: a print left no trace.
+			{
+				"fieldname": "ch_delivery_section",
+				"label": "Payslip Delivery",
+				"fieldtype": "Section Break",
+				"insert_after": "ch_payment_entry",
+				"collapsible": 1,
+				"depends_on": "eval:doc.ch_printed_on",
+			},
+			{
+				"fieldname": "ch_printed_on",
+				"label": "Printed on",
+				"fieldtype": "Datetime",
+				"insert_after": "ch_delivery_section",
+				"read_only": 1,
+				"no_copy": 1,
+				"allow_on_submit": 1,
+				"print_hide": 1,
+			},
 		],
 		"Salary Component Account": [
 			{
@@ -479,6 +500,16 @@ def get_custom_fields():
 				"fieldtype": "Date",
 				"insert_after": "ch_entry_date",
 				"description": "End of employment for Swissdec ELM reporting.",
+			},
+			# //// Neoffice — added 2026-09-24: how the monthly payslip reaches the employee, remembered
+			# //// from one month to the next by the payroll cycle's distribution step (distribution.py).
+			{
+				"fieldname": "ch_payslip_delivery",
+				"label": "Payslip Delivery",
+				"fieldtype": "Select",
+				"options": "\nEmail\nBy Post\nBy Hand",
+				"insert_after": "ch_exit_date",
+				"description": "Email: sent by e-mail. By Post: franked with a WebStamp and mailed. By Hand: printed and handed out. Empty: by e-mail when the employee has an address, else by hand.",
 			},
 			# --- Source Tax (Quellensteuer) fields ---
 			{
