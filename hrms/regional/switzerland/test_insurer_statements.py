@@ -516,8 +516,12 @@ class TestStatementBooking(FrappeTestCase):
 
 	def test_the_charges_method_debits_the_charge_and_a_paid_statement_the_bank(self):
 		frappe.db.set_value("Company", self.COMPANY, "ch_payroll_booking_method", BOOKING_CHARGES)
+		# In the company's currency: the CI's _Test Company also holds EUR and USD banks.
+		currency = frappe.get_cached_value("Company", self.COMPANY, "default_currency")
 		bank = frappe.db.get_value(
-			"Account", {"company": self.COMPANY, "account_type": "Bank", "is_group": 0}, "name"
+			"Account",
+			{"company": self.COMPANY, "account_type": "Bank", "is_group": 0, "account_currency": currency},
+			"name",
 		)
 		if not bank:
 			bank = self.account("1029", "Test bank", "Asset", account_type="Bank")
@@ -577,6 +581,26 @@ class TestStatementBooking(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Account", statement.lines[0].account, "root_type"), "Liability")
 		self.assertTrue(source_tax)
 
+	def fiscal_year(self, year):
+		"""The fiscal year of ``year``, made for the test where the site has none (the CI's)."""
+		from erpnext.accounts.utils import FiscalYearError, get_fiscal_year
+
+		try:
+			return get_fiscal_year(f"{year}-06-30", company=self.COMPANY)[0]
+		except FiscalYearError:
+			return (
+				frappe.get_doc(
+					{
+						"doctype": "Fiscal Year",
+						"year": f"_Test Fiscal Year {year}",
+						"year_start_date": f"{year}-01-01",
+						"year_end_date": f"{year}-12-31",
+					}
+				)
+				.insert()
+				.name
+			)
+
 	def accrual(self, fiscal_year, reversal_date, amount=300):
 		self.account("2300", "Charges à payer", "Liability")
 		start, end = frappe.db.get_value("Fiscal Year", fiscal_year, ["year_start_date", "year_end_date"])
@@ -592,7 +616,8 @@ class TestStatementBooking(FrappeTestCase):
 		).insert()
 
 	def test_an_accrual_is_booked_at_year_end_and_reversed_the_next_day(self):
-		accrual = self.accrual("_Test Fiscal Year 2026", "2027-01-01")
+		self.fiscal_year(2027)  # the reversal's
+		accrual = self.accrual(self.fiscal_year(2026), "2027-01-01")
 		accrual.submit()
 		self.assertEqual(frappe.db.get_value("Account", accrual.accrual_account, "account_number"), "2300")
 		entry, reversal = (
