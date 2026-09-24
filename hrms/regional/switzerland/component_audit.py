@@ -96,9 +96,11 @@ def audit_salary_components(company=None):
 	return {"checked": len(components), "issues": issues}
 
 
-@frappe.whitelist()
 def report(company=None):
-	"""Printable audit, for a bench execute or a console."""
+	"""Printable audit, for a bench execute or a console.
+
+	Not whitelisted: neither needs it, and through /api/method any signed-in user — a portal customer
+	included — read the audit of the company's salary components (three-identity test, 24.09)."""
 	result = audit_salary_components(company)
 	errors = [i for i in result["issues"] if i["severity"] == "error"]
 	warnings = [i for i in result["issues"] if i["severity"] == "warning"]
