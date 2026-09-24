@@ -69,8 +69,16 @@
 	.ss-address { margin-top: 1.2mm; font-size: 10pt; line-height: 1.32; }
 	.ss-address b { font-weight: 700; }
 
+	/* With a WebStamp (74 x 35 mm at 100 %, never scaled: its DataMatrix must read): "personal"
+	   at 43.5 mm and the stamp from 47.5 to 82.5 mm, franking header, address and DataMatrix inside
+	   the window whatever the play of the folded sheet. The body moves down 4 mm. */
+	.ss-window-stamp { top: 31.5mm; }
+	.ss-window-stamp .ss-endorse { margin-top: 0; }
+	.ss-stamp { display: block; width: 74mm; height: auto; margin-top: 1mm; }
+
 	/* ── Flow content, below the window zone ── */
 	.ss-body { padding: 72mm 16mm 0 20mm; }
+	.ss-body.ss-body-stamp { padding-top: 76mm; }
 
 	/* Employment facts */
 	.ss-facts { width: 100%; border-collapse: collapse; border-top: 1.5pt solid #1a1a1a; border-bottom: 0.5pt solid #bbb; }
@@ -178,6 +186,14 @@
 	</div>
 
 	<!-- Recipient, in the envelope window -->
+	{% if d.webstamp_image %}
+	{# //// Neoffice — a Swiss Post WebStamp ordered for the slip (webstamp.py) carries the franking #}
+	{# //// and the address: it takes the address's place in the window, "personal" stays above. #}
+	<div class="ss-window ss-window-stamp">
+		<div class="ss-endorse">{{ _("Personal and confidential") }}</div>
+		<img class="ss-stamp" src="{{ d.webstamp_image }}" alt="WebStamp">
+	</div>
+	{% else %}
 	<div class="ss-window">
 		<div class="ss-return">{{ sender | join(" · ") }}</div>
 		<div class="ss-endorse">{{ _("Personal and confidential") }}</div>
@@ -187,8 +203,9 @@
 			{% for line in d.address_lines %}<br>{{ line }}{% endfor %}
 		</div>
 	</div>
+	{% endif %}
 
-	<div class="ss-body">
+	<div class="ss-body{% if d.webstamp_image %} ss-body-stamp{% endif %}">
 
 		<!-- Employment facts -->
 		{# //// Neoffice — position, entry and exit dates, activity rate and the source tax tariff of #}

@@ -681,16 +681,7 @@ def get_salary_slip_print_data(doc):
 	# //// catalogue (issue #239).
 	# //// Neoffice — compared the raw gender with "Female" / "Male": an instance whose
 	# //// Gender records are localised ("Féminin", "Masculin") printed no salutation at all.
-	from hrms.regional.switzerland.insurance_solutions import SEX_FEMALE, SEX_MALE, normalize_sex
-
-	sex = normalize_sex(employee.get("gender"))
-	if sex == SEX_FEMALE:
-		salutation = _("Mrs")
-	elif sex == SEX_MALE:
-		# //// Neoffice — see the block marker above: translated, was hardcoded French
-		salutation = _("Mr")
-	else:
-		salutation = ""
+	salutation = employee_salutation(employee)
 
 	# Employee address
 	address_lines = _parse_address(employee)
@@ -912,7 +903,53 @@ def get_salary_slip_print_data(doc):
 		# //// Neoffice — no amount in words any more: an Indian accounting convention that no Swiss
 		# //// payslip carries, and that printed "Quatre Mille Six Cent ... seulement".
 		"bank": _get_bank_details(doc, employee),
+		# //// Neoffice — a Swiss Post WebStamp ordered for this slip (webstamp.py): it carries the
+		# //// franking AND the recipient address, so the print puts it in the envelope window.
+		"webstamp_image": get_webstamp_image(doc),
 	}
+
+
+def employee_salutation(employee):
+	"""Mrs / Mr as the payslip addresses the employee, "" when the gender says neither."""
+	from hrms.regional.switzerland.insurance_solutions import SEX_FEMALE, SEX_MALE, normalize_sex
+
+	sex = normalize_sex(employee.get("gender"))
+	if sex == SEX_FEMALE:
+		return _("Mrs")
+	if sex == SEX_MALE:
+		# //// Neoffice — see the block marker in get_salary_slip_print_data: translated, was
+		# //// hardcoded French.
+		return _("Mr")
+	return ""
+
+
+def get_webstamp_image(doc):
+	"""URL of the WebStamp ordered for this document, or None.
+
+	The order record of the swisspost_barcode app is the source of truth, the stamp file attached
+	to the document the fallback; a site without that app has neither and gets None.
+	"""
+	if not doc.get("name"):
+		return None
+	if frappe.db.table_exists("SwissPost Webstamp Order"):
+		url = frappe.db.get_value(
+			"SwissPost Webstamp Order",
+			{"document_type": doc.doctype, "document_name": doc.name, "stamp_file": ["is", "set"]},
+			"stamp_file",
+			order_by="creation desc",
+		)
+		if url:
+			return url
+	return frappe.db.get_value(
+		"File",
+		{
+			"attached_to_doctype": doc.doctype,
+			"attached_to_name": doc.name,
+			"file_name": ["like", "stamp\\_%"],
+		},
+		"file_url",
+		order_by="creation desc",
+	)
 
 
 # Swissdec wage types reimbursed after the net salary: expenses, 6000 to 6499. Deductions from

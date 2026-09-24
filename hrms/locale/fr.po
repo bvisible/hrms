@@ -21266,3 +21266,59 @@ msgstr "GS"
 msgctxt "contribution rate"
 msgid "Rate"
 msgstr "Taux"
+
+#: hrms/public/js/salary_slip_swiss.js
+msgid "Frank this payslip"
+msgstr "Affranchir cette fiche de salaire"
+
+#: hrms/public/js/salary_slip_swiss.js
+msgid "The stamp carries the postage and the address: the printed payslip shows it in the envelope window."
+msgstr "Le timbre porte l'affranchissement et l'adresse : la fiche de salaire imprimée le montre dans la fenêtre de l'enveloppe."
+
+#: hrms/public/js/salary_slip_swiss.js
+msgid "Preview is free and never billed; ordering bills the stamp to the company's WebStamp account."
+msgstr "L'aperçu est gratuit et jamais facturé ; la commande facture le timbre au compte WebStamp de la société."
+
+#: hrms/public/js/salary_slip_swiss.js
+msgid "Test environment: the stamp is a preview marked TEST and nothing is billed."
+msgstr "Environnement de test : le timbre est un aperçu marqué TEST et rien n'est facturé."
+
+#: hrms/public/js/salary_slip_swiss.js
+msgid "Order the stamp"
+msgstr "Commander le timbre"
+
+#: hrms/public/js/salary_slip_swiss.js
+msgid "Preview (free)"
+msgstr "Aperçu (gratuit)"
+
+#: hrms/public/js/salary_slip_swiss.js
+msgid "A stamp was already ordered for this payslip. Ordering again bills a new one."
+msgstr "Un timbre a déjà été commandé pour cette fiche de salaire. Une nouvelle commande facture un timbre supplémentaire."
+
+#: hrms/public/js/salary_slip_swiss.js
+msgid "Order a TEST stamp (nothing is billed)?"
+msgstr "Commander un timbre TEST (rien n'est facturé) ?"
+
+#: hrms/public/js/salary_slip_swiss.js
+msgid "Order this stamp for CHF {0}? Swiss Post bills it."
+msgstr "Commander ce timbre pour CHF {0} ? La Poste le facture."
+
+#: hrms/public/js/salary_slip_swiss.js
+msgid "Stamp ordered: the printed payslip now carries it in the envelope window."
+msgstr "Timbre commandé : la fiche de salaire imprimée le porte désormais dans la fenêtre de l'enveloppe."
+
+#: hrms/regional/switzerland/webstamp.py
+msgid "WebStamp needs the Swiss Post app (swisspost_barcode) on this site."
+msgstr "WebStamp nécessite l'application de la Poste (swisspost_barcode) sur ce site."
+
+#: hrms/regional/switzerland/webstamp.py
+msgid "Set up one WebStamp configuration (SwissPost Webstamp Settings) to frank payslips."
+msgstr "Configurez un paramétrage WebStamp (SwissPost Webstamp Settings) pour affranchir les fiches de salaire."
+
+#: hrms/regional/switzerland/webstamp.py
+msgid "Only a submitted salary slip can be franked."
+msgstr "Seule une fiche de salaire validée peut être affranchie."
+
+#: hrms/regional/switzerland/webstamp.py
+msgid "The postal address of {0} is incomplete: a street line and a postcode and town line are needed."
+msgstr "L'adresse postale de {0} est incomplète : une ligne de rue et une ligne de NPA et localité sont nécessaires."

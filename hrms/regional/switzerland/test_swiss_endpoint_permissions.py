@@ -18,6 +18,7 @@ from hrms.regional.switzerland import (
 	insurer_statements,
 	monthly_cycle,
 	payment_file,
+	webstamp,
 	year_end,
 )
 
@@ -411,6 +412,16 @@ class TestPayrollOfTheCompanyRefusesAnEmployee(SwissEndpointPermissionCase):
 		for fn, args in self.endpoints():
 			with self.subTest(fn.__name__):
 				self.assertRefused(fn, *args)
+
+	# //// Neoffice — 2026-09-24: franking a payslip reads the employee's postal address and bills
+	# //// the company's WebStamp account: payroll staff of the company only.
+	def test_franking_a_payslip_refuses_an_employee(self):
+		slip = frappe.db.get_value("Salary Slip", {"company": self.company}, "name")
+		if not slip:
+			self.skipTest("no salary slip of the company on this site")
+		frappe.set_user(self.employee_user)
+		self.assertRefused(webstamp.get_stamp_options, slip)
+		self.assertRefused(webstamp.stamp_salary_slip, slip, 1)
 
 	def test_the_payroll_assistant_refuses_an_employee(self):
 		frappe.set_user(self.employee_user)

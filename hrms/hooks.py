@@ -60,6 +60,9 @@ doctype_js = {
 	# //// Neoffice — added: the Salary Component form fills its Swiss insurance-base flags
 	# //// from the selected Swiss Wage Type (public/js/salary_component_swiss.js).
 	"Salary Component": "public/js/salary_component_swiss.js",
+	# //// Neoffice — added: frank a submitted payslip with a Swiss Post WebStamp printed in the
+	# //// envelope window (public/js/salary_slip_swiss.js, regional/switzerland/webstamp.py).
+	"Salary Slip": "public/js/salary_slip_swiss.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

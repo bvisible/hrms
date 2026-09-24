@@ -1076,6 +1076,24 @@ class TestThePayslipPrintsTheSwissdecLayout(SwissPayrollHookCase):
 			"background:", html.split("<style>")[1].split("</style>")[0].replace("background: none", "")
 		)
 
+	def test_a_webstamp_takes_the_address_place_in_the_window(self):
+		"""The stamp carries the address: printing the lines too would show two addresses."""
+		from unittest.mock import patch
+
+		slip = self._slip([(MONTHLY_COMPONENT, 6000)])
+		path = frappe.get_app_path(
+			"hrms", "payroll", "print_format", "salary_slip_swiss", "salary_slip_swiss.html"
+		)
+		with (
+			open(path) as template,
+			patch("hrms.regional.switzerland.utils.get_webstamp_image", return_value="/files/stamp_TEST.png"),
+		):
+			html = frappe.render_template(template.read(), {"doc": slip})
+		self.assertIn('class="ss-stamp" src="/files/stamp_TEST.png"', html)
+		self.assertIn("Personal and confidential", html)
+		self.assertNotIn('class="ss-address"', html)
+		self.assertNotIn('class="ss-return"', html)
+
 
 def _male_gender():
 	from hrms.regional.switzerland.insurance_solutions import normalize_sex
