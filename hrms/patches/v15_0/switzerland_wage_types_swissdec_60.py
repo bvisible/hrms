@@ -26,6 +26,7 @@ from them are created once. Each corrected code is pushed down to both:
 
 import frappe
 
+from hrms.regional.switzerland.patch_utils import has_swiss_columns
 from hrms.regional.switzerland.wage_type_data import get_swiss_wage_types
 
 FLAG_FIELDS = ("avs", "ac", "laa", "ijm", "lpp", "imp")
@@ -85,6 +86,8 @@ def execute():
 				{field: entry.get(field, 0) for field in WAGE_TYPE_FIELDS},
 				update_modified=False,
 			)
+		if not has_swiss_columns("Salary Component", "ch_wage_type_code", "ch_lohnausweis_position"):
+			continue  # created by make_custom_fields above; checked all the same (#722)
 		for component in frappe.get_all(
 			"Salary Component", filters={"ch_wage_type_code": code}, pluck="name"
 		):

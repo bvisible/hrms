@@ -4,6 +4,8 @@
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
+from hrms.regional.switzerland.patch_utils import has_swiss_columns
+
 
 def execute():
 	"""Install Salary Slip.ch_qst_aperiodic (aperiodic share of the slip)."""
@@ -21,8 +23,11 @@ def execute():
 	# The aperiodic detection reads the wage type's statistical category:
 	# link the hook-created 13th month component to its catalog entry
 	# (SMS) where the link is missing.
-	if frappe.db.exists("Salary Component", "13th Month Salary") and frappe.db.exists(
-		"Swiss Wage Type", "CH-WT-1181"
+	# (only where Salary Component.ch_wage_type exists yet, #722)
+	if (
+		has_swiss_columns("Salary Component", "ch_wage_type")
+		and frappe.db.exists("Salary Component", "13th Month Salary")
+		and frappe.db.exists("Swiss Wage Type", "CH-WT-1181")
 	):
 		if not frappe.db.get_value("Salary Component", "13th Month Salary", "ch_wage_type"):
 			frappe.db.set_value(

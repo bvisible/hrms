@@ -23,6 +23,8 @@ paid (as a percentage, paid out, computed) and existing records reference them.
 
 import frappe
 
+from hrms.regional.switzerland.patch_utils import has_swiss_columns
+
 COMPONENT_NAME = "13th Month Salary"
 TARGET_CODE = "1200"
 TARGET_WAGE_TYPE = "CH-WT-1200"
@@ -43,6 +45,9 @@ def execute():
 		return
 
 	if not frappe.db.exists("Salary Component", COMPONENT_NAME):
+		return
+	# A component of that name on a site whose Swiss columns do not exist yet (#722).
+	if not has_swiss_columns("Salary Component", "ch_wage_type", "ch_wage_type_code"):
 		return
 
 	current = frappe.db.get_value(

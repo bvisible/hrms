@@ -30,6 +30,7 @@
 import frappe
 from frappe.utils import cint
 
+from hrms.regional.switzerland.patch_utils import has_swiss_columns
 from hrms.regional.switzerland.wage_type_data import get_swiss_wage_types
 
 # Positions the catalogue held on 2026-09-22 where it changed on 2026-09-23.
@@ -79,6 +80,10 @@ def execute():
 
 
 def _sync_positions():
+	# The wage types always; the components only once their Swiss columns exist (#722).
+	components_readable = has_swiss_columns(
+		"Salary Component", "ch_wage_type_code", "ch_lohnausweis_position"
+	)
 	for code, position in {
 		wt["code"]: wt["lohnausweis_position"] or "" for wt in get_swiss_wage_types()
 	}.items():
@@ -90,6 +95,8 @@ def _sync_positions():
 			)
 			print(f"Swiss payroll: wage type {code} salary certificate {before or '-'} -> {position or '-'}")
 
+		if not components_readable:
+			continue
 		untouched = {"", before or "", *PREVIOUS_POSITIONS.get(code, ())}
 		for component in frappe.get_all(
 			"Salary Component",
@@ -123,6 +130,8 @@ def _own_position(component):
 
 def _clean_mappings():
 	if not frappe.db.table_exists("Swiss Lohnausweis Mapping"):
+		return
+	if not has_swiss_columns("Salary Component", "ch_wage_type_code", "ch_lohnausweis_position"):
 		return
 	for row in frappe.get_all(
 		"Swiss Lohnausweis Mapping",

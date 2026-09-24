@@ -21,6 +21,8 @@ deliberately on a client site is left alone.
 
 import frappe
 
+from hrms.regional.switzerland.patch_utils import has_swiss_columns
+
 # code -> (position the catalogue used to hold, position it holds now)
 POSITION_FIXES = {
 	"2025": ("7", "1"),
@@ -37,6 +39,10 @@ POSITION_FIXES = {
 
 
 def execute():
+	# No Swiss columns yet (the first migrate of a site that never had the Swiss payroll): no
+	# component to correct. See patch_utils — this patch aborted a canary's migrate (#722).
+	if not has_swiss_columns("Salary Component", "ch_wage_type_code", "ch_lohnausweis_position"):
+		return
 	moved = 0
 	for code, (old_position, new_position) in POSITION_FIXES.items():
 		components = frappe.get_all(

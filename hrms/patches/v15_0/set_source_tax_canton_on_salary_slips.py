@@ -6,6 +6,8 @@ import json
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
+from hrms.regional.switzerland.patch_utils import has_swiss_columns
+
 FIELDS = ("ch_qst_taxation_canton", "ch_fiscal_canton")
 
 
@@ -16,6 +18,9 @@ def execute():
 	fields = [f for f in get_custom_fields().get("Salary Slip", []) if f.get("fieldname") == "ch_qst_canton"]
 	if fields:
 		create_custom_fields({"Salary Slip": fields}, update=True)
+	# Resolving the source tax component reads Salary Component.ch_wage_type (#722).
+	if not has_swiss_columns("Salary Component", "ch_wage_type"):
+		return
 	component = _resolve_component_by_wage_type(5060, "Source Tax Employee")
 	if not component or not frappe.db.has_column("Salary Slip", "ch_qst_canton"):
 		return
