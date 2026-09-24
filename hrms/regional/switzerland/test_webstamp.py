@@ -115,6 +115,9 @@ class TestPostalZones(FrappeTestCase):
 		self.assertEqual(webstamp.recipient_zone("li"), webstamp.DOMESTIC_ZONE)
 		self.assertEqual(webstamp.recipient_zone("DE"), webstamp.EUROPE_ZONE)
 		self.assertEqual(webstamp.recipient_zone("US"), webstamp.WORLD_ZONE)
+		# Swiss Post's zone 1 reaches beyond the EU: Turkey and Russia are in it.
+		self.assertEqual(webstamp.recipient_zone("TR"), webstamp.EUROPE_ZONE)
+		self.assertEqual(webstamp.recipient_zone("RU"), webstamp.EUROPE_ZONE)
 		# The WebStamp country list decides over the static European list.
 		with patch.object(webstamp, "_country_zones", return_value={"US": 1}):
 			self.assertEqual(webstamp.recipient_zone("US", "CFG"), webstamp.EUROPE_ZONE)

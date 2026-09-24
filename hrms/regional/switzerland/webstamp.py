@@ -34,11 +34,15 @@ STANDARD_LETTER = "lettre standard"
 # international letter, not an A-mail stamp.
 EUROPE_ZONE, WORLD_ZONE, DOMESTIC_ZONE = 1, 2, 3
 DOMESTIC = ("CH", "LI")
-# Zone 1 when the WebStamp country list cannot be read: Europe. The list itself decides otherwise.
+# Zone 1 when the WebStamp country list cannot be read — and for the names it spells its own way
+# ("Grande-Bretagne", "Russie (Fédération de)"): the 52 countries of zone 1 in Swiss Post's
+# "Documents et petites marchandises International — zone tarifaire et durées d'acheminement par
+# pays" (2024), Russia and Turkey included.
 EUROPE = {
-	"AD", "AL", "AT", "BA", "BE", "BG", "BY", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FO", "FR",
-	"GB", "GI", "GR", "HR", "HU", "IE", "IS", "IT", "LT", "LU", "LV", "MC", "MD", "ME", "MK", "MT",
-	"NL", "NO", "PL", "PT", "RO", "RS", "SE", "SI", "SK", "SM", "UA", "VA", "XK",
+	"AD", "AL", "AT", "AX", "BA", "BE", "BG", "BY", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FO",
+	"FR", "GB", "GG", "GI", "GL", "GR", "HR", "HU", "IE", "IM", "IS", "IT", "JE", "LT", "LU", "LV",
+	"MC", "MD", "ME", "MK", "MT", "NL", "NO", "PL", "PT", "RO", "RS", "RU", "SE", "SI", "SK", "SM",
+	"TR", "UA", "VA", "XK",
 }  # fmt: skip
 # An international standard letter up to 20 g, "Documents Std 20g Z1" (a payslip weighs 5 to 10 g).
 INTERNATIONAL_LETTER = "documents std 20g"
