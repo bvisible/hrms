@@ -162,21 +162,23 @@ def suggest_source_tax(data):
 		notes.append(_("Foreign workers without a C permit are subject to source tax (art. 83 LIFD)."))
 
 	suggested_letter = None
-	if qst_subject and data.get("is_cross_border"):
+	cross_border = qst_subject and data.get("is_cross_border")
+	if cross_border:
 		suggested_letter = suggest_tariff_letter(_employee_like(data))
-		if suggested_letter:
-			notes.append(_("Cross-border situation suggests tariff letter {0}.").format(suggested_letter))
-		if data.get("residence_country") == "FR" and data.get("fr_2041as"):
-			notes.append(
-				_(
-					"French cross-border worker with 2041-AS attestation: exempt from Swiss source tax (1983 agreement) in the eligible cantons."
-				)
-			)
-
 	# The wizard gives the personal situation (marital status, spouse's income, children): the letter
 	# follows from it; an explicit letter still wins.
 	if data.get("marital_status") and qst_subject:
 		suggested_letter = tariff_letter(data)
+	# The note names the letter the situation ends on (M for a married German commuter with one
+	# income), not the first of its cross-border family (L), which contradicted the tariff shown.
+	if cross_border and suggested_letter:
+		notes.append(_("Cross-border situation suggests tariff letter {0}.").format(suggested_letter))
+	if cross_border and data.get("residence_country") == "FR" and data.get("fr_2041as"):
+		notes.append(
+			_(
+				"French cross-border worker with 2041-AS attestation: exempt from Swiss source tax (1983 agreement) in the eligible cantons."
+			)
+		)
 	letter = data.get("tariff_letter") or suggested_letter or "A"
 	code = build_tariff_code(letter, data.get("num_children") or 0, data.get("church_tax"))
 

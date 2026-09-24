@@ -176,6 +176,8 @@ class SwissEmployeeWizard {
 					fieldname: "work_percentage",
 					label: __("Activity rate (%)"),
 					fieldtype: "Percent",
+					// "100.0", not the system's three decimals ("100.000"); 62.5 still fits.
+					precision: 1,
 				},
 				{
 					fieldname: "base",
@@ -246,7 +248,16 @@ class SwissEmployeeWizard {
 					fieldname: "residence_country",
 					label: __("Country of residence"),
 					fieldtype: "Select",
-					options: "\nDE\nFR\nIT\nAT\nLI",
+					// The code is what the employee record keeps; the name is what the user reads
+					// (the Select control translates the labels).
+					options: [
+						{ value: "", label: "" },
+						{ value: "DE", label: "Germany" },
+						{ value: "FR", label: "France" },
+						{ value: "IT", label: "Italy" },
+						{ value: "AT", label: "Austria" },
+						{ value: "LI", label: "Liechtenstein" },
+					],
 					depends_on: abroad,
 					onchange: () => this.refresh_tax(),
 				},
@@ -465,7 +476,7 @@ class SwissEmployeeWizard {
 										? ""
 										: __("presented {0} ago", [this.ago(b.seen_ago)])
 								}${b.borne ? " · " + esc(b.borne) : ""}</span></span>
-							${b.recent ? `<span class="indicator-pill green">${__("just now")}</span>` : ""}
+							${b.recent ? `<span class="indicator-pill green">${__("recent")}</span>` : ""}
 						</label>`,
 							)
 							.join("")

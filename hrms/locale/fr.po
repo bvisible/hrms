@@ -22488,3 +22488,27 @@ msgstr "Numéro AVS invalide : le chiffre de contrôle EAN-13 ne correspond pas.
 #: hrms/regional/switzerland/employee_wizard.py
 msgid "{0} days a year, pro rata of the year of entry"
 msgstr "{0} jours par an, au prorata de l'année d'entrée"
+
+#: hrms/regional/switzerland/constants.py
+msgid "Swiss Citizen"
+msgstr "Citoyen suisse"
+
+#: hrms/regional/switzerland/constants.py
+msgid "Permit C (Settlement)"
+msgstr "Permis C (établissement)"
+
+#: hrms/regional/switzerland/constants.py
+msgid "Permit B (Residence)"
+msgstr "Permis B (séjour)"
+
+#: hrms/regional/switzerland/constants.py
+msgid "Permit G (Cross-border)"
+msgstr "Permis G (frontalier)"
+
+#: hrms/regional/switzerland/constants.py
+msgid "Permit L (Short-term)"
+msgstr "Permis L (courte durée)"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "recent"
+msgstr "récent"

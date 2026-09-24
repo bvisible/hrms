@@ -210,6 +210,27 @@ class TestEmployeeWizardHiring(FrappeTestCase):
 				employee_wizard.extend_bootinfo(bootinfo)
 			self.assertIs(bootinfo.swiss_payroll, expected)
 
+	def test_the_cross_border_note_names_the_letter_of_the_situation(self):
+		# A married German commuter with one income is on M: the note said L, the first letter of
+		# the German family, next to a tariff M2N (screen test, 24.09).
+		from hrms.regional.switzerland.employee_wizard import suggest_source_tax
+
+		res = suggest_source_tax(
+			{
+				"permit_type": "Permit G (Cross-border)",
+				"is_cross_border": 1,
+				"residence_country": "DE",
+				"de_gre1": 1,
+				"marital_status": "Married",
+				"num_children": 2,
+				"canton": "VD",
+			}
+		)
+		self.assertEqual(res["suggested_letter"], "M")
+		self.assertTrue(res["tariff_code"].startswith("M2"))
+		self.assertTrue(any(note.endswith(" M.") for note in res["notes"]), res["notes"])
+		self.assertFalse(any(note.endswith(" L.") for note in res["notes"]), res["notes"])
+
 	def test_the_letter_follows_the_personal_situation(self):
 		from hrms.regional.switzerland.employee_wizard import tariff_letter
 
