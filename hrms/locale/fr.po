@@ -22152,3 +22152,339 @@ msgstr "Aller à la paie mensuelle"
 #: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
 msgid "{0}: {1}, {2} %"
 msgstr "{0} : {1}, {2} %"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "The person"
+msgstr "La personne"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "The job"
+msgstr "Le poste"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Permit and tax"
+msgstr "Permis et impôt"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Badge"
+msgstr "Badge"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Check and create"
+msgstr "Vérifier et créer"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "To reach them"
+msgstr "Ses coordonnées"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Their payslips are sent to this address; without one, they are printed."
+msgstr "Ses fiches de salaire sont envoyées à cette adresse ; à défaut, elles sont imprimées."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Mobile phone"
+msgstr "Téléphone mobile"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "AVS Number (756.XXXX.XXXX.XX)"
+msgstr "Numéro AVS (756.XXXX.XXXX.XX)"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "On the AVS or health insurance card. It can wait, but the declarations need it."
+msgstr "Sur la carte AVS ou la carte d'assurance-maladie. Cela peut attendre, mais les déclarations en ont besoin."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Start date"
+msgstr "Date d'entrée"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Job title"
+msgstr "Fonction"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Created if it does not exist yet."
+msgstr "Créée si elle n'existe pas encore."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Activity rate (%)"
+msgstr "Taux d'activité (%)"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Gross monthly salary"
+msgstr "Salaire mensuel brut"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "The salary actually paid each month, at this activity rate."
+msgstr "Le salaire effectivement versé chaque mois, à ce taux d'activité."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "No salary structure yet: the salary is recorded once one exists."
+msgstr "Pas encore de structure salariale : le salaire est enregistré dès qu'il en existe une."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Salary structure"
+msgstr "Structure salariale"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Vacation days a year"
+msgstr "Jours de vacances par an"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "At least 20 by law, 25 until the age of 20."
+msgstr "Au moins 20 selon la loi, 25 jusqu'à l'âge de 20 ans."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Permit"
+msgstr "Permis"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Canton of residence"
+msgstr "Canton de résidence"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "A resident's source tax goes to the canton they live in."
+msgstr "L'impôt à la source d'un résident va au canton où il vit."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Country of residence"
+msgstr "Pays de résidence"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Gre-1 certificate of residence handed in"
+msgstr "Attestation de résidence Gre-1 remise"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Without it, the ordinary tariff applies instead of 4.5 % at most."
+msgstr "Sans elle, le barème ordinaire s'applique au lieu de 4,5 % au maximum."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "2041-AS form handed in"
+msgstr "Formulaire 2041-AS remis"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Taxed in France instead, in the cantons of the 1983 agreement (not in Geneva)."
+msgstr "Imposition en France, dans les cantons de l'accord de 1983 (pas à Genève)."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Cross-border commuter since"
+msgstr "Frontalier depuis"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "From 17 July 2023: the new agreement's tariffs (R, S, T, U)."
+msgstr "Depuis le 17 juillet 2023 : les barèmes du nouvel accord (R, S, T, U)."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Personal situation"
+msgstr "Situation personnelle"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Marital status"
+msgstr "État civil"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Married or registered partnership"
+msgstr "Marié ou en partenariat enregistré"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Divorced or separated"
+msgstr "Divorcé ou séparé"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "The spouse has an income"
+msgstr "Le conjoint a un revenu"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Dependent children"
+msgstr "Enfants à charge"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Member of a recognised church (church tax)"
+msgstr "Membre d'une Église reconnue (impôt ecclésiastique)"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Taxed ordinarily: no source tax is withheld from the salary."
+msgstr "Imposition ordinaire : aucun impôt à la source n'est retenu sur le salaire."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "annual model"
+msgstr "modèle annuel"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "monthly model"
+msgstr "modèle mensuel"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "The ESTV tariffs of this canton are not imported yet: import them before the first payroll."
+msgstr "Les barèmes de l'AFC de ce canton ne sont pas encore importés : importez-les avant la première paie."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Source tax: tariff {0}"
+msgstr "Impôt à la source : barème {0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Have {0} present their badge at a terminal: it appears below within a few seconds. Choose it, and their next swipe clocks them in."
+msgstr "Demandez à {0} de présenter son badge à une borne : il apparaît ci-dessous en quelques secondes. Choisissez-le, et son prochain passage à la borne sera pointé."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "the employee"
+msgstr "l'employé"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "No badge for now"
+msgstr "Pas de badge pour l'instant"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "The badges cannot be read here."
+msgstr "Impossible de lire les badges ici."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Terminal ready: {0}"
+msgstr "Borne prête : {0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "No terminal seen in the last minutes: {0}"
+msgstr "Aucune borne vue ces dernières minutes : {0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "No terminal on this instance."
+msgstr "Aucune borne sur cette instance."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Badge …{0}"
+msgstr "Badge …{0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "presented {0} ago"
+msgstr "présenté il y a {0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Waiting for a badge…"
+msgstr "En attente d'un badge…"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "{0} s"
+msgstr "{0} s"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "{0} min"
+msgstr "{0} min"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Valid AVS number"
+msgstr "Numéro AVS valide"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Invalid AVS number (EAN-13 key mismatch)"
+msgstr "Numéro AVS invalide (clé EAN-13 incorrecte)"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "no salary: no payslip until one is recorded"
+msgstr "pas de salaire : pas de fiche de salaire tant qu'aucun n'est enregistré"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "no IBAN: the salary cannot be paid by transfer"
+msgstr "pas d'IBAN : le salaire ne peut pas être versé par virement"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "no AVS number: needed for the declarations"
+msgstr "pas de numéro AVS : nécessaire pour les déclarations"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "no address: needed for the salary certificate"
+msgstr "pas d'adresse : nécessaire pour le certificat de salaire"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Source tax"
+msgstr "Impôt à la source"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "tariff {0}"
+msgstr "barème {0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Payslips"
+msgstr "Fiches de salaire"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "by e-mail"
+msgstr "par e-mail"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "printed, handed out"
+msgstr "imprimées, remises en main propre"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Can be completed later"
+msgstr "À compléter plus tard"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Create the employee"
+msgstr "Créer l'employé"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Creating the employee…"
+msgstr "Création de l'employé…"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Badge …{0} given: their next swipe clocks them in."
+msgstr "Badge …{0} attribué : son prochain passage à la borne sera pointé."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "The badge could not be given: give it from their record."
+msgstr "Le badge n'a pas pu être attribué : attribuez-le depuis sa fiche."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Employee record created"
+msgstr "Fiche employé créée"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Salary recorded ({0})"
+msgstr "Salaire enregistré ({0})"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Vacation of the year allocated"
+msgstr "Vacances de l'année attribuées"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Payslips by e-mail"
+msgstr "Fiches de salaire par e-mail"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "{0} is hired"
+msgstr "{0} fait désormais partie de l'équipe"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Open their record"
+msgstr "Ouvrir sa fiche"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Hire someone else"
+msgstr "Engager quelqu'un d'autre"
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "Swiss citizens and C permit holders are taxed ordinarily (no source tax)."
+msgstr "Les citoyens suisses et les titulaires d'un permis C sont imposés ordinairement (pas d'impôt à la source)."
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "Foreign workers without a C permit are subject to source tax (art. 83 LIFD)."
+msgstr "Les travailleurs étrangers sans permis C sont soumis à l'impôt à la source (art. 83 LIFD)."
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "Cross-border situation suggests tariff letter {0}."
+msgstr "La situation de frontalier suggère la lettre de barème {0}."
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "French cross-border worker with 2041-AS attestation: exempt from Swiss source tax (1983 agreement) in the eligible cantons."
+msgstr "Frontalier français avec attestation 2041-AS : exonéré de l'impôt à la source suisse (accord de 1983) dans les cantons concernés."
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "No QST tariff data for {0} {1} — import the year's ESTV files before payroll."
+msgstr "Aucun barème d'impôt à la source pour {0} {1} — importez les fichiers de l'AFC de l'année avant la paie."
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "Invalid AVS number: the EAN-13 check digit does not match."
+msgstr "Numéro AVS invalide : le chiffre de contrôle EAN-13 ne correspond pas."
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "{0} days a year, pro rata of the year of entry"
+msgstr "{0} jours par an, au prorata de l'année d'entrée"
