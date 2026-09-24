@@ -103,6 +103,14 @@ def tariff_letter(data):
 	return CROSS_BORDER_LETTERS.get(family, {}).get(letter, letter)
 
 
+def _check_hiring_staff():
+	"""Only who may create an Employee hires. check_company_access reads the User Permission
+	restrictions, not the roles: a portal customer and an employee without an HR role read the
+	company's salary structures and canton through wizard_defaults (three-identity test, 24.09)."""
+	if not frappe.has_permission("Employee", "create"):
+		frappe.throw(_("Only HR staff can hire an employee."), frappe.PermissionError)
+
+
 def extend_bootinfo(bootinfo):
 	"""Tell the desk whether the Swiss payroll runs on this site: only then does the Employee list's
 	"Add" open this wizard (public/js/erpnext/employee_list.js). The whole fleet is Swiss, so a Swiss
@@ -117,6 +125,7 @@ def extend_bootinfo(bootinfo):
 def wizard_defaults(company):
 	"""What the wizard proposes for ``company``: the canton of its payroll, its salary structures,
 	its default holiday list and the leave type of the vacation."""
+	_check_hiring_staff()
 	check_company_access(company)
 	from hrms.regional.switzerland.setup import existing_leave_type
 
@@ -148,6 +157,7 @@ def suggest_source_tax(data):
 		dict with qst_subject, model, suggested_letter, tariff_code,
 		tariff_available, notes[].
 	"""
+	_check_hiring_staff()
 	if isinstance(data, str):
 		data = json.loads(data)
 
@@ -224,6 +234,8 @@ def create_employee(data):
 	Returns:
 		dict with employee, employee_name, structure_assignment.
 	"""
+	# Before anything is created: the job title is inserted with ignore_permissions.
+	_check_hiring_staff()
 	if isinstance(data, str):
 		data = json.loads(data)
 	# //// Neoffice — the company is checked before anything is created: staff limited to company A

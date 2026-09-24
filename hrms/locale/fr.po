@@ -22512,3 +22512,7 @@ msgstr "Permis L (courte durée)"
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
 msgid "recent"
 msgstr "récent"
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "Only HR staff can hire an employee."
+msgstr "Seul le personnel RH peut engager un employé."

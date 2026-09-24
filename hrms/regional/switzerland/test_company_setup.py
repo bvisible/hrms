@@ -210,6 +210,19 @@ class TestEmployeeWizardHiring(FrappeTestCase):
 				employee_wizard.extend_bootinfo(bootinfo)
 			self.assertIs(bootinfo.swiss_payroll, expected)
 
+	def test_only_hr_staff_reaches_the_hiring_endpoints(self):
+		# A portal customer read the company's salary structures through wizard_defaults: the
+		# company check reads User Permission restrictions, not roles (three-identity test, 24.09).
+		from hrms.regional.switzerland import employee_wizard
+
+		with patch.object(employee_wizard.frappe, "has_permission", return_value=False):
+			for call in (
+				lambda: employee_wizard.wizard_defaults(COMPANY),
+				lambda: employee_wizard.suggest_source_tax({"permit_type": "Permit B (Residence)"}),
+				lambda: employee_wizard.create_employee({"first_name": "Nobody", "company": COMPANY}),
+			):
+				self.assertRaises(frappe.PermissionError, call)
+
 	def test_the_cross_border_note_names_the_letter_of_the_situation(self):
 		# A married German commuter with one income is on M: the note said L, the first letter of
 		# the German family, next to a tariff M2N (screen test, 24.09).
