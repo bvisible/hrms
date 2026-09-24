@@ -65,7 +65,7 @@
 	}
 	.ss-info-l, .ss-info-r { display: table-cell; vertical-align: top; width: 50%; }
 	.ss-info .il { display: block; padding: 0.5px 0; }
-	.ss-info .ik { color: #888; font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3px; display: inline-block; width: 80px; }
+	.ss-info .ik { color: #888; font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3px; display: inline-block; width: 96px; }
 	.ss-info .iv { font-weight: 600; }
 
 	/* ── Tables ── */
@@ -128,7 +128,6 @@
 	}
 	.ss-net-sub div { display: table-cell; }
 	.ss-net-sub .r { text-align: right; }
-	.ss-words { padding: 1px 10px 6px; font-style: italic; font-size: 6.5pt; color: #999; }
 
 	/* ── Employer section — hidden on print by default ── */
 	.ss-er { margin-top: 8px; }
@@ -167,6 +166,8 @@
 			<div class="ss-co">{{ doc.company }}</div>
 			<div class="ss-co-addr">
 				{% for line in d.company_address %}<span class="co-line">{{ line }}</span>{% if not loop.last %} &middot; {% endif %}{% endfor %}
+				{# //// Neoffice — the employer's UID, as the certified engine's payslip prints it. #}
+				{% if d.company_uid %}{% if d.company_address %} &middot; {% endif %}<span class="co-line">{{ d.company_uid }}</span>{% endif %}
 			</div>
 		</div>
 		<div class="ss-lh-right">
@@ -189,15 +190,24 @@
 	<div class="ss-title">{{ _("Salary Slip") }} &mdash; {{ d.period_label }}</div>
 
 	<!-- Info bar -->
+	{# //// Neoffice — position, entry and exit dates, activity rate and the source tax tariff of the #}
+	{# //// slip, as the certified engine's payslip prints them; paid days only for a partial month. #}
 	<div class="ss-info">
 		<div class="ss-info-l">
 			<span class="il"><span class="ik">{{ _("AVS No.") }}</span> <span class="iv">{{ d.employee.get("ch_avs_number") or "-" }}</span></span>
-			{% if d.employee.get("ch_fiscal_canton") %}<span class="il"><span class="ik">{{ _("Canton") }}</span> <span class="iv">{{ d.employee.ch_fiscal_canton }}</span></span>{% endif %}
+			{% if d.employment.designation %}<span class="il"><span class="ik">{{ _("Position", context="job title") }}</span> <span class="iv">{{ _(d.employment.designation) }}</span></span>{% endif %}
+			{% if d.employment.date_of_joining %}<span class="il"><span class="ik">{{ _("Entry Date") }}</span> <span class="iv">{{ frappe.format(d.employment.date_of_joining, {"fieldtype": "Date"}) }}</span></span>{% endif %}
+			{% if d.employment.relieving_date %}<span class="il"><span class="ik">{{ _("Exit Date") }}</span> <span class="iv">{{ frappe.format(d.employment.relieving_date, {"fieldtype": "Date"}) }}</span></span>{% endif %}
+			{% if d.employment.work_percentage %}<span class="il"><span class="ik">{{ _("Work Percentage") }}</span> <span class="iv">{{ d.employment.work_percentage }}&nbsp;%</span></span>{% endif %}
 		</div>
 		<div class="ss-info-r">
 			<span class="il"><span class="ik">{{ _("Period") }}</span> <span class="iv">{{ frappe.format(doc.start_date, {"fieldtype": "Date"}) }} &ndash; {{ frappe.format(doc.end_date, {"fieldtype": "Date"}) }}</span></span>
-			<span class="il"><span class="ik">{{ _("Work days") }}</span> <span class="iv">{{ doc.total_working_days }}</span></span>
-			<span class="il"><span class="ik">{{ _("Pay days") }}</span> <span class="iv">{{ doc.payment_days }}</span></span>
+			{% if d.employment.pay_days %}<span class="il"><span class="ik">{{ _("Pay days") }}</span> <span class="iv">{{ d.employment.pay_days }}</span></span>{% endif %}
+			{% if d.source_tax %}
+			<span class="il"><span class="ik">{{ _("Source Tax") }}</span> <span class="iv">{{ d.source_tax.canton }}{% if d.source_tax.canton %} &middot; {% endif %}{{ d.source_tax.tariff }}</span></span>
+			{% elif d.employee.get("ch_fiscal_canton") %}
+			<span class="il"><span class="ik">{{ _("Canton") }}</span> <span class="iv">{{ d.employee.ch_fiscal_canton }}</span></span>
+			{% endif %}
 		</div>
 	</div>
 
@@ -217,9 +227,11 @@
 			<tr>
 				<td class="gs">{{ row.gs_code }}</td>
 				<td>{{ _(row.name) }}</td>
+				{# //// Neoffice — a row not paid (a bases-only wage type) shows as a base, so the #}
+				{# //// amounts in the CHF column add up to the gross. #}
+				<td class="r">{% if not row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
 				<td></td>
-				<td></td>
-				<td class="r">{{ format_chf(row.amount) }}</td>
+				<td class="r">{% if row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
@@ -237,7 +249,8 @@
 		<span><b>AVS</b> {{ format_chf(d.insurance_bases.avs) }}</span>
 		<span><b>AC</b> {{ format_chf(d.insurance_bases.ac) }}</span>
 		<span><b>LAA</b> {{ format_chf(d.insurance_bases.laa) }}</span>
-		{% if d.insurance_bases.lpp and d.insurance_bases.lpp != d.insurance_bases.gross %}
+		{# //// Neoffice — against the gross printed above, which no longer counts the expenses. #}
+		{% if d.insurance_bases.lpp and d.insurance_bases.lpp != d.totals.gross %}
 		<span><b>LPP</b> {{ format_chf(d.insurance_bases.lpp) }}</span>
 		{% endif %}
 	</div>
@@ -275,9 +288,59 @@
 		</tfoot>
 	</table>
 
+	{# //// Neoffice — expense reimbursements (6000-6499) after the deductions, then the net salary; #}
+	{# //// advances and loan repayments come off it, down to the net paid (Swissdec layout). #}
+	{% if d.expenses %}
+	<table class="t">
+		<thead>
+			<tr>
+				<th class="gs">GS</th>
+				<th>{{ _("Expense reimbursements") }}</th>
+				<th class="c-base"></th>
+				<th class="c-qty"></th>
+				<th class="c-amt r">CHF</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in d.expenses %}
+			<tr>
+				<td class="gs">{{ row.gs_code }}</td>
+				<td>{{ _(row.name) }}</td>
+				<td class="r">{% if not row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
+				<td></td>
+				<td class="r">{% if row.paid %}{{ format_chf(row.amount) }}{% endif %}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% endif %}
+
+	{% if d.after_net %}
+	<table class="t">
+		<tbody>
+			<tr class="t-row">
+				<td class="gs"></td>
+				<td>{{ _("Net Pay") }}</td>
+				<td class="c-base"></td>
+				<td class="c-qty"></td>
+				<td class="c-amt r">{{ format_chf(d.totals.net_salary) }}</td>
+			</tr>
+			{% for row in d.after_net %}
+			<tr>
+				<td class="gs">{{ row.gs_code }}</td>
+				<td>{{ _(row.name) }}</td>
+				<td></td>
+				<td></td>
+				<td class="r">{{ format_chf(-1 * row.amount if row.amount > 0 else row.amount) }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% endif %}
+
 	<!-- Net Pay -->
 	<div class="ss-net">
-		<div class="ss-net-l">{{ _("Net Pay") }}</div>
+		<div class="ss-net-l">{% if d.after_net %}{{ _("Net to Pay") }}{% else %}{{ _("Net Pay") }}{% endif %}</div>
 		<div class="ss-net-r">{{ format_chf(d.totals.net) }}</div>
 	</div>
 	{% if d.totals.rounded %}
@@ -285,9 +348,6 @@
 		<div>{{ _("Rounded Total") }}</div>
 		<div class="r">CHF {{ format_chf(d.totals.rounded) }}</div>
 	</div>
-	{% endif %}
-	{% if d.total_in_words %}
-	<div class="ss-words">{{ d.total_in_words }}</div>
 	{% endif %}
 
 	<!-- Employer Contributions (hidden on print) -->
@@ -336,12 +396,12 @@
 	{% endif %}
 
 	<!-- Bank Details Footer -->
-	{% if d.bank.bank_name or d.bank.account_no or d.bank.iban %}
+	{# //// Neoffice — the account masked but for its ends, and named IBAN when it is one. #}
+	{% if d.bank.bank_name or d.bank.masked %}
 	<div class="ss-footer">
 		<div style="font-size: 6pt; text-transform: uppercase; letter-spacing: 0.5px; color: #aab; font-weight: 600; margin-bottom: 3px;">{{ _("Bank Details") }}</div>
 		{% if d.bank.bank_name %}<span>{{ _("Bank") }}: <b>{{ d.bank.bank_name }}</b></span>{% endif %}
-		{% if d.bank.iban %}<span style="margin-left: 12px;">IBAN: <b>{{ d.bank.iban }}</b></span>
-		{% elif d.bank.account_no %}<span style="margin-left: 12px;">{{ _("Account") }}: <b>{{ d.bank.account_no }}</b></span>{% endif %}
+		{% if d.bank.masked %}<span{% if d.bank.bank_name %} style="margin-left: 12px;"{% endif %}>{% if d.bank.is_iban %}IBAN{% else %}{{ _("Account") }}{% endif %}: <b>{{ d.bank.masked }}</b></span>{% endif %}
 	</div>
 	{% endif %}
 

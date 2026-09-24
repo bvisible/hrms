@@ -21235,3 +21235,16 @@ msgstr "Nécessaire pour verser le salaire par virement bancaire."
 #: hrms/regional/switzerland/employee_wizard.py
 msgid "Invalid IBAN: the check digits do not match."
 msgstr "IBAN invalide : les chiffres de contrôle ne correspondent pas."
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html
+msgctxt "job title"
+msgid "Position"
+msgstr "Fonction"
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html
+msgid "Expense reimbursements"
+msgstr "Remboursements de frais"
+
+#: hrms/payroll/print_format/salary_slip_swiss/salary_slip_swiss.html
+msgid "Net to Pay"
+msgstr "Net à payer"

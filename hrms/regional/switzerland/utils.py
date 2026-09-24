@@ -4,6 +4,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: GNU General Public License v3. See license.txt
 
+import re
+
 import frappe
 from frappe import _
 
@@ -708,6 +710,10 @@ def get_salary_slip_print_data(doc):
 
 	# Build enriched earnings
 	earnings = []
+	# //// Neoffice — the Swissdec layout of a payslip, as the certified engine prints it: expense
+	# //// reimbursements (6000-6499) are listed after the deductions, not in the gross salary they
+	# //// were inflating on the print; advances (6510, 6520) come off the net salary.
+	expenses = []
 	base_rows = []
 
 	comp_fields = [
@@ -727,13 +733,18 @@ def get_salary_slip_print_data(doc):
 			frappe.get_cached_value("Salary Component", row.salary_component, comp_fields, as_dict=True) or {}
 		)
 		gs_code = comp_vals.get("ch_wage_type_code") or ""
-		earnings.append(
-			{
-				"gs_code": gs_code,
-				"name": row.salary_component,
-				"amount": flt(row.amount, 2),
-			}
-		)
+		entry = {
+			"gs_code": gs_code,
+			"name": row.salary_component,
+			"amount": flt(row.amount, 2),
+			# A row left out of the total (1920 tips, a bases-only wage type) is not paid: the
+			# print shows it as a base, so that the amounts listed add up to the gross.
+			"paid": not cint(row.get("do_not_include_in_total")),
+		}
+		if EXPENSE_WAGE_TYPES[0] <= _wage_type_number(gs_code) < EXPENSE_WAGE_TYPES[1]:
+			expenses.append(entry)
+		else:
+			earnings.append(entry)
 
 		# //// Neoffice — the amounts PAID, exactly as the payroll hook builds its bases. It read
 		# //// default_amount first: on a partial month the payslip printed the full monthly salary
@@ -765,6 +776,7 @@ def get_salary_slip_print_data(doc):
 	# Build enriched deductions (employee and employer separate)
 	deductions_ee = []
 	deductions_er = []
+	after_net = []
 	total_ee = 0
 	total_er = 0
 
@@ -802,9 +814,27 @@ def get_salary_slip_print_data(doc):
 		if is_employer:
 			deductions_er.append(entry)
 			total_er += flt(row.amount, 2)
+		elif _wage_type_number(gs_code) >= EXPENSE_WAGE_TYPES[1]:
+			after_net.append(entry)
 		else:
 			deductions_ee.append(entry)
 			total_ee += flt(row.amount, 2)
+
+	# //// Neoffice — upstream takes a loan repayment off the net without a deduction row: listed
+	# //// with the advances, the amounts printed add up to the net paid.
+	if flt(doc.get("total_loan_repayment")):
+		after_net.append(
+			{
+				"gs_code": "",
+				"name": "Loan Repayment",
+				"determinant": 0,
+				"rate": "",
+				"amount": flt(doc.total_loan_repayment, 2),
+			}
+		)
+
+	gross = flt(sum(row["amount"] for row in earnings if row["paid"]), 2)
+	expenses_total = flt(sum(row["amount"] for row in expenses if row["paid"]), 2)
 
 	# Period label
 	try:
@@ -821,21 +851,56 @@ def get_salary_slip_print_data(doc):
 	# Company logo
 	company_logo = company_doc.get("company_logo") or ""
 
+	# //// Neoffice — what the certified engine prints about the employment (position, entry and
+	# //// exit dates, activity rate) and the source tax tariff: the canton and code THIS slip was
+	# //// settled with (ch_qst_canton, kept per slip), which the employee checks the tax against.
+	# //// The paid days show only for a partial month: on a full one they merely repeated the
+	# //// calendar ("31 working days" in May).
+	work_percentage = flt(employee.get("ch_work_percentage"))
+	partial = flt(doc.payment_days) < flt(doc.total_working_days)
+	employment = {
+		"designation": employee.get("designation") or "",
+		"date_of_joining": employee.get("date_of_joining"),
+		"relieving_date": employee.get("relieving_date"),
+		"work_percentage": _format_number(work_percentage) if work_percentage else "",
+		"pay_days": f"{_format_number(doc.payment_days)} / {_format_number(doc.total_working_days)}"
+		if partial
+		else "",
+	}
+	source_tax = None
+	if doc.get("ch_qst_tariff_code"):
+		source_tax = {
+			"canton": doc.get("ch_qst_canton")
+			or employee.get("ch_qst_taxation_canton")
+			or employee.get("ch_fiscal_canton")
+			or "",
+			"tariff": doc.ch_qst_tariff_code,
+		}
+
+	net = flt(doc.net_pay, 2)
 	return {
 		"employee": employee,
 		"salutation": salutation,
 		"address_lines": address_lines,
 		"company_address": company_address,
+		"company_uid": company_doc.get("tax_id") or "",
 		"company_logo": company_logo,
 		"period_label": period_label,
+		"employment": employment,
+		"source_tax": source_tax,
 		"earnings": earnings,
+		"expenses": expenses,
 		"deductions_ee": deductions_ee,
+		"after_net": after_net,
 		"deductions_er": deductions_er,
 		"insurance_bases": insurance_bases,
 		"totals": {
-			"gross": flt(doc.gross_pay, 2),
+			"gross": gross,
 			"ee_deductions": flt(total_ee, 2),
-			"net": flt(doc.net_pay, 2),
+			"expenses": expenses_total,
+			# The net salary (Swissdec 6500) before the advances; the net paid after them.
+			"net_salary": flt(net + sum(row["amount"] for row in after_net), 2),
+			"net": net,
 			# //// Neoffice — only when it differs from the net: a Swiss slip pays its net
 			# //// (payroll_hooks._pay_the_net_as_computed), older slips carry a franc rounding.
 			"rounded": flt(doc.rounded_total, 2)
@@ -844,9 +909,41 @@ def get_salary_slip_print_data(doc):
 			"er_contributions": flt(total_er, 2),
 			"employer_cost": flt(doc.gross_pay, 2) + flt(total_er, 2),
 		},
-		"total_in_words": doc.total_in_words or "",
+		# //// Neoffice — no amount in words any more: an Indian accounting convention that no Swiss
+		# //// payslip carries, and that printed "Quatre Mille Six Cent ... seulement".
 		"bank": _get_bank_details(doc, employee),
 	}
+
+
+# Swissdec wage types reimbursed after the net salary: expenses, 6000 to 6499. Deductions from
+# 6500 upwards (6510 advance, 6520 payments on account) come off the net salary itself.
+EXPENSE_WAGE_TYPES = (6000, 6500)
+
+
+def _wage_type_number(code):
+	"""The numeric wage type of a component's code, 0 when it has none."""
+	try:
+		return int(str(code).strip())
+	except (TypeError, ValueError):
+		return 0
+
+
+def _format_number(value):
+	"""16.0 -> "16", 62.5 -> "62.5": days and percentages as a person writes them."""
+	return f"{flt(value):g}"
+
+
+def _mask_account(value):
+	"""An account number as a payslip prints it: its first and last four characters only.
+
+	A payslip travels (a landlord, a bank asks for the last three); the employee recognises
+	the account by its ends, as on the certified engine's payslip.
+	"""
+	compact = (value or "").replace(" ", "")
+	if len(compact) <= 8:
+		return compact
+	masked = compact[:4] + "•" * (len(compact) - 8) + compact[-4:]
+	return " ".join(masked[i : i + 4] for i in range(0, len(masked), 4))
 
 
 def _get_bank_details(doc, employee):
@@ -870,11 +967,19 @@ def _get_bank_details(doc, employee):
 				account_no = bank_account.get("bank_account_no") or ""
 			iban = bank_account.get("iban") or ""
 
+	# //// Neoffice — the payslip prints the account masked, and says IBAN when it is one: the
+	# //// employee wizard records the IBAN in bank_ac_no, which printed as a bare "Account".
+	account = iban or account_no
 	return {
 		"bank_name": bank_name,
 		"account_no": account_no,
 		"iban": iban,
+		"masked": _mask_account(account),
+		"is_iban": bool(iban) or bool(IBAN_PATTERN.match(account.replace(" ", "").upper())),
 	}
+
+
+IBAN_PATTERN = re.compile(r"^[A-Z]{2}\d{2}[A-Z0-9]{8,30}$")
 
 
 def _stored_contribution_bases(doc):

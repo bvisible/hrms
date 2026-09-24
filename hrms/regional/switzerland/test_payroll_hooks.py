@@ -955,6 +955,119 @@ class TestSwissdecWageTypesOnTheSlip(SwissPayrollHookCase):
 		self.assertEqual(self._amount(slip, "IJM/KTG Employee"), 38.50)
 
 
+# //// Neoffice — the payslip laid out as the certified engine prints it (compared 2026-09-24).
+class TestThePayslipPrintsTheSwissdecLayout(SwissPayrollHookCase):
+	TRAVEL = "_Test CH 6000 Travel Expenses"
+	ADVANCE = "_Test CH 6510 Advance"
+	TIPS = "_Test CH 1920 Tips on the print"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		_catalogue_component(cls.TRAVEL, "6000")
+		_catalogue_component(cls.ADVANCE, "6510")
+		_catalogue_component(cls.TIPS, "1920")
+		# As the Swiss setup makes them: employer contributions are not taken from the net.
+		for name in DEDUCTION_COMPONENTS:
+			if name.endswith("Employer"):
+				frappe.db.set_value(
+					"Salary Component",
+					name,
+					{"is_employer_contribution": 1, "do_not_include_in_total": 1},
+					update_modified=False,
+				)
+
+	def _slip(self, earnings, deductions=(), **kwargs):
+		slip = self._make_slip(earnings, **kwargs)
+		for component, amount in deductions:
+			row = slip.append("deductions", {})
+			row.salary_component = component
+			row.abbr = frappe.db.get_value("Salary Component", component, "salary_component_abbr")
+			row.depends_on_payment_days = 0
+			row.default_amount = amount
+			row.amount = amount
+		for row in slip.earnings + slip.deductions:
+			# What the framework copies from the component when it builds the row.
+			row.do_not_include_in_total = frappe.db.get_value(
+				"Salary Component", row.salary_component, "do_not_include_in_total"
+			)
+		update_swiss_social_contributions(slip, "validate")
+		return slip
+
+	def _adds_up(self, data):
+		t = data["totals"]
+		self.assertEqual(flt(t["gross"] - t["ee_deductions"] + t["expenses"], 2), t["net_salary"])
+
+	def test_expenses_come_after_the_deductions_not_in_the_gross(self):
+		slip = self._slip([(MONTHLY_COMPONENT, 6000), (self.TRAVEL, 250)])
+		data = get_salary_slip_print_data(slip)
+		self.assertEqual([row["name"] for row in data["expenses"]], [self.TRAVEL])
+		self.assertNotIn(self.TRAVEL, [row["name"] for row in data["earnings"]])
+		self.assertEqual(data["totals"]["gross"], 6000)
+		self.assertEqual(data["totals"]["expenses"], 250)
+		self.assertEqual(data["totals"]["net"], flt(slip.net_pay, 2))
+		self.assertEqual(data["totals"]["net_salary"], data["totals"]["net"])
+		self._adds_up(data)
+
+	def test_an_advance_comes_off_the_net_salary(self):
+		slip = self._slip([(MONTHLY_COMPONENT, 6000)], deductions=[(self.ADVANCE, 500)])
+		data = get_salary_slip_print_data(slip)
+		self.assertEqual([row["name"] for row in data["after_net"]], [self.ADVANCE])
+		self.assertNotIn(self.ADVANCE, [row["name"] for row in data["deductions_ee"]])
+		self.assertEqual(data["totals"]["net"], flt(slip.net_pay, 2))
+		self.assertEqual(data["totals"]["net_salary"], flt(slip.net_pay + 500, 2))
+		self._adds_up(data)
+
+	def test_a_row_not_paid_is_not_summed_in_the_gross(self):
+		"""1920 tips raise the bases, nobody pays them: printed as a base, outside the CHF column."""
+		data = get_salary_slip_print_data(self._slip([(MONTHLY_COMPONENT, 6000), (self.TIPS, 800)]))
+		tips = next(row for row in data["earnings"] if row["name"] == self.TIPS)
+		self.assertFalse(tips["paid"])
+		self.assertEqual(data["totals"]["gross"], 6000)
+		self.assertEqual(data["insurance_bases"]["avs"], 6800)
+		self._adds_up(data)
+
+	def test_the_source_tax_tariff_the_slip_was_settled_with(self):
+		slip = self._slip([(MONTHLY_COMPONENT, 6000)])
+		slip.ch_qst_tariff_code = "A0N"
+		slip.ch_qst_canton = "ZH"
+		self.assertEqual(get_salary_slip_print_data(slip)["source_tax"], {"canton": "ZH", "tariff": "A0N"})
+		slip.ch_qst_tariff_code = ""
+		self.assertIsNone(get_salary_slip_print_data(slip)["source_tax"])
+
+	def test_paid_days_show_for_a_partial_month_only(self):
+		full = get_salary_slip_print_data(self._slip([(MONTHLY_COMPONENT, 6000)], total_working_days=31))
+		self.assertEqual(full["employment"]["pay_days"], "")
+		partial = self._slip([(MONTHLY_COMPONENT, 6000)], payment_days=16, total_working_days=31)
+		self.assertEqual(get_salary_slip_print_data(partial)["employment"]["pay_days"], "16 / 31")
+
+	def test_the_account_is_masked_and_named_iban(self):
+		from hrms.regional.switzerland.utils import _mask_account
+
+		self.assertEqual(_mask_account("CH56 0483 5012 3456 7800 9"), "CH56 •••• •••• •••• •800 9")
+		slip = self._slip([(MONTHLY_COMPONENT, 6000)])
+		slip.bank_account_no = "CH5604835012345678009"
+		bank = get_salary_slip_print_data(slip)["bank"]
+		self.assertTrue(bank["is_iban"])
+		self.assertEqual(bank["masked"], "CH56 •••• •••• •••• •800 9")
+
+	def test_the_print_format_renders_the_layout(self):
+		slip = self._slip([(MONTHLY_COMPONENT, 6000), (self.TRAVEL, 250)], deductions=[(self.ADVANCE, 500)])
+		slip.ch_qst_tariff_code = "A0N"
+		slip.ch_qst_canton = "ZH"
+		path = frappe.get_app_path(
+			"hrms", "payroll", "print_format", "salary_slip_swiss", "salary_slip_swiss.html"
+		)
+		with open(path) as template:
+			html = frappe.render_template(template.read(), {"doc": slip})
+		self.assertIn("Expense reimbursements", html)
+		self.assertIn("Net to Pay", html)
+		self.assertIn("ZH &middot; A0N", html)
+		self.assertNotIn("Work days", html)
+		if slip.total_in_words:
+			self.assertNotIn(slip.total_in_words, html)
+
+
 def _male_gender():
 	from hrms.regional.switzerland.insurance_solutions import normalize_sex
 
