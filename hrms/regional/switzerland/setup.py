@@ -1513,6 +1513,9 @@ def swiss_absence_type_name(label):
 	"""The name a Swiss leave type has on this site: the install's own translation for the types
 	hrms creates, the "leave type" context for ours ("Accident" alone is a word of the whole
 	interface)."""
+	# //// Neoffice — was `if label == "Sick Leave"`; extended to INSTALL_LEAVE_TYPES (b3c5d4138 "fix(payroll):
+	# //// Swiss vacation and the other parent's leave count working days") so vacation, casual and
+	# //// compensatory leave also use the install's plain translation, not the "leave type" context.
 	if label in INSTALL_LEAVE_TYPES:
 		return _(label)
 	return _(label, context="leave type")
@@ -1542,12 +1545,18 @@ def ensure_swiss_leave_types():
 				"leave_type_name": name,
 				"allow_negative": 1,
 				"is_lwp": 0,
+				# //// Neoffice — was `"include_holiday": 1` (b3c5d4138 "fix(payroll): Swiss vacation and the
+				# //// other parent's leave count working days"): a newly created leave type now counts
+				# //// working days when it is one of WORKING_DAY_LEAVE_TYPES, calendar days otherwise.
 				"include_holiday": 0 if label in WORKING_DAY_LEAVE_TYPES else 1,
 				"allow_encashment": 0,
 				"is_carry_forward": 0,
 			}
 		).insert(ignore_permissions=True)
 		report["created"].append(name)
+	# //// Neoffice — added (b3c5d4138 "fix(payroll): Swiss vacation and the other parent's leave count
+	# //// working days"): an *existing* working-day leave type (created before this fix, or under its
+	# //// English name) also loses include_holiday, so past installs get aligned, not just new ones.
 	for label in WORKING_DAY_LEAVE_TYPES:
 		existing = next(
 			(n for n in (swiss_absence_type_name(label), label) if frappe.db.exists("Leave Type", n)), None
