@@ -22600,3 +22600,8 @@ msgstr "brut {0} par mois"
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
 msgid "unknown: extrapolated to 100 %"
 msgstr "inconnu : extrapolé à 100 %"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgctxt "marital status"
+msgid "Single"
+msgstr "Célibataire"
