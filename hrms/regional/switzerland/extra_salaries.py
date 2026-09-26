@@ -12,9 +12,11 @@ December) or four times (March, June, September and December).
 
 The amount paid is the base salary paid since the previous payment, divided by twelve —
 Swissdec's cumulated 13th base (guidelines 6.0): a raise, an unpaid leave or an entry during the
-period count as they were paid. A month of that period without a slip in this payroll while the
-employee was employed — a company that started its payroll here during the year — counts the
-current base salary, prorated to the days employed.
+period count as they were paid. The salary the employer continues to pay during a paid absence
+(CO 324a) is salary too: accident, illness, military or civil service (EXTRA_SALARY_BASE_CODES). A
+month of that period without a slip in this payroll while the employee was employed — a company
+that started its payroll here during the year — counts the current base salary, prorated to the
+days employed.
 
 Source tax: periodic, extrapolated with the salary in an entry or exit month, whatever the
 schedule (Swissdec guidelines 6.0 §10.6.1.2; annex 1 cases M17, M18, M20, M21, M22).
@@ -41,6 +43,12 @@ SALARIES = {
 }
 MONTHLY, ANNUAL, HALF_YEARLY, QUARTERLY = "Monthly", "Annual", "Half-yearly", "Quarterly"
 SCHEDULE_MONTHS = {HALF_YEARLY: (6, 12), QUARTERLY: (3, 6, 9, 12)}
+# The salary an extra salary is owed on: the base pay, and the salary continued during a paid
+# absence — accident (1300), illness (1301), military or civil service (1302) — as the certified
+# engine counts it. Until 2026-09-26 only the base pay counted: a year of 6'000 a month with 8'500
+# of it paid during absences got a 13th of 5'291.65 instead of 6'000 (bench against that engine,
+# #837). Training pay (1303) stays out, as in that engine.
+EXTRA_SALARY_BASE_CODES = (*BASE_SALARY_WAGE_TYPE_CODES, 1300, 1301, 1302)
 
 
 def extra_salaries(config):
@@ -117,13 +125,14 @@ def accrual_start(row, period_start):
 
 
 def _is_base(component, abbr=None, code=None):
+	"""True for a salary line the extra salaries are owed on (EXTRA_SALARY_BASE_CODES)."""
 	code = (
 		code
 		if code is not None
 		else frappe.get_cached_value("Salary Component", component, "ch_wage_type_code")
 	)
 	if code:
-		return cint(code) in BASE_SALARY_WAGE_TYPE_CODES
+		return cint(code) in EXTRA_SALARY_BASE_CODES
 	return component == "Basic" or abbr == "B"
 
 

@@ -306,6 +306,27 @@ class TestExtraSalaries(unittest.TestCase):
 		)
 		self.assertEqual(december["13th"]["paid"], round_to_5_centimes(92000 / 12))
 
+	def test_the_salary_continued_during_a_paid_absence_counts(self):
+		"""Half of March paid under illness (1301): the 13th is a twelfth of the whole 6'000, as the
+		certified engine computes it; training pay (1303) stays out, as there (#837, 2026-09-26)."""
+		codes = {"_T Monthly": "1000", "_T Illness": "1301", "_T Training": "1303"}
+		slip = self.slip("2025-03-01", "2025-03-31")
+		slip.earnings = [
+			frappe._dict(salary_component=name, abbr="", amount=amount, default_amount=amount)
+			for name, amount in (("_T Monthly", 3000), ("_T Illness", 3000), ("_T Training", 600))
+		]
+
+		def code_of(doctype, name, field):
+			return codes[name]
+
+		with patch.object(extra_salaries.frappe, "get_cached_value", code_of):
+			march = self.compute({"thirteenth_month_mode": "Monthly"}, slip, EMPLOYED)
+			# Annual: the months without a slip here count the whole current month, illness included.
+			slip.start_date, slip.end_date = "2025-12-01", "2025-12-31"
+			december = self.compute({"thirteenth_month_mode": "Annual"}, slip, EMPLOYED)
+		self.assertEqual(march["13th"]["paid"], 500)
+		self.assertEqual(december["13th"]["paid"], 6000)
+
 	def test_annual_entry_and_exit_pro_rata(self):
 		config = {"thirteenth_month_mode": "Annual"}
 		hired = {"date_of_joining": "2025-04-01", "relieving_date": None}
