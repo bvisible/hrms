@@ -13,10 +13,11 @@ December) or four times (March, June, September and December).
 The amount paid is the base salary paid since the previous payment, divided by twelve —
 Swissdec's cumulated 13th base (guidelines 6.0): a raise, an unpaid leave or an entry during the
 period count as they were paid. The salary the employer continues to pay during a paid absence
-(CO 324a) is salary too: accident, illness, military or civil service (EXTRA_SALARY_BASE_CODES). A
-month of that period without a slip in this payroll while the employee was employed — a company
-that started its payroll here during the year — counts the current base salary, prorated to the
-days employed.
+(CO 324a) is salary too: accident, illness, military or civil service (EXTRA_SALARY_BASE_CODES).
+Pay by the hour, the lesson or the week counts the vacation and public holiday allowances paid with
+it (HOURLY_ALLOWANCE_CODES). A month of that period without a slip in this payroll while the
+employee was employed — a company that started its payroll here during the year — counts the
+current base salary, prorated to the days employed.
 
 Source tax: periodic, extrapolated with the salary in an entry or exit month, whatever the
 schedule (Swissdec guidelines 6.0 §10.6.1.2; annex 1 cases M17, M18, M20, M21, M22).
@@ -49,6 +50,13 @@ SCHEDULE_MONTHS = {HALF_YEARLY: (6, 12), QUARTERLY: (3, 6, 9, 12)}
 # of it paid during absences got a 13th of 5'291.65 instead of 6'000 (bench against that engine,
 # #837). Training pay (1303) stays out, as in that engine.
 EXTRA_SALARY_BASE_CODES = (*BASE_SALARY_WAGE_TYPE_CODES, 1300, 1301, 1302)
+# Paid by the hour, the lesson or the week, the vacation (1160) and public holiday (1161) allowances
+# paid with the salary count too: the certified engine's hourly 13th holds them, and so does common
+# practice (bench against that engine, 2026-09-26: 333.35 instead of 373.05 on 4'000 an hour-paid
+# month, #838). On a monthly salary 1160 is the vacation paid at the exit, whose daily rate already
+# holds the extra salaries (vacation.py): it stays out.
+HOURLY_PAY_CODES = (1005, 1006, 1007)
+HOURLY_ALLOWANCE_CODES = (1160, 1161)
 
 
 def extra_salaries(config):
@@ -124,31 +132,42 @@ def accrual_start(row, period_start):
 	return datetime.date(start.year - 1, months[-1] + 1, 1)
 
 
-def _is_base(component, abbr=None, code=None):
-	"""True for a salary line the extra salaries are owed on (EXTRA_SALARY_BASE_CODES)."""
+def _is_base(component, abbr=None, code=None, hourly=False):
+	"""True for a salary line the extra salaries are owed on: EXTRA_SALARY_BASE_CODES, and the
+	HOURLY_ALLOWANCE_CODES on a slip ``hourly`` (paid by the hour, the lesson or the week)."""
 	code = (
 		code
 		if code is not None
 		else frappe.get_cached_value("Salary Component", component, "ch_wage_type_code")
 	)
 	if code:
-		return cint(code) in EXTRA_SALARY_BASE_CODES
+		return cint(code) in EXTRA_SALARY_BASE_CODES or (hourly and cint(code) in HOURLY_ALLOWANCE_CODES)
 	return component == "Basic" or abbr == "B"
+
+
+def _paid_by_the_hour(codes):
+	return any(cint(code) in HOURLY_PAY_CODES for code in codes if code)
 
 
 def base_paid(doc, full=False):
 	"""The base salary of the slip: paid (after the days paid), or ``full`` for the whole month."""
+	rows = doc.get("earnings") or []
+	codes = [
+		frappe.get_cached_value("Salary Component", row.salary_component, "ch_wage_type_code") or ""
+		for row in rows
+	]
+	hourly = _paid_by_the_hour(codes)
 	return sum(
 		flt(row.default_amount if full else row.amount)
-		for row in doc.get("earnings") or []
-		if _is_base(row.salary_component, row.get("abbr"))
+		for row, code in zip(rows, codes, strict=True)
+		if _is_base(row.salary_component, row.get("abbr"), code, hourly)
 	)
 
 
 def _base_paid_by_month(employee, company, since, before, exclude=None):
 	"""{(year, month): base salary paid} by the employee's submitted slips in [since, before)."""
 	rows = frappe.db.sql(
-		"""SELECT ss.start_date, sd.amount, sd.salary_component, sd.abbr, sc.ch_wage_type_code
+		"""SELECT ss.name AS slip, ss.start_date, sd.amount, sd.salary_component, sd.abbr, sc.ch_wage_type_code
 		FROM `tabSalary Slip` ss
 		JOIN `tabSalary Detail` sd
 			ON sd.parent = ss.name AND sd.parenttype = 'Salary Slip' AND sd.parentfield = 'earnings'
@@ -164,11 +183,16 @@ def _base_paid_by_month(employee, company, since, before, exclude=None):
 		},
 		as_dict=True,
 	)
-	paid = {}
+	slips = {}
 	for row in rows:
-		if _is_base(row.salary_component, row.abbr, row.ch_wage_type_code or ""):
-			day = getdate(row.start_date)
-			paid[(day.year, day.month)] = paid.get((day.year, day.month), 0) + flt(row.amount)
+		slips.setdefault(row.slip, []).append(row)
+	paid = {}
+	for slip_rows in slips.values():
+		hourly = _paid_by_the_hour(row.ch_wage_type_code for row in slip_rows)
+		for row in slip_rows:
+			if _is_base(row.salary_component, row.abbr, row.ch_wage_type_code or "", hourly):
+				day = getdate(row.start_date)
+				paid[(day.year, day.month)] = paid.get((day.year, day.month), 0) + flt(row.amount)
 	return paid
 
 

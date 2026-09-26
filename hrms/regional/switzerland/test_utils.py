@@ -327,6 +327,34 @@ class TestExtraSalaries(unittest.TestCase):
 		self.assertEqual(march["13th"]["paid"], 500)
 		self.assertEqual(december["13th"]["paid"], 6000)
 
+	def test_pay_by_the_hour_counts_its_vacation_and_public_holiday_allowances(self):
+		"""4'000 by the hour with 333.20 of vacation and 143.60 of public holiday allowances: the 13th
+		is a twelfth of 4'476.80, as the certified engine's hourly 13th. On a monthly salary 1160 is
+		the vacation paid at the exit, whose daily rate holds the 13th already: it stays out (#838)."""
+		codes = {"_T Hourly": "1005", "_T Vacation": "1160", "_T Holidays": "1161", "_T Monthly": "1000"}
+
+		def slip_of(*earnings):
+			slip = self.slip("2025-01-01", "2025-01-31")
+			slip.earnings = [
+				frappe._dict(salary_component=name, abbr="", amount=amount, default_amount=amount)
+				for name, amount in earnings
+			]
+			return slip
+
+		def code_of(doctype, name, field):
+			return codes[name]
+
+		config = {"thirteenth_month_mode": "Monthly"}
+		with patch.object(extra_salaries.frappe, "get_cached_value", code_of):
+			hourly = self.compute(
+				config,
+				slip_of(("_T Hourly", 4000), ("_T Vacation", 333.20), ("_T Holidays", 143.60)),
+				EMPLOYED,
+			)
+			leaving = self.compute(config, slip_of(("_T Monthly", 6000), ("_T Vacation", 1500)), EMPLOYED)
+		self.assertEqual(hourly["13th"]["paid"], 373.05)  # 4'476.80 / 12 = 373.07, to 5 centimes
+		self.assertEqual(leaving["13th"]["paid"], 500)
+
 	def test_annual_entry_and_exit_pro_rata(self):
 		config = {"thirteenth_month_mode": "Annual"}
 		hired = {"date_of_joining": "2025-04-01", "relieving_date": None}
