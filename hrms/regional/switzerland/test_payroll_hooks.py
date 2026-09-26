@@ -134,6 +134,17 @@ class SwissPayrollHookCase(FrappeTestCase):
 
 		cls.config = cls._make_config()
 		cls.employee = cls._make_employee()
+		# The company's rules (its extra salaries, the salaries of a year LPP is annualized on) are
+		# read on its DEFAULT configuration. On a clone of a real site that is the company's own:
+		# prod.local pays a monthly 13th, and LPP came out on 13 salaries (214.75 for 189.75,
+		# 2026-09-26). The class keeps to its own configuration — patched, not written, so that no
+		# commit anywhere can leave a test default behind on the site.
+		patcher = patch(
+			"hrms.regional.switzerland.payroll_hooks.get_company_payroll_config",
+			lambda company, config=None: config,
+		)
+		patcher.start()
+		cls.addClassCleanup(patcher.stop)
 
 	@classmethod
 	def _make_config(cls):

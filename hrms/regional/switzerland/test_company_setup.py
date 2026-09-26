@@ -191,6 +191,11 @@ class TestEmployeeWizardHiring(FrappeTestCase):
 		frappe.set_user("Administrator")
 		if not frappe.db.exists("Company", COMPANY):
 			self.skipTest(f"{COMPANY} missing on this site")
+		# create_employee commits (it is a whitelisted endpoint), and a test does not stop Frappe from
+		# committing: disarmed, so that tearDown's rollback leaves nothing on the site.
+		disarmed = patch.object(frappe.db, "commit", lambda *args, **kwargs: None)
+		disarmed.start()
+		self.addCleanup(disarmed.stop)
 		from hrms.regional.switzerland.setup import existing_leave_type
 
 		# The install's vacation type: a test site may have no leave type at all.
@@ -350,34 +355,32 @@ class TestSwissAbsenceTypes(FrappeTestCase):
 		frappe.db.rollback()
 
 	def test_the_swiss_absences_never_lack_a_balance(self):
+		# Looked up as the code does (existing_leave_type: the user's language, the site's, English):
+		# on a French site the types carry French names the session's language did not find
+		# (StopIteration on prodclone.local, 2026-09-26).
 		from hrms.regional.switzerland.setup import (
 			SWISS_ABSENCE_TYPES,
 			ensure_swiss_leave_types,
-			swiss_absence_type_name,
+			existing_leave_type,
 		)
 
-		sick = next(
-			(n for n in (frappe._("Sick Leave"), "Sick Leave") if frappe.db.exists("Leave Type", n)), None
-		)
+		sick = existing_leave_type("Sick Leave")
 		if sick:
 			frappe.db.set_value("Leave Type", sick, {"allow_negative": 0, "is_lwp": 0})
 		report = ensure_swiss_leave_types()
 		for label in SWISS_ABSENCE_TYPES:
-			name = next(
-				n for n in (swiss_absence_type_name(label), label) if frappe.db.exists("Leave Type", n)
-			)
+			name = existing_leave_type(label)
+			self.assertIsNotNone(name, label)
 			self.assertEqual(frappe.db.get_value("Leave Type", name, "allow_negative"), 1, name)
 		if sick:
 			self.assertIn(sick, report["aligned"])
 		self.assertEqual(ensure_swiss_leave_types(), {"created": [], "aligned": []})  # idempotent
 
 	def test_whether_an_absence_is_paid_stays_the_company_choice(self):
-		from hrms.regional.switzerland.setup import ensure_swiss_leave_types, swiss_absence_type_name
+		from hrms.regional.switzerland.setup import ensure_swiss_leave_types, existing_leave_type
 
 		ensure_swiss_leave_types()
-		name = next(
-			n for n in (swiss_absence_type_name("Accident"), "Accident") if frappe.db.exists("Leave Type", n)
-		)
+		name = existing_leave_type("Accident")
 		frappe.db.set_value("Leave Type", name, {"is_lwp": 1, "allow_negative": 0})
 		ensure_swiss_leave_types()
 		self.assertEqual(frappe.db.get_value("Leave Type", name, ["is_lwp", "allow_negative"]), (1, 1))
