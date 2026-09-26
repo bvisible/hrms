@@ -13,10 +13,10 @@ frappe.ui.form.on("Employee Checkin", {
 		}
 		if (!frm.doc.__islocal) frm.trigger("add_fetch_shift_button");
 
-		const allow_geolocation_tracking = await frappe.db.get_single_value(
-			"HR Settings",
-			"allow_geolocation_tracking",
-		);
+		//// Neoffice — read through hrms.api.get_hr_settings, which every signed-in user reads (the PWA
+		//// does): HR Settings may be closed to the HR staff (neoffice-maintenance#712), and
+		//// frappe.db.get_single_value then opened « No permission for HR Settings » at every refresh.
+		const { allow_geolocation_tracking } = await frappe.xcall("hrms.api.get_hr_settings");
 
 		if (!allow_geolocation_tracking) {
 			hide_field(["fetch_geolocation", "latitude", "longitude", "geolocation"]);
