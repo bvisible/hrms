@@ -11,7 +11,7 @@ Handles both the monthly model (21 cantons) and the annual model
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate
+from frappe.utils import cint, flt, getdate
 
 from hrms.regional.switzerland.constants import ANNUAL_MODEL_CANTONS
 
@@ -122,13 +122,35 @@ def _activity_extrapolation(activity_rate_own, activity_rate_total):
 	is extrapolated to the person's TOTAL activity rate (Annex 1 M6: 4500
 	at 50% + another 50% job -> determinant 9000). When the other rate is
 	unknown, the total defaults to 100% (M10). Returns 1.0 when no own
-	rate is given (single employer).
+	rate is given (single employer). It applies to the PERIODIC salary
+	only: an aperiodic payment is added as it is (Annex 1 M8: 4550 at 70%
+	+ 2000 -> 6500 + 2000 = 8500).
 	"""
 	own = flt(activity_rate_own)
 	if not own:
 		return 1.0
 	total = flt(activity_rate_total) or 1.0
 	return total / own
+
+
+def activity_rates(employee_doc, periodic):
+	"""(own, total) activity rates of the rate-determining salary, as fractions; (None, None) for
+	a person with no other employer.
+
+	Circ. 45 ch. 7.2.1 (Annex 1 M6-M10): with other employers the periodic salary paid here is
+	extrapolated from the activity rate here (Work Percentage) to the total one — the other
+	employers' rate added, or their monthly gross turned into a rate of this salary, or 100 % when
+	nothing is known — as the certified engine does (ACTIVITYRATETOTAL; bench, 2026-09-26, #839).
+	"""
+	if not cint(employee_doc.get("ch_qst_other_employment")):
+		return None, None
+	own = flt(employee_doc.get("ch_work_percentage") or 100) / 100
+	basis = employee_doc.get("ch_qst_other_activity_basis")
+	if basis == "Work Percentage":
+		return own, own + flt(employee_doc.get("ch_qst_other_activity_rate")) / 100
+	if basis == "Gross Income" and flt(periodic) > 0:
+		return own, own * (1 + flt(employee_doc.get("ch_qst_other_activity_gross")) / flt(periodic))
+	return own, 1.0
 
 
 def calculate_source_tax_monthly(
@@ -175,7 +197,9 @@ def calculate_source_tax_monthly(
 	aperiodic = flt(aperiodic)
 	periodic = gross - aperiodic
 	factor = _activity_extrapolation(activity_rate_own, activity_rate_total)
-	determinant = round_half_up((periodic / qst_days * 30 + aperiodic) * factor)
+	# //// Neoffice — was `(periodic / qst_days * 30 + aperiodic) * factor`: the aperiodic part was
+	# //// extrapolated to the total activity too (Annex 1 M8 expects 8500, this gave 9357). #839.
+	determinant = round_half_up(periodic / qst_days * 30 * factor + aperiodic)
 
 	rate = lookup_qst_rate(canton, tariff_code, determinant, ref_date, tariff_type)
 	# Foreign workdays: only the CH share (taxable) is withheld, at the
@@ -195,7 +219,16 @@ def calculate_source_tax_monthly(
 
 
 def calculate_monthly_correction(
-	gross, canton, old_code, new_code, ref_date, tariff_type="SAL", qst_days=30, aperiodic=0.0
+	gross,
+	canton,
+	old_code,
+	new_code,
+	ref_date,
+	tariff_type="SAL",
+	qst_days=30,
+	aperiodic=0.0,
+	activity_rate_own=None,
+	activity_rate_total=None,
 ):
 	"""Retroactive tariff-code correction for one past month (monthly model).
 
@@ -214,15 +247,18 @@ def calculate_monthly_correction(
 		tariff_type: "SAL" or "VSL".
 		qst_days: Source-tax days of the corrected month.
 		aperiodic: Aperiodic portion of that month's gross.
+		activity_rate_own, activity_rate_total: with other employers (activity_rates), so that the
+			month is settled again as it was withheld.
 
 	Returns:
 		dict with old_tax, new_tax and delta (new - old, may be negative).
 	"""
+	activity = {"activity_rate_own": activity_rate_own, "activity_rate_total": activity_rate_total}
 	old = calculate_source_tax_monthly(
-		gross, canton, old_code, ref_date, tariff_type, qst_days=qst_days, aperiodic=aperiodic
+		gross, canton, old_code, ref_date, tariff_type, qst_days=qst_days, aperiodic=aperiodic, **activity
 	)
 	new = calculate_source_tax_monthly(
-		gross, canton, new_code, ref_date, tariff_type, qst_days=qst_days, aperiodic=aperiodic
+		gross, canton, new_code, ref_date, tariff_type, qst_days=qst_days, aperiodic=aperiodic, **activity
 	)
 	return {
 		"old_tax": old["tax_amount"],
@@ -274,8 +310,10 @@ def calculate_source_tax_annual_settlement(
 	"""
 	total_days = flt(total_days)
 	factor = _activity_extrapolation(activity_rate_own, activity_rate_total)
+	# //// Neoffice — the aperiodic part is no longer extrapolated to the total activity (#839, see
+	# //// _activity_extrapolation).
 	annualized = (
-		round_half_up((flt(total_periodic) / total_days * 360 + flt(total_aperiodic)) * factor)
+		round_half_up(flt(total_periodic) / total_days * 360 * factor + flt(total_aperiodic))
 		if total_days
 		else 0
 	)
@@ -331,6 +369,8 @@ def calculate_source_tax_annual(
 	ytd_days=None,
 	aperiodic=0.0,
 	ytd_aperiodic=0.0,
+	activity_rate_own=None,
+	activity_rate_total=None,
 ):
 	"""Calculate source tax using the annual model.
 
@@ -360,6 +400,7 @@ def calculate_source_tax_annual(
 			(defaults to (month_num - 1) x 30 = all prior months full).
 		aperiodic: Aperiodic portion of this month's gross.
 		ytd_aperiodic: Aperiodic portion of ytd_gross.
+		activity_rate_own, activity_rate_total: with other employers (activity_rates).
 
 	Returns:
 		dict with tax_amount, tax_rate, determinant, projected_annual,
@@ -397,6 +438,8 @@ def calculate_source_tax_annual(
 		total_aperiodic=total_aperiodic,
 		total_days=total_days,
 		per_code={tariff_code: {"cumulative_gross": total_gross, "ytd_tax": ytd_tax}},
+		activity_rate_own=activity_rate_own,
+		activity_rate_total=activity_rate_total,
 	)
 	code_result = settlement["by_code"].get(tariff_code) or {"tax_rate": 0, "cumulative_due": 0}
 	this_month_tax = settlement["tax_amount"]
@@ -647,6 +690,10 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 	# already settled from the effective date under another code.
 	corrections = find_retro_corrections(employee_doc, salary_slip_doc, tariff_code)
 
+	# //// Neoffice — with other employers the rate is determined on the whole activity (#839): the
+	# //// engine could extrapolate, but the payroll never gave it the activity rates.
+	own_rate, total_rate = activity_rates(employee_doc, gross - flt(aperiodic))
+
 	if model == "monthly":
 		result = calculate_source_tax_monthly(
 			gross,
@@ -655,11 +702,14 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 			ref_date,
 			qst_days=qst_days or 30,
 			aperiodic=flt(aperiodic),
+			activity_rate_own=own_rate,
+			activity_rate_total=total_rate,
 		)
 		if corrections:
 			details = []
 			total_delta = 0.0
 			for corr in corrections:
+				corr_own, corr_total = activity_rates(employee_doc, corr["gross"])
 				delta = calculate_monthly_correction(
 					corr["gross"],
 					canton,
@@ -667,6 +717,8 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 					tariff_code,
 					corr["end_date"],
 					qst_days=corr["qst_days"],
+					activity_rate_own=corr_own,
+					activity_rate_total=corr_total,
 				)
 				total_delta = round_to_5_centimes(total_delta + delta["delta"])
 				details.append(
@@ -716,6 +768,8 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 				total_aperiodic=total_aperiodic,
 				total_days=flt(ytd_data.get("ytd_days") or 0) + (qst_days or 30),
 				per_code=per_code,
+				activity_rate_own=own_rate,
+				activity_rate_total=total_rate,
 			)
 			result["corrections"] = [
 				{
@@ -741,6 +795,8 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 				ytd_days=ytd_data.get("ytd_days"),
 				aperiodic=flt(aperiodic),
 				ytd_aperiodic=flt(ytd_data.get("ytd_aperiodic") or 0),
+				activity_rate_own=own_rate,
+				activity_rate_total=total_rate,
 			)
 
 	result["tariff_code"] = tariff_code

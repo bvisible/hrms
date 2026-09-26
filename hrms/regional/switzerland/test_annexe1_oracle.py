@@ -149,9 +149,15 @@ class TestAnnexe1Oracle(unittest.TestCase):
 		"""Engine inputs for month m: (gross, days, aperiodic, canton, code)."""
 		gross = float(case["gross"][m])
 		days = (case["days_as"] or [None] * 12)[m] or 30
-		periodic = (case["determinant_periodic"] or [None] * 12)[m]
-		periodic = float(periodic) if periodic is not None else gross
-		aperiodic = round(max(gross - periodic, 0.0), 2)
+		# The aperiodic part as the annex gives it. Derived from the periodic determinant it was wrong
+		# with other employers, whose periodic determinant is extrapolated (M8 November: 50 instead
+		# of 2000), 2026-09-26, #839.
+		aperiodic = (case.get("determinant_aperiodic") or [None] * 12)[m]
+		if aperiodic is None:
+			periodic = (case["determinant_periodic"] or [None] * 12)[m]
+			periodic = float(periodic) if periodic is not None else gross
+			aperiodic = max(gross - periodic, 0.0)
+		aperiodic = round(float(aperiodic), 2)
 		return gross, float(days), aperiodic, case["cantons"][m], case["codes"][m]
 
 	def _month_activity(self, case, m):
@@ -200,15 +206,15 @@ class TestAnnexe1Oracle(unittest.TestCase):
 			det = (case["determinant"] or [None] * 12)[m]
 			factor = self._month_factor(case, m)
 			if case["model"] == "monthly":
-				# Day extrapolation of the periodic part, then activity factor.
-				det_engine = round(((gross - aperiodic) / days * 30 + aperiodic) * factor, 2)
+				# Day and activity extrapolation of the periodic part; the aperiodic part as it is (#839).
+				det_engine = round((gross - aperiodic) / days * 30 * factor + aperiodic, 2)
 				if det is not None and abs(float(det) - det_engine) > 0.02:
 					return "determinant beyond day/activity extrapolation (special settlement)"
 			else:
 				cum_gross += gross
 				cum_aper += aperiodic
 				cum_days += days
-				det_engine = round(((cum_gross - cum_aper) / cum_days * 360 + cum_aper) * factor / 12, 2)
+				det_engine = round(((cum_gross - cum_aper) / cum_days * 360 * factor + cum_aper) / 12, 2)
 				if det is not None and abs(float(det) - det_engine) > 0.02:
 					return "determinant beyond day/activity annualization (special settlement)"
 		return None
