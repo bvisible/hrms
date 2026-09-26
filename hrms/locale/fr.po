@@ -22552,3 +22552,51 @@ msgstr "Taux d'activité auprès d'autres employeurs"
 #: hrms/regional/switzerland/setup.py
 msgid "Monthly Gross at Other Employers"
 msgstr "Revenu brut mensuel auprès d'autres employeurs"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Other employers"
+msgstr "Autres employeurs"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Also works for other employers"
+msgstr "Travaille aussi pour d'autres employeurs"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "The source tax rate is then set on the whole activity."
+msgstr "Le taux d'imposition à la source est alors déterminé en fonction de l'activité totale."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "What is known of the other employers"
+msgstr "Informations connues sur les autres employeurs"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Nothing: extrapolated to 100 %"
+msgstr "Rien : extrapolé à 100 %"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Their activity rate"
+msgstr "Leur taux d'activité"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Their monthly gross"
+msgstr "Leur revenu brut mensuel"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Activity rate at the other employers (%)"
+msgstr "Taux d'activité auprès des autres employeurs (%)"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Monthly gross at the other employers"
+msgstr "Revenu brut mensuel auprès des autres employeurs"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "activity rate {0} %"
+msgstr "taux d'activité {0} %"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "gross {0} a month"
+msgstr "brut {0} par mois"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "unknown: extrapolated to 100 %"
+msgstr "inconnu : extrapolé à 100 %"
