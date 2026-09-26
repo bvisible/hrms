@@ -8,25 +8,108 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from hrms.regional.switzerland.company_setup import apply_company_setup, get_company_setup
+from hrms.regional.switzerland.company_setup import (
+	COMPANY_FIELDS,
+	apply_company_setup,
+	get_company_setup,
+)
 from hrms.regional.switzerland.employee_wizard import create_employee
 
-COMPANY = "_Test Company 1"
+# CI's test company. Anywhere else the tests run on the site's own Swiss company: since 2026-09-26
+# they run on a clone of a real site, where a company created empty would prove nothing (#826).
+CI_COMPANY = "_Test Company 1"
+CONFIG_TABLES = ("Swiss Extra Salary", "Swiss Lohnausweis Mapping", "Swiss Insurance Solution")
 
 
-class TestCompanyPayrollSetup(FrappeTestCase):
+def site_company():
+	"""CI's test company when the site has it, else the site's own Swiss company, the default first."""
+	if frappe.db.exists("Company", CI_COMPANY):
+		return CI_COMPANY
+	default = frappe.defaults.get_global_default("company")
+	if default and frappe.db.get_value("Company", default, "country") == "Switzerland":
+		return default
+	return frappe.db.get_value("Company", {"country": "Switzerland"}, "name", order_by="creation asc")
+
+
+def footprint(company):
+	"""What these tests write on a site, read back to prove they leave it as they found it."""
+	state = {"leave_types": frappe.get_all("Leave Type", fields=["name", "modified"], order_by="name")}
+	if company:
+		state.update(
+			company=frappe.db.get_value("Company", company, "modified"),
+			configs=frappe.get_all(
+				"Swiss Social Insurance Config",
+				filters={"company": company},
+				fields=["name", "modified"],
+				order_by="name",
+			),
+			employees=frappe.db.count("Employee", {"company": company}),
+			structures=frappe.db.count("Salary Structure", {"company": company}),
+		)
+	return state
+
+
+class SiteSafeTestCase(FrappeTestCase):
+	"""Safe on a clone of a real site (#826). The endpoints under test commit, and Frappe does not
+	stop a test from committing: commits are disarmed, every test is rolled back, and at the end the
+	class checks that the company's setup, its employees and the leave types are exactly as it found
+	them."""
+
+	needs_company = True
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.company = site_company()
+		cls.addClassCleanup(cls.check_left_as_found, footprint(cls.company))
+
+	@classmethod
+	def check_left_as_found(cls, before):
+		frappe.db.rollback()
+		after = footprint(cls.company)
+		if after != before:
+			changed = ", ".join(key for key in before if after.get(key) != before[key])
+			raise AssertionError(f"{cls.__name__} changed the site: {changed}")
+
 	def setUp(self):
 		frappe.set_user("Administrator")
-		if not frappe.db.exists("Company", COMPANY):
-			self.skipTest(f"{COMPANY} missing on this site")
-		frappe.db.delete("Swiss Social Insurance Config", {"company": COMPANY})
+		if self.needs_company and not self.company:
+			self.skipTest("no Swiss company on this site")
+		# With commits disarmed nothing resets Frappe's count of the transaction's writes, so its own
+		# guard (check_implicit_commit) refuses what MariaDB would commit implicitly — a schema change,
+		# a new transaction — once the test has written (proved on prodclone.local, 2026-09-26).
+		disarmed = patch.object(frappe.db, "commit", lambda *args, **kwargs: None)
+		disarmed.start()
+		self.addCleanup(disarmed.stop)
 
 	def tearDown(self):
 		frappe.db.rollback()
 
+
+class TestCompanyPayrollSetup(SiteSafeTestCase):
+	def setUp(self):
+		super().setUp()
+		# The company as the wizard first meets it: no Swiss configuration, no answer yet. On a real
+		# site's company this clears its own setup, inside the test only: rolled back in tearDown.
+		configs = frappe.get_all(
+			"Swiss Social Insurance Config", filters={"company": self.company}, pluck="name"
+		)
+		if configs:
+			for table in CONFIG_TABLES:
+				frappe.db.delete(
+					table, {"parenttype": "Swiss Social Insurance Config", "parent": ("in", configs)}
+				)
+			frappe.db.delete("Swiss Social Insurance Config", {"name": ("in", configs)})
+		frappe.db.set_value(
+			"Company",
+			self.company,
+			dict.fromkeys((*COMPANY_FIELDS, "ch_default_social_insurance_config")),
+			update_modified=False,
+		)
+
 	def config(self, canton, **values):
 		return frappe.get_doc(
-			{"doctype": "Swiss Social Insurance Config", "company": COMPANY, "canton": canton, **values}
+			{"doctype": "Swiss Social Insurance Config", "company": self.company, "canton": canton, **values}
 		).insert()
 
 	def test_the_first_configuration_is_the_default(self):
@@ -40,7 +123,7 @@ class TestCompanyPayrollSetup(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Swiss Social Insurance Config", first.name, "is_default"), 0)
 
 	def test_the_wizard_proposes_the_defaults(self):
-		values = get_company_setup(COMPANY)
+		values = get_company_setup(self.company)
 		self.assertEqual(values.ch_payroll_booking_method, "Social Insurance Liability")
 		self.assertEqual(values.ch_third_party_allowance_booking, "Salaries")
 		self.assertEqual(values.lpp_employer_share_pct, 50)
@@ -49,7 +132,7 @@ class TestCompanyPayrollSetup(FrappeTestCase):
 	def test_the_wizard_writes_the_company_and_its_default_configuration(self):
 		result = apply_company_setup(
 			{
-				"company": COMPANY,
+				"company": self.company,
 				"canton": "NE",
 				"ch_contact_person": "Payroll Office",
 				"ch_contact_phone": "+41 32 000 00 00",
@@ -71,7 +154,7 @@ class TestCompanyPayrollSetup(FrappeTestCase):
 		self.assertEqual(config.lohnausweis_expense_regulation_canton, "NE")
 		company = frappe.db.get_value(
 			"Company",
-			COMPANY,
+			self.company,
 			["ch_payroll_booking_method", "ch_contact_person", "ch_default_social_insurance_config"],
 			as_dict=True,
 		)
@@ -81,18 +164,18 @@ class TestCompanyPayrollSetup(FrappeTestCase):
 
 	def test_a_new_canton_starts_from_the_current_default(self):
 		self.config("VD", avs_admin_fee_rate=0.8, family_allowance_rate=2.45)
-		result = apply_company_setup({"company": COMPANY, "canton": "FR", "configure_accounts": 0})
+		result = apply_company_setup({"company": self.company, "canton": "FR", "configure_accounts": 0})
 		new = frappe.get_doc("Swiss Social Insurance Config", result["config"])
 		self.assertEqual((new.canton, new.is_default), ("FR", 1))
 		self.assertEqual((new.avs_admin_fee_rate, new.family_allowance_rate), (0.8, 2.45))
 
 	def test_an_account_of_another_company_is_refused(self):
-		other = frappe.db.get_value("Account", {"company": ("!=", COMPANY), "is_group": 0}, "name")
+		other = frappe.db.get_value("Account", {"company": ("!=", self.company), "is_group": 0}, "name")
 		if not other:
 			self.skipTest("no account of another company")
 		with self.assertRaises(frappe.ValidationError):
 			apply_company_setup(
-				{"company": COMPANY, "canton": "VD", "default_payroll_payable_account": other}
+				{"company": self.company, "canton": "VD", "default_payroll_payable_account": other}
 			)
 
 	# //// Neoffice — added (2026-09-24): each company gets its own Swiss structure, submitted.
@@ -107,38 +190,27 @@ class TestCompanyPayrollSetup(FrappeTestCase):
 						"type": "Deduction",
 					}
 				).insert()
-		# Creating the monthly salary component from the catalogue commits: kept inside the test.
-		with patch("frappe.db.commit"):
-			name = apply_company_setup({"company": COMPANY, "canton": "VD", "configure_accounts": 0})[
-				"salary_structure"
-			]
-			structure = frappe.get_doc("Salary Structure", name)
-			self.assertEqual(
-				(structure.company, structure.docstatus, structure.is_active), (COMPANY, 1, "Yes")
-			)
-			self.assertIn("AVS/AI/APG Employee", [row.salary_component for row in structure.deductions])
-			if frappe.db.exists("Swiss Wage Type", "CH-WT-1000"):
-				earning = structure.earnings[0].salary_component
-				self.assertEqual(
-					frappe.db.get_value("Salary Component", earning, "ch_wage_type"), "CH-WT-1000"
-				)
-			# Run again: the same structure, not a second one.
-			again = apply_company_setup({"company": COMPANY, "canton": "VD", "configure_accounts": 0})
-			self.assertEqual(again["salary_structure"], name)
+		# Creating the monthly salary component from the catalogue commits: disarmed (SiteSafeTestCase).
+		name = apply_company_setup({"company": self.company, "canton": "VD", "configure_accounts": 0})[
+			"salary_structure"
+		]
+		structure = frappe.get_doc("Salary Structure", name)
+		self.assertEqual(
+			(structure.company, structure.docstatus, structure.is_active), (self.company, 1, "Yes")
+		)
+		self.assertIn("AVS/AI/APG Employee", [row.salary_component for row in structure.deductions])
+		if frappe.db.exists("Swiss Wage Type", "CH-WT-1000"):
+			earning = structure.earnings[0].salary_component
+			self.assertEqual(frappe.db.get_value("Salary Component", earning, "ch_wage_type"), "CH-WT-1000")
+		# Run again: the same structure, not a second one.
+		again = apply_company_setup({"company": self.company, "canton": "VD", "configure_accounts": 0})
+		self.assertEqual(again["salary_structure"], name)
 
 
-class TestEmployeeWizardPaymentDetails(FrappeTestCase):
+class TestEmployeeWizardPaymentDetails(SiteSafeTestCase):
 	"""The wizard records what paying the employee needs: the IBAN and the postal address."""
 
 	IBAN = "CH93 0076 2011 6238 5295 7"
-
-	def setUp(self):
-		frappe.set_user("Administrator")
-		if not frappe.db.exists("Company", COMPANY):
-			self.skipTest(f"{COMPANY} missing on this site")
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def data(self, **values):
 		return {
@@ -146,7 +218,7 @@ class TestEmployeeWizardPaymentDetails(FrappeTestCase):
 			"last_name": "PaymentTest",
 			"gender": frappe.db.get_value("Gender", {}, "name"),
 			"date_of_birth": "1990-01-01",
-			"company": COMPANY,
+			"company": self.company,
 			"date_of_joining": "2026-01-01",
 			"address_street": "Rue du Lac 15",
 			"address_town": "1003 Lausanne",
@@ -154,8 +226,7 @@ class TestEmployeeWizardPaymentDetails(FrappeTestCase):
 		}
 
 	def test_address_and_iban_are_recorded(self):
-		with patch("frappe.db.commit"):
-			employee = create_employee(self.data(iban=self.IBAN))["employee"]
+		employee = create_employee(self.data(iban=self.IBAN))["employee"]
 		values = frappe.db.get_value(
 			"Employee", employee, ["permanent_address", "bank_ac_no", "salary_mode"], as_dict=True
 		)
@@ -163,14 +234,17 @@ class TestEmployeeWizardPaymentDetails(FrappeTestCase):
 		self.assertEqual((values.bank_ac_no, values.salary_mode), ("CH9300762011623852957", "Bank"))
 
 	def test_a_wrong_iban_is_refused(self):
-		with patch("frappe.db.commit"), self.assertRaises(frappe.ValidationError):
+		with self.assertRaises(frappe.ValidationError):
 			create_employee(self.data(iban="CH93 0076 2011 6238 5295 8"))
 
 	# //// Neoffice — 2026-09-24: hired through the API without qst_subject, a B permit was created
 	# //// not subject to source tax (found by the HR assistant's end-to-end test).
 	def _subject(self, **values):
-		with patch("frappe.db.commit"):
-			employee = create_employee(self.data(canton="ZH", **values))["employee"]
+		# Several hires in one test: each its own name, since a site may name employees by their full
+		# name (HR Settings), where a second "Wizard PaymentTest" is a duplicate (prodclone, #826).
+		employee = create_employee(
+			self.data(canton="ZH", last_name=frappe.generate_hash(length=8), **values)
+		)["employee"]
 		return frappe.db.get_value("Employee", employee, "ch_qst_subject")
 
 	def test_the_permit_decides_the_source_tax_when_the_caller_does_not(self):
@@ -182,28 +256,18 @@ class TestEmployeeWizardPaymentDetails(FrappeTestCase):
 		self.assertEqual(self._subject(permit_type="Permit B (Residence)", qst_subject=0), 0)
 
 
-class TestEmployeeWizardHiring(FrappeTestCase):
+class TestEmployeeWizardHiring(SiteSafeTestCase):
 	"""« C'est très compliqué de créer un employé » (24.09): the wizard asks the situation, not the
 	tariff letter, and records what the payroll needs afterwards — e-mail for the payslips, the
 	vacation of the year, the canton the source tax goes to."""
 
 	def setUp(self):
-		frappe.set_user("Administrator")
-		if not frappe.db.exists("Company", COMPANY):
-			self.skipTest(f"{COMPANY} missing on this site")
-		# create_employee commits (it is a whitelisted endpoint), and a test does not stop Frappe from
-		# committing: disarmed, so that tearDown's rollback leaves nothing on the site.
-		disarmed = patch.object(frappe.db, "commit", lambda *args, **kwargs: None)
-		disarmed.start()
-		self.addCleanup(disarmed.stop)
+		super().setUp()
 		from hrms.regional.switzerland.setup import existing_leave_type
 
 		# The install's vacation type: a test site may have no leave type at all.
 		if not existing_leave_type("Privilege Leave"):
 			frappe.get_doc({"doctype": "Leave Type", "leave_type_name": "Privilege Leave"}).insert()
-
-	def tearDown(self):
-		frappe.db.rollback()
 
 	def test_the_boot_says_whether_the_swiss_payroll_runs(self):
 		# The whole fleet is Swiss: only a site with a payroll configuration hires through the wizard.
@@ -222,9 +286,9 @@ class TestEmployeeWizardHiring(FrappeTestCase):
 
 		with patch.object(employee_wizard.frappe, "has_permission", return_value=False):
 			for call in (
-				lambda: employee_wizard.wizard_defaults(COMPANY),
+				lambda: employee_wizard.wizard_defaults(self.company),
 				lambda: employee_wizard.suggest_source_tax({"permit_type": "Permit B (Residence)"}),
-				lambda: employee_wizard.create_employee({"first_name": "Nobody", "company": COMPANY}),
+				lambda: employee_wizard.create_employee({"first_name": "Nobody", "company": self.company}),
 			):
 				self.assertRaises(frappe.PermissionError, call)
 
@@ -307,12 +371,11 @@ class TestEmployeeWizardHiring(FrappeTestCase):
 			"last_name": "HiringTest",
 			"gender": frappe.db.get_value("Gender", {}, "name"),
 			"date_of_birth": "1990-01-01",
-			"company": COMPANY,
+			"company": self.company,
 			"date_of_joining": "2026-10-01",
 			**values,
 		}
-		with patch("frappe.db.commit"):
-			return create_employee(data)
+		return create_employee(data)
 
 	def test_a_hire_records_what_the_payroll_needs(self):
 		result = self.hire(
@@ -350,9 +413,8 @@ class TestEmployeeWizardHiring(FrappeTestCase):
 
 # //// Neoffice — 2026-09-24: sickness is no quota in Switzerland; an application for it was refused
 # //// for lack of an allocation (found by the HR assistant recording "sick from the 22nd to the 26th").
-class TestSwissAbsenceTypes(FrappeTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
+class TestSwissAbsenceTypes(SiteSafeTestCase):
+	needs_company = False  # the leave types are the site's, not a company's
 
 	def test_the_swiss_absences_never_lack_a_balance(self):
 		# Looked up as the code does (existing_leave_type: the user's language, the site's, English):
