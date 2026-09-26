@@ -334,6 +334,8 @@ def create_employee(data):
 			"ch_qst_taxation_canton": qst_canton or None,
 			# The payslip reaches the employee by e-mail when there is an address, else by hand.
 			"ch_payslip_delivery": "Email" if email else "By Hand",
+			# //// Neoffice — the activity at other employers (#839).
+			**other_employment_fields(data),
 		}
 	)
 	employee.insert()
@@ -371,6 +373,28 @@ def create_employee(data):
 		"employee_name": employee.employee_name,
 		"structure_assignment": assignment,
 		"leave_allocation": allocation,
+	}
+
+
+def other_employment_fields(data):
+	"""The Employee fields of an activity at other employers (#839), asked by the wizard.
+
+	Only for somebody taxed at source: the rate is then set on the whole activity (ESTV Circular 45,
+	7.2.1; source_tax.activity_rates). What is known decides which figure is kept."""
+	if not cint(data.get("qst_subject")) or not cint(data.get("other_employment")):
+		return {"ch_qst_other_employment": 0}
+	basis = data.get("other_activity_basis")
+	if basis not in ("Unknown", "Work Percentage", "Gross Income"):
+		basis = "Unknown"
+	return {
+		"ch_qst_other_employment": 1,
+		"ch_qst_other_activity_basis": basis,
+		"ch_qst_other_activity_rate": flt(data.get("other_activity_rate"))
+		if basis == "Work Percentage"
+		else 0,
+		"ch_qst_other_activity_gross": flt(data.get("other_activity_gross"))
+		if basis == "Gross Income"
+		else 0,
 	}
 
 
