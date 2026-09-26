@@ -22524,3 +22524,31 @@ msgstr "Le canton {0} ne prélève pas d'impôt ecclésiastique à la source : b
 #: hrms/regional/switzerland/employee_wizard.py
 msgid "Canton {0} levies the church tax at source for everyone: tariff {1}."
 msgstr "Le canton {0} prélève l'impôt ecclésiastique à la source pour tout le monde : barème {1}."
+
+#: hrms/regional/switzerland/setup.py
+msgid "Works for Other Employers"
+msgstr "Travaille pour d'autres employeurs"
+
+#: hrms/regional/switzerland/setup.py
+msgid "The tax rate is then set on the whole activity: the salary paid here is extrapolated from the work percentage to the total (ESTV Circular 45, 7.2.1)."
+msgstr "Le taux d'imposition est alors déterminé en fonction de l'activité totale : le salaire versé ici est extrapolé du taux d'activité au total (Circulaire AFC 45, 7.2.1)."
+
+#: hrms/regional/switzerland/setup.py
+msgid "What Is Known of the Other Employers"
+msgstr "Informations connues sur les autres employeurs"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Gross Income"
+msgstr "Revenu brut"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Unknown: the salary paid here is extrapolated to 100 %."
+msgstr "Inconnu : le salaire versé ici est extrapolé à 100 %."
+
+#: hrms/regional/switzerland/setup.py
+msgid "Work Percentage at Other Employers"
+msgstr "Taux d'activité auprès d'autres employeurs"
+
+#: hrms/regional/switzerland/setup.py
+msgid "Monthly Gross at Other Employers"
+msgstr "Revenu brut mensuel auprès d'autres employeurs"
