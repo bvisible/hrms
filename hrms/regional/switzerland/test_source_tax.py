@@ -452,6 +452,40 @@ class TestOtherEmployers(unittest.TestCase):
 		)
 		self.assertAlmostEqual(3000 * total / own, 7000)
 
+	def test_the_hiring_wizard_records_what_is_known(self):
+		from hrms.regional.switzerland.employee_wizard import other_employment_fields
+
+		# Asked only of somebody taxed at source; nothing recorded otherwise.
+		self.assertEqual(
+			other_employment_fields({"qst_subject": 0, "other_employment": 1}), {"ch_qst_other_employment": 0}
+		)
+		self.assertEqual(
+			other_employment_fields({"qst_subject": 1, "other_employment": 0}), {"ch_qst_other_employment": 0}
+		)
+		# Only the figure of what is known is kept; an unknown basis is "Unknown".
+		rate = other_employment_fields(
+			{
+				"qst_subject": 1,
+				"other_employment": 1,
+				"other_activity_basis": "Work Percentage",
+				"other_activity_rate": 30,
+				"other_activity_gross": 4000,
+			}
+		)
+		self.assertEqual(
+			(
+				rate["ch_qst_other_activity_basis"],
+				rate["ch_qst_other_activity_rate"],
+				rate["ch_qst_other_activity_gross"],
+			),
+			("Work Percentage", 30, 0),
+		)
+		odd = other_employment_fields(
+			{"qst_subject": 1, "other_employment": 1, "other_activity_basis": "Maybe"}
+		)
+		self.assertEqual(odd["ch_qst_other_activity_basis"], "Unknown")
+		self.assertEqual(activity_rates({"ch_work_percentage": 50, **odd}, 3000), (0.5, 1.0))
+
 	def test_an_aperiodic_payment_is_not_extrapolated(self):
 		"""Annex 1 M8, November: 4'550 at 70 % and a 2'000 bonus -> 6'500 + 2'000 = 8'500."""
 		with patch("hrms.regional.switzerland.source_tax.lookup_qst_rate", return_value=0.1):

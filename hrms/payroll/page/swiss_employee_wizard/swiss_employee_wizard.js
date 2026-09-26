@@ -333,6 +333,50 @@ class SwissEmployeeWizard {
 					fieldtype: "Check",
 					onchange: () => this.refresh_tax(),
 				},
+				// Taxed at source with other employers, the rate is set on the whole activity (ESTV
+				// Circular 45, 7.2.1): asked only when the source tax applies (refresh_tax keeps
+				// qst_subject in the form for these depends_on).
+				{ fieldname: "qst_subject", fieldtype: "Check", hidden: 1 },
+				{
+					fieldname: "sb_other_employers",
+					fieldtype: "Section Break",
+					label: __("Other employers"),
+					depends_on: "eval:doc.qst_subject",
+				},
+				{
+					fieldname: "other_employment",
+					label: __("Also works for other employers"),
+					fieldtype: "Check",
+					description: __("The source tax rate is then set on the whole activity."),
+				},
+				{ fieldname: "col3", fieldtype: "Column Break" },
+				{
+					fieldname: "other_activity_basis",
+					label: __("What is known of the other employers"),
+					fieldtype: "Select",
+					options: [
+						{ value: "Unknown", label: __("Nothing: extrapolated to 100 %") },
+						{ value: "Work Percentage", label: __("Their activity rate") },
+						{ value: "Gross Income", label: __("Their monthly gross") },
+					],
+					default: "Unknown",
+					depends_on: "eval:doc.other_employment",
+				},
+				{
+					fieldname: "other_activity_rate",
+					label: __("Activity rate at the other employers (%)"),
+					fieldtype: "Percent",
+					precision: 1,
+					depends_on:
+						"eval:doc.other_employment && doc.other_activity_basis=='Work Percentage'",
+				},
+				{
+					fieldname: "other_activity_gross",
+					label: __("Monthly gross at the other employers"),
+					fieldtype: "Currency",
+					depends_on:
+						"eval:doc.other_employment && doc.other_activity_basis=='Gross Income'",
+				},
 				{ fieldname: "sb_summary", fieldtype: "Section Break" },
 				{ fieldname: "tax_summary", fieldtype: "HTML" },
 			];
@@ -364,6 +408,10 @@ class SwissEmployeeWizard {
 		this.tax = tax;
 		this.data.qst_subject = tax.qst_subject ? 1 : 0;
 		this.data.tariff_letter = tax.qst_subject ? tax.tariff_code.slice(0, 1) : null;
+		// The questions on other employers show only when the source tax applies.
+		if (this.form.get_value("qst_subject") !== this.data.qst_subject) {
+			await this.form.set_value("qst_subject", this.data.qst_subject);
+		}
 		const field = this.form.get_field("tax_summary");
 		field && field.$wrapper.html(this.tax_summary_html());
 	}
@@ -569,6 +617,17 @@ class SwissEmployeeWizard {
 		});
 	}
 
+	other_employers_label() {
+		const d = this.data;
+		if (d.other_activity_basis === "Work Percentage") {
+			return __("activity rate {0} %", [d.other_activity_rate || 0]);
+		}
+		if (d.other_activity_basis === "Gross Income") {
+			return __("gross {0} a month", [format_currency(d.other_activity_gross || 0, "CHF")]);
+		}
+		return __("unknown: extrapolated to 100 %");
+	}
+
 	render_review() {
 		const d = this.data;
 		const line = (label, value) =>
@@ -602,6 +661,12 @@ class SwissEmployeeWizard {
 					${line(__("Vacation days a year"), d.vacation_days)}
 					${line(__("IBAN of the salary account"), d.iban)}
 					${line(__("Source tax"), tax && tax.qst_subject ? __("tariff {0}", [tax.tariff_code]) : __("No"))}
+					${line(
+						__("Other employers"),
+						tax && tax.qst_subject && d.other_employment
+							? this.other_employers_label()
+							: "",
+					)}
 					${line(__("Badge"), this.badge ? __("Badge …{0}", [this.badge.uid_tail]) : "")}
 					${line(__("Payslips"), d.email ? __("by e-mail") : __("printed, handed out"))}
 				</table>
