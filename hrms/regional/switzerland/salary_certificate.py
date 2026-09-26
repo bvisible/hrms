@@ -470,7 +470,8 @@ def standard_remarks(facts):
 	Returns only what applies: rectificate {date, doc_id} (Rectificate), number_of_certificates
 	(NumberOfSalaryCertificate), part_time (PartTimeEmployment — the schema has no rate),
 	short_time_work (ShortTimeWorkCompensation), tax_at_source (TaxAtSourcePeriodForObjection)
-	and expense_regulation {canton, date}, which is no remark in the barcode but S/ChargesRule.
+	and expense_regulation {canton, date} or expenses_per_model (Cm 52, the cross of 13.1.1), which
+	are no remark in the barcode but S/ChargesRule.
 	"""
 	standard = {}
 	rectificate = facts.get("rectificate")
@@ -492,4 +493,6 @@ def standard_remarks(facts):
 			"canton": regulation["canton"],
 			"date": str(regulation["date"])[:10],
 		}
+	elif facts.get("expenses_per_model"):
+		standard["expenses_per_model"] = True
 	return standard

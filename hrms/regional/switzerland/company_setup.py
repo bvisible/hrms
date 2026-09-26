@@ -50,6 +50,7 @@ CONFIG_FIELDS = (
 	"lohnausweis_employer_address",
 	"lohnausweis_expense_regulation_canton",
 	"lohnausweis_expense_regulation_date",
+	"lohnausweis_expenses_per_model",
 	"payment_account",
 	"payment_iban",
 	"payment_bic",

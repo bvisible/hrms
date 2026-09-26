@@ -475,6 +475,15 @@ class SwissCompanyPayrollSetup {
 					fieldtype: "Date",
 					depends_on: "eval:doc.has_expense_regulation",
 				},
+				{
+					fieldname: "lohnausweis_expenses_per_model",
+					label: __("Our effective expenses stay within the model's limits"),
+					fieldtype: "Check",
+					depends_on: "eval:!doc.has_expense_regulation",
+					description: __(
+						"Meals up to CHF 35 (or a lump sum of CHF 30), a private car up to CHF 0.75 per km, small expenses up to CHF 20 a day, travel and nights on receipts: then 13.1.1 gets its cross instead of an amount (guide Cm 52).",
+					),
+				},
 			];
 		}
 		return [];
@@ -718,6 +727,10 @@ class SwissCompanyPayrollSetup {
 							  )
 							: __("No"),
 					)}
+					${line(
+						__("Our effective expenses stay within the model's limits"),
+						d.lohnausweis_expenses_per_model ? __("Yes, cross at 13.1.1") : __("No"),
+					)}
 				</table>
 			</div>`);
 		this.render_nav(true);
@@ -780,6 +793,10 @@ class SwissCompanyPayrollSetup {
 		if (this.steps[this.step].key === "certificate" && !this.data.has_expense_regulation) {
 			this.data.lohnausweis_expense_regulation_canton = "";
 			this.data.lohnausweis_expense_regulation_date = null;
+		}
+		// An approved regulation and the cross of 13.1.1 exclude each other (guide Cm 52, 65).
+		if (this.steps[this.step].key === "certificate" && this.data.has_expense_regulation) {
+			this.data.lohnausweis_expenses_per_model = 0;
 		}
 		return true;
 	}

@@ -465,6 +465,21 @@ class TestTxab60(unittest.TestCase):
 			(rule.find("t:Allowed", NS).text, rule.find("t:Canton", NS).text), ("2024-05-01", "VD")
 		)
 
+	def test_expenses_within_the_model_are_the_guidance_charges_rule(self):
+		"""Wegleitung Cm 52 (#664): no approved regulation, effective expenses within the model's
+		limits: the barcode says so with ChargesRule/Guidance, the cross of 13.1.1."""
+		salary = self.salary(standard_remarks={"expenses_per_model": True})
+		self.assertIsNotNone(salary.find("t:ChargesRule/t:Guidance", NS))
+		self.assertIsNone(salary.find("t:ChargesRule/t:WithRegulation", NS))
+		# An approved regulation wins: the two are a choice in the schema.
+		both = self.salary(
+			standard_remarks={
+				"expense_regulation": {"canton": "VD", "date": "2024-05-01"},
+				"expenses_per_model": True,
+			}
+		)
+		self.assertIsNone(both.find("t:ChargesRule/t:Guidance", NS))
+
 	def test_standard_remarks_are_elements_in_the_schema_order(self):
 		standard = {
 			"part_time": True,

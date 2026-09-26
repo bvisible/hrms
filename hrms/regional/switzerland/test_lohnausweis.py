@@ -233,6 +233,15 @@ class TestRemarks(unittest.TestCase):
 			],
 		)
 
+	def test_expenses_within_the_model_are_the_cross_of_13_1_1(self):
+		"""Wegleitung Cm 52 (#664): with no approved regulation, effective expenses within the
+		model's limits give the cross of 13.1.1; an approved regulation excludes it (Cm 65)."""
+		self.assertEqual(standard_remarks({"expenses_per_model": True}), {"expenses_per_model": True})
+		both = {"expenses_per_model": True, "expense_regulation": {"canton": "VD", "date": "2024-05-01"}}
+		self.assertNotIn("expenses_per_model", standard_remarks(both))
+		# The cross is the whole statement: nothing goes to box 15 for it.
+		self.assertEqual(free_remarks({"expenses_per_model": True}, "fr"), [])
+
 	def test_the_barcode_splits_box_15_between_catalogue_and_free_text(self):
 		"""Swissdec 6.0 annex 5, 3.3: the catalogue's remarks travel as StandardRemark elements;
 		only the others are free text."""
