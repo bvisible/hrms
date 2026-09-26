@@ -969,7 +969,7 @@ def get_leave_details(employee: str, date: str | datetime.date, for_salary_slip:
 
 	return {
 		"leave_allocation": leave_allocation,
-		"leave_approver": get_leave_approver(employee),
+		"leave_approver": _get_leave_approver(employee),  # //// Neoffice — #742, see get_leave_approver
 		"lwps": lwp,
 	}
 
@@ -1475,8 +1475,18 @@ def get_approved_leaves_for_period(employee, leave_type, from_date, to_date):
 	return leave_days
 
 
+# //// Neoffice — the exposed endpoint checks read on the employee, as its neighbour
+# //// get_leave_approver_and_mandatory does (upstream f90f2125e): without it any signed-in user, a
+# //// portal customer included, read the leave approver (a user id, so an e-mail) of any employee
+# //// (neoffice-maintenance#742). The callers inside this module use _get_leave_approver, unchecked:
+# //// validate_leave_access must resolve the approver of an employee the caller cannot read.
 @frappe.whitelist()
 def get_leave_approver(employee):
+	frappe.has_permission("Employee", "read", employee, throw=True)
+	return _get_leave_approver(employee)
+
+
+def _get_leave_approver(employee):
 	leave_approver, department = frappe.db.get_value("Employee", employee, ["leave_approver", "department"])
 
 	if not leave_approver and department:
@@ -1500,13 +1510,13 @@ def get_leave_approver_and_mandatory(employee: str) -> dict:
 
 	return {
 		"is_mandatory": 1 if mandatory else 0,
-		"leave_approver": get_leave_approver(employee),
+		"leave_approver": _get_leave_approver(employee),  # //// Neoffice — #742, see get_leave_approver
 	}
 
 
 def validate_leave_access(employee):
 	employee_user = frappe.db.get_value("Employee", employee, "user_id")
-	leave_approver = get_leave_approver(employee)
+	leave_approver = _get_leave_approver(employee)  # //// Neoffice — #742, see get_leave_approver
 
 	if frappe.session.user not in (employee_user, leave_approver) and (
 		not frappe.has_permission("Employee", "read", employee)
