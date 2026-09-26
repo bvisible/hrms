@@ -85,6 +85,8 @@ class SwissdecEMANotification(frappe.model.document.Document):
 			for f in old_files:
 				frappe.delete_doc("File", f.name, ignore_permissions=True)
 
+		# //// Neoffice — attached to its field, or the save below attaches a second File to xml_file
+		# //// (Frappe's attach_files_to_document), and the export shows twice among the attachments.
 		file_doc = frappe.get_doc(
 			{
 				"doctype": "File",
@@ -92,6 +94,7 @@ class SwissdecEMANotification(frappe.model.document.Document):
 				"content": xml_bytes,
 				"attached_to_doctype": self.doctype,
 				"attached_to_name": self.name,
+				"attached_to_field": "xml_file",
 				"is_private": 1,
 			}
 		)

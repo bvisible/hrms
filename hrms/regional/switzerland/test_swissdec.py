@@ -5,11 +5,16 @@
 
 """Tests for Swissdec ELM 5.0 XML generation, validation, and data aggregation.
 
-All tests use pure functions with mock data — no Frappe DB dependency.
+All tests use pure functions with mock data — no Frappe DB dependency — except TestExportAttachedOnce,
+which exports a declaration on the site and rolls it back (SiteSafeTestCase).
 """
 
+import os
 import unittest
+from unittest.mock import patch
 from xml.etree.ElementTree import fromstring, tostring
+
+import frappe
 
 from hrms.regional.switzerland.swissdec_validation import (
 	ValidationResult,
@@ -37,6 +42,7 @@ from hrms.regional.switzerland.swissdec_xml import (
 	_prettify_xml,
 	generate_salary_declaration,
 )
+from hrms.regional.switzerland.test_company_setup import SiteSafeTestCase
 
 # --- Test Helpers ---
 
@@ -1845,3 +1851,39 @@ class TestElmInternalPreview(unittest.TestCase):
 		self.assertIn(b"NOT a Swissdec ELM declaration", marked)
 		self.assertEqual(fromstring(marked).tag, "SalaryDeclaration")  # still well-formed
 		self.assertTrue(mark_as_internal_preview(b"<SalaryDeclaration/>").startswith(b"<!-- Internal preview"))
+
+
+class TestExportAttachedOnce(SiteSafeTestCase):
+	"""One export, one attachment. The File must name its Attach field: otherwise saving the declaration
+	runs Frappe's attach_files_to_document, which attaches a second File to the field, and every
+	ELM-PREVIEW showed twice among the attachments (osiris, 2026-09-26)."""
+
+	def test_the_preview_is_attached_once_even_when_exported_again(self):
+		fiscal_year = frappe.db.get_value("Fiscal Year", {}, "name", order_by="year_start_date desc")
+		doc = frappe.get_doc(
+			{
+				"doctype": "Swissdec Declaration",
+				"company": self.company,
+				"fiscal_year": fiscal_year,
+				"declaration_type": "Correction",
+				"status": "Validated",
+			}
+		).insert(ignore_permissions=True)
+		xml = b'<?xml version="1.0" encoding="UTF-8"?>\n<SalaryDeclaration/>'
+		with (
+			patch("hrms.regional.switzerland.swissdec_xml.generate_salary_declaration", return_value=xml),
+			patch("hrms.regional.switzerland.utils.get_swiss_social_insurance_config", return_value={}),
+		):
+			for _export in range(2):
+				doc.export_xml()
+				files = frappe.get_all(
+					"File",
+					filters={"attached_to_doctype": doc.doctype, "attached_to_name": doc.name},
+					fields=["name", "file_url", "attached_to_field"],
+				)
+				for file in files:  # the rollback drops the File rows, not the files on disk
+					path = frappe.get_doc("File", file.name).get_full_path()
+					self.addCleanup(lambda path=path: os.path.exists(path) and os.remove(path))
+				self.assertEqual(
+					[(f.file_url, f.attached_to_field) for f in files], [(doc.xml_file, "xml_file")]
+				)

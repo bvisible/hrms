@@ -306,11 +306,11 @@ def transmit_declaration(declaration_name, doctype="Swissdec Declaration"):
 
 	if response.get("result_xml"):
 		result_file_url = _attach_xml(
-			doc, f"result_{response['tx_id']}.xml", response["result_xml"]
+			doc, f"result_{response['tx_id']}.xml", response["result_xml"], "result_xml"
 		)
 	if response.get("answer_xml"):
 		answer_file_url = _attach_xml(
-			doc, f"answer_{response['tx_id']}.xml", response["answer_xml"]
+			doc, f"answer_{response['tx_id']}.xml", response["answer_xml"], "answer_xml"
 		)
 
 	# Determine final status
@@ -438,7 +438,7 @@ def poll_pending_transmissions():
 				)
 
 
-def _attach_xml(doc, filename, content):
+def _attach_xml(doc, filename, content, fieldname=None):
 	"""Attach an XML content string to a Swissdec Declaration document.
 
 	Returns the file URL.
@@ -454,5 +454,9 @@ def _attach_xml(doc, filename, content):
 		"attached_to_name": doc.name,
 		"is_private": 1,
 	})
+	# //// Neoffice — the caller stores the URL in this Attach field: named on the File, or the save
+	# //// of the document attaches a second File to the field (Frappe's attach_files_to_document).
+	if fieldname and doc.meta.has_field(fieldname):
+		file_doc.attached_to_field = fieldname
 	file_doc.save(ignore_permissions=True)
 	return file_doc.file_url

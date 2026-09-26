@@ -338,6 +338,9 @@ class SwissdecDeclaration(Document):
 			for f in old_files:
 				frappe.delete_doc("File", f.name, ignore_permissions=True)
 
+		# //// Neoffice — attached to its field: the save below runs Frappe's attach_files_to_document,
+		# //// which attaches a second File to xml_file when none names that field, so every preview
+		# //// showed twice among the attachments (seen on osiris, 2026-09-26).
 		file_doc = frappe.get_doc(
 			{
 				"doctype": "File",
@@ -345,6 +348,7 @@ class SwissdecDeclaration(Document):
 				"content": xml_bytes,
 				"attached_to_doctype": self.doctype,
 				"attached_to_name": self.name,
+				"attached_to_field": "xml_file",
 				"is_private": 1,
 			}
 		)
