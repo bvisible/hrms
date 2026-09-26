@@ -1830,3 +1830,18 @@ class TestBvgProjection(unittest.TestCase):
 
 if __name__ == "__main__":
 	unittest.main()
+
+
+class TestElmInternalPreview(unittest.TestCase):
+	"""The ELM export is an internal preview (#653): the certified software transmits the declaration,
+	and this XML is not valid against the Swissdec schema, so it says so in the file itself."""
+
+	def test_the_preview_says_so_right_after_the_xml_declaration(self):
+		from hrms.payroll.doctype.swissdec_declaration.swissdec_declaration import mark_as_internal_preview
+
+		declaration = b'<?xml version="1.0" encoding="UTF-8"?>\n<SalaryDeclaration schemaVersion="5.0"/>'
+		marked = mark_as_internal_preview(declaration)
+		self.assertTrue(marked.startswith(b'<?xml version="1.0" encoding="UTF-8"?>\n<!-- Internal preview'))
+		self.assertIn(b"NOT a Swissdec ELM declaration", marked)
+		self.assertEqual(fromstring(marked).tag, "SalaryDeclaration")  # still well-formed
+		self.assertTrue(mark_as_internal_preview(b"<SalaryDeclaration/>").startswith(b"<!-- Internal preview"))
