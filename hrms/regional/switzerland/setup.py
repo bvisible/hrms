@@ -134,11 +134,24 @@ def get_custom_fields():
 				"no_copy": 1,
 				"description": "Aperiodic earnings of this slip (bonuses, lump 13th month) — excluded from the day-extrapolated determinant.",
 			},
+			# //// Neoffice — new field (#839): the extrapolation to the whole activity this slip's source
+			# //// tax was settled with; the annual model reads the year back month by month with it.
+			{
+				"fieldname": "ch_qst_activity_factor",
+				"label": "QST Activity Extrapolation",
+				"fieldtype": "Float",
+				"precision": "6",
+				"insert_after": "ch_qst_aperiodic",
+				"read_only": 1,
+				"no_copy": 1,
+				"description": "Total activity divided by the activity here (1 without other employers): the periodic salary of this slip was extrapolated by it to set the source tax rate.",
+			},
 			{
 				"fieldname": "ch_qst_correction_details",
 				"label": "QST Retroactive Corrections",
 				"fieldtype": "Small Text",
-				"insert_after": "ch_qst_aperiodic",
+				# //// Neoffice — after ch_qst_activity_factor now (was ch_qst_aperiodic).
+				"insert_after": "ch_qst_activity_factor",
 				"read_only": 1,
 				"no_copy": 1,
 			},

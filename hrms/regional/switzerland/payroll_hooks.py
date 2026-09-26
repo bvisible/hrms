@@ -956,6 +956,10 @@ def _update_source_tax(doc, config, employee, imp_base):
 		doc.ch_qst_canton = result["canton"]
 	if hasattr(doc, "ch_qst_aperiodic"):
 		doc.ch_qst_aperiodic = aperiodic
+	# //// Neoffice — and the extrapolation to the whole activity it was settled with (#839), which
+	# //// the annual model reads back month by month.
+	if hasattr(doc, "ch_qst_activity_factor"):
+		doc.ch_qst_activity_factor = flt(result.get("activity_factor") or 1, 6)
 	if hasattr(doc, "ch_qst_correction_details"):
 		corrections = result.get("corrections") or []
 		if corrections:
