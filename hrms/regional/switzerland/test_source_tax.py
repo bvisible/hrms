@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from hrms.regional.switzerland.source_tax import (
+	activity_rates,
 	build_tariff_code,
 	calculate_source_tax_annual,
 	calculate_source_tax_monthly,
@@ -418,3 +419,49 @@ class TestEffectiveTariffCode(unittest.TestCase):
 
 	def test_nothing_published_keeps_the_code_for_the_caller_to_report(self):
 		self.assertEqual(self.effective(set(), "VS", "A0Y"), "A0Y")
+
+
+class TestOtherEmployers(unittest.TestCase):
+	"""Other employers: the rate is determined on the whole activity (ESTV Circular 45, 7.2.1) — the
+	periodic salary paid here extrapolated to the total activity, an aperiodic payment added as it
+	is. The payroll never gave the engine the activity rates (#839, bench against a certified engine
+	and Swissdec annex 1)."""
+
+	def half(self, **values):
+		"""Half time here, with other employers."""
+		return {"ch_work_percentage": 50, "ch_qst_other_employment": 1, **values}
+
+	def test_one_employer_is_not_extrapolated(self):
+		self.assertEqual(activity_rates({"ch_work_percentage": 50}, 3000), (None, None))
+
+	def test_the_other_activity_unknown_goes_to_100_percent(self):
+		self.assertEqual(activity_rates(self.half(ch_qst_other_activity_basis="Unknown"), 3000), (0.5, 1.0))
+		self.assertEqual(activity_rates(self.half(), 3000), (0.5, 1.0))  # nothing chosen yet
+
+	def test_the_other_employers_work_percentage_is_added(self):
+		own, total = activity_rates(
+			self.half(ch_qst_other_activity_basis="Work Percentage", ch_qst_other_activity_rate=30),
+			3000,
+		)
+		self.assertAlmostEqual(3000 * total / own, 4800)
+
+	def test_the_other_employers_gross_is_added(self):
+		own, total = activity_rates(
+			self.half(ch_qst_other_activity_basis="Gross Income", ch_qst_other_activity_gross=4000),
+			3000,
+		)
+		self.assertAlmostEqual(3000 * total / own, 7000)
+
+	def test_an_aperiodic_payment_is_not_extrapolated(self):
+		"""Annex 1 M8, November: 4'550 at 70 % and a 2'000 bonus -> 6'500 + 2'000 = 8'500."""
+		with patch("hrms.regional.switzerland.source_tax.lookup_qst_rate", return_value=0.1):
+			result = calculate_source_tax_monthly(
+				6550,
+				"BE",
+				"A0N",
+				"2021-11-30",
+				aperiodic=2000,
+				activity_rate_own=0.7,
+				activity_rate_total=1.0,
+			)
+		self.assertEqual(result["determinant"], 8500)

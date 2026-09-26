@@ -625,12 +625,50 @@ def get_custom_fields():
 				"depends_on": "eval:doc.ch_qst_subject",
 				"description": "Set automatically when projected annual income exceeds the ordinary taxation threshold.",
 			},
+			# //// Neoffice — 2026-09-26 (#839): the activity at other employers. The rate is determined on
+			# //// the whole activity (ESTV Circular 45, 7.2.1); without these fields the payroll never
+			# //// extrapolated the salary paid here (source_tax.activity_rates).
+			{
+				"fieldname": "ch_qst_other_employment",
+				"label": "Works for Other Employers",
+				"fieldtype": "Check",
+				"insert_after": "ch_qst_120k_flag",
+				"depends_on": "eval:doc.ch_qst_subject",
+				"description": "The tax rate is then set on the whole activity: the salary paid here is extrapolated from the work percentage to the total (ESTV Circular 45, 7.2.1).",
+			},
+			{
+				"fieldname": "ch_qst_other_activity_basis",
+				"label": "What Is Known of the Other Employers",
+				"fieldtype": "Select",
+				"options": "Unknown\nWork Percentage\nGross Income",
+				"default": "Unknown",
+				"insert_after": "ch_qst_other_employment",
+				"depends_on": "eval:doc.ch_qst_subject && doc.ch_qst_other_employment",
+				"description": "Unknown: the salary paid here is extrapolated to 100 %.",
+			},
+			{
+				"fieldname": "ch_qst_other_activity_rate",
+				"label": "Work Percentage at Other Employers",
+				"fieldtype": "Percent",
+				"insert_after": "ch_qst_other_activity_basis",
+				"depends_on": "eval:doc.ch_qst_subject && doc.ch_qst_other_employment"
+				" && doc.ch_qst_other_activity_basis == 'Work Percentage'",
+			},
+			{
+				"fieldname": "ch_qst_other_activity_gross",
+				"label": "Monthly Gross at Other Employers",
+				"fieldtype": "Currency",
+				"insert_after": "ch_qst_other_activity_rate",
+				"depends_on": "eval:doc.ch_qst_subject && doc.ch_qst_other_employment"
+				" && doc.ch_qst_other_activity_basis == 'Gross Income'",
+			},
 			# --- Cross-Border Worker fields ---
 			{
 				"fieldname": "ch_cb_section",
 				"label": "Cross-Border Worker",
 				"fieldtype": "Section Break",
-				"insert_after": "ch_qst_120k_flag",
+				# //// Neoffice — was "ch_qst_120k_flag": the fields of another employment come first.
+				"insert_after": "ch_qst_other_activity_gross",
 				"collapsible": 1,
 			},
 			{
