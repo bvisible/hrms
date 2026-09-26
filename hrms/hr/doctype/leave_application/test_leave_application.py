@@ -27,6 +27,7 @@ from hrms.hr.doctype.leave_application.leave_application import (
 	NotAnOptionalHoliday,
 	OverlapError,
 	get_leave_allocation_records,
+	get_leave_approver,
 	get_leave_balance_on,
 	get_leave_details,
 	get_new_and_cf_leaves_taken,
@@ -997,6 +998,37 @@ class TestLeaveApplication(FrappeTestCase):
 
 		# unset leave approver
 		frappe.set_user("Administrator")
+		employee.reload()
+		employee.leave_approver = ""
+		employee.save()
+
+	# //// Neoffice — added: the exposed get_leave_approver checks read on the employee; a portal
+	# //// customer read the approver (an e-mail) of any employee (neoffice-maintenance#742).
+	def test_leave_approver_needs_read_on_the_employee(self):
+		employee = get_employee()
+		approver = "test_approver_742@example.com"
+		make_employee(approver, "_Test Company")
+		employee.reload()
+		employee.leave_approver = approver
+		employee.save()
+
+		portal_user = "portal_leave_742@example.com"
+		if not frappe.db.exists("User", portal_user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": portal_user,
+					"first_name": "Portal",
+					"user_type": "Website User",
+					"send_welcome_email": 0,
+				}
+			).insert(ignore_permissions=True)
+
+		frappe.set_user(portal_user)
+		self.assertRaises(frappe.PermissionError, get_leave_approver, employee.name)
+		frappe.set_user("Administrator")
+		self.assertEqual(get_leave_approver(employee.name), approver)
+
 		employee.reload()
 		employee.leave_approver = ""
 		employee.save()
