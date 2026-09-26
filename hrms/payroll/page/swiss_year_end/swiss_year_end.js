@@ -479,6 +479,21 @@ class SwissYearEnd {
 				__("Exports"),
 			);
 		});
+		//// Neoffice — the copies of the validated certificates that the cantonal tax administrations
+		//// want from the employer (Wegleitung Rz 74: BS, BE, FR, JU, NE, SO, VD, VS; LU if sent),
+		//// one ZIP with a folder per canton (#664).
+		this.page.add_inner_button(
+			__("Salary certificates for the cantons (ZIP)"),
+			() => {
+				const args = this.args();
+				window.open(
+					"/api/method/hrms.regional.switzerland.year_end.download_canton_copies" +
+						`?company=${encodeURIComponent(args.company)}` +
+						`&fiscal_year=${encodeURIComponent(args.fiscal_year)}`,
+				);
+			},
+			__("Exports"),
+		);
 	}
 }
 

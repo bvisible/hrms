@@ -91,6 +91,7 @@
   "lohnausweis_employer_address",
   "lohnausweis_expense_regulation_canton",
   "lohnausweis_expense_regulation_date",
+  "lohnausweis_expenses_per_model",
   "section_flat_expenses",
   "flat_expenses_partial_month",
   "column_break_flat_expenses",
@@ -599,6 +600,14 @@
    "mandatory_depends_on": "lohnausweis_expense_regulation_canton"
   },
   {
+   "default": "0",
+   "depends_on": "eval:!doc.lohnausweis_expense_regulation_canton",
+   "description": "Travel, meals and overnight stays reimbursed at cost within the limits of the guide's model (Wegleitung Cm 52): the salary certificates then declare no amount at 13.1.1 but tick its box. Not with an approved expense regulation.",
+   "fieldname": "lohnausweis_expenses_per_model",
+   "fieldtype": "Check",
+   "label": "Effective Expenses Within the Model's Limits (13.1.1)"
+  },
+  {
    "collapsible": 1,
    "description": "Representation (6040), car (6050), expatriate (6060) and other (6070) flat-rate allowances, as the company's expense regulation says.",
    "fieldname": "section_flat_expenses",
@@ -702,7 +711,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-24 16:30:00.000000",
+ "modified": "2026-09-26 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "Swiss Social Insurance Config",

@@ -146,6 +146,10 @@ class SwissSalaryCertificate(Document):
 				self.set(field, ", ".join(_(label, lang=self.language) for label in labels)[:140])
 
 		regulation = _expense_regulation(config)
+		# Wegleitung Cm 52: without an approved regulation, effective travel, meal and overnight
+		# expenses within the limits of the model are not declared either: 13.1.1 gets its cross
+		# instead of an amount (company setting, #664).
+		per_model = bool(not regulation and config and cint(config.get("lohnausweis_expenses_per_model")))
 		if regulation:
 			# Wegleitung Rz 59 and 65: with an expense regulation approved by the canton, the
 			# effective travel, meal and overnight expenses are not declared and 13.1.1 gets no
@@ -153,6 +157,9 @@ class SwissSalaryCertificate(Document):
 			# (Rz 54), and a declared amount is never the error an omitted one is.
 			self.position_13_1_1_travel = 0
 			self.position_13_1_1_travel_check = 0
+		elif per_model:
+			self.position_13_1_1_travel = 0
+			self.position_13_1_1_travel_check = 1
 
 		year_end = getdate(frappe.get_cached_value("Fiscal Year", self.fiscal_year, "year_end_date"))
 		source_tax = flt(self.position_12_withholding_tax) or cint(employee.get("ch_qst_subject"))
@@ -161,6 +168,7 @@ class SwissSalaryCertificate(Document):
 				"slips": len(slips),
 				"part_time_rate": flt(employee.get("ch_work_percentage")) or None,
 				"expense_regulation": regulation,
+				"expenses_per_model": per_model,
 				"short_time_work_in_box_1": result["short_time_work_in_box_1"],
 				"replacement_in_box_1": result["replacement_in_box_1"],
 				"withheld": result["withheld"],

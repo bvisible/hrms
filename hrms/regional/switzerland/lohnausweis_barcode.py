@@ -265,6 +265,9 @@ def generate_txab_xml(certificate_data):
 		rule = ET.SubElement(ET.SubElement(s, f"{_NS}ChargesRule"), f"{_NS}WithRegulation")
 		ET.SubElement(rule, f"{_NS}Allowed").text = str(regulation["date"])[:10]
 		ET.SubElement(rule, f"{_NS}Canton").text = regulation["canton"]
+	elif standard.get("expenses_per_model"):
+		# The cross of 13.1.1: "Conditions du cm 52 du Guide CS observées" (ChargesRuleType, #664).
+		ET.SubElement(ET.SubElement(s, f"{_NS}ChargesRule"), f"{_NS}Guidance")
 
 	has_effective = amount("13.1.1") or amount("13.1.2")
 	has_lumpsum = amount("13.2.1") or amount("13.2.2") or amount("13.2.3")

@@ -391,6 +391,79 @@ def send_certificates_job(names):
 	)
 
 
+# The cantons whose tax administration wants from the employer a copy of each salary certificate
+# (Wegleitung Rz 74, 2026); Lucerne takes one when it is sent.
+CANTONS_WANTING_A_COPY = ("BE", "BS", "FR", "JU", "NE", "SO", "VD", "VS")
+CANTONS_TAKING_A_COPY = ("LU",)
+
+
+@frappe.whitelist()
+def download_canton_copies(company, fiscal_year):
+	"""The copies of the validated salary certificates for the cantonal tax administrations that
+	want them (Wegleitung Rz 74), as one ZIP with a folder per canton — the canton of the workplace:
+	the employee's, else the company's. Each PDF is the one the employee got, in the certificate's
+	language, without the employee's password (#664). Rendered in the request: fine for the
+	dozens of certificates of a small company."""
+	import io
+	import re
+	import zipfile
+
+	from frappe.translate import print_language
+
+	from hrms.regional.switzerland.salary_certificate import LANGUAGES
+
+	_check_payroll_read_permission(company)
+	frappe.has_permission("Swiss Salary Certificate", "print", throw=True)
+
+	company_canton = frappe.db.get_value(
+		"Swiss Social Insurance Config", {"company": company, "is_default": 1}, "canton"
+	)
+	certificates = frappe.get_all(
+		"Swiss Salary Certificate",
+		filters={"company": company, "fiscal_year": fiscal_year, "docstatus": 1},
+		fields=["name", "employee", "employee_name"],
+		order_by="employee_name",
+	)
+	workplace = dict(
+		frappe.get_all(
+			"Employee",
+			filters={"name": ("in", [c.employee for c in certificates] or [""])},
+			fields=["name", "ch_fiscal_canton"],
+			as_list=True,
+		)
+	)
+
+	buffer = io.BytesIO()
+	per_canton = {}
+	with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+		for row in certificates:
+			canton = (workplace.get(row.employee) or company_canton or "").upper()
+			if canton not in CANTONS_WANTING_A_COPY + CANTONS_TAKING_A_COPY:
+				continue
+			doc = frappe.get_doc("Swiss Salary Certificate", row.name)
+			with print_language(doc.language if doc.language in LANGUAGES else "fr"):
+				pdf = frappe.get_print(
+					doc.doctype,
+					doc.name,
+					print_format=doc.meta.default_print_format or None,
+					as_pdf=True,
+					no_letterhead=1,
+				)
+			person = re.sub(r"[^\w .-]+", "_", row.employee_name or row.employee).strip()
+			archive.writestr(f"{canton}/{person} - {row.name}.pdf", pdf)
+			per_canton[canton] = per_canton.get(canton, 0) + 1
+
+	if not per_canton:
+		frappe.throw(
+			_(
+				"No validated salary certificate of {0} goes to a canton that wants a copy (BS, BE, FR, JU, NE, SO, VD, VS; LU if you choose)."
+			).format(fiscal_year)
+		)
+	frappe.response["filename"] = f"Salary_certificates_cantons_{fiscal_year}_{frappe.scrub(company)}.zip"
+	frappe.response["filecontent"] = buffer.getvalue()
+	frappe.response["type"] = "binary"
+
+
 @frappe.whitelist()
 def qst_summary(company, fiscal_year):
 	"""Source-tax recap per canton for the cantonal settlements."""
