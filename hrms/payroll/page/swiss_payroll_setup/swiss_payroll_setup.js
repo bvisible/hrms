@@ -112,6 +112,8 @@ frappe.ui.SwissPayrollSetup = class SwissPayrollSetup {
 	// ─── Standalone (No Nora) ────────────────────────────────
 
 	init_standalone() {
+		// A __() inside a quoted HTML attribute of a template literal is never extracted to the POT.
+		const placeholder = __("Type your message...");
 		this.page.main.html(`
 			<div class="swiss-payroll-chat-layout">
 				<div class="chat-sidebar">
@@ -136,7 +138,7 @@ frappe.ui.SwissPayrollSetup = class SwissPayrollSetup {
 						<div class="chat-buttons"></div>
 						<div class="input-group">
 							<textarea class="form-control chat-input" rows="2"
-								placeholder="${__("Type your message...")}"></textarea>
+								placeholder="${placeholder}"></textarea>
 							<div class="input-group-append">
 								<button class="btn btn-primary btn-send">
 									<i class="fa fa-paper-plane"></i>

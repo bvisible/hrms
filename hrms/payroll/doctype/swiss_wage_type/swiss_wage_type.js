@@ -35,8 +35,9 @@ frappe.ui.form.on("Swiss Wage Type", {
 
 			// Show indicator for employer contribution
 			if (frm.doc.is_employer_contribution) {
+				// A __() passed inside another __() is never extracted to the POT: markup stays out.
 				frm.dashboard.set_headline(
-					__('<span class="indicator-pill orange">{0}</span>', [__("Employer Contribution")])
+					`<span class="indicator-pill orange">${__("Employer Contribution")}</span>`
 				);
 			}
 		}

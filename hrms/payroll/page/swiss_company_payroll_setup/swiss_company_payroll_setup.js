@@ -547,6 +547,12 @@ class SwissCompanyPayrollSetup {
 					? !(choices.legal_off || []).includes(h.name)
 					: (choices.local_on || []).includes(h.name)
 				: h.chosen;
+		// The pills are built outside the row template: a __() inside a template literal nested in
+		// another is never extracted to the POT (the extractor stops at the inner backtick), so its
+		// translation would be dropped by the next update of the PO files.
+		const legal_pill = `<span class="indicator-pill gray">${__("legal")}</span>`;
+		const local_title = esc(__("Observed in part of the canton only"));
+		const local_pill = `<span class="indicator-pill orange" title="${local_title}">${__("local")}</span>`;
 		const rows = res.holidays
 			.map(
 				(h, i) => `
@@ -558,13 +564,7 @@ class SwissCompanyPayrollSetup {
 						frappe.datetime.str_to_user(h.date),
 					)}</td>
 					<td>${esc(h.name)}</td>
-					<td>${
-						h.legal
-							? `<span class="indicator-pill gray">${__("legal")}</span>`
-							: `<span class="indicator-pill orange" title="${esc(
-									__("Observed in part of the canton only"),
-							  )}">${__("local")}</span>`
-					}</td>
+					<td>${h.legal ? legal_pill : local_pill}</td>
 				</tr>`,
 			)
 			.join("");
@@ -812,11 +812,12 @@ class SwissCompanyPayrollSetup {
 		const res = r.message || {};
 		const list = (items) =>
 			(items || []).map((item) => `<li>${frappe.utils.escape_html(item)}</li>`).join("");
-		let message = `<p>${__("Default social insurance configuration: {0}", [
-			`<a href="/app/swiss-social-insurance-config/${encodeURIComponent(
-				res.config,
-			)}">${frappe.utils.escape_html(res.config)}</a>`,
-		])}</p>`;
+		// Links built first: a template literal inside the __() arguments hides the call from the
+		// POT extractor (see the holiday pills).
+		const config_link = `<a href="/app/swiss-social-insurance-config/${encodeURIComponent(
+			res.config,
+		)}">${frappe.utils.escape_html(res.config)}</a>`;
+		let message = `<p>${__("Default social insurance configuration: {0}", [config_link])}</p>`;
 		if (res.accounts) {
 			if (res.accounts.set.length) {
 				message += `<p>${__("Accounts assigned")}:</p><ul>${list(res.accounts.set)}</ul>`;
@@ -830,16 +831,13 @@ class SwissCompanyPayrollSetup {
 		if (res.holidays) {
 			// The list holds this year and the next: its count is not the one of the step (one year).
 			const years = res.holidays.years || [];
+			const list_link = `<a href="/app/holiday-list/${encodeURIComponent(
+				res.holidays.holiday_list,
+			)}">${esc(res.holidays.holiday_list)}</a>`;
+			const span = years.length > 1 ? `${years[0]}–${years[years.length - 1]}` : years.join("");
 			message += `<p>${__(
 				"Holiday list {0}: {1} public holiday(s) over {2}, assigned to {3} employee(s).",
-				[
-					`<a href="/app/holiday-list/${encodeURIComponent(
-						res.holidays.holiday_list,
-					)}">${esc(res.holidays.holiday_list)}</a>`,
-					res.holidays.public_holidays,
-					years.length > 1 ? `${years[0]}–${years[years.length - 1]}` : years.join(""),
-					res.holidays.employees,
-				],
+				[list_link, res.holidays.public_holidays, span, res.holidays.employees],
 			)}</p>`;
 		}
 		message += `<p><a href="/app/swiss-payroll-cycle">${__(

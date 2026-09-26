@@ -465,10 +465,13 @@ class SwissEmployeeWizard {
 
 	render_badge() {
 		const holder = $('<div class="sew-badge"></div>').appendTo(this.body);
+		// Built outside the template: a template literal inside the __() arguments hides the call
+		// from the POT extractor, and the next update of the PO files would drop its translation.
+		const who = `<b>${esc(this.data.first_name || __("the employee"))}</b>`;
 		holder.html(`
 			<div style="margin-bottom: 12px;">${__(
 				"Have {0} present their badge at a terminal: it appears below within a few seconds. Choose it, and their next swipe clocks them in.",
-				[`<b>${esc(this.data.first_name || __("the employee"))}</b>`],
+				[who],
 			)}</div>
 			<div class="sew-terminals text-muted small" style="margin-bottom: 10px;"></div>
 			<div class="sew-badges"></div>
@@ -646,11 +649,14 @@ class SwissEmployeeWizard {
 		if (!d.avs_number) missing.push(__("no AVS number: needed for the declarations"));
 		if (!d.address_street) missing.push(__("no address: needed for the salary certificate"));
 		const tax = this.tax;
+		// Built first: a template literal nested in the summary template hides the __() calls around it
+		// from the POT extractor (see render_badge).
+		const full_name = `${d.first_name || ""} ${d.last_name || ""}`;
 		this.body.append(`
 			<div class="frappe-card" style="padding: 15px; margin-bottom: 15px;">
 				<h5>${__("Summary")}</h5>
 				<table class="table table-sm">
-					${line(__("Name"), `${d.first_name || ""} ${d.last_name || ""}`)}
+					${line(__("Name"), full_name)}
 					${line(__("Date of Birth"), d.date_of_birth && frappe.datetime.str_to_user(d.date_of_birth))}
 					${line(__("E-mail"), d.email)}
 					${line(__("Company"), d.company)}
