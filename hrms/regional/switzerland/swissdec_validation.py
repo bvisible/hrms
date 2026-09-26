@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import frappe
+from frappe import _
 from frappe.utils import flt
 
 from hrms.regional.switzerland.constants import SWISS_CANTONS
@@ -81,7 +82,7 @@ def _validate_correction(original_declaration):
 		results.append(
 			ValidationResult(
 				level="warning",
-				message="No original declaration referenced. Recommended for corrective declarations.",
+				message=_("No original declaration referenced. Recommended for corrective declarations."),
 			)
 		)
 	else:
@@ -92,7 +93,7 @@ def _validate_correction(original_declaration):
 				ValidationResult(
 					level="error",
 					field_name="original_declaration",
-					message=f"Original declaration '{original_declaration}' does not exist.",
+					message=_("Original declaration '{0}' does not exist.").format(original_declaration),
 				)
 			)
 		else:
@@ -102,7 +103,9 @@ def _validate_correction(original_declaration):
 					ValidationResult(
 						level="warning",
 						field_name="original_declaration",
-						message=f"Original declaration status is '{status}', expected 'Accepted'.",
+						message=_("Original declaration status is '{0}', expected 'Accepted'.").format(
+							_(status)
+						),
 					)
 				)
 
@@ -126,7 +129,7 @@ def _validate_company(company_data):
 			ValidationResult(
 				level="warning",
 				field_name="ch_uid_bfs",
-				message="Company UID-BFS number is missing. Required for Swissdec declarations.",
+				message=_("Company UID-BFS number is missing. Required for Swissdec declarations."),
 			)
 		)
 	elif not validate_uid_bfs(uid_bfs):
@@ -134,7 +137,7 @@ def _validate_company(company_data):
 			ValidationResult(
 				level="error",
 				field_name="ch_uid_bfs",
-				message=f"Invalid UID-BFS format: {uid_bfs}. Expected: CHE-XXX.XXX.XXX",
+				message=_("Invalid UID-BFS format: {0}. Expected: CHE-XXX.XXX.XXX").format(uid_bfs),
 			)
 		)
 
@@ -143,7 +146,7 @@ def _validate_company(company_data):
 			ValidationResult(
 				level="error",
 				field_name="company_name",
-				message="Company name is required.",
+				message=_("Company name is required."),
 			)
 		)
 
@@ -170,7 +173,7 @@ def _validate_employee(employee_doc):
 				level="error",
 				employee=emp_name,
 				field_name="ch_avs_number",
-				message="AVS number is missing.",
+				message=_("AVS number is missing."),
 			)
 		)
 	elif not validate_avs_number(avs):
@@ -179,7 +182,7 @@ def _validate_employee(employee_doc):
 				level="error",
 				employee=emp_name,
 				field_name="ch_avs_number",
-				message=f"Invalid AVS number format: {avs}",
+				message=_("Invalid AVS number format: {0}").format(avs),
 			)
 		)
 
@@ -190,7 +193,7 @@ def _validate_employee(employee_doc):
 				level="error",
 				employee=emp_name,
 				field_name="date_of_birth",
-				message="Date of birth is missing.",
+				message=_("Date of birth is missing."),
 			)
 		)
 
@@ -202,7 +205,7 @@ def _validate_employee(employee_doc):
 				level="error",
 				employee=emp_name,
 				field_name="ch_fiscal_canton",
-				message="Fiscal canton is missing.",
+				message=_("Fiscal canton is missing."),
 			)
 		)
 	elif canton not in SWISS_CANTONS:
@@ -211,7 +214,7 @@ def _validate_employee(employee_doc):
 				level="error",
 				employee=emp_name,
 				field_name="ch_fiscal_canton",
-				message=f"Invalid canton: {canton}",
+				message=_("Invalid canton: {0}").format(canton),
 			)
 		)
 
@@ -222,7 +225,7 @@ def _validate_employee(employee_doc):
 				level="warning",
 				employee=emp_name,
 				field_name="ch_nationality",
-				message="Nationality is not set. Recommended for ELM.",
+				message=_("Nationality is not set. Recommended for ELM."),
 			)
 		)
 
@@ -235,7 +238,7 @@ def _validate_employee(employee_doc):
 					level="warning",
 					employee=emp_name,
 					field_name="ch_permit_type",
-					message="Permit type not set for non-Swiss employee.",
+					message=_("Permit type not set for non-Swiss employee."),
 				)
 			)
 
@@ -247,7 +250,7 @@ def _validate_employee(employee_doc):
 					level="error",
 					employee=emp_name,
 					field_name="ch_qst_tariff_code",
-					message="Source tax tariff code is missing for QST-subject employee.",
+					message=_("Source tax tariff code is missing for QST-subject employee."),
 				)
 			)
 
@@ -259,7 +262,7 @@ def _validate_employee(employee_doc):
 					level="error",
 					employee=emp_name,
 					field_name="ch_residence_country",
-					message="Residence country is missing for cross-border worker.",
+					message=_("Residence country is missing for cross-border worker."),
 				)
 			)
 
@@ -286,10 +289,11 @@ def _validate_sex(employee_doc):
 			employee=emp_name,
 			field_name="gender",
 			message=(
-				f"Sex {value!r} cannot be declared: the ELM only admits M or F. Record the "
-				"employee's sex as held by the AVS compensation office."
+				_(
+					"Sex '{0}' cannot be declared: the ELM only admits M or F. Record the employee's sex as held by the AVS compensation office."
+				).format(value)
 				if value
-				else "Sex is missing: the ELM declaration requires M or F."
+				else _("Sex is missing: the ELM declaration requires M or F.")
 			),
 		)
 	]
@@ -314,7 +318,7 @@ def _validate_salary_data(salary_data, employee_doc, config=None):
 			ValidationResult(
 				level="error",
 				employee=emp_name,
-				message="No salary slips found for the declaration period.",
+				message=_("No salary slips found for the declaration period."),
 			)
 		)
 		return results
@@ -325,7 +329,7 @@ def _validate_salary_data(salary_data, employee_doc, config=None):
 			ValidationResult(
 				level="warning",
 				employee=emp_name,
-				message="Total gross salary is zero or negative.",
+				message=_("Total gross salary is zero or negative."),
 			)
 		)
 
@@ -337,7 +341,7 @@ def _validate_salary_data(salary_data, employee_doc, config=None):
 				level="warning",
 				employee=emp_name,
 				field_name="avs_employee",
-				message="No AVS employee contributions found despite positive gross salary.",
+				message=_("No AVS employee contributions found despite positive gross salary."),
 			)
 		)
 
@@ -354,7 +358,7 @@ def _validate_salary_data(salary_data, employee_doc, config=None):
 					level="warning",
 					employee=emp_name,
 					field_name="source_tax_total",
-					message="No source tax withheld for QST-subject employee.",
+					message=_("No source tax withheld for QST-subject employee."),
 				)
 			)
 
@@ -365,11 +369,28 @@ def _validate_salary_data(salary_data, employee_doc, config=None):
 					level="error",
 					employee=emp_name,
 					field_name="ch_qst_predefined_category",
-					message=conflict["message"],
+					message=_split_conflict_message(conflict),
 				)
 			)
 
 	return results
+
+
+def _split_conflict_message(conflict):
+	"""The conflict found by detect_split_required, in the user's language.
+
+	tax_at_source_category stays free of Frappe, so its English message is written again here, by
+	reason, where it can be translated. The two texts say the same thing.
+	"""
+	if conflict.get("reason") == "board_fee_under_tariff_code":
+		return _(
+			"Board fees ({0}) are declared under tariff code {1}, but a non-resident board member is taxed on them at a linear rate under HEN/HEY. Enter the person twice — one personnel number for the salary, one for the fee — as the ELM guidelines require."
+		).format(", ".join(conflict["board_wage_types"]), conflict["category"])
+	if conflict.get("reason") == "salary_under_board_fee_category":
+		return _(
+			"Ordinary salary ({0}) is declared under the board-fee category {1}, which taxes it at a linear rate. Enter the person twice — one personnel number for the salary, one for the fee."
+		).format(", ".join(conflict["other_wage_types"]), conflict["category"])
+	return conflict["message"]
 
 
 def _paid_wage_type_codes(salary_data):
@@ -465,21 +486,22 @@ def get_validation_summary(results):
 	warnings = [r for r in results if r.level == "warning"]
 	infos = [r for r in results if r.level == "info"]
 
+	company = _("Company")
 	lines = []
 	if errors:
-		lines.append(f"ERRORS ({len(errors)}):")
+		lines.append(_("ERRORS ({0}):").format(len(errors)))
 		for r in errors:
-			prefix = f"  [{r.employee}]" if r.employee else "  [Company]"
+			prefix = f"  [{r.employee}]" if r.employee else f"  [{company}]"
 			lines.append(f"{prefix} {r.message}")
 
 	if warnings:
-		lines.append(f"\nWARNINGS ({len(warnings)}):")
+		lines.append("\n" + _("WARNINGS ({0}):").format(len(warnings)))
 		for r in warnings:
-			prefix = f"  [{r.employee}]" if r.employee else "  [Company]"
+			prefix = f"  [{r.employee}]" if r.employee else f"  [{company}]"
 			lines.append(f"{prefix} {r.message}")
 
 	if not errors and not warnings:
-		lines.append("All validations passed.")
+		lines.append(_("All validations passed."))
 
 	return {
 		"error_count": len(errors),
@@ -515,7 +537,9 @@ def validate_ema_notification(employee_doc, event_type, event_date):
 				level="error",
 				employee=emp_name,
 				field_name="event_type",
-				message=f"Invalid event type: {event_type}. Must be one of {valid_types}.",
+				message=_("Invalid event type: {0}. Must be one of {1}.").format(
+					event_type, ", ".join(valid_types)
+				),
 			)
 		)
 
@@ -526,7 +550,7 @@ def validate_ema_notification(employee_doc, event_type, event_date):
 				level="error",
 				employee=emp_name,
 				field_name="event_date",
-				message="Event date is required.",
+				message=_("Event date is required."),
 			)
 		)
 
@@ -539,7 +563,7 @@ def validate_ema_notification(employee_doc, event_type, event_date):
 					level="warning",
 					employee=emp_name,
 					field_name="ch_entry_date",
-					message="Entry date not set on employee for Eintritt notification.",
+					message=_("Entry date not set on employee for Eintritt notification."),
 				)
 			)
 
@@ -552,7 +576,7 @@ def validate_ema_notification(employee_doc, event_type, event_date):
 					level="warning",
 					employee=emp_name,
 					field_name="ch_exit_date",
-					message="Exit date not set on employee for Austritt notification.",
+					message=_("Exit date not set on employee for Austritt notification."),
 				)
 			)
 

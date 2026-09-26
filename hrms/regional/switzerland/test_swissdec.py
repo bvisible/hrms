@@ -1853,6 +1853,85 @@ class TestElmInternalPreview(unittest.TestCase):
 		self.assertTrue(mark_as_internal_preview(b"<SalaryDeclaration/>").startswith(b"<!-- Internal preview"))
 
 
+class TestValidationMessagesAreTranslatable(unittest.TestCase):
+	"""Every message of the validation log goes through _(): on a French desk the whole log, the
+	per-employee notes and the summary headings read in English (osiris, 2026-09-26)."""
+
+	@staticmethod
+	def _marked(text, *args, **kwargs):
+		return f"«{text}»"
+
+	def test_every_message_goes_through_the_translation_function(self):
+		from unittest.mock import patch
+
+		from hrms.regional.switzerland import swissdec_validation as validation
+
+		incomplete = {
+			"name": "EMP-1",
+			"ch_nationality": "Portugal",
+			"ch_qst_subject": 1,
+			"ch_is_cross_border": 1,
+			"gender": "Other",
+		}
+		wrong = {"name": "EMP-2", "ch_avs_number": "756.1234", "ch_fiscal_canton": "XX", "gender": ""}
+		unpaid = {"name": "EMP-3", "ch_qst_subject": 1, "ch_qst_tariff_code": "A0N", "gender": "Male"}
+		with patch.object(validation, "_", side_effect=self._marked):
+			results = validation.validate_declaration(
+				[
+					{"employee_doc": incomplete, "salary_data": {}},
+					{"employee_doc": wrong, "salary_data": {"months_worked": 1, "total_gross": 0}},
+					{"employee_doc": unpaid, "salary_data": {"months_worked": 1, "total_gross": 5000}},
+				],
+				{"ch_uid_bfs": "123"},
+				declaration_type="Correction",
+			)
+			results += validation.validate_ema_notification({"name": "EMP-4"}, "Invalid", None)
+			results += validation.validate_ema_notification({"name": "EMP-5"}, "Eintritt", "2026-03-01")
+			results += validation.validate_ema_notification({"name": "EMP-6"}, "Austritt", "2026-03-01")
+			conflicts = [
+				validation._split_conflict_message(
+					{"reason": "board_fee_under_tariff_code", "board_wage_types": ["1500"], "category": "A0N"}
+				),
+				validation._split_conflict_message(
+					{
+						"reason": "salary_under_board_fee_category",
+						"other_wage_types": ["1000"],
+						"category": "HEN",
+					}
+				),
+			]
+			summary = validation.get_validation_summary(results)["text_summary"]
+			passed = validation.get_validation_summary([])["text_summary"]
+
+		self.assertGreater(len(results), 15)
+		for message in [r.message for r in results] + conflicts:
+			self.assertTrue(message.startswith("«") and message.endswith("»"), message)
+		self.assertIn("«ERRORS (", summary)
+		self.assertIn("«WARNINGS (", summary)
+		self.assertIn("[«Company»]", summary)
+		self.assertEqual(passed, "«All validations passed.»")
+
+	def test_the_translated_conflicts_say_what_the_pure_module_says(self):
+		"""tax_at_source_category stays free of Frappe: its two English texts are written again where
+		they are translated, and must not drift apart (the site's language left out)."""
+		from unittest.mock import patch
+
+		from hrms.regional.switzerland import swissdec_validation as validation
+		from hrms.regional.switzerland.tax_at_source_category import (
+			CATEGORY_PREDEFINED,
+			CATEGORY_TARIFF,
+			detect_split_required,
+		)
+
+		tariff = {"kind": CATEGORY_TARIFF, "value": "B0N", "withhold": True}
+		board = {"kind": CATEGORY_PREDEFINED, "value": "HEN", "withhold": True}
+		with patch.object(validation, "_", side_effect=lambda text, *args, **kwargs: text):
+			for category in (tariff, board):
+				conflict = detect_split_required(["1000", "1500"], category)
+				self.assertIsNotNone(conflict, category)
+				self.assertEqual(validation._split_conflict_message(conflict), conflict["message"])
+
+
 class TestExportAttachedOnce(SiteSafeTestCase):
 	"""One export, one attachment. The File must name its Attach field: otherwise saving the declaration
 	runs Frappe's attach_files_to_document, which attaches a second File to the field, and every

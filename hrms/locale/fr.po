@@ -22645,3 +22645,123 @@ msgstr "Certificats de salaire pour les cantons (ZIP)"
 #: hrms/regional/switzerland/year_end.py
 msgid "No validated salary certificate of {0} goes to a canton that wants a copy (BS, BE, FR, JU, NE, SO, VD, VS; LU if you choose)."
 msgstr "Aucun certificat de salaire validé de {0} ne concerne un canton qui demande une copie (BS, BE, FR, JU, NE, SO, VD, VS ; LU si vous le choisissez)."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "All validations passed."
+msgstr "Toutes les validations ont réussi."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Board fees ({0}) are declared under tariff code {1}, but a non-resident board member is taxed on them at a linear rate under HEN/HEY. Enter the person twice — one personnel number for the salary, one for the fee — as the ELM guidelines require."
+msgstr "Les honoraires d'administrateur ({0}) sont déclarés sous le code tarifaire {1}, mais un administrateur non-résident est imposé sur ceux-ci à un taux linéaire selon HEN/HEY. Saisissez la personne deux fois — un numéro de personnel pour le salaire, un pour les honoraires — comme l'exigent les directives ELM."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Ordinary salary ({0}) is declared under the board-fee category {1}, which taxes it at a linear rate. Enter the person twice — one personnel number for the salary, one for the fee."
+msgstr "Le salaire ordinaire ({0}) est déclaré sous la catégorie des honoraires d'administrateur {1}, qui l'impose à un taux linéaire. Saisissez la personne deux fois — un numéro de personnel pour le salaire, un pour les honoraires."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "No original declaration referenced. Recommended for corrective declarations."
+msgstr "Aucune déclaration d'origine référencée. Recommandé pour les déclarations rectificatives."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Company UID-BFS number is missing. Required for Swissdec declarations."
+msgstr "Le numéro UID-BFS de la société est manquant. Requis pour les déclarations Swissdec."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Company name is required."
+msgstr "Le nom de la société est requis."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "AVS number is missing."
+msgstr "Le numéro AVS est manquant."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Date of birth is missing."
+msgstr "La date de naissance est manquante."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Fiscal canton is missing."
+msgstr "Le canton fiscal est manquant."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Nationality is not set. Recommended for ELM."
+msgstr "La nationalité n'est pas renseignée. Recommandé pour l'ELM."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Sex is missing: the ELM declaration requires M or F."
+msgstr "Le sexe est manquant : la déclaration ELM exige M ou F."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "No salary slips found for the declaration period."
+msgstr "Aucune fiche de salaire trouvée pour la période de déclaration."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Total gross salary is zero or negative."
+msgstr "Le salaire brut total est nul ou négatif."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "No AVS employee contributions found despite positive gross salary."
+msgstr "Aucune cotisation salariale AVS trouvée malgré un salaire brut positif."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "ERRORS ({0}):"
+msgstr "ERREURS ({0}) :"
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Event date is required."
+msgstr "La date de l'événement est requise."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Permit type not set for non-Swiss employee."
+msgstr "Le type de permis n'est pas renseigné pour un employé non suisse."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Source tax tariff code is missing for QST-subject employee."
+msgstr "Le code tarifaire de l'impôt à la source est manquant pour un employé soumis à l'impôt à la source."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Residence country is missing for cross-border worker."
+msgstr "Le pays de résidence est manquant pour un frontalier."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "No source tax withheld for QST-subject employee."
+msgstr "Aucun impôt à la source retenu pour un employé soumis à l'impôt à la source."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "WARNINGS ({0}):"
+msgstr "AVERTISSEMENTS ({0}) :"
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Entry date not set on employee for Eintritt notification."
+msgstr "La date d'entrée de l'employé n'est pas renseignée pour l'annonce d'entrée (Eintritt)."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Exit date not set on employee for Austritt notification."
+msgstr "La date de sortie de l'employé n'est pas renseignée pour l'annonce de sortie (Austritt)."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Sex '{0}' cannot be declared: the ELM only admits M or F. Record the employee's sex as held by the AVS compensation office."
+msgstr "Le sexe '{0}' ne peut pas être déclaré : l'ELM n'admet que M ou F. Enregistrez le sexe de l'employé tel qu'il figure auprès de la caisse de compensation AVS."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Invalid event type: {0}. Must be one of {1}."
+msgstr "Type d'événement invalide : {0}. Doit être l'un des types suivants : {1}."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Original declaration '{0}' does not exist."
+msgstr "La déclaration d'origine '{0}' n'existe pas."
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Invalid UID-BFS format: {0}. Expected: CHE-XXX.XXX.XXX"
+msgstr "Format UID-BFS invalide : {0}. Format attendu : CHE-XXX.XXX.XXX"
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Invalid AVS number format: {0}"
+msgstr "Format de numéro AVS invalide : {0}"
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Invalid canton: {0}"
+msgstr "Canton invalide : {0}"
+
+#: hrms/regional/switzerland/swissdec_validation.py
+msgid "Original declaration status is '{0}', expected 'Accepted'."
+msgstr "Le statut de la déclaration d'origine est '{0}', alors qu'il devrait être 'Accepté'."
