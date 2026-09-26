@@ -22516,3 +22516,11 @@ msgstr "récent"
 #: hrms/regional/switzerland/employee_wizard.py
 msgid "Only HR staff can hire an employee."
 msgstr "Seul le personnel RH peut engager un employé."
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "Canton {0} levies no church tax at source: tariff {1}."
+msgstr "Le canton {0} ne prélève pas d'impôt ecclésiastique à la source : barème {1}."
+
+#: hrms/regional/switzerland/employee_wizard.py
+msgid "Canton {0} levies the church tax at source for everyone: tariff {1}."
+msgstr "Le canton {0} prélève l'impôt ecclésiastique à la source pour tout le monde : barème {1}."

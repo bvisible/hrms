@@ -391,3 +391,30 @@ class TestAvsChecksum(unittest.TestCase):
 		from hrms.regional.switzerland.employee_wizard import format_avs_number
 
 		self.assertEqual(format_avs_number("7561234567897"), "756.1234.5678.97")
+
+
+class TestEffectiveTariffCode(unittest.TestCase):
+	"""The code a canton publishes: GE, NE, TI, VD and VS have no church tax at source (only "...N"),
+	JU levies it for everyone (only "...Y"). Found against the certified engine: a church member in
+	Valais is taxed on A0N (2026-09-26)."""
+
+	def effective(self, published, canton, code):
+		from hrms.regional.switzerland import source_tax
+
+		def exists(canton, tariff_code, reference_date, tariff_type="SAL"):
+			return (canton, tariff_code) in published
+
+		with patch.object(source_tax, "tariff_code_exists", exists):
+			return source_tax.effective_tariff_code(canton, code, "2026-10-31")
+
+	def test_a_church_member_in_valais_is_on_the_n_code(self):
+		self.assertEqual(self.effective({("VS", "A0N")}, "VS", "A0Y"), "A0N")
+
+	def test_jura_levies_it_for_everyone(self):
+		self.assertEqual(self.effective({("JU", "B1Y")}, "JU", "B1N"), "B1Y")
+
+	def test_a_published_code_is_kept(self):
+		self.assertEqual(self.effective({("ZH", "A0Y"), ("ZH", "A0N")}, "ZH", "A0Y"), "A0Y")
+
+	def test_nothing_published_keeps_the_code_for_the_caller_to_report(self):
+		self.assertEqual(self.effective(set(), "VS", "A0Y"), "A0Y")

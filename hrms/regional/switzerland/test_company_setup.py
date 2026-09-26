@@ -223,6 +223,29 @@ class TestEmployeeWizardHiring(FrappeTestCase):
 			):
 				self.assertRaises(frappe.PermissionError, call)
 
+	def test_a_church_member_in_valais_is_shown_the_tariff_the_payroll_uses(self):
+		# Valais publishes no "...Y" code: the wizard announced missing tariffs for A0Y, the payroll
+		# then taxed A0N (bench against the certified engine, 2026-09-26).
+		from hrms.regional.switzerland import employee_wizard, source_tax
+
+		def exists(canton, tariff_code, reference_date, tariff_type="SAL"):
+			return (canton, tariff_code) == ("VS", "A0N")
+
+		with (
+			patch.object(source_tax, "tariff_code_exists", exists),
+			patch.object(employee_wizard, "tariff_code_exists", exists),
+		):
+			res = employee_wizard.suggest_source_tax(
+				{
+					"permit_type": "Permit B (Residence)",
+					"residence_canton": "VS",
+					"marital_status": "Single",
+					"church_tax": 1,
+				}
+			)
+		self.assertEqual((res["tariff_code"], res["tariff_available"]), ("A0N", True))
+		self.assertTrue(any(note.endswith("A0N.") for note in res["notes"]), res["notes"])
+
 	def test_the_cross_border_note_names_the_letter_of_the_situation(self):
 		# A married German commuter with one income is on M: the note said L, the first letter of
 		# the German family, next to a tariff M2N (screen test, 24.09).

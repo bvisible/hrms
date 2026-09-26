@@ -440,6 +440,20 @@ def tariff_code_exists(canton, tariff_code, reference_date, tariff_type="SAL"):
 	return bool(result)
 
 
+def effective_tariff_code(canton, tariff_code, reference_date):
+	"""The code the canton actually publishes for this situation.
+
+	Some cantons publish only one church-tax variant: GE, NE, TI, VD and VS only "...N" codes (no
+	church tax at source), JU only "...Y" (church tax levied for everyone). When the requested code
+	does not exist but its N<->Y twin does, the twin is the one that applies — a church member in
+	Valais is taxed on A0N. Neither existing: the requested code stays, and the caller reports it.
+	"""
+	if tariff_code_exists(canton, tariff_code, reference_date):
+		return tariff_code
+	twin = tariff_code[:-1] + ("Y" if tariff_code.endswith("N") else "N")
+	return twin if tariff_code_exists(canton, twin, reference_date) else tariff_code
+
+
 def ensure_tariff_available(canton, tariff_code, reference_date, tariff_type="SAL"):
 	"""Fail loudly when no tariff data exists for a source-taxed employee.
 
@@ -614,15 +628,11 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 
 	ref_date = salary_slip_doc.end_date or salary_slip_doc.start_date
 
-	# Some cantons publish only one church-tax variant: GE only "...N"
-	# codes (no church tax at source), JU only "...Y" (church tax levied
-	# for everyone). Fall back to the twin code when the requested one
-	# does not exist but its N<->Y twin does — the code actually used is
-	# stored on the slip either way.
-	if gross > 0 and not tariff_code_exists(canton, tariff_code, ref_date):
-		twin = tariff_code[:-1] + ("Y" if tariff_code.endswith("N") else "N")
-		if tariff_code_exists(canton, twin, ref_date):
-			tariff_code = twin
+	# Some cantons publish only one church-tax variant (GE only "...N", JU only "...Y"): the twin
+	# code applies when the requested one does not exist — the code actually used is stored on the
+	# slip either way. The hiring wizard shows the same code (effective_tariff_code).
+	if gross > 0:
+		tariff_code = effective_tariff_code(canton, tariff_code, ref_date)
 
 	# Never withhold 0 silently because tariff data is missing
 	if gross > 0:

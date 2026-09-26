@@ -26,6 +26,7 @@ from hrms.regional.switzerland.cross_border import suggest_tariff_letter
 from hrms.regional.switzerland.permissions import check_company_access
 from hrms.regional.switzerland.source_tax import (
 	build_tariff_code,
+	effective_tariff_code,
 	get_calculation_model,
 	tariff_code_exists,
 )
@@ -200,6 +201,19 @@ def suggest_source_tax(data):
 	tariff_available = None
 	if qst_subject and canton:
 		reference = data.get("reference_date") or frappe.utils.today()
+		# The code the payroll will use: a canton without church tax at source (GE, NE, TI, VD, VS)
+		# publishes only "...N" codes, and the wizard used to announce missing tariffs for a church
+		# member there (bench against the certified engine, 2026-09-26).
+		effective = effective_tariff_code(canton, code, reference)
+		if effective != code:
+			notes.append(
+				_("Canton {0} levies no church tax at source: tariff {1}.").format(canton, effective)
+				if effective.endswith("N")
+				else _("Canton {0} levies the church tax at source for everyone: tariff {1}.").format(
+					canton, effective
+				)
+			)
+			code = effective
 		tariff_available = bool(tariff_code_exists(canton, code, reference))
 		if not tariff_available:
 			notes.append(
