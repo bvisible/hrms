@@ -1,5 +1,6 @@
 //// Neoffice — added file (no upstream equivalent): desk form of the Swissdec declaration
-//// (generate the ELM XML, transmit, follow the status).
+//// (generate the ELM XML — an internal preview since the certified software transmits —,
+//// transmit where a gateway is switched on, follow the status).
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 // License: GNU General Public License v3. See license.txt
 
@@ -20,6 +21,19 @@ frappe.ui.form.on("Swissdec Declaration", {
 	},
 
 	refresh(frm) {
+		// The ELM declaration is transmitted by the certified payroll software (2026-09-23): the XML
+		// made here is an internal preview, and the gateway buttons show only where the gateway is
+		// switched on (neoffice-maintenance#653).
+		const can_transmit = !!(frm.doc.__onload && frm.doc.__onload.transmission_enabled);
+		if (!can_transmit && !frm.is_new()) {
+			frm.set_intro(
+				__(
+					"The ELM declaration is transmitted by the certified payroll software. The XML made here is an internal preview, not valid against the Swissdec schema: do not send it."
+				),
+				"orange"
+			);
+		}
+
 		// Populate Employees button
 		if (frm.doc.company && frm.doc.fiscal_year && frm.doc.status === "Draft") {
 			frm.add_custom_button(
@@ -42,10 +56,10 @@ frappe.ui.form.on("Swissdec Declaration", {
 			);
 		}
 
-		// Export XML button
+		// Internal XML preview button
 		if (frm.doc.status === "Validated" || frm.doc.status === "Exported") {
 			frm.add_custom_button(
-				__("Export XML"),
+				__("Internal XML preview"),
 				() => {
 					frm.call("export_xml").then(() => frm.refresh_fields());
 				},
@@ -54,7 +68,7 @@ frappe.ui.form.on("Swissdec Declaration", {
 		}
 
 		// Transmit button
-		if (frm.doc.status === "Exported") {
+		if (can_transmit && frm.doc.status === "Exported") {
 			frm.add_custom_button(
 				__("Transmit"),
 				() => {
@@ -70,7 +84,7 @@ frappe.ui.form.on("Swissdec Declaration", {
 		}
 
 		// Check Status button
-		if (frm.doc.status === "Transmitted") {
+		if (can_transmit && frm.doc.status === "Transmitted") {
 			frm.add_custom_button(
 				__("Check Status"),
 				() => {
@@ -121,7 +135,7 @@ frappe.ui.form.on("Swissdec Declaration", {
 		}
 
 		// Re-transmit button
-		if (frm.doc.status === "Rejected") {
+		if (can_transmit && frm.doc.status === "Rejected") {
 			frm.add_custom_button(
 				__("Re-transmit"),
 				() => {
