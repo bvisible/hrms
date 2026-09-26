@@ -193,7 +193,7 @@ class TestAnnexe1Oracle(unittest.TestCase):
 		active = self._active_months(case)
 		if not active:
 			return "no active months"
-		cum_gross = cum_aper = cum_days = 0.0
+		cum_gross = cum_aper = cum_days = cum_extrapolated = 0.0
 		for m in active:
 			canton = (case["cantons"] or [None] * 12)[m]
 			if not canton:
@@ -214,7 +214,8 @@ class TestAnnexe1Oracle(unittest.TestCase):
 				cum_gross += gross
 				cum_aper += aperiodic
 				cum_days += days
-				det_engine = round(((cum_gross - cum_aper) / cum_days * 360 * factor + cum_aper) / 12, 2)
+				cum_extrapolated += (gross - aperiodic) * factor
+				det_engine = round((cum_extrapolated / cum_days * 360 + cum_aper) / 12, 2)
 				if det is not None and abs(float(det) - det_engine) > 0.02:
 					return "determinant beyond day/activity annualization (special settlement)"
 		return None
@@ -295,6 +296,9 @@ class TestAnnexe1Oracle(unittest.TestCase):
 		corrections = self._corrections_by_month(case)
 		state = {}  # code -> {"cum": float, "ytd": float}
 		tot_periodic = tot_aperiodic = tot_days = 0.0
+		# Each month's periodic income extrapolated with ITS activity rates, as the payroll reads the
+		# year back from the slips (Y11: another activity that ends in March), #839.
+		tot_periodic_extrapolated = 0.0
 		for m in self._active_months(case):
 			month = m + 1
 			gross, days, aperiodic, canton, code = self._month_inputs(case, m)
@@ -307,6 +311,7 @@ class TestAnnexe1Oracle(unittest.TestCase):
 			st = state.setdefault(code, {"cum": 0.0, "ytd": 0.0})
 			st["cum"] = round(st["cum"] + self._month_taxable(case, m), 2)
 			tot_periodic += gross - aperiodic
+			tot_periodic_extrapolated += (gross - aperiodic) * self._month_factor(case, m)
 			tot_aperiodic += aperiodic
 			tot_days += days
 			own, total = self._month_activity(case, m)
@@ -321,6 +326,7 @@ class TestAnnexe1Oracle(unittest.TestCase):
 				},
 				activity_rate_own=own,
 				activity_rate_total=total,
+				periodic_extrapolated=tot_periodic_extrapolated,
 			)
 			expected = float(case["expected_tax"][m])
 			context = (

@@ -9,6 +9,7 @@ from hrms.regional.switzerland.source_tax import (
 	activity_rates,
 	build_tariff_code,
 	calculate_source_tax_annual,
+	calculate_source_tax_annual_settlement,
 	calculate_source_tax_monthly,
 	get_calculation_model,
 )
@@ -485,6 +486,26 @@ class TestOtherEmployers(unittest.TestCase):
 		)
 		self.assertEqual(odd["ch_qst_other_activity_basis"], "Unknown")
 		self.assertEqual(activity_rates({"ch_work_percentage": 50, **odd}, 3000), (0.5, 1.0))
+
+	def test_the_annual_year_is_extrapolated_month_by_month(self):
+		"""Annex 1 Y11: 2'600 at 50 %, 90 % in all for three months, then nothing elsewhere. In April
+		the determinant is (3 x 4'680 + 2'600) / 4 = 4'160, not April's rate over the whole year."""
+		from hrms.regional.switzerland.source_tax import ytd_periodic_extrapolated
+
+		ytd = {"slips": [{"gross": 2600, "aperiodic": 0, "activity_factor": 1.8}] * 3}
+		self.assertAlmostEqual(ytd_periodic_extrapolated(ytd, 1.0), 3 * 4680)
+		# A slip settled before its rates were recorded takes this month's.
+		self.assertAlmostEqual(ytd_periodic_extrapolated({"slips": [{"gross": 2600}]}, 1.8), 4680)
+		with patch("hrms.regional.switzerland.source_tax.lookup_qst_rate", return_value=0.1):
+			result = calculate_source_tax_annual_settlement(
+				"GE",
+				"2021-04-30",
+				total_periodic=4 * 2600,
+				total_days=120,
+				per_code={"A0N": {"cumulative_gross": 4 * 2600, "ytd_tax": 0}},
+				periodic_extrapolated=3 * 4680 + 2600,
+			)
+		self.assertEqual(result["determinant"], 4160)
 
 	def test_an_aperiodic_payment_is_not_extrapolated(self):
 		"""Annex 1 M8, November: 4'550 at 70 % and a 2'000 bonus -> 6'500 + 2'000 = 8'500."""

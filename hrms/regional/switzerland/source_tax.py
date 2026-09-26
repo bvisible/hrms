@@ -278,6 +278,7 @@ def calculate_source_tax_annual_settlement(
 	per_code=None,
 	activity_rate_own=None,
 	activity_rate_total=None,
+	periodic_extrapolated=None,
 ):
 	"""Generalized annual-model settlement across all tariff codes of the year.
 
@@ -303,6 +304,11 @@ def calculate_source_tax_annual_settlement(
 		total_aperiodic: Cumulative aperiodic gross of the year.
 		total_days: Cumulative source-tax days (base 360).
 		per_code: {code: {"cumulative_gross": x, "ytd_tax": y}}.
+		activity_rate_own, activity_rate_total: with other employers, the
+			extrapolation of total_periodic (activity_rates).
+		periodic_extrapolated: the periodic income of the year, each month
+			already extrapolated with ITS activity rates (Annex 1 Y11: 1.8
+			for three months, then 1.0); replaces total_periodic x factor.
 
 	Returns:
 		dict with tax_amount (sum, may be negative), determinant,
@@ -311,12 +317,12 @@ def calculate_source_tax_annual_settlement(
 	total_days = flt(total_days)
 	factor = _activity_extrapolation(activity_rate_own, activity_rate_total)
 	# //// Neoffice — the aperiodic part is no longer extrapolated to the total activity (#839, see
-	# //// _activity_extrapolation).
-	annualized = (
-		round_half_up(flt(total_periodic) / total_days * 360 * factor + flt(total_aperiodic))
-		if total_days
-		else 0
+	# //// _activity_extrapolation); and when the months carry their own activity rates, the
+	# //// periodic income comes already extrapolated month by month.
+	periodic = (
+		flt(periodic_extrapolated) if periodic_extrapolated is not None else flt(total_periodic) * factor
 	)
+	annualized = round_half_up(periodic / total_days * 360 + flt(total_aperiodic)) if total_days else 0
 	determinant = round_half_up(annualized / 12)
 
 	from decimal import Decimal as _D
@@ -371,6 +377,7 @@ def calculate_source_tax_annual(
 	ytd_aperiodic=0.0,
 	activity_rate_own=None,
 	activity_rate_total=None,
+	ytd_periodic_extrapolated=None,
 ):
 	"""Calculate source tax using the annual model.
 
@@ -401,6 +408,9 @@ def calculate_source_tax_annual(
 		aperiodic: Aperiodic portion of this month's gross.
 		ytd_aperiodic: Aperiodic portion of ytd_gross.
 		activity_rate_own, activity_rate_total: with other employers (activity_rates).
+		ytd_periodic_extrapolated: the periodic income before this month, each
+			month extrapolated with its own activity rates (None: the rates of
+			this month apply to the whole year).
 
 	Returns:
 		dict with tax_amount, tax_rate, determinant, projected_annual,
@@ -440,6 +450,10 @@ def calculate_source_tax_annual(
 		per_code={tariff_code: {"cumulative_gross": total_gross, "ytd_tax": ytd_tax}},
 		activity_rate_own=activity_rate_own,
 		activity_rate_total=activity_rate_total,
+		periodic_extrapolated=None
+		if ytd_periodic_extrapolated is None
+		else flt(ytd_periodic_extrapolated)
+		+ (gross - flt(aperiodic)) * _activity_extrapolation(activity_rate_own, activity_rate_total),
 	)
 	code_result = settlement["by_code"].get(tariff_code) or {"tax_rate": 0, "cumulative_due": 0}
 	this_month_tax = settlement["tax_amount"]
@@ -693,6 +707,7 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 	# //// Neoffice — with other employers the rate is determined on the whole activity (#839): the
 	# //// engine could extrapolate, but the payroll never gave it the activity rates.
 	own_rate, total_rate = activity_rates(employee_doc, gross - flt(aperiodic))
+	activity_factor = _activity_extrapolation(own_rate, total_rate)
 
 	if model == "monthly":
 		result = calculate_source_tax_monthly(
@@ -770,6 +785,8 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 				per_code=per_code,
 				activity_rate_own=own_rate,
 				activity_rate_total=total_rate,
+				periodic_extrapolated=ytd_periodic_extrapolated(ytd_data, activity_factor)
+				+ (gross - flt(aperiodic)) * activity_factor,
 			)
 			result["corrections"] = [
 				{
@@ -797,9 +814,13 @@ def calculate_source_tax(employee_doc, salary_slip_doc, config, aperiodic=0.0, g
 				ytd_aperiodic=flt(ytd_data.get("ytd_aperiodic") or 0),
 				activity_rate_own=own_rate,
 				activity_rate_total=total_rate,
+				ytd_periodic_extrapolated=ytd_periodic_extrapolated(ytd_data, activity_factor),
 			)
 
 	result["tariff_code"] = tariff_code
+	# //// Neoffice — the activity extrapolation this slip was settled with (#839): the annual model
+	# //// reads it back, month by month (ytd_periodic_extrapolated).
+	result["activity_factor"] = activity_factor
 	# //// Neoffice — and the canton whose tariff was applied: the slip records it (ch_qst_canton), so
 	# //// the year-end recap splits the tax by the canton each slip paid it to, not the one the
 	# //// employee lives in when the recap runs (a move mid-year sent the whole year to the new canton).
@@ -840,19 +861,26 @@ def get_qst_ytd_data(employee, company, start_date, employee_doc=None):
 	Returns:
 		dict with ytd_gross, ytd_tax and ytd_days (None without employee_doc).
 	"""
+	from hrms.regional.switzerland.patch_utils import has_swiss_columns
 	from hrms.regional.switzerland.payroll_hooks import _resolve_component_by_wage_type
 
 	year_start = getdate(start_date).replace(month=1, day=1)
 	component = _resolve_component_by_wage_type(5060, "Source Tax Employee")
+	# //// Neoffice — the activity extrapolation each slip was settled with (#839); a site not migrated
+	# //// yet has no column for it, and its slips count at this month's.
+	factor = (
+		"ss.ch_qst_activity_factor" if has_swiss_columns("Salary Slip", "ch_qst_activity_factor") else "NULL"
+	)
 
 	slips = frappe.db.sql(
-		"""SELECT
+		f"""SELECT
 			ss.name,
 			ss.gross_pay,
 			ss.start_date,
 			ss.end_date,
 			ss.ch_qst_tariff_code,
 			ss.ch_qst_aperiodic,
+			{factor} AS ch_qst_activity_factor,
 			(SELECT COALESCE(SUM(sd.amount), 0)
 			 FROM `tabSalary Detail` sd
 			 WHERE sd.parent = ss.name
@@ -884,10 +912,23 @@ def get_qst_ytd_data(employee, company, start_date, employee_doc=None):
 				"gross": flt(slip.gross_pay),
 				"tax": flt(slip.slip_tax),
 				"code": slip.ch_qst_tariff_code,
+				"aperiodic": flt(slip.ch_qst_aperiodic),
+				"activity_factor": flt(slip.ch_qst_activity_factor),
 			}
 			for slip in slips
 		],
 	}
+
+
+def ytd_periodic_extrapolated(ytd_data, current_factor):
+	"""The periodic income of the year before this slip, each slip extrapolated with the activity
+	rates it was settled with (Annex 1 Y11: an activity elsewhere that ends in March). A slip
+	settled before its rates were recorded takes this month's (#839)."""
+	return sum(
+		(flt(slip["gross"]) - flt(slip.get("aperiodic")))
+		* (flt(slip.get("activity_factor")) or current_factor)
+		for slip in ytd_data.get("slips") or []
+	)
 
 
 def check_120k_threshold(employee, company, current_gross, start_date, config):
