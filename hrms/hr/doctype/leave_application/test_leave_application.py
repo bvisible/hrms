@@ -27,7 +27,7 @@ from hrms.hr.doctype.leave_application.leave_application import (
 	NotAnOptionalHoliday,
 	OverlapError,
 	get_leave_allocation_records,
-	get_leave_approver,
+	get_leave_approver,  # //// Neoffice — for test_leave_approver_needs_read_on_the_employee (#742)
 	get_leave_balance_on,
 	get_leave_details,
 	get_new_and_cf_leaves_taken,
