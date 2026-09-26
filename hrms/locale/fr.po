@@ -22605,3 +22605,43 @@ msgstr "inconnu : extrapolé à 100 %"
 msgctxt "marital status"
 msgid "Single"
 msgstr "Célibataire"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js
+msgid "The ELM declaration is transmitted by the certified payroll software. The XML made here is an internal preview, not valid against the Swissdec schema: do not send it."
+msgstr "La déclaration ELM est transmise par le logiciel de paie certifié. Le XML produit ici est un aperçu interne, non conforme au schéma Swissdec : ne pas l'envoyer."
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js
+msgid "Internal XML preview"
+msgstr "Aperçu XML interne"
+
+#: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py
+msgid "Internal XML preview created: {0}. It is not a Swissdec ELM declaration and must not be sent: the declaration is transmitted by the certified payroll software."
+msgstr "Aperçu XML interne créé : {0}. Ce n'est pas une déclaration Swissdec ELM et il ne doit pas être envoyé : la déclaration est transmise par le logiciel de paie certifié."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Effective Expenses Within the Model's Limits (13.1.1)"
+msgstr "Frais effectifs dans les limites du modèle (13.1.1)"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Travel, meals and overnight stays reimbursed at cost within the limits of the guide's model (Wegleitung Cm 52): the salary certificates then declare no amount at 13.1.1 but tick its box. Not with an approved expense regulation."
+msgstr "Frais de voyage, repas et nuitées remboursés aux frais effectifs dans les limites du modèle prévu (guide, Cm 52) : les certificats de salaire ne déclarent alors aucun montant au chiffre 13.1.1 mais en cochent la case. Pas avec un règlement des frais agréé."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Our effective expenses stay within the model's limits"
+msgstr "Nos frais effectifs restent dans les limites du modèle"
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Meals up to CHF 35 (or a lump sum of CHF 30), a private car up to CHF 0.75 per km, small expenses up to CHF 20 a day, travel and nights on receipts: then 13.1.1 gets its cross instead of an amount (guide Cm 52)."
+msgstr "Repas jusqu'à CHF 35 (ou un forfait de CHF 30), voiture privée jusqu'à CHF 0.75 par km, menues dépenses jusqu'à CHF 20 par jour, voyages et nuitées sur justificatifs : alors le chiffre 13.1.1 reçoit sa croix au lieu d'un montant (guide, Cm 52)."
+
+#: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
+msgid "Yes, cross at 13.1.1"
+msgstr "Oui, croix au chiffre 13.1.1"
+
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgid "Salary certificates for the cantons (ZIP)"
+msgstr "Certificats de salaire pour les cantons (ZIP)"
+
+#: hrms/regional/switzerland/year_end.py
+msgid "No validated salary certificate of {0} goes to a canton that wants a copy (BS, BE, FR, JU, NE, SO, VD, VS; LU if you choose)."
+msgstr "Aucun certificat de salaire validé de {0} ne concerne un canton qui demande une copie (BS, BE, FR, JU, NE, SO, VD, VS ; LU si vous le choisissez)."
