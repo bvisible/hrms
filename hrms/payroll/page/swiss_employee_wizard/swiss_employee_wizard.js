@@ -306,7 +306,8 @@ class SwissEmployeeWizard {
 					label: __("Marital status"),
 					fieldtype: "Select",
 					options: [
-						{ value: "Single", label: __("Single") },
+						// "Single" alone reads « Simple » in French: Frappe translates it as a Single DocType.
+						{ value: "Single", label: __("Single", null, "marital status") },
 						{ value: "Married", label: __("Married or registered partnership") },
 						{ value: "Divorced", label: __("Divorced or separated") },
 						{ value: "Widowed", label: __("Widowed") },
