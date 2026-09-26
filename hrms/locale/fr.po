@@ -22765,3 +22765,7 @@ msgstr "Canton invalide : {0}"
 #: hrms/regional/switzerland/swissdec_validation.py
 msgid "Original declaration status is '{0}', expected 'Accepted'."
 msgstr "Le statut de la déclaration d'origine est '{0}', alors qu'il devrait être 'Accepté'."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Can be completed later: {0}"
+msgstr "À compléter plus tard : {0}"

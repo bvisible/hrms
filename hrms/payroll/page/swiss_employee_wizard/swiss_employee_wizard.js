@@ -652,6 +652,12 @@ class SwissEmployeeWizard {
 		// Built first: a template literal nested in the summary template hides the __() calls around it
 		// from the POT extractor (see render_badge).
 		const full_name = `${d.first_name || ""} ${d.last_name || ""}`;
+		// The colon inside the message: French puts a space before it.
+		const later = missing.length
+			? `<div class="text-warning small">${__("Can be completed later: {0}", [
+					missing.map(esc).join(" · "),
+			  ])}</div>`
+			: "";
 		this.body.append(`
 			<div class="frappe-card" style="padding: 15px; margin-bottom: 15px;">
 				<h5>${__("Summary")}</h5>
@@ -677,13 +683,7 @@ class SwissEmployeeWizard {
 					${line(__("Badge"), this.badge ? __("Badge …{0}", [this.badge.uid_tail]) : "")}
 					${line(__("Payslips"), d.email ? __("by e-mail") : __("printed, handed out"))}
 				</table>
-				${
-					missing.length
-						? `<div class="text-warning small">${__(
-								"Can be completed later",
-						  )}: ${missing.map(esc).join(" · ")}</div>`
-						: ""
-				}
+				${later}
 			</div>`);
 		this.render_nav(true);
 	}
