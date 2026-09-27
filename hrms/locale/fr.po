@@ -2065,7 +2065,7 @@ msgstr "Êtes-vous sûr de vouloir rejeter la recommandation des employés?"
 
 #: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js:45
 msgid "Are you sure you want to transmit this declaration to Swissdec?"
-msgstr "Êtes-vous sûr de vouloir transmettre cette déclaration à Swissdec ?"
+msgstr "Êtes-vous sûr de vouloir transmettre cette déclaration ELM ?"
 
 #. Label of a Datetime field in DocType 'Travel Itinerary'
 #: hrms/hr/doctype/travel_itinerary/travel_itinerary.json
@@ -4240,7 +4240,7 @@ msgstr "Décision en attente"
 #. Label of a Data field in DocType 'Swissdec Declaration'
 #: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 msgid "Declaration ID (Swissdec)"
-msgstr "ID de déclaration (Swissdec)"
+msgstr "ID de déclaration (ELM)"
 
 #. Label of a Int field in DocType 'Swissdec Declaration'
 #: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
@@ -6228,12 +6228,12 @@ msgstr "Activer l'impôt à la source"
 #. Social Insurance Config'
 #: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
 msgid "Enable Swissdec ELM XML export for salary declarations."
-msgstr "Activer l'export XML Swissdec ELM pour les déclarations de salaire."
+msgstr "Activer l'export XML ELM pour les déclarations de salaire."
 
 #. Label of a Check field in DocType 'Swiss Social Insurance Config'
 #: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
 msgid "Enable Swissdec Export"
-msgstr "Activer l'export Swissdec"
+msgstr "Activer l'export ELM"
 
 #. Label of a Check field in DocType 'Swissdec Transmitter Settings'
 #: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
@@ -7595,9 +7595,7 @@ msgstr "L'URL de la passerelle doit commencer par http:// ou https://"
 msgid ""
 "Gateway authentication failed. Check your API key in Swissdec Transmitter "
 "Settings."
-msgstr ""
-"Échec de l'authentification à la passerelle. Vérifiez votre clé API dans les"
-" paramètres du transmetteur Swissdec."
+msgstr "Échec de l'authentification à la passerelle. Vérifiez votre clé API dans les paramètres de transmission ELM."
 
 #: hrms/regional/switzerland/swissdec_transmitter.py:84
 msgid "Gateway error ({0}): {1}"
@@ -15501,38 +15499,34 @@ msgstr "Type de salaire suisse {0} non trouvé"
 #. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
 #: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
 msgid "Swissdec / ELM"
-msgstr "Swissdec / ELM"
+msgstr "Déclarations ELM"
 
 #. Name of a DocType
 #: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.json
 msgid "Swissdec Declaration"
-msgstr "Déclaration Swissdec"
+msgstr "Déclaration ELM"
 
 #. Name of a DocType
 #: hrms/payroll/doctype/swissdec_declaration_employee/swissdec_declaration_employee.json
 msgid "Swissdec Declaration Employee"
-msgstr "Employé de déclaration Swissdec"
+msgstr "Employé de la déclaration ELM"
 
 #: hrms/regional/switzerland/swissdec_transmitter.py:35
 msgid ""
 "Swissdec Gateway URL and API Key are required. Configure them in Swissdec "
 "Transmitter Settings."
-msgstr ""
-"L'URL de la passerelle Swissdec et la clé API sont requises. Configurez-les "
-"dans les paramètres du transmetteur Swissdec."
+msgstr "L'URL de la passerelle de transmission et la clé API sont requises. Configurez-les dans les paramètres de transmission ELM."
 
 #. Name of a DocType
 #: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
 msgid "Swissdec Transmitter Settings"
-msgstr "Paramètres du transmetteur Swissdec"
+msgstr "Paramètres de transmission ELM"
 
 #: hrms/regional/switzerland/swissdec_transmitter.py:32
 msgid ""
 "Swissdec transmission is not enabled. Configure it in Swissdec Transmitter "
 "Settings."
-msgstr ""
-"La transmission Swissdec n'est pas activée. Configurez-la dans les "
-"paramètres du transmetteur Swissdec."
+msgstr "La transmission ELM n'est pas activée. Configurez-la dans les paramètres de transmission ELM."
 
 #: hrms/payroll/doctype/salary_component/salary_component.js:83
 msgid "Sync {0}"
@@ -16997,7 +16991,7 @@ msgstr "UR"
 #. Transmitter Settings'
 #: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
 msgid "URL of the Swissdec Gateway service (e.g., http://192.168.8.240:8745)"
-msgstr "URL du service passerelle Swissdec (ex. http://192.168.8.240:8745)"
+msgstr "URL du service passerelle de transmission (ex. http://192.168.8.240:8745)"
 
 #: hrms/payroll/doctype/employee_benefit_claim/employee_benefit_claim.py:116
 msgid "Unable to find Salary Component {0}"
@@ -19332,11 +19326,11 @@ msgstr "Paramétrage de la paie suisse"
 
 #: hrms/payroll/workspace/swiss_payroll/swiss_payroll.json
 msgid "Swissdec"
-msgstr "Swissdec"
+msgstr "Déclarations ELM"
 
 #: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.json
 msgid "Swissdec EMA Notification"
-msgstr "Notification EMA Swissdec"
+msgstr "Annonce EMA"
 
 #: hrms/payroll/page/swiss_payroll_setup/swiss_payroll_setup.js:61
 msgid "Tariff tables"
@@ -19562,7 +19556,7 @@ msgstr "Charges sociales"
 #. Description of a Check field in DocType 'Swiss Wage Type'
 #: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
 msgid "Swissdec '–' wage type: the amount reduces the gross salary and every base it is subject to (e.g. 2050, 2060)."
-msgstr "Type de salaire Swissdec '–' : le montant réduit le salaire brut et chaque base à laquelle il est soumis (p. ex. 2050, 2060)."
+msgstr "Genre de salaire marqué « – » : le montant réduit le salaire brut et chaque base à laquelle il est soumis (p. ex. 2050, 2060)."
 
 #. Description of a Check field in DocType 'Swiss Wage Type'
 #: hrms/payroll/doctype/swiss_wage_type/swiss_wage_type.json
@@ -19637,11 +19631,11 @@ msgstr "Numéro AVS (756.XXXX.XXXX.XX)"
 
 #: hrms/regional/switzerland/setup.py
 msgid "Employee nationality (for Swissdec ELM declarations)."
-msgstr "Nationalité de l'employé (pour les déclarations Swissdec ELM)."
+msgstr "Nationalité de l'employé (pour les déclarations ELM)."
 
 #: hrms/regional/switzerland/setup.py
 msgid "Employment percentage (e.g., 80 for 80%). Used for Swissdec ELM."
-msgstr "Taux d'occupation (p. ex. 80 pour 80 %). Utilisé pour Swissdec ELM."
+msgstr "Taux d'occupation (p. ex. 80 pour 80 %). Utilisé pour les déclarations ELM."
 
 #: hrms/regional/switzerland/setup.py
 msgid "Entry Date (Swiss)"
@@ -19649,7 +19643,7 @@ msgstr "Date d'entrée (Suisse)"
 
 #: hrms/regional/switzerland/setup.py
 msgid "Start of employment for Swissdec ELM reporting."
-msgstr "Début des rapports de travail pour la déclaration Swissdec ELM."
+msgstr "Début des rapports de travail pour la déclaration ELM."
 
 #: hrms/regional/switzerland/setup.py
 msgid "Exit Date (Swiss)"
@@ -19657,7 +19651,7 @@ msgstr "Date de sortie (Suisse)"
 
 #: hrms/regional/switzerland/setup.py
 msgid "End of employment for Swissdec ELM reporting."
-msgstr "Fin des rapports de travail pour la déclaration Swissdec ELM."
+msgstr "Fin des rapports de travail pour la déclaration ELM."
 
 #: hrms/regional/switzerland/setup.py
 msgid "Tariff Category"
@@ -19749,7 +19743,7 @@ msgstr "Codes d'assurance (LAA / LAAC / IJM)"
 
 #: hrms/regional/switzerland/setup.py
 msgid "The codes the insurers assigned. Leave empty when the company has a single flat rate per insurance. They are declared as-is to Swissdec."
-msgstr "Les codes attribués par les assureurs. Laisser vide lorsque l'entreprise applique un taux forfaitaire unique par assurance. Ils sont déclarés tels quels à Swissdec."
+msgstr "Les codes attribués par les assureurs. Laisser vide lorsque l'entreprise applique un taux forfaitaire unique par assurance. Ils sont déclarés tels quels dans la déclaration ELM."
 
 #: hrms/regional/switzerland/setup.py
 msgid "LAA Code"
@@ -19809,11 +19803,11 @@ msgstr "Numéro IDE (UID-BFS)"
 
 #: hrms/regional/switzerland/setup.py
 msgid "Company identification number (CHE-XXX.XXX.XXX) for Swissdec ELM."
-msgstr "Numéro d'identification de l'entreprise (CHE-XXX.XXX.XXX) pour Swissdec ELM."
+msgstr "Numéro d'identification de l'entreprise (CHE-XXX.XXX.XXX) pour les déclarations ELM."
 
 #: hrms/regional/switzerland/setup.py
 msgid "Swissdec Contact Person"
-msgstr "Personne de contact Swissdec"
+msgstr "Personne de contact des déclarations"
 
 #: hrms/regional/switzerland/setup.py
 msgid "Contact person name for ELM declarations."
@@ -20257,7 +20251,7 @@ msgstr "Impôt à la source retenu."
 
 #: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
 msgid "Street, ZIP and city: printed in box I with the contact person and phone of the company (Swissdec section), and read by the barcode."
-msgstr "Rue, NPA et localité : imprimés à la lettre I avec la personne de contact et le téléphone de la société (rubrique Swissdec), et lus par le code-barres."
+msgstr "Rue, NPA et localité : imprimés à la lettre I avec la personne de contact et le téléphone de la société (rubrique Déclarations ELM), et lus par le code-barres."
 
 #: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
 msgid "Sum of boxes 1 to 7, in whole francs."
@@ -20269,7 +20263,7 @@ msgstr "Clôture de fin d'année suisse"
 
 #: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
 msgid "Swissdec Identification"
-msgstr "Identification Swissdec"
+msgstr "Identification ELM"
 
 #: hrms/patches/v15_0/add_qst_bracket_lookup_index.py
 msgid "Tariff"
@@ -20635,7 +20629,7 @@ msgstr "Téléphone"
 
 #: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
 msgid "Printed in box I of the salary certificate with the phone number, and given in the Swissdec declarations."
-msgstr "Imprimé à la lettre I du certificat de salaire avec le numéro de téléphone, et transmis dans les déclarations Swissdec."
+msgstr "Imprimé à la lettre I du certificat de salaire avec le numéro de téléphone, et transmis dans les déclarations ELM."
 
 #: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js
 msgid "Rates of your policies. The insured salary cap is applied for you."
@@ -22608,7 +22602,7 @@ msgstr "Célibataire"
 
 #: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js
 msgid "The ELM declaration is transmitted by the certified payroll software. The XML made here is an internal preview, not valid against the Swissdec schema: do not send it."
-msgstr "La déclaration ELM est transmise par le logiciel de paie certifié. Le XML produit ici est un aperçu interne, non conforme au schéma Swissdec : ne pas l'envoyer."
+msgstr "La déclaration ELM est transmise par le logiciel de paie certifié. Le XML produit ici est un aperçu interne, non conforme au schéma officiel ELM : ne pas l'envoyer."
 
 #: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.js
 msgid "Internal XML preview"
@@ -22616,7 +22610,7 @@ msgstr "Aperçu XML interne"
 
 #: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py
 msgid "Internal XML preview created: {0}. It is not a Swissdec ELM declaration and must not be sent: the declaration is transmitted by the certified payroll software."
-msgstr "Aperçu XML interne créé : {0}. Ce n'est pas une déclaration Swissdec ELM et il ne doit pas être envoyé : la déclaration est transmise par le logiciel de paie certifié."
+msgstr "Aperçu XML interne créé : {0}. Ce n'est pas une déclaration ELM et il ne doit pas être envoyé : la déclaration est transmise par le logiciel de paie certifié."
 
 #: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
 msgid "Effective Expenses Within the Model's Limits (13.1.1)"
@@ -22664,7 +22658,7 @@ msgstr "Aucune déclaration d'origine référencée. Recommandé pour les décla
 
 #: hrms/regional/switzerland/swissdec_validation.py
 msgid "Company UID-BFS number is missing. Required for Swissdec declarations."
-msgstr "Le numéro UID-BFS de la société est manquant. Requis pour les déclarations Swissdec."
+msgstr "Le numéro UID-BFS de la société est manquant. Requis pour les déclarations ELM."
 
 #: hrms/regional/switzerland/swissdec_validation.py
 msgid "Company name is required."
