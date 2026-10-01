@@ -874,6 +874,13 @@ class TestSalarySlip(FrappeTestCase):
 			"Monthly",
 			"Test Employee Salary Slip Read Permission",
 		)
+		# //// Neoffice — upstream reads the DRAFT slip. Our neoffice_theme gives an employee only the
+		# //// records that are theirs and, for a payslip, only a SUBMITTED one: "a payslip in draft is
+		# //// not a payslip yet" (own_records.py, #887, 27.09). Against that deliberate rule this
+		# //// assertion failed every night from 28.09 on an unchanged head. The slip is submitted
+		# //// first: an employee still reads their own payslip. Drop this once the fork stops installing
+		# //// the theme in its CI, or the theme drops the rule.
+		salary_slip_test_employee.submit()
 		frappe.set_user("test_employee_salary_slip_read_permission@salary.com")
 		self.assertTrue(salary_slip_test_employee.has_permission("read"))
 
