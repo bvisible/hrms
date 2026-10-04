@@ -299,3 +299,12 @@ in a skipped file. The build bot writes the marker into it at the next `yarn bui
   15th salaries and their provision, vacation paid at the exit, flat-rate expenses,
   public holidays, one bank debit")
 
+
+### English msgids instead of French source strings (2026-10-04)
+
+House rule: the source text of a translatable string is English; the French lives in the
+catalogue and the French screen is unchanged. JSON and `.po` files cannot carry a comment, so
+those edits are recorded here (the code edits are marked in place with `//// Neoffice`).
+
+- `hrms/payroll/onboarding_step/import_swiss_source_tax_tariffs/import_swiss_source_tax_tariffs.json` — the step title lost its French word (`ESTV barèmes` → `ESTV`).
+- `hrms/locale/fr.po` — the entry of that title renamed to the new English msgid, same French. (`hrms/translations/fr.csv` still carries the old msgid; `locale/*.po` wins and the CSV row is now inert.)

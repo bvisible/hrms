@@ -20554,7 +20554,7 @@ msgid "IJM, employer (%)"
 msgstr "IJM, employeur (%)"
 
 #: hrms/regional/switzerland/salary_certificate.py
-msgid "Import the source tax tariffs (ESTV barèmes)"
+msgid "Import the source tax tariffs (ESTV)"
 msgstr "Importer les barèmes de l'impôt à la source (ESTV)"
 
 #: hrms/regional/switzerland/accounting.py
