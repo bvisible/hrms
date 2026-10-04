@@ -212,6 +212,9 @@ class SwissYearEnd {
 				: __(
 						"Current account method: after the final statement, each account is back to zero.",
 					);
+		//// Neoffice — "Statements" is also the bank statements of the accounting apps and the last app
+		//// loaded wins the bare key: the context keeps the insurer-statement wording on this column.
+		const statements_label = __("Statements", null, "insurer statements");
 		return `
 			<div class="frappe-card" style="padding: 15px; margin-bottom: 15px;">
 				<h5>${__("Social insurance accounts")}</h5>
@@ -222,7 +225,7 @@ class SwissYearEnd {
 						<thead><tr>
 							<th>${__("Insurances")}</th><th>${__("Account")}</th>
 							<th class="text-right">${__("Due per payroll")}</th>
-							<th class="text-right">${__("Statements")}</th>
+							<th class="text-right">${statements_label}</th>
 							<th class="text-right">${__("Balance to settle")}</th>
 							<th>${__("Status")}</th><th></th>
 						</tr></thead>

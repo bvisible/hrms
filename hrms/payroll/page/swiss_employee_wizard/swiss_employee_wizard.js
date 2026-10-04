@@ -166,7 +166,9 @@ class SwissEmployeeWizard {
 				},
 				{
 					fieldname: "date_of_joining",
-					label: __("Start date"),
+					//// Neoffice — "Start date" is also a subscription or contract start elsewhere and the
+					//// last app loaded wins the bare key: the context keeps the hiring-date wording here.
+					label: __("Start date", null, "employment start date"),
 					fieldtype: "Date",
 					reqd: 1,
 				},
@@ -652,6 +654,8 @@ class SwissEmployeeWizard {
 		// Built first: a template literal nested in the summary template hides the __() calls around it
 		// from the POT extractor (see render_badge).
 		const full_name = `${d.first_name || ""} ${d.last_name || ""}`;
+		//// Neoffice — same context as the date_of_joining field above, so the summary and the form agree.
+		const start_date_label = __("Start date", null, "employment start date");
 		// The colon inside the message: French puts a space before it.
 		const later = missing.length
 			? `<div class="text-warning small">${__("Can be completed later: {0}", [
@@ -666,7 +670,7 @@ class SwissEmployeeWizard {
 					${line(__("Date of Birth"), d.date_of_birth && frappe.datetime.str_to_user(d.date_of_birth))}
 					${line(__("E-mail"), d.email)}
 					${line(__("Company"), d.company)}
-					${line(__("Start date"), d.date_of_joining && frappe.datetime.str_to_user(d.date_of_joining))}
+					${line(start_date_label, d.date_of_joining && frappe.datetime.str_to_user(d.date_of_joining))}
 					${line(__("Job title"), d.designation)}
 					${line(__("Activity rate (%)"), d.work_percentage)}
 					${line(__("Gross monthly salary"), d.base && format_currency(d.base, "CHF"))}

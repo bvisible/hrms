@@ -1040,13 +1040,14 @@ msgstr "Grand livre"
 msgid "Accounting Reports"
 msgstr "Rapports comptables"
 
+# //// Neoffice — upstream's « Codes comptables » made every "Accounts" table (ERPNext payment entries, CRM, mail, archive) read « Codes comptables »; "Accounts" here is plainly the ledger accounts of a salary component or expense claim type.
 #. Label of a Table field in DocType 'Expense Claim Type'
 #. Label of a Section Break field in DocType 'Salary Component'
 #. Label of a Table field in DocType 'Salary Component'
 #: hrms/hr/doctype/expense_claim_type/expense_claim_type.json
 #: hrms/payroll/doctype/salary_component/salary_component.json
 msgid "Accounts"
-msgstr "Codes comptables"
+msgstr "Comptes"
 
 #. Label of a Link in the Expense Claims Workspace
 #. Label of a Link in the Salary Payout Workspace
@@ -1427,10 +1428,11 @@ msgstr ""
 msgid "Allocating Leave"
 msgstr "Allocation des congés"
 
+# //// Neoffice — upstream's « Allocation des congés » won the bare key and showed on every other "Allocation" (ERPNext payment reconciliation, scan wizard); the leave sense is carried by the Leave Allocation context entry, the bare key says the generic « Allocation ».
 #. Label of a Section Break field in DocType 'Leave Allocation'
 #: hrms/hr/doctype/leave_allocation/leave_allocation.json
 msgid "Allocation"
-msgstr "Allocation des congés"
+msgstr "Allocation"
 
 #: hrms/hr/doctype/leave_allocation/leave_allocation.js:128
 msgid "Allocation Expired!"
@@ -3454,6 +3456,7 @@ msgstr "Composant"
 msgid "Component properties and references "
 msgstr "Propriétés et références des composants"
 
+# //// Neoffice — upstream's plural « Conditions » is replaced by the singular: the field is one Python condition of a salary component. Context entries below keep it on hrms' own screens whatever app wins the bare key (another app uses "Condition" for the state of a product).
 #. Label of a Code field in DocType 'Salary Component'
 #. Label of a Code field in DocType 'Salary Detail'
 #. Label of a Code field in DocType 'Taxable Salary Slab'
@@ -3461,7 +3464,7 @@ msgstr "Propriétés et références des composants"
 #: hrms/payroll/doctype/salary_detail/salary_detail.json
 #: hrms/payroll/doctype/taxable_salary_slab/taxable_salary_slab.json
 msgid "Condition"
-msgstr "Conditions"
+msgstr "Condition"
 
 #. Label of a Tab Break field in DocType 'Salary Component'
 #: hrms/payroll/doctype/salary_component/salary_component.json
@@ -4795,9 +4798,10 @@ msgstr ""
 msgid "Disabling Push Notifications..."
 msgstr "Désactivation des notifications push..."
 
+# //// Neoffice — upstream's « Rejeter » means reject; in the workflow action sheet of the PWA this button only closes the sheet (role cancel), next to the real Reject action.
 #: frontend/src/components/WorkflowActionSheet.vue:111
 msgid "Dismiss"
-msgstr "Rejeter"
+msgstr "Fermer"
 
 #. Label of a Currency field in DocType 'Employee Benefit Application'
 #: hrms/payroll/doctype/employee_benefit_application/employee_benefit_application.json
@@ -9393,9 +9397,10 @@ msgstr "Titre de l'Emploi"
 msgid "Job profile, qualifications required etc."
 msgstr "Profil de l’Emploi. qualifications requises ect..."
 
+# //// Neoffice — upstream's « Embauché » won the bare key from a Swiss salary-certificate string that no longer exists in the code; every other "Joined" (date a member joined a channel) means « Rejoint ».
 #: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:108
 msgid "Joined"
-msgstr "Embauché"
+msgstr "Rejoint"
 
 #. Option for the 'Dates Based On' (Select) field in DocType 'Leave Control
 #. Panel'
@@ -9755,12 +9760,13 @@ msgstr "Notification d'approbation de congés"
 msgid "Leave Approval Notification Template"
 msgstr "Modèle de notification d'approbation de congés"
 
+# //// Neoffice — upstream's « Quitter l'approbateur » reads "leave" as the verb (to quit); it is the person who approves leave, also the role name.
 #. Label of a Link field in DocType 'Leave Application'
 #. Name of a role
 #: hrms/hr/doctype/leave_application/leave_application.json hrms/setup.py:146
 #: hrms/setup.py:248
 msgid "Leave Approver"
-msgstr "Quitter l'approbateur"
+msgstr "Approbateur des congés"
 
 #. Label of a Check field in DocType 'HR Settings'
 #: hrms/hr/doctype/hr_settings/hr_settings.json
@@ -10068,6 +10074,7 @@ msgstr "Partez(s) en attente d'approbation"
 msgid "Leave(s) Taken"
 msgstr "Quitte(s) prise(s)"
 
+# //// Neoffice — upstream's « Feuilles » means sheets of paper; here "Leaves" is time off (PWA tab, Leave Ledger Entry, HR workspace, Salary Slip tab) and it won the bare key over « Congés ».
 #. Label of a Float field in DocType 'Leave Ledger Entry'
 #. Label of a Card Break in the HR Workspace
 #. Name of a Workspace
@@ -10080,7 +10087,7 @@ msgstr "Quitte(s) prise(s)"
 #: hrms/hr/workspace/leaves/leaves.json
 #: hrms/payroll/doctype/salary_slip/salary_slip.json
 msgid "Leaves"
-msgstr "Feuilles"
+msgstr "Congés"
 
 #: frontend/src/views/leave/Dashboard.vue:2
 msgid "Leaves & Holidays"
@@ -10121,11 +10128,12 @@ msgstr ""
 "Vous pouvez demander des congés compensatoires via le formulaire de demande "
 "de congé compensatoire."
 
+# //// Neoffice — upstream's « Parti » is the employee-left sense; in hrms the bare label is Goal's hidden nested-set field (lft) and everywhere else it is the alignment. The employee-left sense stays in the "Employee" context entry below.
 #. Label of a Int field in DocType 'Goal'
 #: hrms/hr/doctype/goal/goal.json
 #: hrms/payroll/print_format/salary_certificate_swiss/salary_certificate_swiss.html:109
 msgid "Left"
-msgstr "Parti"
+msgstr "Gauche"
 
 #: hrms/hr/report/employee_leave_balance/employee_leave_balance.js:47
 #: hrms/hr/report/employee_leave_balance_summary/employee_leave_balance_summary.js:43
@@ -11463,10 +11471,11 @@ msgstr "Terme de la Proposition"
 msgid "Offer Terms"
 msgstr "Conditions de l'offre"
 
+# //// Neoffice — upstream's « Grand Parent » (grandparent) is wrong: old_parent is the previous parent of a node moved in the tree (Goal).
 #. Label of a Link field in DocType 'Goal'
 #: hrms/hr/doctype/goal/goal.json
 msgid "Old Parent"
-msgstr "Grand Parent"
+msgstr "Ancien parent"
 
 #: hrms/hr/report/recruitment_analytics/recruitment_analytics.js:17
 msgid "On Date"
@@ -12671,10 +12680,11 @@ msgstr "Publié le"
 msgid "Posting Date"
 msgstr "Date de Comptabilisation"
 
+# //// Neoffice — upstream's « Date de publication » reads "publishing"; to post is to book into the ledger, like the "Posting Date" entry (« Date de comptabilisation »). It won the bare key over the other apps' accounting wording.
 #. Label of a Date field in DocType 'Gratuity'
 #: hrms/payroll/doctype/gratuity/gratuity.json
 msgid "Posting date"
-msgstr "Date de publication"
+msgstr "Date de comptabilisation"
 
 #. Label of a Data field in DocType 'Travel Itinerary'
 #: hrms/hr/doctype/travel_itinerary/travel_itinerary.json
@@ -13493,12 +13503,13 @@ msgstr "Résultat"
 msgid "Result XML"
 msgstr "XML de résultat"
 
+# //// Neoffice — upstream's « CV » won the bare key and turned every "Resume" button (continue) of the other apps into « CV »; the CV sense lives in the Job Applicant / Employee Referral context entries, the bare key says « Reprendre ».
 #. Label of a Attach field in DocType 'Employee Referral'
 #. Label of a Section Break field in DocType 'Job Applicant'
 #: hrms/hr/doctype/employee_referral/employee_referral.json
 #: hrms/hr/doctype/job_applicant/job_applicant.json
 msgid "Resume"
-msgstr "CV"
+msgstr "Reprendre"
 
 #. Label of a Attach field in DocType 'Job Applicant'
 #: hrms/hr/doctype/job_applicant/job_applicant.json
@@ -13588,10 +13599,11 @@ msgstr "Nom de l'évaluateur"
 msgid "Revised CTC"
 msgstr "CTC révisé"
 
+# //// Neoffice — upstream's « Droit » (law / entitlement) is wrong for the opposite of left (Goal's hidden nested-set field rgt, alignment options elsewhere).
 #. Label of a Int field in DocType 'Goal'
 #: hrms/hr/doctype/goal/goal.json
 msgid "Right"
-msgstr "Droit"
+msgstr "Droite"
 
 #. Label of a Link field in DocType 'Employee Boarding Activity'
 #: hrms/hr/doctype/employee_boarding_activity/employee_boarding_activity.json
@@ -14637,11 +14649,12 @@ msgstr "Régler contre les avances"
 msgid "Settle all Payables and Receivables before submission"
 msgstr "Régler tous les Payables et Recevables avant l'envoi"
 
+# //// Neoffice — upstream's « Colonisé » (colonised) is a machine translation; the Full and Final statement status means paid up, next to « Non réglé ».
 #. Option for the 'Status' (Select) field in DocType 'Full and Final
 #. Outstanding Statement'
 #: hrms/hr/doctype/full_and_final_outstanding_statement/full_and_final_outstanding_statement.json
 msgid "Settled"
-msgstr "Colonisé"
+msgstr "Réglé"
 
 #. Label of a Card Break in the HR Workspace
 #: hrms/hr/workspace/hr/hr.json
@@ -14653,6 +14666,7 @@ msgid "Shared document with the user {0} with 'Submit' permission"
 msgstr ""
 "Document partagé avec l'utilisateur {0} avec la permission « Soumettre »"
 
+# //// Neoffice — upstream's « Décalage » (offset) is wrong: a shift is a work team / working period (Attendance, Employee Checkin, Shift Assignment).
 #. Label of a Link field in DocType 'Attendance'
 #. Label of a Link field in DocType 'Attendance Request'
 #. Label of a Link field in DocType 'Employee Attendance Tool'
@@ -14669,7 +14683,7 @@ msgstr ""
 #: hrms/hr/report/shift_attendance/shift_attendance.py:205
 #: hrms/overrides/dashboard_overrides.py:33
 msgid "Shift"
-msgstr "Décalage"
+msgstr "Équipe"
 
 #. Name of a Workspace
 #: hrms/hr/workspace/shift_&_attendance/shift_&_attendance.json
@@ -14882,10 +14896,11 @@ msgstr ""
 msgid "Shift has been successfully updated to {0}."
 msgstr "L'équipe a été mise à jour avec succès en {0}."
 
+# //// Neoffice — upstream's « Majuscules » (Shift key) is wrong: card break of the Shift & Attendance workspace, plural of the work shift.
 #. Label of a Card Break in the Shift & Attendance Workspace
 #: hrms/hr/workspace/shift_&_attendance/shift_&_attendance.json
 msgid "Shifts"
-msgstr "Majuscules"
+msgstr "Équipes"
 
 #: hrms/hr/doctype/job_offer/job_offer.js:51
 msgid "Show Employee"
@@ -20937,9 +20952,10 @@ msgstr "Méthode des charges sociales : les décomptes sont passés en charge, l
 msgid "Social insurance accounts"
 msgstr "Comptes des assurances sociales"
 
+# //// Neoffice — upstream's « Décomptes » (insurer statements) won the bare key over « Relevés » (bank statements); the Swiss year-end page now passes the context "insurer statements", the bare key says « Relevés ».
 #: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
 msgid "Statements"
-msgstr "Décomptes"
+msgstr "Relevés"
 
 #: hrms/payroll/report/swiss_social_insurance_reconciliation/swiss_social_insurance_reconciliation.py
 msgid "Statements after Year End"
@@ -22193,9 +22209,10 @@ msgstr "Numéro AVS (756.XXXX.XXXX.XX)"
 msgid "On the AVS or health insurance card. It can wait, but the declarations need it."
 msgstr "Sur la carte AVS ou la carte d'assurance-maladie. Cela peut attendre, mais les déclarations en ont besoin."
 
+# //// Neoffice — upstream's « Date d'entrée » (hiring date) won the bare key for every other "Start date"; the Swiss employee wizard now passes the context "employment start date" for its sense, the bare key says « Date de début ».
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
 msgid "Start date"
-msgstr "Date d'entrée"
+msgstr "Date de début"
 
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
 msgid "Job title"
@@ -22769,3 +22786,57 @@ msgstr "Le statut de la déclaration d'origine est '{0}', alors qu'il devrait ê
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
 msgid "Can be completed later: {0}"
 msgstr "À compléter plus tard : {0}"
+
+# //// Neoffice — keeps the leave sense of the Leave Allocation section on its own screen now that the bare key says the generic « Allocation ».
+#: hrms/i18n_anchors.py
+msgctxt "Leave Allocation"
+msgid "Allocation"
+msgstr "Allocation des congés"
+
+# //// Neoffice — the Resume section of a job applicant is the CV; the bare key now says « Reprendre » (continue).
+#: hrms/i18n_anchors.py
+msgctxt "Job Applicant"
+msgid "Resume"
+msgstr "CV"
+
+# //// Neoffice — the Resume attachment of an employee referral is the CV; the bare key now says « Reprendre » (continue).
+#: hrms/i18n_anchors.py
+msgctxt "Employee Referral"
+msgid "Resume"
+msgstr "CV"
+
+# //// Neoffice — keeps the rule sense on hrms screens whatever app wins the bare key (a webshop product "Condition" is a state, « État »).
+#: hrms/i18n_anchors.py
+msgctxt "Salary Component"
+msgid "Condition"
+msgstr "Condition"
+
+# //// Neoffice — same as the Salary Component entry: the field is a Python condition.
+#: hrms/i18n_anchors.py
+msgctxt "Salary Detail"
+msgid "Condition"
+msgstr "Condition"
+
+# //// Neoffice — same as the Salary Component entry: the field is a Python condition.
+#: hrms/i18n_anchors.py
+msgctxt "Taxable Salary Slab"
+msgid "Condition"
+msgstr "Condition"
+
+# //// Neoffice — same as the Salary Component entry: the field is a Python condition.
+#: hrms/i18n_anchors.py
+msgctxt "Swiss Wage Type"
+msgid "Condition"
+msgstr "Condition"
+
+# //// Neoffice — the hiring date of the employee created by the wizard; the bare key now says the generic « Date de début ».
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgctxt "employment start date"
+msgid "Start date"
+msgstr "Date d'entrée"
+
+# //// Neoffice — the social insurance statements (décomptes) of the year-end page; the bare key now says « Relevés » (bank statements).
+#: hrms/payroll/page/swiss_year_end/swiss_year_end.js
+msgctxt "insurer statements"
+msgid "Statements"
+msgstr "Décomptes"
