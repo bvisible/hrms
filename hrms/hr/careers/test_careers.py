@@ -450,6 +450,11 @@ class TestReading(CareersTestCase):
 			"careers_criteria",
 			{"criterion": "Allemand B2", "axis": "Languages", "importance": "Preferred", "weight": 1},
 		)
+		# a question and its answer: the reading reads both (child rows, not dicts)
+		self.opening.append(
+			"careers_questions",
+			{"question": "Autorisation de travail en Suisse ?", "answer_type": "Yes/No", "required": 1},
+		)
 		with (
 			patch("hrms.hr.careers.events.sync_menu"),
 			patch("hrms.hr.careers.share_image.ensure_share_image"),
@@ -464,6 +469,7 @@ class TestReading(CareersTestCase):
 				"status": "Open",
 				"careers_review_status": "Queued",
 				"careers_privacy_consent_on": frappe.utils.now_datetime(),
+				"careers_answers": [{"question": "Autorisation de travail en Suisse ?", "answer": "Oui"}],
 			}
 		).insert(ignore_permissions=True)
 		file_doc = frappe.get_doc(
@@ -514,8 +520,10 @@ class TestReading(CareersTestCase):
 		self.assertIn("CFC d'employé de commerce 2015", sent)
 		# c1 required 1x2 met, c2 1 partial → (2 + 0.5) / 3
 		self.assertEqual(result["score"], 83)
+		self.assertIn("Autorisation de travail en Suisse ?", sent)
 		applicant = frappe.get_doc("Job Applicant", self.applicant.name)
 		self.assertEqual(applicant.careers_review_status, "Done")
+		self.assertEqual(applicant.careers_completeness, 100)
 		self.assertEqual(applicant.careers_score, 83)
 		self.assertEqual(
 			frappe.db.get_value("Job Applicant Review", applicant.careers_review, "status"), "Done"

@@ -381,8 +381,9 @@ def review_applicant(name: str) -> dict:
 	received = [
 		{"document_type": r.document_type, "label": r.label, "read_status": e["status"]} for r, e in texts
 	]
-	questions = [dict(q) for q in ((opening.get("careers_questions") or []) if opening else [])]
-	answers = [dict(a) for a in applicant.get("careers_answers") or []]
+	# child rows are Documents: as_dict(), not dict()
+	questions = [q.as_dict() for q in ((opening.get("careers_questions") or []) if opening else [])]
+	answers = [a.as_dict() for a in applicant.get("careers_answers") or []]
 	completeness = scoring.completeness(_requested(opening), received, questions, answers)
 
 	to_check = list(parsed["to_check"])

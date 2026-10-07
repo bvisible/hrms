@@ -40,7 +40,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Read by Nora",
-   "options": "\nRead\nRead by OCR\nNot read",
+   "options": "\nText read\nRead by OCR\nNot read",
    "read_only": 1
   },
   {

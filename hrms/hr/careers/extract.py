@@ -13,7 +13,8 @@
 
 import frappe
 
-READ = "Read"
+# "Read" alone is a generic word other apps translate as a verb: the stored value says what happened
+READ = "Text read"
 READ_BY_OCR = "Read by OCR"
 NOT_READ = "Not read"
 
