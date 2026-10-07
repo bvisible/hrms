@@ -393,3 +393,58 @@ def after_migrate():
 	except Exception:
 		# the prompt is a help: a missing one must not stop a migrate
 		frappe.log_error("Careers page: text editor prompt not created", frappe.get_traceback())
+
+
+def _translatable_labels():
+	"""Never called: lets the extractor see the Custom Fields' labels, descriptions and options,
+	which Frappe translates when it shows them."""
+	return (
+		_("Jobs page"),
+		_("Workload from (%)"),
+		_("Workload to (%)"),
+		_("Place of work"),
+		_("On site"),
+		_("Hybrid"),
+		_("Remote"),
+		_("Starting date"),
+		_("Immediately"),
+		_("To be agreed"),
+		_("On a date"),
+		_("Starting on"),
+		_("Recruiter"),
+		_("Receives each application by e-mail."),
+		_("What the applicant sends"),
+		_("Documents requested"),
+		_("One upload field per line on the application form. Empty: a CV, required."),
+		_("Questions to the applicant"),
+		_("Reading criteria"),
+		_("Criteria"),
+		_(
+			"Nora reads every application to this opening against these criteria. Empty: Nora proposes some from the description at the first application."
+		),
+		_("Criteria reviewed by a person"),
+		_("Off while the criteria are the ones Nora proposed and nobody has saved them."),
+		_("Share picture"),
+		_("Reading by Nora"),
+		_("Reading"),
+		_("Queued"),
+		_("Done"),
+		_("Failed"),
+		_("Score"),
+		_("Completeness (%)"),
+		_("Summary"),
+		_("Last reading"),
+		_("Application"),
+		_("Documents received"),
+		_("Answers"),
+		_("Data protection"),
+		_("Information accepted on"),
+		_("Kept for other openings until"),
+		_("Only with the applicant's agreement."),
+		_("Deleted on"),
+		_("Set when the application is rejected or the opening closed."),
+		_("Reason for the decision"),
+		_("Kept for the applicant who asks for it in writing (Gender Equality Act, art. 8)."),
+		_("Company of the jobs page"),
+		_("Empty: the jobs page lists the openings of every company."),
+	)
