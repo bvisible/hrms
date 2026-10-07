@@ -537,6 +537,26 @@ class TestReading(CareersTestCase):
 			frappe.db.get_value("Job Applicant Review", applicant.careers_review, "status"), "Done"
 		)
 
+	def test_an_unsolicited_application_is_read_without_a_score(self):
+		frappe.db.set_value("Job Applicant", self.applicant.name, "job_title", None)
+		answer = self._answer()
+		answer["content"] = json.dumps(
+			{
+				"summary": "Responsable logistique depuis 2019.",
+				"criteria": [],
+				"to_check": [],
+				"interview_questions": [],
+				"addresses_the_reader": False,
+			}
+		)
+		with patch.object(nora, "complete", return_value=answer):
+			result = review.review_applicant(self.applicant.name)
+		self.assertIsNone(result["score"])
+		self.assertEqual(
+			frappe.db.get_value("Job Applicant", self.applicant.name, "careers_review_status"), "Done"
+		)
+		self.assertIsNone(review.get_review(self.applicant.name)["review"]["score"])
+
 	def test_a_busy_nora_postpones_the_reading_and_the_recruiter_still_hears(self):
 		with (
 			patch.object(review, "review_applicant", side_effect=nora.NoraBusy("busy")),

@@ -447,7 +447,9 @@ def review_applicant(name: str) -> dict:
 			"job_applicant": applicant.name,
 			"job_opening": opening.name if opening else None,
 			"status": "Done",
-			"overall_score": scores["overall"],
+			# an Int column is NOT NULL: no criteria (an unsolicited application) is stored as 0 and read
+			# back as "no score" (get_review, api), so a real 0 stays a real 0
+			"overall_score": scores["overall"] or 0,
 			"completeness": completeness["percent"],
 			"axis_scores": json.dumps(scores["axes"]),
 			"summary": parsed["summary"],
@@ -473,7 +475,7 @@ def review_applicant(name: str) -> dict:
 		applicant.name,
 		{
 			"careers_review_status": "Done",
-			"careers_score": scores["overall"],
+			"careers_score": scores["overall"] or 0,
 			"careers_completeness": completeness["percent"],
 			"careers_summary": parsed["summary"],
 			"careers_review": review.name,
@@ -672,16 +674,17 @@ def get_review(job_applicant: str) -> dict:
 		changed = None
 	if applicant.careers_review:
 		review = frappe.get_doc("Job Applicant Review", applicant.careers_review)
+		details = (
+			json.loads(review.details or "{}") if isinstance(review.details, str) else (review.details or {})
+		)
 		out["review"] = {
 			"summary": review.summary,
-			"score": review.overall_score,
+			"score": review.overall_score if details.get("criteria") else None,
 			"completeness": review.completeness,
 			"axes": json.loads(review.axis_scores or "{}")
 			if isinstance(review.axis_scores, str)
 			else (review.axis_scores or {}),
-			"details": json.loads(review.details or "{}")
-			if isinstance(review.details, str)
-			else (review.details or {}),
+			"details": details,
 			"reviewed_on": str(review.reviewed_on),
 			"model": review.model,
 		}

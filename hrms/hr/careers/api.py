@@ -147,7 +147,8 @@ def list_applications(
 				"status": r.status,
 				"received": str(r.creation)[:16],
 				"review_status": r.careers_review_status or "Not requested",
-				"score": r.careers_score,
+				# an unsolicited application is read without criteria: it has no score
+				"score": r.careers_score if r.job_title else None,
 				"completeness": r.careers_completeness,
 				"axes": _json(review.axis_scores) if review else {},
 				"summary": (r.careers_summary or "")[:SUMMARY_LIMIT],
@@ -179,7 +180,7 @@ def get_application(job_applicant: str) -> dict:
 		"received": str(applicant.creation)[:16],
 		"source": applicant.source,
 		"review_status": applicant.get("careers_review_status") or "Not requested",
-		"score": applicant.get("careers_score"),
+		"score": applicant.get("careers_score") if details.get("criteria") else None,
 		"completeness": applicant.get("careers_completeness"),
 		"axes": _json(review.axis_scores) if review else {},
 		"summary": review.summary if review else "",
