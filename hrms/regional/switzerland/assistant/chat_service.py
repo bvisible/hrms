@@ -20,15 +20,6 @@ from hrms.regional.switzerland.permissions import check_company_access
 SESSION_MAX_AGE_HOURS = 24
 
 
-# //// Neoffice — "HRMS Settings" does not exist in hrms: get_single_value raised "DocType not
-# //// found" on the first message and the assistant answered every user with an error. Missing
-# //// settings now mean "no provider configured", and the built-in fallback reply is reached.
-def _hrms_setting(field):
-	if not frappe.db.exists("DocType", "HRMS Settings"):
-		return None
-	return frappe.db.get_single_value("HRMS Settings", field)
-
-
 class SwissPayrollChatService:
 	"""Orchestrates the Swiss payroll configuration chat assistant.
 
@@ -353,119 +344,25 @@ class SwissPayrollChatService:
 		}
 
 	def _call_ai(self, user_message, context):
-		"""Call the LLM provider to generate a response."""
+		"""Ask Nora for the next reply; None when Nora cannot answer (the built-in reply takes over).
+
+		Nora only (neoffice-maintenance#1295). This used to try Builder's provider (a module that no
+		longer exists), an Ollama URL, then OpenAI, and never Nora, which every AI instance is
+		configured with: it answered nobody, and its one working fallback would have sent payroll data
+		to the United States the day someone typed a key.
+		"""
+		from hrms.utils import nora
+
 		system_prompt = get_system_prompt(self.session.current_step, context)
 
 		messages = [{"role": "system", "content": system_prompt}]
 		messages.extend(self.session.get_conversation_history(limit=20))
 		messages.append({"role": "user", "content": user_message})
 
-		# Try providers in order: Builder (if installed), direct Ollama, direct OpenAI
-		response = None
-
-		# 1. Try Builder's provider abstraction
-		response = self._call_via_builder(messages)
-		if response:
-			return response
-
-		# 2. Try direct Ollama API
-		response = self._call_ollama(messages)
-		if response:
-			return response
-
-		# 3. Try direct OpenAI-compatible API
-		response = self._call_openai(messages)
-		if response:
-			return response
-
-		return None
-
-	def _call_via_builder(self, messages):
-		"""Try to use Builder's AI provider if available."""
 		try:
-			from builder.ai.providers import get_provider
-
-			provider = get_provider()
-			if provider:
-				response = provider._generate_with_http(
-					messages=messages,
-					temperature=0.7,
-					max_tokens=1024,
-				)
-				if response:
-					return response
-		except (ImportError, Exception):
-			pass
-		return None
-
-	def _call_ollama(self, messages):
-		"""Call Ollama directly via HTTP (OpenAI-compatible endpoint)."""
-		import requests
-
-		# Get Ollama URL from settings or default
-		ollama_url = _hrms_setting("ai_ollama_url") or ""
-		if not ollama_url:
-			# Try Builder settings
-			try:
-				ollama_url = frappe.db.get_single_value("Builder Settings", "ollama_url") or ""
-			except Exception:
-				pass
-
-		if not ollama_url:
-			return None
-
-		ollama_url = ollama_url.rstrip("/")
-		model = _hrms_setting("ai_ollama_model") or "llama3.1"
-
-		try:
-			resp = requests.post(
-				f"{ollama_url}/v1/chat/completions",
-				json={
-					"model": model,
-					"messages": messages,
-					"temperature": 0.7,
-					"max_tokens": 1024,
-				},
-				timeout=60,
-			)
-			resp.raise_for_status()
-			data = resp.json()
-			return data["choices"][0]["message"]["content"]
-		except Exception:
-			return None
-
-	def _call_openai(self, messages):
-		"""Call OpenAI API directly."""
-		import requests
-
-		api_key = _hrms_setting("ai_openai_api_key") or ""
-		if not api_key:
-			try:
-				api_key = frappe.db.get_single_value("Builder Settings", "openai_api_key") or ""
-			except Exception:
-				pass
-
-		if not api_key:
-			return None
-
-		model = _hrms_setting("ai_openai_model") or "gpt-4o-mini"
-
-		try:
-			resp = requests.post(
-				"https://api.openai.com/v1/chat/completions",
-				headers={"Authorization": f"Bearer {api_key}"},
-				json={
-					"model": model,
-					"messages": messages,
-					"temperature": 0.7,
-					"max_tokens": 1024,
-				},
-				timeout=60,
-			)
-			resp.raise_for_status()
-			data = resp.json()
-			return data["choices"][0]["message"]["content"]
-		except Exception:
+			return nora.chat(messages, temperature=0.7, max_tokens=1024) or None
+		except nora.NoraUnavailable as exc:
+			frappe.log_error("Swiss payroll assistant: Nora unavailable", str(exc))
 			return None
 
 	def _parse_ai_response(self, response):
