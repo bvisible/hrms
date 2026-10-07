@@ -355,7 +355,9 @@ def ensure_settings():
 
 # Nora's button of the text editor (nora/api/text_editor.py) reads a prompt per DocType and field
 # ("AI Text Editor Prompt"): on an opening's description it writes like a careers page.
-JOB_AD_PROMPT = """You edit the description of a job opening published on the careers page of a Swiss employer.
+# The first version, kept to recognise it on a site and replace it: a prompt a customer edited is
+# never touched.
+JOB_AD_PROMPT_V1 = """You edit the description of a job opening published on the careers page of a Swiss employer.
 
 Layout: a short opening paragraph (the role in one or two sentences), then sections with <h3> headings — the tasks, the profile sought, what the employer offers, the practical details (workload, start, place) — each as a list of short <ul><li> items. Plain, direct and warm language; the reader is addressed as "vous" in French and "Sie" in German.
 
@@ -364,27 +366,53 @@ Lawful and inclusive: the job title names all genders (e.g. "Comptable (H/F/X)")
 When asked to translate, translate faithfully into the language requested and keep the layout, with the Swiss terms of that language (taux d'activité / Pensum / grado di occupazione, entrée en fonction / Stellenantritt / entrata in servizio).
 Unless asked to translate, write in the language of the text."""
 
+JOB_AD_PROMPT_MARK = "[hrms job-ad prompt v2]"
+
+JOB_AD_PROMPT = """You edit the description of a job opening published on the careers page of a Swiss employer.
+
+Output an HTML fragment. No title line and no <h1> or <h2>: the page prints the job title itself. Start with a short opening paragraph (the role and the team in one or two sentences), then sections with <h3> headings — the tasks, the profile sought, what the employer offers, the practical details (workload, start, place) — each a list of short <ul><li> items. Leave out a section the text says nothing about.
+
+Never add anything the text does not state: no requirement, skill, quality, diploma, certificate, benefit, salary or date — not even a usual one ("autonomie", "rigueur", "expérience confirmée"). You may reword and reorder; you may not enrich.
+Swiss vocabulary: CFC, AFP, brevet fédéral, permis de cariste, taux d'activité; never terms of France only (CACES, BTS, Bac+2).
+Lawful and inclusive: name the job for every gender in the sentences ("un ou une magasinier·ère") and the title with "(H/F/X)" or an epicene form; no requirement on age, sex, origin, nationality, family status or photo — leave such a requirement out.
+Plain, direct and warm language; the reader is addressed as "vous" in French and "Sie" in German.
+When asked to translate, translate faithfully into the language requested and keep the layout, with the Swiss terms of that language (taux d'activité / Pensum / grado di occupazione, entrée en fonction / Stellenantritt / entrata in servizio).
+Unless asked to translate, write in the language of the text.
+{mark}""".replace("{mark}", JOB_AD_PROMPT_MARK)
+
 
 def ensure_text_editor_prompt():
-	"""Created once; a prompt the customer tuned is never overwritten."""
+	"""Created when missing; our own earlier versions are brought up to date; a prompt the customer
+	edited is never touched."""
 	if not frappe.db.exists("DocType", "AI Text Editor Prompt"):
 		return
-	if frappe.db.exists("AI Text Editor Prompt", {"doctype_link": "Job Opening", "fieldname": "description"}):
-		return
 	lang = frappe.db.get_default("lang") or "fr"
-	frappe.get_doc(
-		{
-			"doctype": "AI Text Editor Prompt",
-			"doctype_link": "Job Opening",
-			"fieldname": "description",
-			"enabled": 1,
-			"placeholder": _("Describe the job in a few lines: Nora lays it out like a job ad.", lang=lang),
-			"default_instruction": _(
-				"Lay out this job ad: an introduction, the tasks, the profile, what we offer.", lang=lang
-			),
-			"system_prompt": JOB_AD_PROMPT,
-		}
-	).insert(ignore_permissions=True)
+	values = {
+		"enabled": 1,
+		"placeholder": _("Describe the job in a few lines: Nora lays it out like a job ad.", lang=lang),
+		"default_instruction": _(
+			"Lay out this job ad: an introduction, the tasks, the profile, what we offer. Add nothing the text does not say.",
+			lang=lang,
+		),
+		"system_prompt": JOB_AD_PROMPT,
+	}
+	name = frappe.db.get_value(
+		"AI Text Editor Prompt", {"doctype_link": "Job Opening", "fieldname": "description"}
+	)
+	if not name:
+		frappe.get_doc(
+			{
+				"doctype": "AI Text Editor Prompt",
+				"doctype_link": "Job Opening",
+				"fieldname": "description",
+				**values,
+			}
+		).insert(ignore_permissions=True)
+		return
+	current = frappe.db.get_value("AI Text Editor Prompt", name, "system_prompt") or ""
+	ours = current.strip() == JOB_AD_PROMPT_V1.strip() or "[hrms job-ad prompt v" in current
+	if ours and current != JOB_AD_PROMPT:
+		frappe.db.set_value("AI Text Editor Prompt", name, values)
 
 
 def after_migrate():
