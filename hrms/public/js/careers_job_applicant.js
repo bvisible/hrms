@@ -112,6 +112,7 @@ window.hrms_careers_applicant = {
 		.hj-axis__num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
 		.hj-h{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);font-weight:600;margin:20px 0 8px}
 		.hj-crit{width:100%;border-collapse:collapse}
+		.hj-crit tr,.hj-crit td{background:transparent!important}
 		.hj-crit td{padding:10px 8px 10px 0;border-top:1px solid var(--sand-100);vertical-align:top}
 		.hj-crit td:first-child{width:9.5rem}
 		.hj-crit__name{font-weight:600}
