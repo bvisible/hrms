@@ -67,87 +67,138 @@ window.hrms_careers_applicant = {
 		return frappe.utils.escape_html(text == null ? "" : String(text));
 	},
 
-	verdict_chip(verdict) {
-		const labels = {
-			met: [__("Shown"), "green"],
-			partial: [__("Partly"), "orange"],
-			not_met: [__("Not shown"), "red"],
-			unknown: [__("Not said"), "gray"],
+	verdict_pill(verdict) {
+		// the design system's five status tones (Neoffice Design System §6.3)
+		const tones = {
+			met: [__("Shown"), "success"],
+			partial: [__("Partly"), "warn"],
+			not_met: [__("Not shown"), "danger"],
+			unknown: [__("Not said"), "muted"],
 		};
-		const [label, colour] = labels[verdict] || labels.unknown;
-		return `<span class="indicator-pill ${colour}">${label}</span>`;
+		const [label, tone] = tones[verdict] || tones.unknown;
+		return `<span class="hj-pill hj-pill--${tone}"><span class="hj-pill__dot"></span>${label}</span>`;
+	},
+
+	ensure_style() {
+		if (document.getElementById("hj-desk-style")) return;
+		// tokens scoped to the card, values of the Neoffice Design System (tokens/colors.css),
+		// as the theme's own pages do (module_home.css): the clay and sand ramps never leak
+		const style = document.createElement("style");
+		style.id = "hj-desk-style";
+		style.textContent = `
+		.hj-desk{--clay-50:#FAEFE6;--clay-100:#F3DECC;--clay-400:#D68A59;--clay-500:#C2723F;--sand-50:#F6F3ED;--sand-100:#ECE7DE;--sand-200:#DCD4C7;
+			--ink:#141414;--t2:#524B41;--t3:#968C7C;--surface:#FFFFFF;--head:linear-gradient(115deg,#FDF1E4,#FBF6EE 55%,#FAF8F4);
+			--f-display:'Forum','Times New Roman',serif;--f-sans:'Karla',system-ui,-apple-system,'Segoe UI',sans-serif;
+			font-family:var(--f-sans);color:var(--ink);border:1px solid var(--sand-200);border-radius:18px;background:var(--surface);overflow:hidden}
+		[data-theme="dark"] .hj-desk{--sand-50:rgba(255,251,245,.04);--sand-100:rgba(255,251,245,.08);--sand-200:rgba(255,251,245,.14);
+			--ink:#FFFDF8;--t2:#BFB5A4;--t3:#968C7C;--surface:var(--card-bg);--head:linear-gradient(115deg,rgba(214,138,89,.16),rgba(214,138,89,.05))}
+		.hj-desk__head{background:var(--head);border-bottom:1px solid var(--clay-100);padding:22px 26px;display:flex;flex-wrap:wrap;gap:22px 34px;align-items:flex-end}
+		.hj-desk__intro{flex:1 1 260px}
+		.hj-desk__eyebrow{display:flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);font-weight:600}
+		.hj-desk__eyebrow img{width:22px;height:22px}
+		.hj-desk__title{font-family:var(--f-display);font-size:27px;line-height:1.15;margin:6px 0 0}
+		.hj-desk__kpis{display:flex;gap:0}
+		.hj-kpi{padding:0 22px;border-left:1px solid var(--clay-100)}
+		.hj-kpi:first-child{padding-left:0;border-left:0}
+		.hj-kpi__value{font-family:var(--f-display);font-size:46px;line-height:1;font-variant-numeric:tabular-nums}
+		.hj-kpi__value small{font-size:18px;color:var(--t3);margin-left:2px}
+		.hj-kpi__label{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-top:6px}
+		.hj-desk__body{padding:22px 26px 24px}
+		.hj-desk__summary{font-size:15px;line-height:1.6;margin:0 0 18px;max-width:72ch}
+		.hj-axes{display:grid;gap:8px;margin:0 0 22px;max-width:520px}
+		.hj-axis{display:grid;grid-template-columns:9rem 1fr 2.4rem;gap:12px;align-items:center;font-size:13px;color:var(--t2)}
+		.hj-axis__track{height:4px;border-radius:4px;background:var(--sand-100);overflow:hidden}
+		.hj-axis__fill{display:block;height:100%;background:var(--clay-400);border-radius:4px}
+		.hj-axis__num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+		.hj-h{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);font-weight:600;margin:20px 0 8px}
+		.hj-crit{width:100%;border-collapse:collapse}
+		.hj-crit td{padding:10px 8px 10px 0;border-top:1px solid var(--sand-100);vertical-align:top}
+		.hj-crit td:first-child{width:9.5rem}
+		.hj-crit__name{font-weight:600}
+		.hj-crit__req{color:var(--t3);font-weight:400}
+		.hj-crit__quote{color:var(--t2);font-style:italic;font-size:13px;margin-top:3px}
+		.hj-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:500;white-space:nowrap}
+		.hj-pill__dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+		.hj-pill--success{background:#E6F4EA;color:#15803D}.hj-pill--warn{background:#FDF3DC;color:#A16207}
+		.hj-pill--danger{background:#FDEAE4;color:#C2410C}.hj-pill--muted{background:var(--sand-100);color:var(--t3)}
+		[data-theme="dark"] .hj-pill--success{background:rgba(21,128,61,.18);color:#86EFAC}[data-theme="dark"] .hj-pill--warn{background:rgba(161,98,7,.2);color:#FCD34D}
+		[data-theme="dark"] .hj-pill--danger{background:rgba(194,65,12,.2);color:#FDBA74}
+		.hj-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:4px 28px}
+		.hj-cols ul{margin:0;padding-left:18px;line-height:1.55}
+		.hj-warn{background:#FDF3DC;color:#A16207;border-radius:10px;padding:10px 14px;font-size:13.5px;margin:0 0 14px}
+		[data-theme="dark"] .hj-warn{background:rgba(161,98,7,.2);color:#FCD34D}
+		.hj-foot{font-size:12.5px;color:var(--t3);margin:20px 0 0}
+		.hj-desk--quiet .hj-desk__body{color:var(--t2)}`;
+		document.head.appendChild(style);
 	},
 
 	card(data) {
 		const esc = (t) => this.esc(t);
-		if (data.status === "Queued") {
-			return `<div class="hj-desk-card text-muted">${__("Nora is reading the application. Reload in a moment.")}</div>`;
-		}
-		if (data.status === "Failed" || !data.review) {
-			return `<div class="hj-desk-card text-muted">${__(
-				"Nora could not read this application. Read the documents below, or ask Nora to read it again."
-			)}</div>`;
+		this.ensure_style();
+		const head = (title) => `<div class="hj-desk__eyebrow"><img src="/assets/nora/images/nora-orb.svg" alt="">${__(
+			"Read by Nora"
+		)}</div><h3 class="hj-desk__title">${title}</h3>`;
+		if (data.status === "Queued" || data.status === "Failed" || !data.review) {
+			const message =
+				data.status === "Queued"
+					? __("Nora is reading the application. Reload in a moment.")
+					: __("Nora could not read this application. Read the documents below, or ask Nora to read it again.");
+			return `<div class="hj-desk hj-desk--quiet"><div class="hj-desk__head"><div class="hj-desk__intro">${head(
+				__("The application")
+			)}</div></div><div class="hj-desk__body">${esc(message)}</div></div>`;
 		}
 		const review = data.review;
 		const details = review.details || {};
 		const axes = Object.entries(review.axes || {})
-			.map(
-				([axis, score]) => `<div class="hj-axis"><span>${esc(__(axis))}</span>
-				<span class="hj-bar"><span style="width:${Math.max(0, Math.min(100, score))}%"></span></span>
-				<span class="hj-num">${score}</span></div>`
-			)
+			.map(([axis, score]) => {
+				const value = Math.max(0, Math.min(100, score));
+				return `<div class="hj-axis"><span>${esc(__(axis))}</span>
+					<span class="hj-axis__track"><span class="hj-axis__fill" style="width:${value}%"></span></span>
+					<span class="hj-axis__num">${value}</span></div>`;
+			})
 			.join("");
-		const list = (items) =>
-			(items || []).length ? `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>` : "";
+		const list = (items) => `<ul>${(items || []).map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`;
+		const column = (title, items) => ((items || []).length ? `<div><div class="hj-h">${title}</div>${list(items)}</div>` : "");
 		const criteria = (details.criteria || [])
 			.map(
-				(c) => `<tr><td>${this.verdict_chip(c.verdict)}</td>
-				<td><strong>${esc(c.criterion)}</strong>${c.importance === "Required" ? ` <span class="text-muted">· ${__("required")}</span>` : ""}
-				${c.evidence ? `<div class="text-muted small">« ${esc(c.evidence)} »${c.source ? ` — ${esc(c.source)}` : ""}</div>` : ""}</td></tr>`
+				(c) => `<tr><td>${this.verdict_pill(c.verdict)}</td><td>
+					<div class="hj-crit__name">${esc(c.criterion)}${
+						c.importance === "Required" ? ` <span class="hj-crit__req">· ${__("required")}</span>` : ""
+					}</div>
+					${c.evidence ? `<div class="hj-crit__quote">« ${esc(c.evidence)} »${c.source ? ` — ${esc(c.source)}` : ""}</div>` : ""}
+				</td></tr>`
 			)
 			.join("");
-		const notes = [];
-		if (data.stale) notes.push(__("The criteria changed after this reading: ask Nora to read it again."));
-		if (!data.criteria_reviewed) notes.push(__("The criteria of this opening were proposed by Nora and nobody has checked them yet."));
+		const warnings = [];
+		if (data.stale) warnings.push(__("The criteria changed after this reading: ask Nora to read it again."));
+		if (!data.criteria_reviewed)
+			warnings.push(__("The criteria of this opening were proposed by Nora and nobody has checked them yet."));
 		const unread = (details.unread || []).length
-			? `<p class="text-muted small">${__("Not readable, open it yourself:")} ${(details.unread || []).map(esc).join(", ")}</p>`
+			? `<p class="hj-foot">${__("Not readable, open it yourself:")} ${(details.unread || []).map(esc).join(", ")}</p>`
 			: "";
-		return `
-		<style>
-			.hj-desk-card{border:1px solid var(--border-color);border-radius:var(--border-radius-md);padding:var(--padding-md);background:var(--card-bg)}
-			.hj-desk-top{display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start;margin-bottom:1rem}
-			.hj-big{font-size:2.2rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
-			.hj-big small{font-size:.9rem;font-weight:400;color:var(--text-muted)}
-			.hj-axes{flex:1;min-width:16rem;display:grid;gap:.35rem}
-			.hj-axis{display:grid;grid-template-columns:8rem 1fr 2.5rem;gap:.5rem;align-items:center;font-size:.85rem}
-			.hj-bar{height:.45rem;background:var(--gray-200);border-radius:1rem;overflow:hidden}
-			.hj-bar span{display:block;height:100%;background:var(--primary)}
-			.hj-num{text-align:right;font-variant-numeric:tabular-nums}
-			.hj-desk-card table{width:100%;margin:.5rem 0 1rem}
-			.hj-desk-card td{padding:.4rem .5rem;vertical-align:top;border-top:1px solid var(--border-color)}
-			.hj-desk-card td:first-child{width:7.5rem}
-			.hj-desk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem}
-			.hj-desk-card h5{margin:1rem 0 .4rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
-		</style>
-		<div class="hj-desk-card">
-			${notes.map((n) => `<p class="alert alert-warning small mb-3">${esc(n)}</p>`).join("")}
-			<div class="hj-desk-top">
-				<div><div class="hj-big">${review.score == null ? "–" : review.score}<small> / 100</small></div>
-					<div class="text-muted small">${__("Match with the criteria")}</div></div>
-				<div><div class="hj-big">${review.completeness}<small> %</small></div>
-					<div class="text-muted small">${__("Complete")}</div></div>
+		const score = review.score == null ? "–" : review.score;
+		return `<div class="hj-desk">
+			<div class="hj-desk__head">
+				<div class="hj-desk__intro">${head(__("The application"))}</div>
+				<div class="hj-desk__kpis">
+					<div class="hj-kpi"><div class="hj-kpi__value">${score}<small>/100</small></div><div class="hj-kpi__label">${__("Match")}</div></div>
+					<div class="hj-kpi"><div class="hj-kpi__value">${review.completeness}<small>%</small></div><div class="hj-kpi__label">${__("Complete")}</div></div>
+				</div>
+			</div>
+			<div class="hj-desk__body">
+				${warnings.map((w) => `<p class="hj-warn">${esc(w)}</p>`).join("")}
+				<p class="hj-desk__summary">${esc(review.summary)}</p>
 				${axes ? `<div class="hj-axes">${axes}</div>` : ""}
+				${criteria ? `<div class="hj-h">${__("Criteria")}</div><table class="hj-crit">${criteria}</table>` : ""}
+				<div class="hj-cols">
+					${column(__("Strengths"), details.strengths)}
+					${column(__("To check"), details.to_check)}
+					${column(__("Interview questions"), details.interview_questions)}
+					${column(__("Missing"), details.missing)}
+				</div>
+				${unread}
+				<p class="hj-foot">${__("Read by Nora on our own servers. A help to read the application: the decision is yours.")}</p>
 			</div>
-			<p>${esc(review.summary)}</p>
-			${criteria ? `<h5>${__("Criteria")}</h5><table>${criteria}</table>` : ""}
-			<div class="hj-desk-grid">
-				${(details.strengths || []).length ? `<div><h5>${__("Strengths")}</h5>${list(details.strengths)}</div>` : ""}
-				${(details.to_check || []).length ? `<div><h5>${__("To check")}</h5>${list(details.to_check)}</div>` : ""}
-				${(details.interview_questions || []).length ? `<div><h5>${__("Interview questions")}</h5>${list(details.interview_questions)}</div>` : ""}
-				${(details.missing || []).length ? `<div><h5>${__("Missing")}</h5>${list(details.missing)}</div>` : ""}
-			</div>
-			${unread}
-			<p class="text-muted small mb-0">${__("Read by Nora on our own servers. A help to read the application: the decision is yours.")}</p>
 		</div>`;
 	},
 };
