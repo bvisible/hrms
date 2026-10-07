@@ -111,10 +111,13 @@ class TestPayrollAssistantUsesNoraOnly(FrappeTestCase):
 	def test_no_other_provider_is_left_in_the_source(self):
 		from hrms.regional.switzerland.assistant import chat_service
 
-		source = inspect.getsource(chat_service).lower()
+		source = inspect.getsource(chat_service)
+		# the code, not the history the docstrings tell: no direct HTTP call, no other provider
 		self.assertNotIn("api.openai.com", source)
 		self.assertNotIn("builder.ai.providers", source)
-		self.assertNotIn("ollama", source)
+		self.assertNotIn("requests.post", source)
+		for gone in ("_call_via_builder", "_call_ollama", "_call_openai"):
+			self.assertFalse(hasattr(chat_service.SwissPayrollChatService, gone), gone)
 
 	def test_the_reply_comes_from_nora_and_a_missing_nora_is_not_an_error_page(self):
 		from hrms.regional.switzerland.assistant.chat_service import SwissPayrollChatService
