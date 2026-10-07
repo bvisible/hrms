@@ -187,6 +187,14 @@ class TestThePromptAndTheAnswer(CareersTestCase):
 		for leak in ("Madame", "Dubois", "marie.dubois", "79 123", "12.03.1990"):
 			self.assertNotIn(leak, masked)
 
+	def test_a_career_s_periods_are_not_taken_for_phone_numbers(self):
+		applicant = frappe._dict(applicant_name="Jean Test")
+		text = "2015 - 2019 Employé de commerce, du 05.03.2015. 2019-2026 Comptable. Tél. 079 123 45 67 ou 0041 79 123 45 67."
+		masked = review.mask(text, applicant)
+		for kept in ("2015 - 2019", "2019-2026", "05.03.2015"):
+			self.assertIn(kept, masked)
+		self.assertNotIn("123 45 67", masked)
+
 	def test_one_system_message_then_the_opening_then_the_application(self):
 		opening = _opening()
 		applicant = frappe._dict(applicant_name="Jean Test", careers_answers=[])

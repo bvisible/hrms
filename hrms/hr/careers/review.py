@@ -124,6 +124,24 @@ def _language() -> str:
 	return LANGUAGES.get((frappe.db.get_default("lang") or "fr")[:2], "French")
 
 
+_PHONE = re.compile(r"(?<![\w+./-])(?:\+|00|0)\d{1,3}(?:[\s./-]?\d{2,4}){2,5}(?!\d)")
+_DATE = re.compile(r"\d{1,2}[./-]\d{1,2}[./-]\d{2,4}")
+
+
+def _mask_phones(text: str) -> str:
+	"""A phone number starts with + or 0 and has 9 digits at least (+41 79 123 45 67, 0041 79…,
+	079 123 45 67). A period such as "2015 - 2019" or a date is not one: masking them hid the
+	applicant's career from the reading (measured on osiris, 2026-10-07)."""
+
+	def replace(match):
+		value = match.group()
+		if _DATE.fullmatch(value.strip()) or len(re.sub(r"\D", "", value)) < 9:
+			return value
+		return "[phone]"
+
+	return _PHONE.sub(replace, text)
+
+
 def mask(text: str, applicant) -> str:
 	"""The applicant's identity and contact details out of a text, before it reaches the model."""
 	text = text or ""
@@ -131,7 +149,7 @@ def mask(text: str, applicant) -> str:
 	text = re.sub(
 		r"\b(Madame|Monsieur|Mme|Mlle|Frau|Herr|Signora|Signore|Sig\.ra|Mrs|Mr|Ms)\b\.?", "[title]", text
 	)
-	text = re.sub(r"(\+|00)?\d[\d\s./-]{7,}\d", "[phone]", text)
+	text = _mask_phones(text)
 	for part in sorted((applicant.applicant_name or "").split(), key=len, reverse=True):
 		if len(part) >= 2:
 			text = re.sub(rf"\b{re.escape(part)}\b", "[applicant]", text, flags=re.IGNORECASE)
