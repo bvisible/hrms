@@ -1,8 +1,11 @@
 name: Pre-build assets
 
+# //// Neoffice — push trigger removed (merge of v15.64.3). Upstream publishes prebuilt assets for
+# //// Frappe Pilot on every push, through frappe/pilot's reusable workflow with write access to the
+# //// repository. This fork builds and commits its own frontend (build-frontend.yml, commit-the-build)
+# //// and does not deploy with Pilot: both would build, and a third-party workflow would write here.
 on:
-  push:
-    branches: [develop, version-16, version-15]
+  workflow_dispatch:  # //// Neoffice — upstream: push on develop, version-16, version-15
 
 jobs:
   assets:
