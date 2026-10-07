@@ -1,0 +1,128 @@
+{
+ "actions": [],
+ "creation": "2026-10-07 20:30:00.000000",
+ "description": "The careers page is switched on in the website's plugins (Jobs); each opening is published from its own form.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_page",
+  "intro_title",
+  "intro_text",
+  "accept_spontaneous",
+  "spontaneous_documents",
+  "section_notifications",
+  "notification_recipients",
+  "section_reading",
+  "ai_review_enabled",
+  "section_privacy",
+  "retention_days",
+  "talent_pool_months",
+  "privacy_notice"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_page",
+   "fieldtype": "Section Break",
+   "label": "Jobs page"
+  },
+  {
+   "description": "Empty: Job openings.",
+   "fieldname": "intro_title",
+   "fieldtype": "Data",
+   "label": "Title of the page"
+  },
+  {
+   "fieldname": "intro_text",
+   "fieldtype": "Small Text",
+   "label": "Introduction"
+  },
+  {
+   "fieldname": "accept_spontaneous",
+   "fieldtype": "Check",
+   "label": "Accept unsolicited applications"
+  },
+  {
+   "depends_on": "accept_spontaneous",
+   "fieldname": "spontaneous_documents",
+   "fieldtype": "Table",
+   "label": "Documents asked for an unsolicited application",
+   "options": "Job Opening Document"
+  },
+  {
+   "fieldname": "section_notifications",
+   "fieldtype": "Section Break",
+   "label": "Notifications"
+  },
+  {
+   "description": "E-mail addresses, one per line. Empty: the recruiter of the opening, otherwise the HR Managers.",
+   "fieldname": "notification_recipients",
+   "fieldtype": "Small Text",
+   "label": "Who receives each application"
+  },
+  {
+   "fieldname": "section_reading",
+   "fieldtype": "Section Break",
+   "label": "Reading by Nora"
+  },
+  {
+   "default": "1",
+   "description": "A summary, scores against the criteria of the opening and what is missing. Nora runs on our own servers in Switzerland and never decides.",
+   "fieldname": "ai_review_enabled",
+   "fieldtype": "Check",
+   "label": "Nora reads each application"
+  },
+  {
+   "fieldname": "section_privacy",
+   "fieldtype": "Section Break",
+   "label": "Data protection"
+  },
+  {
+   "default": "90",
+   "fieldname": "retention_days",
+   "fieldtype": "Int",
+   "label": "Delete an application this many days after the decision"
+  },
+  {
+   "default": "12",
+   "fieldname": "talent_pool_months",
+   "fieldtype": "Int",
+   "label": "Keep the file of an applicant who agrees, for (months)"
+  },
+  {
+   "fieldname": "privacy_notice",
+   "fieldtype": "Text Editor",
+   "label": "Information shown under the application form"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-07 20:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "HR",
+ "name": "Careers Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 0,
+   "print": 0,
+   "read": 1,
+   "role": "System Manager",
+   "share": 0,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 0,
+   "print": 0,
+   "read": 1,
+   "role": "HR Manager",
+   "share": 0,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

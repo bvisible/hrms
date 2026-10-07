@@ -1,0 +1,107 @@
+{# //// Neoffice — added file (no upstream equivalent): the application form — one upload field per document the opening asks for (neoffice-maintenance#1294). #}
+<form class="hj-form" method="post" enctype="multipart/form-data" novalidate
+	data-endpoint="/api/method/hrms.hr.careers.apply.submit_application"
+	data-max-bytes="{{ form.max_mb * 1024 * 1024 }}"
+	data-accept="{{ form.accept }}"
+	data-msg-sending="{{ _('Sending…') }}"
+	data-msg-required="{{ _('This field is required.') }}"
+	data-msg-email="{{ _('Please enter a valid e-mail address.') }}"
+	data-msg-too-big="{{ _('{0} is larger than {1} MB.') }}"
+	data-msg-type="{{ _('{0}: please send a PDF, a Word document (DOCX), a JPEG or a PNG.') }}"
+	data-msg-check="{{ _('Please check the fields marked in red.') }}"
+	data-msg-failed="{{ _('Your application could not be sent. Please try again in a moment.') }}"
+	data-msg-too-many="{{ _('Too many applications from this connection. Please try again in an hour.') }}">
+	<input type="hidden" name="job_opening" value="{{ form.job_opening }}">
+	<input type="hidden" name="form_token" value="{{ form.token }}">
+	<input type="hidden" name="utm_source" value="{{ form.utm_source }}">
+	<input type="hidden" name="ref" value="{{ form.ref }}">
+	<div class="hj-hp" aria-hidden="true">
+		<label>{{ _("Leave this field empty") }} <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+	</div>
+
+	<fieldset class="hj-fieldset">
+		<legend>{{ _("About you") }}</legend>
+		<div class="hj-row">
+			<div class="hj-field">
+				<label for="hj-first-name">{{ _("First name") }} <span class="hj-req" aria-hidden="true">*</span></label>
+				<input class="u-input" id="hj-first-name" name="first_name" autocomplete="given-name" required maxlength="70">
+				<p class="hj-error" data-error-for="first_name"></p>
+			</div>
+			<div class="hj-field">
+				<label for="hj-last-name">{{ _("Last name") }} <span class="hj-req" aria-hidden="true">*</span></label>
+				<input class="u-input" id="hj-last-name" name="last_name" autocomplete="family-name" required maxlength="70">
+				<p class="hj-error" data-error-for="last_name"></p>
+			</div>
+		</div>
+		<div class="hj-row">
+			<div class="hj-field">
+				<label for="hj-email">{{ _("E-mail") }} <span class="hj-req" aria-hidden="true">*</span></label>
+				<input class="u-input" id="hj-email" name="email" type="email" autocomplete="email" required maxlength="140">
+				<p class="hj-error" data-error-for="email"></p>
+			</div>
+			<div class="hj-field">
+				<label for="hj-phone">{{ _("Phone") }} <span class="hj-opt">{{ _("(optional)") }}</span></label>
+				<input class="u-input" id="hj-phone" name="phone" type="tel" autocomplete="tel" maxlength="40">
+			</div>
+		</div>
+	</fieldset>
+
+	<fieldset class="hj-fieldset">
+		<legend>{{ _("Your documents") }}</legend>
+		{% for doc in form.documents %}
+		<div class="hj-field hj-file">
+			<label for="hj-{{ doc.field }}">{{ doc.label }}
+				{% if doc.required %}<span class="hj-req" aria-hidden="true">*</span>{% else %}<span class="hj-opt">{{ _("(optional)") }}</span>{% endif %}
+			</label>
+			<input class="u-input" id="hj-{{ doc.field }}" name="{{ doc.field }}" type="file" accept="{{ form.accept }}"
+				{% if doc.multiple %}multiple{% endif %} {% if doc.required %}required{% endif %}>
+			{% if doc.help %}<p class="hj-help">{{ doc.help }}</p>{% endif %}
+			<p class="hj-error" data-error-for="{{ doc.field }}"></p>
+		</div>
+		{% endfor %}
+		<p class="hj-help">{{ _("PDF, Word (DOCX), JPEG or PNG, up to {0} MB per file.").format(form.max_mb) }}</p>
+		<p class="hj-error" data-error-for="documents"></p>
+	</fieldset>
+
+	{% if form.questions %}
+	<fieldset class="hj-fieldset">
+		<legend>{{ _("A few questions") }}</legend>
+		{% for q in form.questions %}
+		<div class="hj-field">
+			<label for="hj-{{ q.field }}">{{ q.question }}
+				{% if q.required %}<span class="hj-req" aria-hidden="true">*</span>{% endif %}
+			</label>
+			{% if q.type == "Yes/No" %}
+			<div class="hj-choices" id="hj-{{ q.field }}">
+				<label class="hj-check"><input type="radio" name="{{ q.field }}" value="yes" {% if q.required %}required{% endif %}> {{ _("Yes") }}</label>
+				<label class="hj-check"><input type="radio" name="{{ q.field }}" value="no"> {{ _("No") }}</label>
+			</div>
+			{% elif q.type == "Choice" %}
+			<select class="u-input" id="hj-{{ q.field }}" name="{{ q.field }}" {% if q.required %}required{% endif %}>
+				<option value=""></option>
+				{% for option in q.options %}<option value="{{ option }}">{{ option }}</option>{% endfor %}
+			</select>
+			{% elif q.type == "Long Text" %}
+			<textarea class="u-input" id="hj-{{ q.field }}" name="{{ q.field }}" rows="4" maxlength="2000" {% if q.required %}required{% endif %}></textarea>
+			{% elif q.type == "Number" %}
+			<input class="u-input" id="hj-{{ q.field }}" name="{{ q.field }}" inputmode="decimal" {% if q.required %}required{% endif %}>
+			{% else %}
+			<input class="u-input" id="hj-{{ q.field }}" name="{{ q.field }}" maxlength="2000" {% if q.required %}required{% endif %}>
+			{% endif %}
+			<p class="hj-error" data-error-for="{{ q.field }}"></p>
+		</div>
+		{% endfor %}
+	</fieldset>
+	{% endif %}
+
+	<fieldset class="hj-fieldset hj-consent">
+		<legend>{{ _("Your data") }}</legend>
+		{% if form.privacy_notice %}<div class="hj-privacy">{{ form.privacy_notice }}</div>{% endif %}
+		<label class="hj-check"><input type="checkbox" name="consent" value="1" required> {{ _("I have read this information about my data.") }} <span class="hj-req" aria-hidden="true">*</span></label>
+		<p class="hj-error" data-error-for="consent"></p>
+		<label class="hj-check"><input type="checkbox" name="talent_pool" value="1"> {{ _("You may keep my application for {0} months for other openings.").format(form.talent_pool_months) }}</label>
+	</fieldset>
+
+	<p class="hj-form-error" role="alert"></p>
+	<button type="submit" class="u-btn u-btn--primary hj-submit">{{ _("Send my application") }}</button>
+</form>

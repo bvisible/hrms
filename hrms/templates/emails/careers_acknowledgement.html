@@ -1,0 +1,24 @@
+{# //// Neoffice — added file (no upstream equivalent): the acknowledgement an applicant receives from the careers page (neoffice-maintenance#1294). #}
+<p>{{ _("Hello {0},").format(first_name) if first_name else _("Hello,") }}</p>
+
+<p>
+	{% if opening %}
+	{{ _("We have received your application for the position of {0} at {1}.").format(opening.job_title, company) }}
+	{% else %}
+	{{ _("We have received your unsolicited application to {0}.").format(company) }}
+	{% endif %}
+	{{ _("We will read it carefully and come back to you.") }}
+</p>
+
+{% if documents %}
+<p style="margin-bottom: 4px;">{{ _("Documents received:") }}</p>
+<ul style="margin-top: 0;">
+	{% for doc in documents %}<li>{{ doc.label }} — {{ doc.name }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+<p style="color: #5f6b76; font-size: 13px;">
+	{{ _("Your application is read by the people in charge of recruitment, with the help of an artificial intelligence hosted in Switzerland. No decision is taken automatically. Your data is deleted {0} days after the decision, unless you agreed that we keep it for other openings.").format(retention_days) }}
+</p>
+
+<p>{{ _("Kind regards,") }}<br>{{ company }}</p>

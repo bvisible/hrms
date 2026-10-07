@@ -1,0 +1,485 @@
+/* //// Neoffice — added file (no upstream equivalent): the careers page (/jobs), drawn with the site's
+//// design tokens — colours, faces, corners and shadows come from Builder's theme variables, with a
+//// fallback for a site without them. Buttons, cards and inputs carry the site's own role classes
+//// (.u-btn, .u-card, .u-input); this sheet only lays them out (neoffice-maintenance#1294). */
+
+.hj {
+	--hj-ink: var(--text-color, #1f2933);
+	--hj-muted: var(--text-muted, #5f6b76);
+	--hj-line: var(--border-color, #e3e6ea);
+	--hj-surface: var(--surface-color, #ffffff);
+	--hj-soft: var(--surface-muted, #f5f6f8);
+	--hj-accent: var(--primary-color, #1c3d52);
+	--hj-radius: var(--radius, 10px);
+	--hj-radius-sm: var(--radius-sm, 6px);
+	--hj-danger: #b42318;
+	color: var(--hj-ink);
+	font-family: var(--body-font, inherit);
+	margin: 0 auto 4rem;
+}
+
+.hj h2,
+.hj h3 {
+	font-family: var(--heading-font, inherit);
+	color: var(--heading-color, var(--hj-ink));
+	text-wrap: balance;
+}
+
+/* ---------------------------------------------------------------- notices */
+
+.hj-notice {
+	border: 1px solid var(--hj-line);
+	border-left: 4px solid var(--hj-accent);
+	background: var(--hj-soft);
+	border-radius: var(--hj-radius-sm);
+	padding: 1rem 1.25rem;
+	margin-bottom: 2rem;
+}
+
+.hj-empty {
+	color: var(--hj-muted);
+	margin: 2rem 0;
+}
+
+/* ---------------------------------------------------------------- the list */
+
+.hj-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	align-items: flex-end;
+	margin-bottom: 1.5rem;
+}
+
+.hj-filters__field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	font-size: 0.875rem;
+	color: var(--hj-muted);
+	min-width: 12rem;
+}
+
+.hj-filters__reset {
+	font-size: 0.875rem;
+	padding-bottom: 0.55rem;
+}
+
+.hj-count {
+	color: var(--hj-muted);
+	font-size: 0.875rem;
+	margin-bottom: 1rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.hj-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+	gap: 1.25rem;
+}
+
+.hj-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	height: 100%;
+	padding: 1.5rem;
+	color: inherit;
+	text-decoration: none;
+	background: var(--hj-surface);
+	border: 1px solid var(--hj-line);
+	border-radius: var(--hj-radius);
+	transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.hj-card:hover,
+.hj-card:focus-visible {
+	border-color: var(--hj-accent);
+	text-decoration: none;
+	color: inherit;
+}
+
+.hj-card:focus-visible {
+	outline: 2px solid var(--hj-accent);
+	outline-offset: 2px;
+}
+
+.hj-card__title {
+	font-size: 1.25rem;
+	line-height: 1.3;
+	margin: 0;
+}
+
+.hj-card__excerpt {
+	color: var(--hj-muted);
+	font-size: 0.95rem;
+	margin: 0;
+	flex: 1;
+}
+
+.hj-card__more {
+	color: var(--hj-accent);
+	font-weight: 600;
+	font-size: 0.95rem;
+}
+
+.hj-tags {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+}
+
+.hj-tags li {
+	font-size: 0.8rem;
+	padding: 0.2rem 0.6rem;
+	border-radius: var(--radius-pill, 999px);
+	background: var(--hj-soft);
+	color: var(--hj-ink);
+}
+
+.hj-spontaneous {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem 2rem;
+	margin-top: 3rem;
+	padding: 1.75rem;
+	border: 1px solid var(--hj-line);
+	border-radius: var(--hj-radius);
+	background: var(--hj-soft);
+}
+
+.hj-spontaneous__title {
+	font-size: 1.25rem;
+	margin: 0 0 0.35rem;
+}
+
+.hj-spontaneous p {
+	margin: 0;
+	color: var(--hj-muted);
+}
+
+/* ---------------------------------------------------------------- an opening */
+
+.hj-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 17rem;
+	gap: 3rem;
+	align-items: start;
+}
+
+.hj-facts-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+	gap: 1px;
+	margin: 0 0 2.5rem;
+	border: 1px solid var(--hj-line);
+	border-radius: var(--hj-radius);
+	overflow: hidden;
+	background: var(--hj-line);
+}
+
+.hj-fact {
+	background: var(--hj-surface);
+	padding: 0.9rem 1.1rem;
+}
+
+.hj-fact dt {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--hj-muted);
+	font-weight: 600;
+	margin-bottom: 0.2rem;
+}
+
+.hj-fact dd {
+	margin: 0;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.hj-description {
+	max-width: 68ch;
+	line-height: 1.65;
+}
+
+.hj-description h2,
+.hj-description h3 {
+	margin-top: 2rem;
+}
+
+.hj-aside {
+	position: sticky;
+	top: 6rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+.hj-aside__apply {
+	width: 100%;
+	text-align: center;
+}
+
+.hj-share__title {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--hj-muted);
+	font-weight: 600;
+	margin: 0 0 0.6rem;
+}
+
+.hj-share__list {
+	list-style: none;
+	padding: 0;
+	margin: 0.6rem 0 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+.hj-share__link {
+	display: block;
+	width: 100%;
+	text-align: left;
+	padding: 0.45rem 0;
+	border: 0;
+	border-bottom: 1px solid var(--hj-line);
+	background: none;
+	color: var(--hj-ink);
+	font: inherit;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.hj-share__link:hover,
+.hj-share__link:focus-visible {
+	color: var(--hj-accent);
+	text-decoration: none;
+}
+
+.hj-share__native {
+	width: 100%;
+}
+
+.hj-share__note {
+	font-size: 0.85rem;
+	color: var(--hj-muted);
+	margin: 0.75rem 0 0;
+}
+
+.hj-others {
+	margin-top: 4rem;
+}
+
+.hj-others__title {
+	font-size: 1.35rem;
+	margin-bottom: 1.25rem;
+}
+
+.hj-sticky {
+	display: none;
+}
+
+/* ---------------------------------------------------------------- the form */
+
+.hj-apply {
+	margin-top: 3.5rem;
+	padding-top: 2.5rem;
+	border-top: 1px solid var(--hj-line);
+	scroll-margin-top: 6rem;
+}
+
+.hj-apply__title {
+	font-size: 1.6rem;
+	margin: 0 0 1.5rem;
+}
+
+.hj-form {
+	display: flex;
+	flex-direction: column;
+	gap: 1.75rem;
+	max-width: 44rem;
+}
+
+.hj-fieldset {
+	border: 0;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.hj-fieldset legend {
+	font-family: var(--heading-font, inherit);
+	font-weight: 600;
+	font-size: 1.05rem;
+	margin-bottom: 0.75rem;
+	padding: 0;
+}
+
+.hj-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+	gap: 1rem;
+}
+
+.hj-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+
+.hj-field > label {
+	font-weight: 600;
+	font-size: 0.95rem;
+}
+
+.hj .u-input {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.hj input[type="file"].u-input {
+	padding: 0.55rem;
+	background: var(--hj-soft);
+}
+
+.hj-req {
+	color: var(--hj-danger);
+}
+
+.hj-opt {
+	color: var(--hj-muted);
+	font-weight: 400;
+}
+
+.hj-help {
+	font-size: 0.85rem;
+	color: var(--hj-muted);
+	margin: 0;
+}
+
+.hj-error,
+.hj-form-error {
+	color: var(--hj-danger);
+	font-size: 0.875rem;
+	margin: 0;
+}
+
+.hj-error:empty,
+.hj-form-error:empty {
+	display: none;
+}
+
+.hj-field.is-invalid .u-input,
+.hj-field.is-invalid input[type="file"] {
+	border-color: var(--hj-danger);
+}
+
+.hj-choices {
+	display: flex;
+	gap: 1.5rem;
+}
+
+.hj-check {
+	display: flex;
+	gap: 0.6rem;
+	align-items: flex-start;
+	font-weight: 400;
+	line-height: 1.45;
+}
+
+.hj-check input {
+	margin-top: 0.25rem;
+	flex: none;
+}
+
+.hj-privacy {
+	font-size: 0.9rem;
+	color: var(--hj-muted);
+	line-height: 1.55;
+	padding: 1rem 1.15rem;
+	background: var(--hj-soft);
+	border-radius: var(--hj-radius-sm);
+}
+
+.hj-privacy p:last-child {
+	margin-bottom: 0;
+}
+
+.hj-hp {
+	position: absolute;
+	left: -10000px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+.hj-submit {
+	align-self: flex-start;
+}
+
+.hj-submit[disabled] {
+	opacity: 0.6;
+	cursor: progress;
+}
+
+/* ---------------------------------------------------------------- fallback without the site's buttons */
+
+.hj .u-btn:not([class*="u-btn--"]),
+.hj .u-btn.u-btn--primary {
+	min-height: 2.75rem;
+}
+
+/* ---------------------------------------------------------------- phones */
+
+@media (max-width: 860px) {
+	.hj-layout {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 2rem;
+	}
+
+	.hj-aside {
+		position: static;
+	}
+
+	.hj-aside__apply {
+		display: none;
+	}
+
+	.hj-sticky {
+		display: block;
+		position: fixed;
+		left: 16px;
+		right: 16px;
+		bottom: 16px;
+		z-index: 30;
+		text-align: center;
+		box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.18));
+	}
+
+	.hj-sticky.is-hidden {
+		display: none;
+	}
+
+	.hj--opening {
+		padding-bottom: 4.5rem;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hj-card {
+		transition: none;
+	}
+}

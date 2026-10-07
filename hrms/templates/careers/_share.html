@@ -1,0 +1,14 @@
+{# //// Neoffice — added file (no upstream equivalent): the sharing links of an opening (neoffice-maintenance#1294). #}
+<div class="hj-share" data-share-title="{{ opening.job_title }}" data-share-url="{{ copy_link }}">
+	<p class="hj-share__title">{{ _("Share this opening") }}</p>
+	<button type="button" class="u-btn u-btn--outline hj-share__native" hidden>{{ _("Share") }}</button>
+	<ul class="hj-share__list">
+		{% for link in share %}
+		<li><a class="hj-share__link hj-share__link--{{ link.network }}" href="{{ link.href }}" target="_blank" rel="noopener">{{ link.label }}</a></li>
+		{% endfor %}
+		<li><button type="button" class="hj-share__link hj-share__copy" data-copied="{{ _('Link copied') }}">{{ _("Copy the link") }}</button></li>
+	</ul>
+	{% if employee_link %}
+	<p class="hj-share__note">{{ _("These links are yours: an application that arrives through them counts as your referral.") }}</p>
+	{% endif %}
+</div>

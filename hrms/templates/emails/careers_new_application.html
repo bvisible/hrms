@@ -1,0 +1,51 @@
+{# //// Neoffice — added file (no upstream equivalent): the e-mail a recruiter receives for each application of the careers page (neoffice-maintenance#1294). #}
+<p>
+	{% if updated %}
+	{{ _("{0} has completed their application.").format(applicant.applicant_name) }}
+	{% elif opening %}
+	{{ _("{0} has applied for {1}.").format(applicant.applicant_name, opening.job_title) }}
+	{% else %}
+	{{ _("{0} has sent an unsolicited application.").format(applicant.applicant_name) }}
+	{% endif %}
+	<span style="color: #5f6b76;">{{ received_on }}</span>
+</p>
+
+<table cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 12px 0;">
+	<tr><td style="padding: 2px 16px 2px 0; color: #5f6b76;">{{ _("E-mail") }}</td><td>{{ applicant.email_id }}</td></tr>
+	{% if applicant.phone_number %}<tr><td style="padding: 2px 16px 2px 0; color: #5f6b76;">{{ _("Phone") }}</td><td>{{ applicant.phone_number }}</td></tr>{% endif %}
+	{% if applicant.source %}<tr><td style="padding: 2px 16px 2px 0; color: #5f6b76;">{{ _("Source") }}</td><td>{{ _(applicant.source) }}</td></tr>{% endif %}
+</table>
+
+{% if review %}
+<div style="border-left: 3px solid #1c3d52; padding: 8px 14px; margin: 16px 0; background: #f5f6f8;">
+	<p style="margin: 0 0 6px; font-weight: 600;">
+		{{ _("Read by Nora") }}
+		{% if review.score is not none %} · {{ _("Score {0}/100").format(review.score) }}{% endif %}
+		· {{ _("Complete at {0} %").format(review.completeness) }}
+	</p>
+	<p style="margin: 0 0 6px;">{{ review.summary }}</p>
+	{% if review.to_check %}
+	<p style="margin: 6px 0 2px;">{{ _("To check:") }}</p>
+	<ul style="margin-top: 0;">{% for point in review.to_check[:3] %}<li>{{ point }}</li>{% endfor %}</ul>
+	{% endif %}
+	<p style="margin: 6px 0 0; color: #5f6b76; font-size: 12px;">{{ _("A help to read the application: the decision is yours.") }}</p>
+</div>
+{% elif reading_pending %}
+<p style="color: #5f6b76;">{{ _("Nora's reading will follow in the record.") }}</p>
+{% endif %}
+
+{% if documents %}
+<p style="margin-bottom: 4px;">{{ _("Documents received:") }}</p>
+<ul style="margin-top: 0;">
+	{% for doc in documents %}<li>{{ doc.label }} — {{ doc.name }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+{% if answers %}
+<p style="margin-bottom: 4px;">{{ _("Answers:") }}</p>
+<ul style="margin-top: 0;">
+	{% for row in answers %}<li>{{ row.question }} <strong>{{ row.answer }}</strong></li>{% endfor %}
+</ul>
+{% endif %}
+
+<p><a href="{{ url }}">{{ _("Open the application") }}</a></p>

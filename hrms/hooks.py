@@ -63,6 +63,10 @@ doctype_js = {
 	# //// Neoffice — added: frank a submitted payslip with a Swiss Post WebStamp printed in the
 	# //// envelope window (public/js/salary_slip_swiss.js, regional/switzerland/webstamp.py).
 	"Salary Slip": "public/js/salary_slip_swiss.js",
+	# //// Neoffice — added: the careers page (hr/careers, neoffice-maintenance#1294) — the opening's
+	# //// requested documents and Nora's criteria; the applicant's reading card.
+	"Job Opening": "public/js/careers_job_opening.js",
+	"Job Applicant": "public/js/careers_job_applicant.js",
 }
 # //// Neoffice — added: the Employee list's "Add" opens the hiring wizard instead of the full form
 # //// (public/js/erpnext/employee_list.js), on a site that runs the Swiss payroll only — the boot
@@ -94,7 +98,20 @@ website_generators = ["Job Opening"]
 website_route_rules = [
 	{"from_route": "/hrms/<path:app_path>", "to_route": "hrms"},
 	{"from_route": "/hr/<path:app_path>", "to_route": "roster"},
+	# //// Neoffice — added: the careers page (hr/careers/pages.py, neoffice-maintenance#1294) serves
+	# //// /jobs and its openings with the site's design, and takes the applications itself: upstream's
+	# //// page (www/jobs) and web form (/job_application) stay in the app untouched, unreachable.
+	{"from_route": "/jobs", "to_route": "careers"},
+	{"from_route": "/jobs/<path:job_route>", "to_route": "careers/opening"},
+	{"from_route": "/job_application", "to_route": "careers/legacy"},
+	{"from_route": "/job_application/<path:legacy_path>", "to_route": "careers/legacy"},
 ]
+
+# //// Neoffice — added: hrms declares its careers page as a website plugin (Builder's registry,
+# //// builder/plugins.py): the site switches it on or off, /jobs answers 404 when it is off.
+unpress_plugins = ["hrms.hr.careers.plugin.manifest"]
+# //// Neoffice — added: the shop's sitemap index names /sitemap_jobs.xml (webshop seo/sitemaps.py).
+sitemap_index_entries = ["hrms.hr.careers.seo.sitemap_index_entries"]
 # Jinja
 # ----------
 
@@ -124,6 +141,7 @@ jinja = {
 after_install = [
 	"hrms.install.after_install",
 	"hrms.regional.switzerland.setup.make_custom_fields",
+	"hrms.hr.careers.setup.after_migrate",  # //// Neoffice — the careers page's fields and defaults (#1294)
 ]
 after_migrate = [
 	"hrms.setup.update_select_perm_after_install",
@@ -142,6 +160,9 @@ after_migrate = [
 	# //// definitions never reached an already-provisioned site (LAAC, 2026-09-22).
 	"hrms.regional.switzerland.setup.ensure_swiss_salary_components",
 	"hrms.regional.switzerland.setup.ensure_swiss_workspace_hierarchy",
+	# //// Neoffice — the careers page's Custom Fields, sources and defaults, idempotent like the
+	# //// Swiss ones above (hr/careers/setup.py, neoffice-maintenance#1294).
+	"hrms.hr.careers.setup.after_migrate",
 ]
 
 setup_wizard_complete = [
@@ -218,6 +239,20 @@ override_doctype_class = {
 # Hook on document methods and events
 
 doc_events = {
+	# //// Neoffice — added: the careers page (hr/careers/events.py, neoffice-maintenance#1294): a clean
+	# //// route and the reading grid's history on the opening, its share picture, the menu entry
+	# //// following what is published, and the retention clock of an application.
+	"Job Opening": {
+		"validate": "hrms.hr.careers.events.job_opening_validate",
+		"on_update": "hrms.hr.careers.events.job_opening_on_update",
+		"on_trash": "hrms.hr.careers.events.job_opening_on_trash",
+	},
+	"Job Applicant": {
+		"validate": "hrms.hr.careers.events.job_applicant_validate",
+	},
+	"Website Plugin": {
+		"on_update": "hrms.hr.careers.events.website_plugin_on_update",
+	},
 	# //// Neoffice — 2026-09-24: a Swiss company values the vacation paid at the exit from the salary
 	# //// (divisor, after-contract or calendar days), not a fixed amount typed on the structure.
 	"Leave Encashment": {
@@ -301,6 +336,11 @@ doc_events = {
 # ---------------
 
 scheduler_events = {
+	# //// Neoffice — added: the careers page's reading queue and the recruiter e-mails that waited
+	# //// too long (hr/careers/review.py, neoffice-maintenance#1294).
+	"cron": {
+		"*/5 * * * *": ["hrms.hr.careers.review.run_due"],
+	},
 	"all": [
 		"hrms.hr.doctype.interview.interview.send_interview_reminder",
 	],
@@ -322,6 +362,10 @@ scheduler_events = {
 		"hrms.hr.doctype.interview.interview.send_daily_feedback_reminder",
 		"hrms.hr.doctype.shift_assignment.shift_assignment.mark_expired_shift_assignments_as_inactive",
 		"hrms.hr.doctype.job_opening.job_opening.close_expired_job_openings",
+		# //// Neoffice — added (#1294): the menu entry after the openings closed above, and the
+		# //// applications past their retention date deleted (hr/careers/retention.py).
+		"hrms.hr.careers.plugin.sync_menu",
+		"hrms.hr.careers.retention.purge_expired",
 		# //// Neoffice — added: fetches the new ESTV source-tax tariffs when the cantons publish
 		# //// them — a stale tariff silently withholds the wrong amount.
 		"hrms.regional.switzerland.source_tax.auto_fetch_new_tariffs",

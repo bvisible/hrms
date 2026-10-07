@@ -1,0 +1,61 @@
+{# //// Neoffice — added file (no upstream equivalent): /jobs, the careers page's list, drawn with the site's design tokens (neoffice-maintenance#1294). #}
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_include %}
+{{ super() }}
+<link rel="stylesheet" href="{{ careers_css }}">
+{% endblock %}
+
+{% block page_content %}
+<div class="hj hj--list">
+	{% if applied %}
+	<div class="hj-notice" role="status">
+		<strong>{{ _("Thank you, your application has been sent.") }}</strong>
+		{{ _("You will receive an acknowledgement by e-mail.") }}
+	</div>
+	{% endif %}
+
+	{% if filters %}
+	<form class="hj-filters" method="get" action="/jobs">
+		{% for key, values in filters.items() %}
+		<label class="hj-filters__field">
+			<span>{{ filter_labels[key] }}</span>
+			<select name="{{ key }}" class="u-input" onchange="this.form.submit()">
+				<option value="">{{ _("All") }}</option>
+				{% for v in values %}
+				<option value="{{ v.value }}" {% if chosen.get(key) == v.value %}selected{% endif %}>{{ v.label }}</option>
+				{% endfor %}
+			</select>
+		</label>
+		{% endfor %}
+		<noscript><button type="submit" class="u-btn u-btn--outline">{{ _("Filter") }}</button></noscript>
+		{% if chosen %}<a class="hj-filters__reset" href="/jobs">{{ _("Show all openings") }}</a>{% endif %}
+	</form>
+	{% endif %}
+
+	{% if openings %}
+	<p class="hj-count">
+		{% if openings|length == 1 %}{{ _("1 opening") }}{% else %}{{ _("{0} openings").format(openings|length) }}{% endif %}
+	</p>
+	<ul class="hj-list">
+		{% for card in openings %}
+		<li>{% include "templates/careers/_card.html" %}</li>
+		{% endfor %}
+	</ul>
+	{% elif chosen %}
+	<p class="hj-empty">{{ _("No opening matches these filters.") }} <a href="/jobs">{{ _("Show all openings") }}</a></p>
+	{% endif %}
+
+	{% if accept_spontaneous %}
+	<section class="hj-spontaneous u-card">
+		<div>
+			<h2 class="hj-spontaneous__title">{{ _("Unsolicited application") }}</h2>
+			<p>{{ _("No opening matches your profile today? Tell us about you.") }}</p>
+		</div>
+		<a class="u-btn u-btn--primary" href="{{ spontaneous_url }}">{{ _("Apply") }}</a>
+	</section>
+	{% endif %}
+</div>
+{% endblock %}

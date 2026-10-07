@@ -1,0 +1,11 @@
+{# //// Neoffice — added file (no upstream equivalent): one opening as a card of the careers page (neoffice-maintenance#1294). #}
+<a class="hj-card u-card" href="{{ card.url }}">
+	<h3 class="hj-card__title">{{ card.title }}</h3>
+	{% if card.facts %}
+	<ul class="hj-tags">
+		{% for fact in card.facts %}<li>{{ fact.value }}</li>{% endfor %}
+	</ul>
+	{% endif %}
+	{% if card.excerpt %}<p class="hj-card__excerpt">{{ card.excerpt }}</p>{% endif %}
+	<span class="hj-card__more">{{ _("See the opening") }} <span aria-hidden="true">→</span></span>
+</a>

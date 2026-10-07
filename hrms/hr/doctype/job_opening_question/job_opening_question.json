@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "creation": "2026-10-07 20:30:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "question",
+  "answer_type",
+  "required",
+  "options"
+ ],
+ "fields": [
+  {
+   "columns": 4,
+   "fieldname": "question",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Question",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "default": "Short Text",
+   "fieldname": "answer_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Answer",
+   "options": "Yes/No\nShort Text\nLong Text\nNumber\nChoice"
+  },
+  {
+   "columns": 1,
+   "fieldname": "required",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Required"
+  },
+  {
+   "depends_on": "eval:doc.answer_type=='Choice'",
+   "description": "One choice per line.",
+   "fieldname": "options",
+   "fieldtype": "Small Text",
+   "label": "Choices"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-07 20:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "HR",
+ "name": "Job Opening Question",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

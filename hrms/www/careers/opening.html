@@ -1,0 +1,70 @@
+{# //// Neoffice — added file (no upstream equivalent): an opening of the careers page and its application form, drawn with the site's design tokens (neoffice-maintenance#1294). #}
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_include %}
+{{ super() }}
+<link rel="stylesheet" href="{{ careers_css }}">
+{% if jsonld %}<script type="application/ld+json">{{ jsonld }}</script>{% endif %}
+{% endblock %}
+
+{% block page_content %}
+<div class="hj hj--opening">
+	{% if applied %}
+	<div class="hj-notice" role="status">
+		<strong>{{ _("Thank you, your application has been sent.") }}</strong>
+		{{ _("You will receive an acknowledgement by e-mail.") }}
+	</div>
+	{% endif %}
+
+	<div class="hj-layout">
+		<article class="hj-main">
+			{% if facts %}
+			<dl class="hj-facts-grid">
+				{% for fact in facts %}
+				<div class="hj-fact">
+					<dt>{{ fact.label }}</dt>
+					<dd>{{ fact.value }}</dd>
+				</div>
+				{% endfor %}
+			</dl>
+			{% endif %}
+
+			{% if opening and opening.description %}
+			<div class="hj-description">{{ opening.description }}</div>
+			{% endif %}
+
+			<section id="apply" class="hj-apply">
+				<h2 class="hj-apply__title">{% if opening %}{{ _("Apply for this job") }}{% else %}{{ _("Your application") }}{% endif %}</h2>
+				{% include "templates/careers/_apply_form.html" %}
+			</section>
+		</article>
+
+		<aside class="hj-aside">
+			{% if opening %}
+			<a class="u-btn u-btn--primary hj-aside__apply" href="#apply">{{ _("Apply") }}</a>
+			{% include "templates/careers/_share.html" %}
+			{% endif %}
+		</aside>
+	</div>
+
+	{% if others %}
+	<section class="hj-others">
+		<h2 class="hj-others__title">{{ _("Other openings") }}</h2>
+		<ul class="hj-list hj-list--compact">
+			{% for card in others %}
+			<li>{% include "templates/careers/_card.html" %}</li>
+			{% endfor %}
+		</ul>
+	</section>
+	{% endif %}
+
+	<a class="u-btn u-btn--primary hj-sticky" href="#apply">{{ _("Apply") }}</a>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ super() }}
+<script src="{{ careers_js }}" defer></script>
+{% endblock %}

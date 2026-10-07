@@ -1,0 +1,186 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-07 20:30:00.000000",
+ "description": "Nora's reading of an application: a help to read and compare, never a decision.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "job_applicant",
+  "job_opening",
+  "status",
+  "column_break_1",
+  "overall_score",
+  "completeness",
+  "reviewed_on",
+  "section_summary",
+  "summary",
+  "axis_scores",
+  "details",
+  "section_engine",
+  "model",
+  "prompt_version",
+  "seconds",
+  "column_break_2",
+  "prompt_tokens",
+  "completion_tokens",
+  "error"
+ ],
+ "fields": [
+  {
+   "fieldname": "job_applicant",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Job Applicant",
+   "options": "Job Applicant",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "job_opening",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Job Opening",
+   "options": "Job Opening"
+  },
+  {
+   "default": "Queued",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Queued\nDone\nFailed"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "overall_score",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Score"
+  },
+  {
+   "fieldname": "completeness",
+   "fieldtype": "Int",
+   "label": "Completeness (%)"
+  },
+  {
+   "fieldname": "reviewed_on",
+   "fieldtype": "Datetime",
+   "label": "Read on"
+  },
+  {
+   "fieldname": "section_summary",
+   "fieldtype": "Section Break",
+   "label": "Reading"
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "Small Text",
+   "label": "Summary"
+  },
+  {
+   "fieldname": "axis_scores",
+   "fieldtype": "JSON",
+   "label": "Scores by axis"
+  },
+  {
+   "fieldname": "details",
+   "fieldtype": "JSON",
+   "label": "Details"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_engine",
+   "fieldtype": "Section Break",
+   "label": "Engine"
+  },
+  {
+   "fieldname": "model",
+   "fieldtype": "Data",
+   "label": "Model"
+  },
+  {
+   "fieldname": "prompt_version",
+   "fieldtype": "Data",
+   "label": "Prompt version"
+  },
+  {
+   "fieldname": "seconds",
+   "fieldtype": "Float",
+   "label": "Seconds"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "prompt_tokens",
+   "fieldtype": "Int",
+   "label": "Prompt tokens"
+  },
+  {
+   "fieldname": "completion_tokens",
+   "fieldtype": "Int",
+   "label": "Answer tokens"
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error"
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-07 20:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "HR",
+ "name": "Job Applicant Review",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 0,
+   "export": 1,
+   "print": 0,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 0,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 0,
+   "export": 1,
+   "print": 0,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 0,
+   "write": 1
+  },
+  {
+   "email": 0,
+   "export": 0,
+   "print": 0,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 0
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "job_applicant",
+ "track_changes": 0
+}

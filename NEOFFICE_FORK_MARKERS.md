@@ -48,6 +48,13 @@ Swiss payroll (AVS/AC/LAA/LPP, ESTV source tax, Lohnausweis, Swissdec transmissi
 Every added source file carries a `//// Neoffice — added file` header; the JSON that
 comes with them is listed below.
 
+`hrms/hr/careers/**`, `hrms/www/careers/**`, `hrms/www/sitemap_jobs.*`, `hrms/templates/careers/**`,
+`hrms/templates/emails/careers_*`, `hrms/public/{css,js}/careers*` and the doctypes below are the
+**careers page** (neoffice-maintenance#1294, 2026-10-07): /jobs and its openings drawn with the
+site's design, the application endpoint, Nora's reading of each application. `hrms/utils/nora.py` is the
+one door from hrms to a language model (Nora only, #1295). Its fields on Job Opening, Job Applicant and
+Website Profile are Custom Fields (`hr/careers/setup.py`), like the Swiss ones.
+
 ### The Swiss fields are Custom Fields, not JSON edits — keep it that way
 
 `hrms/regional/switzerland/setup.py` declares **57 Custom Fields** through
@@ -156,6 +163,13 @@ the old and the new tree:
 
 Every path below is **added** by this fork; upstream has no equivalent.
 
+- `hrms/hr/doctype/careers_settings/careers_settings.json` — Single, 12 fields, perms HR Manager + System Manager — the settings of the careers page (unsolicited applications, recipients, Nora's reading, retention).
+- `hrms/hr/doctype/job_applicant_answer/job_applicant_answer.json` — Child table, 2 fields — an applicant's answer to a question of the opening.
+- `hrms/hr/doctype/job_applicant_document/job_applicant_document.json` — Child table, 5 fields — a document received with an application, typed by its upload field.
+- `hrms/hr/doctype/job_applicant_review/job_applicant_review.json` — DocType, 19 fields, links Job Applicant/Job Opening, perms HR Manager + HR User — Nora's reading of one application (never a decision).
+- `hrms/hr/doctype/job_opening_criterion/job_opening_criterion.json` — Child table, 5 fields — a criterion every application to the opening is read against.
+- `hrms/hr/doctype/job_opening_document/job_opening_document.json` — Child table, 5 fields — a document the opening asks applicants for (one upload field each).
+- `hrms/hr/doctype/job_opening_question/job_opening_question.json` — Child table, 4 fields — a question the opening asks applicants.
 - `hrms/hr/onboarding_step/set_up_swiss_payroll/set_up_swiss_payroll.json` — Onboarding Step — last step of the HR module tour, sends to /app/swiss-payroll.
 - `hrms/hr/workspace/leaves_and_attendance/leaves_and_attendance.json` — Workspace (child of HR) — merges upstream's `Leaves` and `Shift & Attendance`, both deleted below.
 - `hrms/hr/workspace/recruitment_&_performance/recruitment_&_performance.json` — Workspace (child of HR) — merges upstream's `Recruitment` and `Performance`, both deleted below.
