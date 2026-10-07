@@ -288,10 +288,31 @@ class TestThePageAndTheMenu(CareersTestCase):
 	def test_the_menu_follows_the_page(self):
 		with (
 			patch.object(plugin, "_menu_entry") as entry,
+			patch.object(plugin, "_variant_menus") as variants,
 			patch.object(plugin, "page_is_open", return_value=False),
 		):
 			plugin.sync_menu()
 			entry.assert_called_once_with(False)
+			variants.assert_called_once()
+
+	def test_each_site_of_a_multi_site_instance_gets_the_entry_in_its_own_menu(self):
+		if not frappe.db.exists("DocType", "Website Header Footer Variant"):
+			return
+		variant = frappe.get_doc(
+			{"doctype": "Website Header Footer Variant", "menu_items": [{"label": "Accueil", "url": "/"}]}
+		)
+		variant.flags.ignore_mandatory = True
+		variant.insert(ignore_permissions=True)
+
+		def urls():
+			return [r.url for r in frappe.get_doc(variant.doctype, variant.name).menu_items]
+
+		with patch.object(plugin, "page_is_open", return_value=True):
+			plugin._variant_menus()
+		self.assertIn("/jobs", urls())
+		with patch.object(plugin, "page_is_open", return_value=False):
+			plugin._variant_menus()
+		self.assertNotIn("/jobs", urls())
 
 
 class TestApplying(CareersTestCase):
