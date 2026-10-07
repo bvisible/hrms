@@ -49,7 +49,10 @@ EMPLOYMENT_TYPES = {
 
 
 def description_text(opening, limit: int = 300) -> str:
-	text = re.sub(r"\s+", " ", strip_html(opening.get("description") or "")).strip()
+	html = opening.get("description") or ""
+	# a block that ends is a word that ends: "PME.</p><h3>Vos missions" must not read "PME.Vos missions"
+	html = re.sub(r"</(p|h[1-6]|li|div|ul|ol)>|<br\s*/?>", " ", html, flags=re.IGNORECASE)
+	text = re.sub(r"\s+", " ", strip_html(html)).strip()
 	if len(text) <= limit:
 		return text
 	return text[:limit].rsplit(" ", 1)[0] + "…"

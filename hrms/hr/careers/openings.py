@@ -158,7 +158,7 @@ def salary_text(opening) -> str | None:
 def opening_facts(opening) -> list[dict]:
 	"""The short facts printed on a card and at the top of an opening, in reading order."""
 	facts = [
-		("location", _("Place"), opening.get("location")),
+		("location", _("Job location"), opening.get("location")),
 		("workload", _("Workload"), _workload(opening)),
 		(
 			"employment_type",

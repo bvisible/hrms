@@ -100,7 +100,7 @@ def list_context(context):
 	context.filters = filter_options(every)
 	context.chosen = chosen
 	context.filter_labels = {
-		"location": _("Place"),
+		"location": _("Job location"),
 		"department": _("Department"),
 		"employment_type": _("Contract"),
 	}

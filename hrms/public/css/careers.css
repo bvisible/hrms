@@ -178,17 +178,17 @@
 .hj-facts-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-	gap: 1px;
 	margin: 0 0 2.5rem;
 	border: 1px solid var(--hj-line);
 	border-radius: var(--hj-radius);
 	overflow: hidden;
-	background: var(--hj-line);
+	background: var(--hj-surface);
 }
 
+/* each cell draws its right and bottom lines: the ones on the edge fall under the frame */
 .hj-fact {
-	background: var(--hj-surface);
 	padding: 0.9rem 1.1rem;
+	box-shadow: 1px 1px 0 var(--hj-line);
 }
 
 .hj-fact dt {

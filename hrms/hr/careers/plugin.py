@@ -73,12 +73,13 @@ def accepts_spontaneous() -> bool:
 	return bool(frappe.db.get_single_value("Careers Settings", "accept_spontaneous"))
 
 
-def page_is_open() -> bool:
+def page_is_open(company: str | None = None) -> bool:
+	"""Open for the site being browsed, or for a given company (a site of a multi-site instance)."""
 	from hrms.hr.careers.openings import has_open_openings
 
 	if not plugin_enabled():
 		return False
-	return has_open_openings() or accepts_spontaneous()
+	return has_open_openings(company) or accepts_spontaneous()
 
 
 def _menu_entry(on: bool):
@@ -108,9 +109,45 @@ def _local_menu_entry(url: str, label_en: str, on: bool):
 	settings.save(ignore_permissions=True)
 
 
+def _variant_menus():
+	"""The menu of each site of a multi-site instance.
+
+	A site served through a Website Profile draws the menu of its header/footer variant, which
+	neither the theme's `menu_entry` nor Builder's own sync touches: on such a site the entry was
+	written to the main menu and the page still had none (measured on osiris, 2026-10-07). Each
+	variant gets the entry when the page is open for its profile's company.
+	"""
+	if not frappe.db.exists("DocType", "Website Header Footer Variant"):
+		return
+	from frappe import _
+
+	site_lang = frappe.db.get_default("lang") or "fr"
+	for row in frappe.get_all("Website Header Footer Variant", fields=["name", "website_profile"]):
+		company, lang = None, site_lang
+		if row.website_profile:
+			company, lang = frappe.db.get_value(
+				"Website Profile", row.website_profile, ["careers_company", "language"]
+			) or (None, None)
+			lang = lang or site_lang
+		on = page_is_open(company)
+		variant = frappe.get_doc("Website Header Footer Variant", row.name)
+		present = [r for r in variant.get("menu_items") or [] if (r.url or "").rstrip("/") == MENU_URL]
+		if on and not present:
+			variant.append("menu_items", {"label": _(MENU_LABEL, lang=lang), "url": MENU_URL})
+		elif not on and present:
+			for item in present:
+				variant.remove(item)
+		else:
+			continue
+		variant.flags.ignore_permissions = True
+		variant.save(ignore_permissions=True)
+
+
 def sync_menu(*args, **kwargs):
-	"""Put the menu entry where the page is. Safe to call from any hook: it never raises."""
+	"""Put the menu entry where the page is, on the main site and on each site of a multi-site
+	instance. Safe to call from any hook: it never raises."""
 	try:
 		_menu_entry(page_is_open())
+		_variant_menus()
 	except Exception:
 		frappe.log_error("Careers page: menu entry not synced", frappe.get_traceback())
