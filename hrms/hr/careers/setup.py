@@ -335,8 +335,11 @@ def ensure_settings():
 		return
 	settings = frappe.get_single("Careers Settings")
 	changed = False
-	if not settings.privacy_notice:
-		settings.privacy_notice = default_privacy_notice(frappe.db.get_default("lang") or "fr")
+	lang = frappe.db.get_default("lang") or "fr"
+	english, wanted = default_privacy_notice("en"), default_privacy_notice(lang)
+	# a notice written before its translation existed was stored in English: put it in the site's language
+	if not settings.privacy_notice or (settings.privacy_notice == english and wanted != english):
+		settings.privacy_notice = wanted
 		changed = True
 	if not settings.retention_days:
 		settings.retention_days = 90

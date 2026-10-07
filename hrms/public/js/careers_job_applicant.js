@@ -70,7 +70,7 @@ window.hrms_careers_applicant = {
 	verdict_pill(verdict) {
 		// the design system's five status tones (Neoffice Design System §6.3)
 		const tones = {
-			met: [__("Shown"), "success"],
+			met: [__("Shown in the file"), "success"],
 			partial: [__("Partly"), "warn"],
 			not_met: [__("Not shown"), "danger"],
 			unknown: [__("Not said"), "muted"],
@@ -181,15 +181,15 @@ window.hrms_careers_applicant = {
 			<div class="hj-desk__head">
 				<div class="hj-desk__intro">${head(__("The application"))}</div>
 				<div class="hj-desk__kpis">
-					<div class="hj-kpi"><div class="hj-kpi__value">${score}<small>/100</small></div><div class="hj-kpi__label">${__("Match")}</div></div>
-					<div class="hj-kpi"><div class="hj-kpi__value">${review.completeness}<small>%</small></div><div class="hj-kpi__label">${__("Complete")}</div></div>
+					<div class="hj-kpi"><div class="hj-kpi__value">${score}<small>/100</small></div><div class="hj-kpi__label">${__("Match with the job")}</div></div>
+					<div class="hj-kpi"><div class="hj-kpi__value">${review.completeness}<small>%</small></div><div class="hj-kpi__label">${__("Complete file")}</div></div>
 				</div>
 			</div>
 			<div class="hj-desk__body">
 				${warnings.map((w) => `<p class="hj-warn">${esc(w)}</p>`).join("")}
 				<p class="hj-desk__summary">${esc(review.summary)}</p>
 				${axes ? `<div class="hj-axes">${axes}</div>` : ""}
-				${criteria ? `<div class="hj-h">${__("Criteria")}</div><table class="hj-crit">${criteria}</table>` : ""}
+				${criteria ? `<div class="hj-h">${__("Reading criteria")}</div><table class="hj-crit">${criteria}</table>` : ""}
 				<div class="hj-cols">
 					${column(__("Strengths"), details.strengths)}
 					${column(__("To check"), details.to_check)}
