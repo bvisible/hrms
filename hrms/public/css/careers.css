@@ -462,7 +462,8 @@
 		display: block;
 		position: fixed;
 		left: 16px;
-		right: 16px;
+		/* the site's assistant bubble sits in the bottom-right corner: leave it its place */
+		right: 92px;
 		bottom: 16px;
 		z-index: 30;
 		text-align: center;
