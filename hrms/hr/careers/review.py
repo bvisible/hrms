@@ -577,6 +577,9 @@ def _fail(name: str, reason: str):
 
 def drain_queue():
 	"""Read the queued applications one after the other, until the queue is empty or Nora asks to wait."""
+	# what the reading stores (its points to check, the flags) is read by the site's HR: their language,
+	# not the one of whoever happened to queue the job
+	frappe.local.lang = frappe.db.get_default("lang") or "fr"
 	started = time.monotonic()
 	while time.monotonic() - started < RUN_SECONDS:
 		name = _next_due()
