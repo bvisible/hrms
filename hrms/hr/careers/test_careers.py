@@ -1,6 +1,7 @@
 # //// Neoffice — added file (no upstream equivalent): tests of the careers page (neoffice-maintenance#1294).
 # //// Nora is simulated: no test reaches the model, and no e-mail leaves (frappe.sendmail does not send
 # //// under tests). Run on the clone: bench --site prodclone.local run-tests --module hrms.hr.careers.test_careers
+import inspect
 import io
 import json
 import os
@@ -86,7 +87,7 @@ class CareersTestCase(FrappeTestCase):
 class TestRoutesAndDocuments(CareersTestCase):
 	def test_a_title_becomes_a_clean_address(self):
 		self.assertEqual(openings.slugify(TITLE), "comptable-h-f-a-80")
-		self.assertEqual(openings.slugify("Ingénieur·e / Développeur"), "ingenieur-e-developpeur")
+		self.assertEqual(openings.slugify("Ingénieur·e / Développeur"), "ingenieure-developpeur")
 		self.assertEqual(openings.slugify("???"), "job")
 
 	def test_two_openings_with_the_same_title_get_two_addresses(self):
@@ -308,7 +309,8 @@ class TestApplying(CareersTestCase):
 			patch("frappe.enqueue"),
 			patch.object(apply, "plugin_enabled", return_value=True),
 		):
-			return apply.submit_application.__wrapped__()
+			# the endpoint itself, without the whitelist and the rate limiter around it
+			return inspect.unwrap(apply.submit_application)()
 
 	def test_an_application_stores_typed_private_documents(self):
 		result = self._apply(
