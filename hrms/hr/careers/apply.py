@@ -146,6 +146,10 @@ def _uploads(requested: list, errors: dict) -> list[tuple]:
 					upload.filename
 				)
 				break
+			problem = documents.pdf_problem(content) if kind == "pdf" else None
+			if problem:
+				errors[key] = problem.format(upload.filename)
+				break
 			total += len(content)
 			count += 1
 			accepted.append((row, documents.safe_file_name(upload.filename, kind), content, kind))

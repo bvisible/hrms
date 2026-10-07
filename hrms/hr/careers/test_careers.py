@@ -18,7 +18,22 @@ from hrms.hr.careers import apply, documents, openings, plugin, review, scoring,
 from hrms.utils import nora
 
 TITLE = "Comptable (H/F) à 80 %"
-PDF = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF"
+
+
+def _pdf(javascript: str | None = None) -> bytes:
+	"""A real one-page PDF (pypdf ships with Frappe, so the CI has it too)."""
+	from pypdf import PdfWriter
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=200, height=200)
+	if javascript:
+		writer.add_js(javascript)
+	buffer = io.BytesIO()
+	writer.write(buffer)
+	return buffer.getvalue()
+
+
+PDF = _pdf()
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32
 
 
@@ -340,6 +355,13 @@ class TestApplying(CareersTestCase):
 		result = self._apply(files=[("doc_1", "cv.pdf", b"<html><body>cv</body></html>")])
 		self.assertFalse(result["ok"])
 		self.assertIn("doc_1", result["errors"])
+
+	def test_a_damaged_pdf_or_one_with_javascript_is_refused_before_anything_is_stored(self):
+		for content in (b"%PDF-1.4 truncated", _pdf("app.alert('x')")):
+			result = self._apply(files=[("doc_1", "cv.pdf", content)])
+			self.assertFalse(result["ok"])
+			self.assertIn("doc_1", result["errors"])
+		self.assertFalse(frappe.db.exists("Job Applicant", {"email_id": "jean.test@example.invalid"}))
 
 	def test_the_consent_is_required(self):
 		result = self._apply(files=[("doc_1", "cv.pdf", PDF)], consent="")

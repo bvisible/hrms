@@ -74,3 +74,22 @@ def safe_file_name(name: str, kind: str) -> str:
 	stem = stem.rsplit(".", 1)[0] if "." in stem else stem
 	stem = re.sub(r"[^\w\-. ]+", "", stem, flags=re.UNICODE).strip(" .") or "document"
 	return f"{stem[:80]}.{EXTENSIONS[kind]}"
+
+
+def pdf_problem(content: bytes) -> str | None:
+	"""Why Frappe would refuse this PDF when it is saved, checked before anything is stored.
+
+	Frappe reads every PDF it saves and refuses one with JavaScript in it; a damaged PDF makes that
+	reading fail. Without this check both surfaced as a server error after the applicant had been
+	created. The message keeps a `{0}` for the file name.
+	"""
+	try:
+		from frappe.utils.pdf import pdf_contains_js
+	except ImportError:
+		return None
+	try:
+		if pdf_contains_js(content):
+			return _("{0} contains active content and cannot be accepted. Please send another file.")
+	except Exception:
+		return _("{0} is damaged or is not a real PDF. Please send another file.")
+	return None
