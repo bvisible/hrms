@@ -809,6 +809,11 @@ def import_opening(file_url: str) -> dict:
 		"careers_start_on": date_or_none(data.get("start_date")),
 		"closes_on": date_or_none(data.get("closes_on")),
 	}
+	# a date given is the starting date, whatever word the model put next to it
+	if out["careers_start_on"]:
+		out["careers_start_option"] = "On a date"
+	elif out["careers_start_option"] == "On a date":
+		out["careers_start_option"] = None
 	if flt(data.get("salary_min")) or flt(data.get("salary_max")):
 		out.update(
 			{
