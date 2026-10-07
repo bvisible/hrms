@@ -144,7 +144,7 @@ window.hrms_careers_applicant = {
 					? __("Nora is reading the application. Reload in a moment.")
 					: __("Nora could not read this application. Read the documents below, or ask Nora to read it again.");
 			return `<div class="hj-desk hj-desk--quiet"><div class="hj-desk__head"><div class="hj-desk__intro">${head(
-				__("The application")
+				__("Job Applicant Review")
 			)}</div></div><div class="hj-desk__body">${esc(message)}</div></div>`;
 		}
 		const review = data.review;
@@ -179,7 +179,7 @@ window.hrms_careers_applicant = {
 		const score = review.score == null ? "–" : review.score;
 		return `<div class="hj-desk">
 			<div class="hj-desk__head">
-				<div class="hj-desk__intro">${head(__("The application"))}</div>
+				<div class="hj-desk__intro">${head(__("Job Applicant Review"))}</div>
 				<div class="hj-desk__kpis">
 					<div class="hj-kpi"><div class="hj-kpi__value">${score}<small>/100</small></div><div class="hj-kpi__label">${__("Match with the job")}</div></div>
 					<div class="hj-kpi"><div class="hj-kpi__value">${review.completeness}<small>%</small></div><div class="hj-kpi__label">${__("Complete file")}</div></div>
