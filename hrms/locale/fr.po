@@ -23296,3 +23296,7 @@ msgstr "{} est un statut de présence invalide."
 msgid "{} {} open for this position."
 msgstr "{} {} ouvert pour cette position."
 
+
+#: hrms/hr/careers/setup.py:394
+msgid "Lay out this job ad: an introduction, the tasks, the profile, what we offer. Add nothing the text does not say."
+msgstr "Mettez en page cette annonce : une introduction, les tâches, le profil, ce que nous offrons. N’ajoutez rien que le texte ne dise pas."
