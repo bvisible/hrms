@@ -182,9 +182,9 @@ class TestScores(CareersTestCase):
 class TestThePromptAndTheAnswer(CareersTestCase):
 	def test_identity_and_contact_details_never_reach_the_model(self):
 		applicant = frappe._dict(applicant_name="Marie-Claire Dubois")
-		text = "Marie-Claire Dubois, marie.dubois@example.invalid, +41 79 123 45 67, née le 12.03.1990"
+		text = "Madame Marie-Claire Dubois, marie.dubois@example.invalid, +41 79 123 45 67, née le 12.03.1990"
 		masked = review.mask(text, applicant)
-		for leak in ("Dubois", "marie.dubois", "79 123", "12.03.1990"):
+		for leak in ("Madame", "Dubois", "marie.dubois", "79 123", "12.03.1990"):
 			self.assertNotIn(leak, masked)
 
 	def test_one_system_message_then_the_opening_then_the_application(self):
