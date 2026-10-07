@@ -296,13 +296,16 @@ class TestThePageAndTheMenu(CareersTestCase):
 			variants.assert_called_once()
 
 	def test_each_site_of_a_multi_site_instance_gets_the_entry_in_its_own_menu(self):
+		# a variant belongs to a Website Profile (the theme's): use one the site has, rolled back after
 		if not frappe.db.exists("DocType", "Website Header Footer Variant"):
 			return
-		variant = frappe.get_doc(
-			{"doctype": "Website Header Footer Variant", "menu_items": [{"label": "Accueil", "url": "/"}]}
-		)
-		variant.flags.ignore_mandatory = True
-		variant.insert(ignore_permissions=True)
+		name = frappe.db.get_value("Website Header Footer Variant", {}, "name")
+		if not name:
+			return
+		variant = frappe.get_doc("Website Header Footer Variant", name)
+		for item in [r for r in variant.menu_items if r.url == "/jobs"]:
+			variant.remove(item)
+		variant.save(ignore_permissions=True)
 
 		def urls():
 			return [r.url for r in frappe.get_doc(variant.doctype, variant.name).menu_items]
