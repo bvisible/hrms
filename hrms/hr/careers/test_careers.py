@@ -297,7 +297,12 @@ class TestThePageAndTheMenu(CareersTestCase):
 class TestApplying(CareersTestCase):
 	def setUp(self):
 		super().setUp()
-		self.opening = _opening()
+		self.opening = _opening(
+			careers_documents=[
+				{"document_type": "CV", "required": 1},
+				{"document_type": "Cover Letter", "required": 0},
+			]
+		)
 
 	def _apply(self, files=None, **form):
 		values = {

@@ -83,13 +83,18 @@ def pdf_problem(content: bytes) -> str | None:
 	reading fail. Without this check both surfaced as a server error after the applicant had been
 	created. The message keeps a `{0}` for the file name.
 	"""
+	active = _("{0} contains active content and cannot be accepted. Please send another file.")
+	# Frappe's own check walks the document without following its internal references: a script
+	# filed under the catalogue's name tree went through. The raw bytes name it either way.
+	if re.search(rb"/(JavaScript|JS)\b", content):
+		return active
 	try:
 		from frappe.utils.pdf import pdf_contains_js
 	except ImportError:
 		return None
 	try:
 		if pdf_contains_js(content):
-			return _("{0} contains active content and cannot be accepted. Please send another file.")
+			return active
 	except Exception:
 		return _("{0} is damaged or is not a real PDF. Please send another file.")
 	return None
