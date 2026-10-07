@@ -48,13 +48,20 @@ def _translatable_labels():
 	)
 
 
-def plugin_enabled() -> bool:
+def plugin_enabled(fresh: bool = False) -> bool:
 	"""True unless the site switched the plugin off.
 
 	Defaults to True when no registry answers, as every plugin does: the registry takes a capability
 	away, it never grants one. The registry lives in `builder` on our v15 fleet, `unpress_core` on
 	Unpress.
+
+	`fresh` reads the registry row in this transaction instead of the registry's cache: the menu is
+	synced while the switch is being saved, and a request served meanwhile can put the old state back
+	in the cache (measured on osiris, 2026-10-07).
 	"""
+	if fresh and frappe.db.exists("DocType", "Website Plugin"):
+		enabled = frappe.db.get_value("Website Plugin", PLUGIN_NAME, "enabled")
+		return True if enabled is None else bool(enabled)
 	for module in ("builder.plugins", "unpress_core.plugins"):
 		try:
 			registry = frappe.get_module(module)
@@ -73,11 +80,11 @@ def accepts_spontaneous() -> bool:
 	return bool(frappe.db.get_single_value("Careers Settings", "accept_spontaneous"))
 
 
-def page_is_open(company: str | None = None) -> bool:
+def page_is_open(company: str | None = None, fresh: bool = False) -> bool:
 	"""Open for the site being browsed, or for a given company (a site of a multi-site instance)."""
 	from hrms.hr.careers.openings import has_open_openings
 
-	if not plugin_enabled():
+	if not plugin_enabled(fresh):
 		return False
 	return has_open_openings(company) or accepts_spontaneous()
 
@@ -129,7 +136,7 @@ def _variant_menus():
 				"Website Profile", row.website_profile, ["careers_company", "language"]
 			) or (None, None)
 			lang = lang or site_lang
-		on = page_is_open(company)
+		on = page_is_open(company, fresh=True)
 		variant = frappe.get_doc("Website Header Footer Variant", row.name)
 		present = [r for r in variant.get("menu_items") or [] if (r.url or "").rstrip("/") == MENU_URL]
 		if on and not present:
@@ -147,7 +154,7 @@ def sync_menu(*args, **kwargs):
 	"""Put the menu entry where the page is, on the main site and on each site of a multi-site
 	instance. Safe to call from any hook: it never raises."""
 	try:
-		_menu_entry(page_is_open())
+		_menu_entry(page_is_open(fresh=True))
 		_variant_menus()
 	except Exception:
 		frappe.log_error("Careers page: menu entry not synced", frappe.get_traceback())
