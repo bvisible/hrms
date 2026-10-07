@@ -19,17 +19,32 @@ from frappe.utils import cint, flt, get_datetime, getdate, strip_html
 
 from hrms.hr.careers.share import page_url
 
+# HRMS's Employment Types are data, named in the site's language: upstream's English names, and
+# the French, German and Italian ones a Swiss site renames them to.
 EMPLOYMENT_TYPES = {
 	"full-time": "FULL_TIME",
+	"à temps plein": "FULL_TIME",
+	"temps plein": "FULL_TIME",
+	"vollzeit": "FULL_TIME",
+	"tempo pieno": "FULL_TIME",
 	"part-time": "PART_TIME",
+	"à temps partiel": "PART_TIME",
+	"temps partiel": "PART_TIME",
+	"teilzeit": "PART_TIME",
+	"tempo parziale": "PART_TIME",
 	"contract": "CONTRACTOR",
+	"contrat": "CONTRACTOR",
 	"intern": "INTERN",
 	"internship": "INTERN",
+	"interne": "INTERN",
+	"stage": "INTERN",
+	"praktikum": "INTERN",
 	"apprentice": "INTERN",
+	"apprentis": "INTERN",
+	"lehre": "INTERN",
 	"temporary": "TEMPORARY",
-	"piecework": "OTHER",
-	"commission": "OTHER",
-	"probation": "OTHER",
+	"temporaire": "TEMPORARY",
+	"befristet": "TEMPORARY",
 }
 
 
