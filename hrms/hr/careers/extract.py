@@ -29,9 +29,14 @@ def _path(file_url: str) -> str:
 
 
 def _docx_text(path: str) -> str:
-	import docx
-
-	document = docx.Document(path)
+	try:
+		import docx
+	except ImportError:
+		return _docx_xml_text(path)
+	try:
+		document = docx.Document(path)
+	except Exception:
+		return _docx_xml_text(path)
 	parts = [p.text for p in document.paragraphs if p.text.strip()]
 	for table in document.tables:
 		for row in table.rows:
@@ -39,6 +44,22 @@ def _docx_text(path: str) -> str:
 			if cells:
 				parts.append(" | ".join(cells))
 	return "\n".join(parts)
+
+
+def _docx_xml_text(path: str) -> str:
+	"""The words of a DOCX read from its XML: python-docx is a dependency of other apps, not of hrms."""
+	import html
+	import re
+	import zipfile
+
+	with zipfile.ZipFile(path) as archive:
+		xml = archive.read("word/document.xml").decode("utf-8", "ignore")
+	paragraphs = []
+	for paragraph in re.findall(r"<w:p[ >].*?</w:p>", xml, flags=re.DOTALL):
+		text = "".join(re.findall(r"<w:t[^>]*>(.*?)</w:t>", paragraph, flags=re.DOTALL))
+		if text.strip():
+			paragraphs.append(html.unescape(text))
+	return "\n".join(paragraphs)
 
 
 def _nora_reader():
@@ -50,8 +71,14 @@ def _nora_reader():
 
 
 def _text_layer(path: str) -> tuple[str, int]:
-	import fitz
+	try:
+		import fitz
+	except ImportError:
+		# pypdf comes with Frappe; PyMuPDF with other apps
+		from pypdf import PdfReader
 
+		reader = PdfReader(path)
+		return "\n".join((page.extract_text() or "") for page in reader.pages).strip(), len(reader.pages)
 	with fitz.open(path) as pdf:
 		return "\n".join(page.get_text("text") for page in pdf).strip(), pdf.page_count
 

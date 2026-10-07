@@ -309,7 +309,20 @@ def _website_profile_fields() -> dict:
 
 
 def make_custom_fields(update: bool = True):
-	create_custom_fields({**get_custom_fields(), **_website_profile_fields()}, update=update)
+	create_custom_fields(get_custom_fields(), update=update)
+
+	# Website Profile belongs to the theme, and links to Builder Page: on a bench where Builder is
+	# missing (hrms's CI), adding a field re-validates that doctype and fails on its own link. The
+	# field is a convenience for multi-site instances; it must never stop an install.
+	extra = _website_profile_fields()
+	if not extra:
+		return
+	frappe.db.savepoint("careers_website_profile")
+	try:
+		create_custom_fields(extra, update=update)
+	except Exception:
+		frappe.db.rollback(save_point="careers_website_profile")
+		frappe.log_error("Careers page: Website Profile field not created", frappe.get_traceback())
 
 
 def ensure_sources():
