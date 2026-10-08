@@ -743,6 +743,10 @@ class TestImportingAJobAd(CareersTestCase):
 							"weight": 3,
 						}
 					],
+					"left_out": [
+						{"text": "Âge idéal : entre 25 et 35 ans <b>", "reason": "une limite d'âge"},
+						{"text": "", "reason": "nothing quoted"},
+					],
 				}
 			),
 			"model": "nora",
@@ -766,4 +770,9 @@ class TestImportingAJobAd(CareersTestCase):
 		self.assertNotIn("<script>", data["description"])
 		self.assertEqual((data["careers_workload_min"], data["careers_workload_max"]), (80, 100))
 		self.assertEqual([d["document_type"] for d in data["careers_documents"]], ["CV", "Diplomas"])
+		# what was left out is said, escaped, and an empty quote is dropped
+		self.assertEqual(
+			data["careers_left_out"],
+			[{"text": "Âge idéal : entre 25 et 35 ans &lt;b&gt;", "reason": "une limite d&apos;âge"}],
+		)
 		self.assertFalse(frappe.db.exists("Job Opening", {"job_title": "Comptable (H/F/X)"}))

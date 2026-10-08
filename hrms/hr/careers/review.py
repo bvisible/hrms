@@ -32,7 +32,7 @@ import time
 
 import frappe
 from frappe import _
-from frappe.utils import add_to_date, cint, now_datetime, strip_html
+from frappe.utils import add_to_date, cint, escape_html, now_datetime, strip_html
 
 from hrms.hr.careers import DOCUMENT_TYPES, documents, extract, scoring
 from hrms.hr.careers.notify import acknowledge, notify_recruiters
@@ -725,6 +725,14 @@ IMPORT_SCHEMA = {
 			},
 		},
 		"criteria": CRITERIA_SCHEMA["properties"]["criteria"],
+		"left_out": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {"text": {"type": "string"}, "reason": {"type": "string"}},
+				"required": ["text", "reason"],
+			},
+		},
 	},
 	"required": ["job_title", "description_html"],
 }
@@ -739,6 +747,7 @@ IMPORT_RULES = """You receive the text of an existing job advertisement (read fr
 - Salary only when the source states it.
 - "requested_documents": the documents the source asks applicants to send.
 - "criteria": 4 to 8 checkable criteria of the profile sought (axis Qualifications, Experience, Skills, Languages or Other; importance Required only for what is clearly required; weight 1 to 5). Never age, sex, origin, nationality, family status, health or personality.
+- "left_out": each requirement of the source you left out because it could discriminate (age, sex, origin, nationality, family status, photo, health), its words as in the source ("text") and in a few words in {language} what it is ("reason", e.g. "an age limit"). An empty list when you left none out; never the instructions on how to apply.
 Answer with the JSON object only."""
 
 
@@ -835,6 +844,16 @@ def import_opening(file_url: str) -> dict:
 		for d in (data.get("requested_documents") or [])[:8]
 	]
 	out["careers_criteria"] = clean_criteria(data.get("criteria") or [])
+	# what Nora did not take over is said, never dropped in silence: HR decides whether the position
+	# truly needs it (no automatic decision, Jérémy 2026-10-07)
+	out["careers_left_out"] = [
+		{
+			"text": escape_html(str(item.get("text") or "").strip()[:200]),
+			"reason": escape_html(str(item.get("reason") or "").strip()[:100]),
+		}
+		for item in (data.get("left_out") or [])[:8]
+		if isinstance(item, dict) and str(item.get("text") or "").strip()
+	]
 
 	# the job ad was only read: it is not kept, unless it was attached to a record
 	if not file_doc.attached_to_name and file_doc.owner == frappe.session.user:

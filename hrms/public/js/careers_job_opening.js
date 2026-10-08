@@ -103,6 +103,25 @@ hrms_careers.fill_from_ad = function (frm, data) {
 		},
 		8,
 	);
+	// what Nora did not take over is said, never dropped in silence: HR decides (the server escaped it)
+	const left_out = data.careers_left_out || [];
+	if (left_out.length) {
+		frappe.msgprint({
+			title: __("What Nora did not take over"),
+			indicator: "orange",
+			message:
+				`<p>${__(
+					"These requirements of the job ad could discriminate against applicants, so they are not in the opening. Put one back only if the position truly requires it.",
+				)}</p><ul>` +
+				left_out
+					.map(
+						(item) =>
+							`<li>« ${item.text} »${item.reason ? ` — ${item.reason}` : ""}</li>`,
+					)
+					.join("") +
+				"</ul>",
+		});
+	}
 };
 
 hrms_careers.propose_criteria = function (frm) {
