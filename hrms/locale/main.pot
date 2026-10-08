@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe HR VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-10-08 08:13+0000\n"
-"PO-Revision-Date: 2026-10-08 08:13+0000\n"
+"POT-Creation-Date: 2026-10-08 08:51+0000\n"
+"PO-Revision-Date: 2026-10-08 08:51+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -1466,7 +1466,7 @@ msgstr ""
 msgid "Add Tax"
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:177
+#: hrms/public/js/careers_job_opening.js:196
 msgid "Add these criteria"
 msgstr ""
 
@@ -2857,7 +2857,7 @@ msgstr ""
 
 #. Label of a Select field in DocType 'Job Opening Criterion'
 #: hrms/hr/doctype/job_opening_criterion/job_opening_criterion.json
-#: hrms/public/js/careers_job_opening.js:154
+#: hrms/public/js/careers_job_opening.js:173
 msgid "Axis"
 msgstr ""
 
@@ -4851,7 +4851,7 @@ msgstr ""
 msgid "Criteria based on which employee should be rated in Performance Feedback and Self Appraisal"
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:127
+#: hrms/public/js/careers_job_opening.js:146
 msgid "Criteria proposed by Nora"
 msgstr ""
 
@@ -4861,7 +4861,7 @@ msgstr ""
 
 #. Label of a Data field in DocType 'Job Opening Criterion'
 #: hrms/hr/doctype/job_opening_criterion/job_opening_criterion.json
-#: hrms/public/js/careers_job_opening.js:146
+#: hrms/public/js/careers_job_opening.js:165
 msgid "Criterion"
 msgstr ""
 
@@ -7787,7 +7787,7 @@ msgstr ""
 msgid "Every Week"
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:132
+#: hrms/public/js/careers_job_opening.js:151
 msgid "Every application to this opening is read against these criteria. Remove or correct them, then add them."
 msgstr ""
 
@@ -10168,7 +10168,7 @@ msgstr ""
 
 #. Label of a Select field in DocType 'Job Opening Criterion'
 #: hrms/hr/doctype/job_opening_criterion/job_opening_criterion.json
-#: hrms/public/js/careers_job_opening.js:162
+#: hrms/public/js/careers_job_opening.js:181
 msgid "Importance"
 msgstr ""
 
@@ -13556,7 +13556,7 @@ msgstr ""
 msgid "Nora cannot answer right now. Please try again in a few minutes."
 msgstr ""
 
-#: hrms/hr/careers/review.py:776 hrms/hr/careers/review.py:794
+#: hrms/hr/careers/review.py:785 hrms/hr/careers/review.py:803
 msgid "Nora cannot read the document right now. Please try again in a few minutes."
 msgstr ""
 
@@ -13564,7 +13564,7 @@ msgstr ""
 msgid "Nora could not read this application. Read the documents below, or ask Nora to read it again."
 msgstr ""
 
-#: hrms/hr/careers/review.py:778
+#: hrms/hr/careers/review.py:787
 msgid "Nora could not read this document. Send a PDF, a Word file (DOCX) or a clear scan."
 msgstr ""
 
@@ -13572,7 +13572,7 @@ msgstr ""
 msgid "Nora filled the opening from the job ad: check it before saving."
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:120
+#: hrms/public/js/careers_job_opening.js:139
 msgid "Nora found no criteria in the description. Describe the profile you are looking for first."
 msgstr ""
 
@@ -13597,7 +13597,7 @@ msgstr ""
 msgid "Nora reads the application again."
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:114
+#: hrms/public/js/careers_job_opening.js:133
 msgid "Nora reads the opening…"
 msgstr ""
 
@@ -14372,15 +14372,15 @@ msgstr ""
 msgid "PWA Notification"
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:80
+#: hrms/hr/doctype/careers_settings/careers_settings.js:81
 msgid "Page hidden"
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:74
+#: hrms/hr/doctype/careers_settings/careers_settings.js:75
 msgid "Page online"
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:58
+#: hrms/hr/doctype/careers_settings/careers_settings.js:59
 msgid "Page switched off"
 msgstr ""
 
@@ -19269,15 +19269,15 @@ msgstr ""
 msgid "Swissdec transmission is not enabled. Configure it in Swissdec Transmitter Settings."
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:45
+#: hrms/hr/doctype/careers_settings/careers_settings.js:46
 msgid "Switch the jobs page off? Visitors get “page not found” on it, and the site's menu loses its entry. The openings stay as they are."
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:39
+#: hrms/hr/doctype/careers_settings/careers_settings.js:41
 msgid "Switch the page off"
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:39
+#: hrms/hr/doctype/careers_settings/careers_settings.js:41
 msgid "Switch the page on"
 msgstr ""
 
@@ -19783,11 +19783,11 @@ msgstr ""
 msgid "The job"
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:104
+#: hrms/hr/doctype/careers_settings/careers_settings.js:105
 msgid "The jobs page is switched off."
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:103
+#: hrms/hr/doctype/careers_settings/careers_settings.js:104
 msgid "The jobs page is switched on."
 msgstr ""
 
@@ -19813,15 +19813,15 @@ msgstr ""
 msgid "The metrics for this report are calculated based on {0}. Please set {0} in {1}."
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:76
+#: hrms/hr/doctype/careers_settings/careers_settings.js:77
 msgid "The page is online: {0}."
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:60
+#: hrms/hr/doctype/careers_settings/careers_settings.js:61
 msgid "The page is switched off: its address answers “page not found”, and the site's menu has no entry. The website's plugins (Jobs) switch it as well."
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:82
+#: hrms/hr/doctype/careers_settings/careers_settings.js:83
 msgid "The page is switched on but hidden: no opening is published, and unsolicited applications are not accepted. It appears with the first published opening."
 msgstr ""
 
@@ -20014,6 +20014,10 @@ msgstr ""
 
 #: hrms/public/js/careers_job_opening.js:35
 msgid "These reading criteria were proposed by Nora. Check them, then save the opening."
+msgstr ""
+
+#: hrms/public/js/careers_job_opening.js:113
+msgid "These requirements of the job ad could discriminate against applicants, so they are not in the opening. Put one back only if the position truly requires it."
 msgstr ""
 
 #: hrms/regional/switzerland/accounting.py:535
@@ -21205,7 +21209,7 @@ msgstr ""
 msgid "Unsolicited application"
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:71
+#: hrms/hr/doctype/careers_settings/careers_settings.js:72
 msgid "Unsolicited applications are accepted."
 msgstr ""
 
@@ -21806,7 +21810,7 @@ msgstr ""
 
 #. Label of a Int field in DocType 'Job Opening Criterion'
 #: hrms/hr/doctype/job_opening_criterion/job_opening_criterion.json
-#: hrms/public/js/careers_job_opening.js:170
+#: hrms/public/js/careers_job_opening.js:189
 msgid "Weight"
 msgstr ""
 
@@ -21840,6 +21844,10 @@ msgid ""
 "Welcome! I'll help you configure the Swiss payroll module step by step.\n"
 "\n"
 "First, which company would you like to configure?"
+msgstr ""
+
+#: hrms/public/js/careers_job_opening.js:110
+msgid "What Nora did not take over"
 msgstr ""
 
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:358
@@ -22963,11 +22971,11 @@ msgstr ""
 msgid "{0} payslip(s) franked"
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:67
+#: hrms/hr/doctype/careers_settings/careers_settings.js:68
 msgid "{0} published opening"
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.js:68
+#: hrms/hr/doctype/careers_settings/careers_settings.js:69
 msgid "{0} published openings"
 msgstr ""
 
