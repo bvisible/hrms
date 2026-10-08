@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe HR VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2026-10-07 19:59+0000\n"
-"PO-Revision-Date: 2026-10-07 19:59+0000\n"
+"POT-Creation-Date: 2026-10-08 08:13+0000\n"
+"PO-Revision-Date: 2026-10-08 08:13+0000\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -786,7 +786,7 @@ msgstr ""
 msgid "A Job Requisition for {0} requested by {1} already exists: {2}"
 msgstr ""
 
-#: hrms/hr/careers/review.py:398
+#: hrms/hr/careers/review.py:416
 msgid "A document addresses the AI or its reader: read it yourself."
 msgstr ""
 
@@ -1466,7 +1466,7 @@ msgstr ""
 msgid "Add Tax"
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:143
+#: hrms/public/js/careers_job_opening.js:177
 msgid "Add these criteria"
 msgstr ""
 
@@ -2071,7 +2071,7 @@ msgstr ""
 msgid "Answer tokens"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:442
+#: hrms/hr/careers/setup.py:483
 msgid "Answers"
 msgstr ""
 
@@ -2105,7 +2105,7 @@ msgstr ""
 msgid "Applicable in the case of Employee Onboarding"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:43
+#: hrms/public/js/careers_job_applicant.js:47
 msgid "Applicant"
 msgstr ""
 
@@ -2139,7 +2139,7 @@ msgstr ""
 msgid "Applicant name"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:440
+#: hrms/hr/careers/setup.py:481
 msgid "Application"
 msgstr ""
 
@@ -2163,7 +2163,7 @@ msgstr ""
 msgid "Applications Received"
 msgstr ""
 
-#: hrms/hr/doctype/careers_settings/careers_settings.py:18
+#: hrms/hr/doctype/careers_settings/careers_settings.py:24
 msgid "Applications must be deleted at least one day after the decision."
 msgstr ""
 
@@ -2202,7 +2202,7 @@ msgstr ""
 msgid "Apply Now"
 msgstr ""
 
-#: hrms/hr/careers/openings.py:178
+#: hrms/hr/careers/openings.py:189
 msgid "Apply before"
 msgstr ""
 
@@ -2857,7 +2857,7 @@ msgstr ""
 
 #. Label of a Select field in DocType 'Job Opening Criterion'
 #: hrms/hr/doctype/job_opening_criterion/job_opening_criterion.json
-#: hrms/public/js/careers_job_opening.js:126
+#: hrms/public/js/careers_job_opening.js:154
 msgid "Axis"
 msgstr ""
 
@@ -3149,7 +3149,7 @@ msgstr ""
 msgid "Birthdays"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:15
+#: hrms/public/js/careers_job_applicant.js:19
 msgid "Blind reading"
 msgstr ""
 
@@ -4209,7 +4209,7 @@ msgstr ""
 msgid "Company name is required."
 msgstr ""
 
-#: hrms/hr/careers/setup.py:451
+#: hrms/hr/careers/setup.py:492
 msgid "Company of the jobs page"
 msgstr ""
 
@@ -4253,7 +4253,7 @@ msgstr ""
 msgid "Complete at {0} %"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:180
+#: hrms/public/js/careers_job_applicant.js:224
 msgid "Complete file"
 msgstr ""
 
@@ -4287,7 +4287,7 @@ msgid "Completed On"
 msgstr ""
 
 #. Label of a Int field in DocType 'Job Applicant Review'
-#: hrms/hr/careers/setup.py:437
+#: hrms/hr/careers/setup.py:478
 #: hrms/hr/doctype/job_applicant_review/job_applicant_review.json
 msgid "Completeness (%)"
 msgstr ""
@@ -4483,7 +4483,7 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: hrms/hr/careers/openings.py:165 hrms/hr/careers/pages.py:105
+#: hrms/hr/careers/openings.py:176 hrms/hr/careers/pages.py:105
 #: hrms/setup.py:387
 msgid "Contract"
 msgstr ""
@@ -4839,7 +4839,7 @@ msgstr ""
 
 #. Label of a Data field in DocType 'Employee Feedback Criteria'
 #. Label of a Link field in DocType 'Employee Feedback Rating'
-#: hrms/hr/careers/setup.py:424
+#: hrms/hr/careers/setup.py:465
 #: hrms/hr/doctype/employee_feedback_criteria/employee_feedback_criteria.json
 #: hrms/hr/doctype/employee_feedback_rating/employee_feedback_rating.json
 msgid "Criteria"
@@ -4851,17 +4851,17 @@ msgstr ""
 msgid "Criteria based on which employee should be rated in Performance Feedback and Self Appraisal"
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:106
+#: hrms/public/js/careers_job_opening.js:127
 msgid "Criteria proposed by Nora"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:428
+#: hrms/hr/careers/setup.py:469
 msgid "Criteria reviewed by a person"
 msgstr ""
 
 #. Label of a Data field in DocType 'Job Opening Criterion'
 #: hrms/hr/doctype/job_opening_criterion/job_opening_criterion.json
-#: hrms/public/js/careers_job_opening.js:122
+#: hrms/public/js/careers_job_opening.js:146
 msgid "Criterion"
 msgstr ""
 
@@ -5148,7 +5148,7 @@ msgid "Data Import"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Careers Settings'
-#: hrms/hr/careers/setup.py:443
+#: hrms/hr/careers/setup.py:484
 #: hrms/hr/doctype/careers_settings/careers_settings.json
 msgid "Data protection"
 msgstr ""
@@ -5467,7 +5467,7 @@ msgstr ""
 msgid "Delete {0}"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:447
+#: hrms/hr/careers/setup.py:488
 msgid "Deleted on"
 msgstr ""
 
@@ -5531,7 +5531,7 @@ msgstr ""
 #: frontend/src/views/attendance/ShiftRequestList.vue:54
 #: frontend/src/views/employee_advance/List.vue:59
 #: frontend/src/views/expense_claim/List.vue:56
-#: frontend/src/views/leave/List.vue:53 hrms/hr/careers/openings.py:174
+#: frontend/src/views/leave/List.vue:53 hrms/hr/careers/openings.py:185
 #: hrms/hr/careers/pages.py:104 hrms/hr/doctype/appraisal/appraisal.json
 #: hrms/hr/doctype/appraisal_cycle/appraisal_cycle.json
 #: hrms/hr/doctype/appraisee/appraisee.json
@@ -5643,7 +5643,7 @@ msgstr ""
 msgid "Depends on Payment Days"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:381
+#: hrms/hr/careers/setup.py:405
 msgid "Describe the job in a few lines: Nora lays it out like a job ad."
 msgstr ""
 
@@ -5960,7 +5960,7 @@ msgstr ""
 msgid "Documents asked for an unsolicited application"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:441
+#: hrms/hr/careers/setup.py:482
 msgid "Documents received"
 msgstr ""
 
@@ -5969,7 +5969,7 @@ msgstr ""
 msgid "Documents received:"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:420
+#: hrms/hr/careers/setup.py:461
 msgid "Documents requested"
 msgstr ""
 
@@ -5979,7 +5979,7 @@ msgid "Domestic"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Job Applicant Review'
-#: hrms/hr/careers/setup.py:434
+#: hrms/hr/careers/setup.py:475
 #: hrms/hr/doctype/job_applicant_review/job_applicant_review.json
 msgid "Done"
 msgstr ""
@@ -7434,7 +7434,7 @@ msgstr ""
 msgid "Empty: Job openings."
 msgstr ""
 
-#: hrms/hr/careers/setup.py:452
+#: hrms/hr/careers/setup.py:493
 msgid "Empty: the jobs page lists the openings of every company."
 msgstr ""
 
@@ -7787,7 +7787,7 @@ msgstr ""
 msgid "Every Week"
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:111
+#: hrms/public/js/careers_job_opening.js:132
 msgid "Every application to this opening is read against these criteria. Remove or correct them, then add them."
 msgstr ""
 
@@ -8278,7 +8278,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Payroll Entry'
 #. Option for the 'Last Ping Status' (Select) field in DocType 'Swissdec
 #. Transmitter Settings'
-#: hrms/hr/careers/setup.py:435
+#: hrms/hr/careers/setup.py:476
 #: hrms/hr/doctype/job_applicant_review/job_applicant_review.json
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
 #: hrms/payroll/doctype/swissdec_transmitter_settings/swissdec_transmitter_settings.json
@@ -9882,7 +9882,7 @@ msgstr ""
 msgid "How each payslip reaches its employee"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:410
+#: hrms/hr/careers/setup.py:451
 msgid "Hybrid"
 msgstr ""
 
@@ -10115,7 +10115,7 @@ msgstr ""
 msgid "If you are using loans in salary slips, please install the {0} app from Frappe Cloud Marketplace or GitHub to continue using loan integration with payroll."
 msgstr ""
 
-#: hrms/hr/careers/setup.py:413
+#: hrms/hr/careers/setup.py:454
 msgid "Immediately"
 msgstr ""
 
@@ -10153,7 +10153,7 @@ msgstr ""
 msgid "Import Successful"
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:16
+#: hrms/public/js/careers_job_opening.js:17
 msgid "Import a job ad (PDF or Word)"
 msgstr ""
 
@@ -10168,7 +10168,7 @@ msgstr ""
 
 #. Label of a Select field in DocType 'Job Opening Criterion'
 #: hrms/hr/doctype/job_opening_criterion/job_opening_criterion.json
-#: hrms/public/js/careers_job_opening.js:134
+#: hrms/public/js/careers_job_opening.js:162
 msgid "Importance"
 msgstr ""
 
@@ -10392,7 +10392,7 @@ msgstr ""
 msgid "Indicates the number of leaves that cannot be encashed from the leave balance. E.g. with a leave balance of 10 and 4 Non-Encashable Leaves, you can encash 6, while the remaining 4 can be carried forward or expired"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:444
+#: hrms/hr/careers/setup.py:485
 msgid "Information accepted on"
 msgstr ""
 
@@ -10651,7 +10651,7 @@ msgstr ""
 msgid "Interview Type"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:192
+#: hrms/public/js/careers_job_applicant.js:242
 msgid "Interview questions"
 msgstr ""
 
@@ -11005,6 +11005,8 @@ msgstr ""
 
 #. Name of a DocType
 #: hrms/hr/doctype/job_applicant_review/job_applicant_review.json
+#: hrms/public/js/careers_job_applicant.js:166
+#: hrms/public/js/careers_job_applicant.js:220
 msgid "Job Applicant Review"
 msgstr ""
 
@@ -11152,7 +11154,7 @@ msgstr ""
 msgid "Job Title"
 msgstr ""
 
-#: hrms/hr/careers/openings.py:161 hrms/hr/careers/pages.py:103
+#: hrms/hr/careers/openings.py:172 hrms/hr/careers/pages.py:103
 msgid "Job location"
 msgstr ""
 
@@ -11161,7 +11163,7 @@ msgstr ""
 msgid "Job openings"
 msgstr ""
 
-#: hrms/hr/careers/plugin.py:47
+#: hrms/hr/careers/plugin.py:48
 msgid "Job openings published from HR, with online applications."
 msgstr ""
 
@@ -11176,12 +11178,12 @@ msgstr ""
 msgid "Job title"
 msgstr ""
 
-#: hrms/hr/careers/plugin.py:46
+#: hrms/hr/careers/plugin.py:47
 msgid "Jobs"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Careers Settings'
-#: hrms/hr/careers/setup.py:405
+#: hrms/hr/careers/setup.py:446
 #: hrms/hr/doctype/careers_settings/careers_settings.json
 msgid "Jobs page"
 msgstr ""
@@ -11270,11 +11272,11 @@ msgstr ""
 msgid "Keep the file of an applicant who agrees, for (months)"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:445
+#: hrms/hr/careers/setup.py:486
 msgid "Kept for other openings until"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:450
+#: hrms/hr/careers/setup.py:491
 msgid "Kept for the applicant who asks for it in writing (Gender Equality Act, art. 8)."
 msgstr ""
 
@@ -11599,7 +11601,7 @@ msgstr ""
 msgid "Last name"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:439
+#: hrms/hr/careers/setup.py:480
 msgid "Last reading"
 msgstr ""
 
@@ -11652,8 +11654,8 @@ msgstr ""
 msgid "Latitude: {0}°"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:382
-msgid "Lay out this job ad: an introduction, the tasks, the profile, what we offer."
+#: hrms/hr/careers/setup.py:406
+msgid "Lay out this job ad: an introduction, the tasks, the profile, what we offer. Add nothing the text does not say."
 msgstr ""
 
 #. Option for the 'Calculate Payroll Working Days Based On' (Select) field in
@@ -12490,7 +12492,7 @@ msgstr ""
 msgid "Married or registered partnership"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:180
+#: hrms/public/js/careers_job_applicant.js:220
 msgid "Match with the job"
 msgstr ""
 
@@ -12690,7 +12692,7 @@ msgstr ""
 msgid "Minimum working days required since Date of Joining to apply for this leave"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:192
+#: hrms/public/js/careers_job_applicant.js:242
 msgid "Missing"
 msgstr ""
 
@@ -13544,41 +13546,41 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:11
-#: hrms/public/js/careers_job_opening.js:16
-#: hrms/public/js/careers_job_opening.js:18
+#: hrms/public/js/careers_job_applicant.js:14
+#: hrms/public/js/careers_job_opening.js:19
+#: hrms/public/js/careers_job_opening.js:25
 msgid "Nora"
 msgstr ""
 
-#: hrms/hr/careers/review.py:344
+#: hrms/hr/careers/review.py:362
 msgid "Nora cannot answer right now. Please try again in a few minutes."
 msgstr ""
 
-#: hrms/hr/careers/review.py:752 hrms/hr/careers/review.py:770
+#: hrms/hr/careers/review.py:776 hrms/hr/careers/review.py:794
 msgid "Nora cannot read the document right now. Please try again in a few minutes."
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:145
+#: hrms/public/js/careers_job_applicant.js:162
 msgid "Nora could not read this application. Read the documents below, or ask Nora to read it again."
 msgstr ""
 
-#: hrms/hr/careers/review.py:754
+#: hrms/hr/careers/review.py:778
 msgid "Nora could not read this document. Send a PDF, a Word file (DOCX) or a clear scan."
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:86
+#: hrms/public/js/careers_job_opening.js:101
 msgid "Nora filled the opening from the job ad: check it before saving."
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:102
+#: hrms/public/js/careers_job_opening.js:120
 msgid "Nora found no criteria in the description. Describe the profile you are looking for first."
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:144
+#: hrms/public/js/careers_job_applicant.js:161
 msgid "Nora is reading the application. Reload in a moment."
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:45
+#: hrms/public/js/careers_job_opening.js:57
 msgid "Nora is reading the job ad…"
 msgstr ""
 
@@ -13587,15 +13589,15 @@ msgstr ""
 msgid "Nora reads each application"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:425
+#: hrms/hr/careers/setup.py:466
 msgid "Nora reads every application to this opening against these criteria. Empty: Nora proposes some from the description at the first application."
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:48
+#: hrms/public/js/careers_job_applicant.js:58
 msgid "Nora reads the application again."
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:97
+#: hrms/public/js/careers_job_opening.js:114
 msgid "Nora reads the opening…"
 msgstr ""
 
@@ -13651,11 +13653,11 @@ msgstr ""
 msgid "Not read"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:177
+#: hrms/public/js/careers_job_applicant.js:215
 msgid "Not readable, open it yourself:"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:76
+#: hrms/public/js/careers_job_applicant.js:91
 msgid "Not said"
 msgstr ""
 
@@ -13667,7 +13669,7 @@ msgstr ""
 msgid "Not set"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:75
+#: hrms/public/js/careers_job_applicant.js:90
 msgid "Not shown"
 msgstr ""
 
@@ -13856,7 +13858,7 @@ msgstr ""
 msgid "Odometer Value"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:429
+#: hrms/hr/careers/setup.py:470
 msgid "Off while the criteria are the ones Nora proposed and nobody has saved them."
 msgstr ""
 
@@ -13915,11 +13917,11 @@ msgstr ""
 msgid "On Leave"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:415
+#: hrms/hr/careers/setup.py:456
 msgid "On a date"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:409
+#: hrms/hr/careers/setup.py:450
 msgid "On site"
 msgstr ""
 
@@ -13951,7 +13953,7 @@ msgstr ""
 msgid "One final statement per canton: each canton invoices its own source tax and leaves its own collection commission."
 msgstr ""
 
-#: hrms/hr/careers/setup.py:421
+#: hrms/hr/careers/setup.py:462
 msgid "One upload field per line on the application form. Empty: a CV, required."
 msgstr ""
 
@@ -14044,7 +14046,7 @@ msgstr ""
 msgid "Only when the insurer charges women differently. Empty = same as above."
 msgstr ""
 
-#: hrms/hr/careers/setup.py:446
+#: hrms/hr/careers/setup.py:487
 msgid "Only with the applicant's agreement."
 msgstr ""
 
@@ -14370,6 +14372,18 @@ msgstr ""
 msgid "PWA Notification"
 msgstr ""
 
+#: hrms/hr/doctype/careers_settings/careers_settings.js:80
+msgid "Page hidden"
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:74
+msgid "Page online"
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:58
+msgid "Page switched off"
+msgstr ""
+
 #. Label of a Int field in DocType 'Job Applicant Document'
 #: hrms/hr/doctype/job_applicant_document/job_applicant_document.json
 msgid "Pages"
@@ -14445,7 +14459,7 @@ msgstr ""
 msgid "Partially Sponsored, Require Partial Funding"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:74
+#: hrms/public/js/careers_job_applicant.js:89
 msgid "Partly"
 msgstr ""
 
@@ -15001,7 +15015,7 @@ msgstr ""
 msgid "Pink"
 msgstr ""
 
-#: hrms/hr/careers/openings.py:170 hrms/hr/careers/setup.py:408
+#: hrms/hr/careers/openings.py:181 hrms/hr/careers/setup.py:449
 msgid "Place of work"
 msgstr ""
 
@@ -15697,7 +15711,7 @@ msgstr ""
 msgid "Property already added"
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:18
+#: hrms/public/js/careers_job_opening.js:23
 msgid "Propose criteria"
 msgstr ""
 
@@ -15858,13 +15872,13 @@ msgstr ""
 msgid "Questionnaire Email Sent"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:422
+#: hrms/hr/careers/setup.py:463
 msgid "Questions to the applicant"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Job Applicant Review'
 #. Option for the 'Status' (Select) field in DocType 'Payroll Entry'
-#: hrms/hr/careers/setup.py:433
+#: hrms/hr/careers/setup.py:474
 #: hrms/hr/doctype/job_applicant_review/job_applicant_review.json
 #: hrms/payroll/doctype/payroll_entry/payroll_entry.json
 msgid "Queued"
@@ -15953,18 +15967,18 @@ msgstr ""
 msgid "Read"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:11
+#: hrms/public/js/careers_job_applicant.js:12
 msgid "Read again"
 msgstr ""
 
 #. Label of a Select field in DocType 'Job Applicant Document'
 #: hrms/hr/doctype/job_applicant_document/job_applicant_document.json
-#: hrms/public/js/careers_job_applicant.js:138
+#: hrms/public/js/careers_job_applicant.js:155
 #: hrms/templates/emails/careers_new_application.html:22
 msgid "Read by Nora"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:192
+#: hrms/public/js/careers_job_applicant.js:242
 msgid "Read by Nora on our own servers. A help to read the application: the decision is yours."
 msgstr ""
 
@@ -15980,18 +15994,18 @@ msgid "Read on"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Job Applicant Review'
-#: hrms/hr/careers/setup.py:432
+#: hrms/hr/careers/setup.py:473
 #: hrms/hr/doctype/job_applicant_review/job_applicant_review.json
 msgid "Reading"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Careers Settings'
-#: hrms/hr/careers/setup.py:431
+#: hrms/hr/careers/setup.py:472
 #: hrms/hr/doctype/careers_settings/careers_settings.json
 msgid "Reading by Nora"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:423 hrms/public/js/careers_job_applicant.js:192
+#: hrms/hr/careers/setup.py:464 hrms/public/js/careers_job_applicant.js:240
 msgid "Reading criteria"
 msgstr ""
 
@@ -16033,7 +16047,7 @@ msgstr ""
 msgid "Reason for skipping auto attendance:"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:449
+#: hrms/hr/careers/setup.py:490
 msgid "Reason for the decision"
 msgstr ""
 
@@ -16050,7 +16064,7 @@ msgstr ""
 msgid "Receivables"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:418
+#: hrms/hr/careers/setup.py:459
 msgid "Receives each application by e-mail."
 msgstr ""
 
@@ -16107,7 +16121,7 @@ msgstr ""
 msgid "Recover Cost"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:417
+#: hrms/hr/careers/setup.py:458
 msgid "Recruiter"
 msgstr ""
 
@@ -16391,7 +16405,7 @@ msgstr ""
 msgid "Reminders"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:411
+#: hrms/hr/careers/setup.py:452
 msgid "Remote"
 msgstr ""
 
@@ -16512,7 +16526,7 @@ msgstr ""
 msgid "Required Skills"
 msgstr ""
 
-#: hrms/hr/careers/review.py:400
+#: hrms/hr/careers/review.py:418
 msgid "Required criterion not shown: {0}"
 msgstr ""
 
@@ -16999,7 +17013,7 @@ msgstr ""
 #. Option for the 'Tariff Type' (Select) field in DocType 'Swiss QST Tariff'
 #. Option for the 'Certificate Type' (Select) field in DocType 'Swiss Salary
 #. Certificate'
-#: frontend/src/components/BottomTabs.vue:63 hrms/hr/careers/openings.py:175
+#: frontend/src/components/BottomTabs.vue:63 hrms/hr/careers/openings.py:186
 #: hrms/payroll/doctype/additional_salary/additional_salary.json
 #: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.json
 #: hrms/payroll/doctype/swiss_salary_certificate/swiss_salary_certificate.json
@@ -17490,7 +17504,7 @@ msgstr ""
 
 #. Label of a Float field in DocType 'Appraisal Goal'
 #. Label of a Int field in DocType 'Job Applicant Review'
-#: hrms/hr/careers/setup.py:436
+#: hrms/hr/careers/setup.py:477
 #: hrms/hr/doctype/appraisal_goal/appraisal_goal.json
 #: hrms/hr/doctype/job_applicant_review/job_applicant_review.json
 msgid "Score"
@@ -17962,7 +17976,7 @@ msgstr ""
 msgid "Set up the company's payroll: insurances, salary rules, holidays, accounting"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:448
+#: hrms/hr/careers/setup.py:489
 msgid "Set when the application is rejected or the opening closed."
 msgstr ""
 
@@ -18027,7 +18041,7 @@ msgstr ""
 msgid "Share of a monthly salary: 100 for a full extra month."
 msgstr ""
 
-#: hrms/hr/careers/setup.py:430
+#: hrms/hr/careers/setup.py:471
 msgid "Share picture"
 msgstr ""
 
@@ -18305,7 +18319,7 @@ msgstr ""
 msgid "Show all openings"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:15
+#: hrms/public/js/careers_job_applicant.js:19
 msgid "Show the identity"
 msgstr ""
 
@@ -18313,7 +18327,7 @@ msgstr ""
 msgid "Showing"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:73
+#: hrms/public/js/careers_job_applicant.js:88
 msgid "Shown in the file"
 msgstr ""
 
@@ -18678,11 +18692,11 @@ msgstr ""
 msgid "Start time and end time cannot be same."
 msgstr ""
 
-#: hrms/hr/careers/openings.py:173 hrms/hr/careers/setup.py:412
+#: hrms/hr/careers/openings.py:184 hrms/hr/careers/setup.py:453
 msgid "Starting date"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:416
+#: hrms/hr/careers/setup.py:457
 msgid "Starting on"
 msgstr ""
 
@@ -18812,6 +18826,11 @@ msgstr ""
 msgid "Status for Other Half"
 msgstr ""
 
+#. Label of a HTML field in DocType 'Careers Settings'
+#: hrms/hr/doctype/careers_settings/careers_settings.json
+msgid "Status of the page"
+msgstr ""
+
 #: hrms/payroll/doctype/swissdec_declaration/swissdec_declaration.py:466
 #: hrms/payroll/doctype/swissdec_ema_notification/swissdec_ema_notification.py:197
 msgid "Status updated to: {0}"
@@ -18846,7 +18865,7 @@ msgstr ""
 msgid "Street, then ZIP and city. Printed in box I."
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:192
+#: hrms/public/js/careers_job_applicant.js:242
 msgid "Strengths"
 msgstr ""
 
@@ -19023,7 +19042,7 @@ msgid "Summarized View"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Job Applicant Review'
-#: hrms/hr/careers/setup.py:438
+#: hrms/hr/careers/setup.py:479
 #: hrms/hr/doctype/job_applicant_review/job_applicant_review.json
 #: hrms/payroll/page/swiss_company_payroll_setup/swiss_company_payroll_setup.js:651
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:665
@@ -19248,6 +19267,18 @@ msgstr ""
 
 #: hrms/regional/switzerland/swissdec_transmitter.py:34
 msgid "Swissdec transmission is not enabled. Configure it in Swissdec Transmitter Settings."
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:45
+msgid "Switch the jobs page off? Visitors get “page not found” on it, and the site's menu loses its entry. The openings stay as they are."
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:39
+msgid "Switch the page off"
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:39
+msgid "Switch the page on"
 msgstr ""
 
 #: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js:36
@@ -19650,11 +19681,6 @@ msgstr ""
 msgid "The addresses of the employee record."
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:147
-#: hrms/public/js/careers_job_applicant.js:180
-msgid "The application"
-msgstr ""
-
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:770
 msgid "The badge could not be given: give it from their record."
 msgstr ""
@@ -19696,11 +19722,11 @@ msgstr ""
 msgid "The compensation fund, pension fund, insurer or cantonal tax office, as a supplier."
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:173
+#: hrms/public/js/careers_job_applicant.js:206
 msgid "The criteria changed after this reading: ask Nora to read it again."
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:175
+#: hrms/public/js/careers_job_applicant.js:210
 msgid "The criteria of this opening were proposed by Nora and nobody has checked them yet."
 msgstr ""
 
@@ -19757,6 +19783,14 @@ msgstr ""
 msgid "The job"
 msgstr ""
 
+#: hrms/hr/doctype/careers_settings/careers_settings.js:104
+msgid "The jobs page is switched off."
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:103
+msgid "The jobs page is switched on."
+msgstr ""
+
 #: hrms/hr/careers/apply.py:170
 msgid "The jobs page is turned off."
 msgstr ""
@@ -19777,6 +19811,18 @@ msgstr ""
 
 #: hrms/hr/report/employee_hours_utilization_based_on_timesheet/employee_hours_utilization_based_on_timesheet.py:47
 msgid "The metrics for this report are calculated based on {0}. Please set {0} in {1}."
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:76
+msgid "The page is online: {0}."
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:60
+msgid "The page is switched off: its address answers “page not found”, and the site's menu has no entry. The website's plugins (Jobs) switch it as well."
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:82
+msgid "The page is switched on but hidden: no opening is published, and unsolicited applications are not accepted. It appears with the first published opening."
 msgstr ""
 
 #: hrms/payroll/doctype/swiss_insurer_statement/swiss_insurer_statement.py:24
@@ -19811,7 +19857,7 @@ msgstr ""
 msgid "The public holidays the company closes, by name: legal ones unticked (legal_off), local ones ticked (local_on)."
 msgstr ""
 
-#: hrms/hr/careers/review.py:582
+#: hrms/hr/careers/review.py:605
 msgid "The reading failed. The application is untouched."
 msgstr ""
 
@@ -19966,7 +20012,7 @@ msgstr ""
 msgid "These links are yours: an application that arrives through them counts as your referral."
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:25
+#: hrms/public/js/careers_job_opening.js:35
 msgid "These reading criteria were proposed by Nora. Check them, then save the opening."
 msgstr ""
 
@@ -20052,6 +20098,10 @@ msgstr ""
 
 #: hrms/regional/switzerland/assistant/chat_service.py:97
 msgid "This session is no longer active"
+msgstr ""
+
+#: hrms/hr/careers/plugin.py:121
+msgid "This site has no plugin registry: its jobs page cannot be switched off."
 msgstr ""
 
 #: hrms/payroll/doctype/swiss_qst_tariff/swiss_qst_tariff.js:11
@@ -20235,11 +20285,11 @@ msgstr ""
 msgid "To apply for a Half Day check 'Half Day' and select the Half Day Date"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:414
+#: hrms/hr/careers/setup.py:455
 msgid "To be agreed"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:192
+#: hrms/public/js/careers_job_applicant.js:242
 msgid "To check"
 msgstr ""
 
@@ -21149,10 +21199,14 @@ msgstr ""
 msgid "Unsettled Transactions"
 msgstr ""
 
-#: hrms/hr/careers/api.py:146 hrms/hr/careers/api.py:177
+#: hrms/hr/careers/api.py:146 hrms/hr/careers/api.py:178
 #: hrms/hr/careers/notify.py:129 hrms/hr/careers/pages.py:158
 #: hrms/www/careers/index.html:54
 msgid "Unsolicited application"
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:71
+msgid "Unsolicited applications are accepted."
 msgstr ""
 
 #: hrms/hr/careers/apply.py:198
@@ -21617,7 +21671,7 @@ msgstr ""
 msgid "View Salary Slips"
 msgstr ""
 
-#: hrms/public/js/careers_job_opening.js:21
+#: hrms/public/js/careers_job_opening.js:29
 msgid "View on the website"
 msgstr ""
 
@@ -21752,7 +21806,7 @@ msgstr ""
 
 #. Label of a Int field in DocType 'Job Opening Criterion'
 #: hrms/hr/doctype/job_opening_criterion/job_opening_criterion.json
-#: hrms/public/js/careers_job_opening.js:139
+#: hrms/public/js/careers_job_opening.js:170
 msgid "Weight"
 msgstr ""
 
@@ -21792,7 +21846,7 @@ msgstr ""
 msgid "What is known of the other employers"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:419
+#: hrms/hr/careers/setup.py:460
 msgid "What the applicant sends"
 msgstr ""
 
@@ -21980,15 +22034,15 @@ msgstr ""
 msgid "Working..."
 msgstr ""
 
-#: hrms/hr/careers/openings.py:162
+#: hrms/hr/careers/openings.py:173
 msgid "Workload"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:406
+#: hrms/hr/careers/setup.py:447
 msgid "Workload from (%)"
 msgstr ""
 
-#: hrms/hr/careers/setup.py:407
+#: hrms/hr/careers/setup.py:448
 msgid "Workload to (%)"
 msgstr ""
 
@@ -22214,7 +22268,7 @@ msgstr ""
 msgid "Your application could not be sent. Please try again in a moment."
 msgstr ""
 
-#: hrms/hr/careers/setup.py:324
+#: hrms/hr/careers/setup.py:337
 msgid "Your application is read by the people in charge of recruitment, with the help of Nora, an artificial intelligence hosted on our own servers in Switzerland, which summarises it. No decision is taken automatically. Your data serves this recruitment only and is deleted three months after the decision, unless you agree that we keep it for other openings."
 msgstr ""
 
@@ -22456,7 +22510,7 @@ msgstr ""
 msgid "modify_half_day_status"
 msgstr ""
 
-#: hrms/hr/careers/openings.py:155
+#: hrms/hr/careers/openings.py:166
 msgid "month"
 msgstr ""
 
@@ -22536,7 +22590,7 @@ msgstr ""
 msgid "recent"
 msgstr ""
 
-#: hrms/public/js/careers_job_applicant.js:166
+#: hrms/public/js/careers_job_applicant.js:190
 msgid "required"
 msgstr ""
 
@@ -22638,7 +22692,7 @@ msgstr ""
 msgid "without a salary structure"
 msgstr ""
 
-#: hrms/controllers/employee_reminders.py:265 hrms/hr/careers/openings.py:155
+#: hrms/controllers/employee_reminders.py:265 hrms/hr/careers/openings.py:166
 msgid "year"
 msgstr ""
 
@@ -22907,6 +22961,14 @@ msgstr ""
 
 #: hrms/payroll/page/swiss_payroll_cycle/swiss_payroll_cycle.js:773
 msgid "{0} payslip(s) franked"
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:67
+msgid "{0} published opening"
+msgstr ""
+
+#: hrms/hr/doctype/careers_settings/careers_settings.js:68
+msgid "{0} published openings"
 msgstr ""
 
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:555
