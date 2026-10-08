@@ -345,6 +345,25 @@ class TestThePageAndTheMenu(CareersTestCase):
 		self.assertEqual(state["published"], 0)
 		self.assertTrue(state["url"].endswith("/jobs"))
 
+	def test_the_menu_sync_announces_nothing_and_gives_the_messages_back(self):
+		def noisy(on):
+			frappe.msgprint("Website cache cleared. Refresh your pages to see changes.", alert=True)
+
+		before = frappe.flags.mute_messages
+		frappe.flags.mute_messages = False
+		frappe.local.message_log = []
+		try:
+			with (
+				patch.object(plugin, "_menu_entry", side_effect=noisy),
+				patch.object(plugin, "_variant_menus"),
+				patch.object(plugin, "page_is_open", return_value=True),
+			):
+				plugin.sync_menu()
+			self.assertEqual(frappe.local.message_log, [])
+			self.assertFalse(frappe.flags.mute_messages)
+		finally:
+			frappe.flags.mute_messages = before
+
 	def test_the_menu_follows_the_page(self):
 		with (
 			patch.object(plugin, "_menu_entry") as entry,

@@ -35,9 +35,10 @@ window.hrms_careers_settings = {
 		if (!state.switchable) return;
 		const $actions = field.$wrapper.find(".hj-state__actions");
 		const button = $(
-			`<button class="btn btn-default btn-sm">${
-				state.enabled ? __("Switch the page off") : __("Switch the page on")
-			}</button>`,
+			// switching on is the one thing to do on a page switched off: the primary action then
+			`<button class="btn btn-sm ${
+				state.enabled ? "btn-default hj-state__btn" : "btn-primary"
+			}">${state.enabled ? __("Switch the page off") : __("Switch the page on")}</button>`,
 		).appendTo($actions);
 		button.on("click", () => {
 			if (!state.enabled) return this.switch(frm, 1);
@@ -115,6 +116,7 @@ window.hrms_careers_settings = {
 			.hj-state__url{font-size:13px;color:var(--text-muted);text-decoration:underline;text-underline-offset:3px}
 			.hj-state__text{margin:0;max-width:68ch;color:var(--text-color);line-height:1.5}
 			.hj-state__actions:empty{display:none}
+			.hj-state__btn{border:1px solid var(--border-color)!important;background:transparent!important}
 			.hj-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:500;white-space:nowrap}
 			.hj-pill__dot{width:6px;height:6px;border-radius:50%;background:currentColor}
 			.hj-pill--success{background:#E6F4EA;color:#15803D}.hj-pill--warn{background:#FDF3DC;color:#A16207}

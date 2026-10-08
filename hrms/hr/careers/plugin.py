@@ -197,9 +197,18 @@ def _variant_menus():
 
 def sync_menu(*args, **kwargs):
 	"""Put the menu entry where the page is, on the main site and on each site of a multi-site
-	instance. Safe to call from any hook: it never raises."""
+	instance. Safe to call from any hook: it never raises.
+
+	Silent: Builder announces « Website cache cleared » on each header/footer saved, which speaks to
+	whoever edits a menu by hand; switching the jobs page from HR's settings stacked six of them for
+	one click (osiris, 2026-10-08). Errors still raise, and are logged below.
+	"""
+	muted = frappe.flags.mute_messages
+	frappe.flags.mute_messages = True
 	try:
 		_menu_entry(page_is_open(fresh=True))
 		_variant_menus()
 	except Exception:
 		frappe.log_error("Careers page: menu entry not synced", frappe.get_traceback())
+	finally:
+		frappe.flags.mute_messages = muted
