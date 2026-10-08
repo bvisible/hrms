@@ -51,10 +51,11 @@ window.hrms_careers_settings = {
 	},
 
 	sentence(state) {
-		// the design system's status tones (Neoffice Design System §6.3)
+		// the design system's status tones (Neoffice Design System §6.3); the words name the page, never a
+		// bare « Online » or « Hidden » that another app's catalogue would translate its own way
 		if (!state.enabled) {
 			return [
-				__("Switched off"),
+				__("Page switched off"),
 				"muted",
 				__(
 					"The page is switched off: its address answers “page not found”, and the site's menu has no entry. The website's plugins (Jobs) switch it as well.",
@@ -70,13 +71,13 @@ window.hrms_careers_settings = {
 				? " " + __("Unsolicited applications are accepted.")
 				: "";
 			return [
-				__("Online"),
+				__("Page online"),
 				"success",
 				__("The page is online: {0}.", [published]) + spontaneous,
 			];
 		}
 		return [
-			__("Hidden"),
+			__("Page hidden"),
 			"warn",
 			__(
 				"The page is switched on but hidden: no opening is published, and unsolicited applications are not accepted. It appears with the first published opening.",
