@@ -14,7 +14,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, today
 
-from hrms.hr.careers import apply, documents, openings, plugin, review, scoring, seo, share
+from hrms.hr.careers import apply, documents, openings, plugin, review, scoring, seo, setup, share
 from hrms.utils import nora
 
 TITLE = "Comptable (H/F) à 80 %"
@@ -776,3 +776,44 @@ class TestImportingAJobAd(CareersTestCase):
 			[{"text": "Âge idéal : entre 25 et 35 ans &lt;b&gt;", "reason": "une limite d&apos;âge"}],
 		)
 		self.assertFalse(frappe.db.exists("Job Opening", {"job_title": "Comptable (H/F/X)"}))
+
+
+class TestTheJobAdPrompt(CareersTestCase):
+	def _prompt(self):
+		if not frappe.db.exists("DocType", "AI Text Editor Prompt"):
+			self.skipTest("Nora is not installed")
+		setup.ensure_text_editor_prompt()
+		return frappe.db.get_value(
+			"AI Text Editor Prompt", {"doctype_link": "Job Opening", "fieldname": "description"}
+		)
+
+	def test_our_first_prompt_closed_by_the_sanitizer_is_brought_up_to_date(self):
+		name = self._prompt()
+		# the state measured on osiris: version 1 closed by the HTML sanitizer, a NULL domain
+		frappe.db.set_value(
+			"AI Text Editor Prompt",
+			name,
+			{
+				"system_prompt": setup.JOB_AD_PROMPT_V1.strip() + "</li></ul></h3>",
+				"domain": None,
+				"default_instruction": "Lay out this job ad: an introduction, the tasks, the profile, what we offer.",
+			},
+		)
+		setup.ensure_text_editor_prompt()
+		row = frappe.db.get_value(
+			"AI Text Editor Prompt", name, ["system_prompt", "domain", "default_instruction"], as_dict=True
+		)
+		self.assertEqual(row.system_prompt, setup.JOB_AD_PROMPT)
+		self.assertEqual(row.domain, "")
+		self.assertNotEqual(
+			row.default_instruction,
+			"Lay out this job ad: an introduction, the tasks, the profile, what we offer.",
+		)
+
+	def test_a_prompt_the_customer_rewrote_is_left_alone(self):
+		name = self._prompt()
+		frappe.db.set_value("AI Text Editor Prompt", name, "system_prompt", "Nos propres consignes.")
+		setup.ensure_text_editor_prompt()
+		self.assertEqual(
+			frappe.db.get_value("AI Text Editor Prompt", name, "system_prompt"), "Nos propres consignes."
+		)

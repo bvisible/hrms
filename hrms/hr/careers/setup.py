@@ -396,12 +396,20 @@ Unless asked to translate, write in the language of the text.
 
 def ensure_text_editor_prompt():
 	"""Created when missing; our own earlier versions are brought up to date; a prompt the customer
-	edited is never touched."""
+	edited is never touched.
+
+	Written with `frappe.db.set_value`, never through the form: the prompt names the tags it wants
+	(<h3>, <ul><li>) and the HTML sanitizer of a save closes them at its end, so version 1 stored
+	« …</li></ul></h3> », stopped matching itself and was never upgraded (osiris, 2026-10-08). The
+	domain is "" and never NULL: Nora looks a prompt up with `domain in ("", None)`, which in SQL never
+	matches a NULL, and the editor fell back on its generic instruction.
+	"""
 	if not frappe.db.exists("DocType", "AI Text Editor Prompt"):
 		return
 	lang = frappe.db.get_default("lang") or "fr"
 	values = {
 		"enabled": 1,
+		"domain": "",
 		"placeholder": _("Describe the job in a few lines: Nora lays it out like a job ad.", lang=lang),
 		"default_instruction": _(
 			"Lay out this job ad: an introduction, the tasks, the profile, what we offer. Add nothing the text does not say.",
@@ -413,7 +421,7 @@ def ensure_text_editor_prompt():
 		"AI Text Editor Prompt", {"doctype_link": "Job Opening", "fieldname": "description"}
 	)
 	if not name:
-		frappe.get_doc(
+		doc = frappe.get_doc(
 			{
 				"doctype": "AI Text Editor Prompt",
 				"doctype_link": "Job Opening",
@@ -421,10 +429,13 @@ def ensure_text_editor_prompt():
 				**values,
 			}
 		).insert(ignore_permissions=True)
+		frappe.db.set_value("AI Text Editor Prompt", doc.name, values, update_modified=False)
 		return
-	current = frappe.db.get_value("AI Text Editor Prompt", name, "system_prompt") or ""
-	ours = current.strip() == JOB_AD_PROMPT_V1.strip() or "[hrms job-ad prompt v" in current
-	if ours and current != JOB_AD_PROMPT:
+	current = frappe.db.get_value("AI Text Editor Prompt", name, list(values), as_dict=True)
+	prompt = (current.system_prompt or "").strip()
+	ours = "[hrms job-ad prompt v" in prompt or prompt.startswith(JOB_AD_PROMPT_V1.strip()[:300])
+	# compared as stored: a NULL domain is a difference to write, not an empty string
+	if ours and any(current.get(key) != value for key, value in values.items()):
 		frappe.db.set_value("AI Text Editor Prompt", name, values)
 
 
