@@ -60,7 +60,18 @@ def _open_filters(company: str | None = None) -> dict:
 
 
 def has_open_openings(company: str | None = None) -> bool:
-	return bool(frappe.db.exists("Job Opening", _open_filters(company)))
+	"""Something to apply for: the same openings as `published_openings` lists. One past its
+	closing date stays "Open" until HRMS's daily job closes it, and must not keep an empty page
+	open meanwhile."""
+	return bool(
+		frappe.get_all(
+			"Job Opening",
+			filters=_open_filters(company),
+			or_filters=[["closes_on", "is", "not set"], ["closes_on", ">=", today()]],
+			limit=1,
+			pluck="name",
+		)
+	)
 
 
 def published_openings(filters: dict | None = None) -> list:

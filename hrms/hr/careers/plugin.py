@@ -14,6 +14,7 @@ theme is there (one implementation for the shop, the bookings, the courses and t
 """
 
 import frappe
+from frappe.utils import cint
 
 from hrms.hr.careers import PLUGIN_NAME, ROUTE_PREFIX
 
@@ -74,10 +75,54 @@ def plugin_enabled(fresh: bool = False) -> bool:
 	return True
 
 
+def switchable() -> bool:
+	"""The site's plugin registry holds the jobs page, so HR's settings may switch it too."""
+	return bool(frappe.db.exists("DocType", "Website Plugin")) and bool(
+		frappe.db.exists("Website Plugin", PLUGIN_NAME)
+	)
+
+
 def accepts_spontaneous() -> bool:
 	if not frappe.db.exists("DocType", "Careers Settings"):
 		return False
 	return bool(frappe.db.get_single_value("Careers Settings", "accept_spontaneous"))
+
+
+def page_state() -> dict:
+	"""What HR's settings say of the page: switched on or off, open or not, and why."""
+	from hrms.hr.careers.openings import published_openings
+	from hrms.hr.careers.share import page_url
+
+	enabled = plugin_enabled(fresh=True)
+	published = len(published_openings())
+	spontaneous = accepts_spontaneous()
+	return {
+		"switchable": switchable(),
+		"enabled": enabled,
+		"open": enabled and bool(published or spontaneous),
+		"published": published,
+		"spontaneous": spontaneous,
+		"url": page_url(ROUTE_PREFIX),
+	}
+
+
+@frappe.whitelist(methods=["POST"])
+def set_page_enabled(enabled) -> dict:
+	"""Switch the jobs page on or off from HR's settings.
+
+	The very switch of the website's plugins, not a copy of it (Jérémy, 2026-10-07: « deux endroits
+	où on gère ça »): two flags would end up disagreeing. The plugin's own hooks then forget the
+	registry's cache and move the menu entry (events.website_plugin_on_update).
+	"""
+	from frappe import _
+
+	frappe.has_permission("Careers Settings", "write", throw=True)
+	if not switchable():
+		frappe.throw(_("This site has no plugin registry: its jobs page cannot be switched off."))
+	plugin = frappe.get_doc("Website Plugin", PLUGIN_NAME)
+	plugin.enabled = 1 if cint(enabled) else 0
+	plugin.save(ignore_permissions=True)
+	return page_state()
 
 
 def page_is_open(company: str | None = None, fresh: bool = False) -> bool:

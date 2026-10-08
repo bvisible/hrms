@@ -301,6 +301,50 @@ class TestThePageAndTheMenu(CareersTestCase):
 			):
 				self.assertEqual(plugin.page_is_open(), expected, (enabled, openings_exist, spontaneous))
 
+	def test_an_opening_past_its_closing_date_keeps_no_page_open(self):
+		# HRMS closes it with its daily job; until then it is "Open" and must not hold the page open
+		opening = _opening(posted_on=add_days(today(), -10), closes_on=add_days(today(), -1))
+		only_this_one = {"name": opening.name, "publish": 1, "status": "Open"}
+		with patch.object(openings, "_open_filters", return_value=only_this_one):
+			self.assertFalse(openings.has_open_openings())
+			opening.db_set("closes_on", today())
+			self.assertTrue(openings.has_open_openings())
+
+	def test_hr_settings_switch_the_plugin_itself_never_a_copy(self):
+		if not plugin.switchable():
+			return  # a site without Builder: no switch to show
+		with patch.object(plugin, "sync_menu"), patch("hrms.hr.careers.events.sync_menu", create=True):
+			state = plugin.set_page_enabled(0)
+			self.assertFalse(state["enabled"])
+			self.assertFalse(state["open"])
+			self.assertEqual(frappe.db.get_value("Website Plugin", plugin.PLUGIN_NAME, "enabled"), 0)
+			self.assertFalse(plugin.plugin_enabled(fresh=True))
+			state = plugin.set_page_enabled(1)
+			self.assertTrue(state["enabled"])
+			self.assertEqual(frappe.db.get_value("Website Plugin", plugin.PLUGIN_NAME, "enabled"), 1)
+
+	def test_only_who_may_write_the_settings_switches_the_page(self):
+		if not plugin.switchable():
+			return
+		before = frappe.db.get_value("Website Plugin", plugin.PLUGIN_NAME, "enabled")
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			plugin.set_page_enabled(0 if before else 1)
+		frappe.set_user("Administrator")
+		self.assertEqual(frappe.db.get_value("Website Plugin", plugin.PLUGIN_NAME, "enabled"), before)
+
+	def test_the_settings_form_says_why_the_page_is_hidden(self):
+		with (
+			patch.object(plugin, "plugin_enabled", return_value=True),
+			patch("hrms.hr.careers.openings.published_openings", return_value=[]),
+			patch.object(plugin, "accepts_spontaneous", return_value=False),
+		):
+			state = plugin.page_state()
+		self.assertTrue(state["enabled"])
+		self.assertFalse(state["open"])
+		self.assertEqual(state["published"], 0)
+		self.assertTrue(state["url"].endswith("/jobs"))
+
 	def test_the_menu_follows_the_page(self):
 		with (
 			patch.object(plugin, "_menu_entry") as entry,

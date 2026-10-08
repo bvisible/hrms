@@ -163,7 +163,7 @@ the old and the new tree:
 
 Every path below is **added** by this fork; upstream has no equivalent.
 
-- `hrms/hr/doctype/careers_settings/careers_settings.json` — Single, 12 fields, perms HR Manager + System Manager — the settings of the careers page (unsolicited applications, recipients, Nora's reading, retention).
+- `hrms/hr/doctype/careers_settings/careers_settings.json` — Single, 13 fields, perms HR Manager + System Manager — the settings of the careers page (unsolicited applications, recipients, Nora's reading, retention), headed by the page's status and its on/off switch (`careers_settings.js`, the plugin's own switch through `plugin.set_page_enabled`).
 - `hrms/hr/doctype/job_applicant_answer/job_applicant_answer.json` — Child table, 2 fields — an applicant's answer to a question of the opening.
 - `hrms/hr/doctype/job_applicant_document/job_applicant_document.json` — Child table, 5 fields — a document received with an application, typed by its upload field.
 - `hrms/hr/doctype/job_applicant_review/job_applicant_review.json` — DocType, 19 fields, links Job Applicant/Job Opening, perms HR Manager + HR User — Nora's reading of one application (never a decision).

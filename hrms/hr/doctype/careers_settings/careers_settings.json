@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "section_page",
+  "page_status",
   "intro_title",
   "intro_text",
   "accept_spontaneous",
@@ -24,6 +25,11 @@
    "fieldname": "section_page",
    "fieldtype": "Section Break",
    "label": "Jobs page"
+  },
+  {
+   "fieldname": "page_status",
+   "fieldtype": "HTML",
+   "label": "Status of the page"
   },
   {
    "description": "Empty: Job openings.",
@@ -97,7 +103,7 @@
  "index_web_pages_for_search": 0,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-07 20:30:00.000000",
+ "modified": "2026-10-08 10:30:00.000000",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "Careers Settings",

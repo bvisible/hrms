@@ -9,9 +9,15 @@ from frappe.utils import cint
 class CareersSettings(Document):
 	"""The settings of the careers page (hrms.hr.careers).
 
-	The page itself is switched on in the website's plugins (Jobs); accepting unsolicited
-	applications opens it even without a published opening, so the menu follows this form too.
+	The page itself is switched on in the website's plugins (Jobs), and from this form, which shows
+	that very switch (plugin.set_page_enabled); accepting unsolicited applications opens it even
+	without a published opening, so the menu follows this form too.
 	"""
+
+	def onload(self):
+		from hrms.hr.careers.plugin import page_state
+
+		self.set_onload("page_state", page_state())
 
 	def validate(self):
 		if cint(self.retention_days) < 1:
