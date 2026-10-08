@@ -379,7 +379,7 @@ Lawful and inclusive: the job title names all genders (e.g. "Comptable (H/F/X)")
 When asked to translate, translate faithfully into the language requested and keep the layout, with the Swiss terms of that language (taux d'activité / Pensum / grado di occupazione, entrée en fonction / Stellenantritt / entrata in servizio).
 Unless asked to translate, write in the language of the text."""
 
-JOB_AD_PROMPT_MARK = "[hrms job-ad prompt v2]"
+JOB_AD_PROMPT_MARK = "[hrms job-ad prompt v3]"
 
 JOB_AD_PROMPT = """You edit the description of a job opening published on the careers page of a Swiss employer.
 
@@ -389,7 +389,9 @@ Never add anything the text does not state: no requirement, skill, quality, dipl
 Swiss vocabulary: CFC, AFP, brevet fédéral, permis de cariste, taux d'activité; never terms of France only (CACES, BTS, Bac+2).
 Lawful and inclusive: name the job for every gender in the sentences ("un ou une magasinier·ère") and the title with "(H/F/X)" or an epicene form; no requirement on age, sex, origin, nationality, family status or photo — leave such a requirement out.
 Plain, direct and warm language; the reader is addressed as "vous" in French and "Sie" in German.
-When asked to translate, translate faithfully into the language requested and keep the layout, with the Swiss terms of that language (taux d'activité / Pensum / grado di occupazione, entrée en fonction / Stellenantritt / entrata in servizio).
+When asked to translate, translate faithfully into the language requested, sentence by sentence, and keep every tag (each <li> stays a <li>):
+- every fact stays as it is, the languages a position requires above all: "très bonne maîtrise du français, allemand un plus" becomes "sehr gute Französischkenntnisse, Deutsch von Vorteil", never the other way round;
+- Swiss names of that language: CFC / EFZ / AFC, AFP / EBA / CFP, brevet fédéral / eidgenössischer Fachausweis / attestato professionale federale, diplôme fédéral / eidgenössisches Diplom / diploma federale, AVS / AHV / AVS, LPP / BVG / LPP, taux d'activité / Pensum / grado di occupazione, entrée en fonction / Stellenantritt / entrata in servizio.
 Unless asked to translate, write in the language of the text.
 {mark}""".replace("{mark}", JOB_AD_PROMPT_MARK)
 

@@ -741,13 +741,13 @@ IMPORT_RULES = """You receive the text of an existing job advertisement (read fr
 
 - "job_title": the title of the position, naming all genders when the source names one (e.g. "Comptable (H/F/X)").
 - "description_html": the description, laid out for a careers page, in {language}: a short opening paragraph, then sections with <h3> headings (the tasks, the profile sought, what the employer offers) as lists of short <ul><li> items. Keep every fact of the source and invent none. Leave out how to apply by e-mail or by post (the page has its own form) and leave out any requirement on age, sex, origin, nationality, family status or photo.
-- "location", "department", "employment_type": pick one value from the lists given, or "" when none fits.
+- "location", "department", "employment_type": pick one value from the lists given, or "" when none fits. The employment type follows the workload — part-time below 100 %, full-time at 100 % — and a contract or temporary type only for a fixed-term position.
 - "workload_min" / "workload_max": the workload in percent (80–100 % gives 80 and 100); 0 when not said.
 - "start", "start_date" (YYYY-MM-DD), "closes_on" (YYYY-MM-DD): only what the source says, else "".
 - Salary only when the source states it.
 - "requested_documents": the documents the source asks applicants to send.
 - "criteria": 4 to 8 checkable criteria of the profile sought (axis Qualifications, Experience, Skills, Languages or Other; importance Required only for what is clearly required; weight 1 to 5). Never age, sex, origin, nationality, family status, health or personality.
-- "left_out": each requirement of the source you left out because it could discriminate (age, sex, origin, nationality, family status, photo, health), its words as in the source ("text") and in a few words in {language} what it is ("reason", e.g. "an age limit"). An empty list when you left none out; never the instructions on how to apply.
+- "left_out": each requirement of the source you left out because it could discriminate (age, sex, origin, nationality, family status, photo, health), its words as in the source ("text") and what it is, in a few words written in {language} ("reason"). An empty list when you left none out; never the instructions on how to apply.
 Answer with the JSON object only."""
 
 
