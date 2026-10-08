@@ -13,17 +13,29 @@ frappe.ui.form.on("Job Opening", {
 	},
 
 	refresh(frm) {
-		frm.add_custom_button(__("Import a job ad (PDF or Word)"), () => hrms_careers.import_ad(frm), __("Nora"));
+		frm.add_custom_button(
+			__("Import a job ad (PDF or Word)"),
+			() => hrms_careers.import_ad(frm),
+			__("Nora"),
+		);
 		if (!frm.is_new()) {
-			frm.add_custom_button(__("Propose criteria"), () => hrms_careers.propose_criteria(frm), __("Nora"));
+			frm.add_custom_button(
+				__("Propose criteria"),
+				() => hrms_careers.propose_criteria(frm),
+				__("Nora"),
+			);
 		}
 		if (frm.doc.publish && frm.doc.route && frm.doc.status === "Open") {
-			frm.add_custom_button(__("View on the website"), () => window.open(`/${frm.doc.route}`, "_blank"));
+			frm.add_custom_button(__("View on the website"), () =>
+				window.open(`/${frm.doc.route}`, "_blank"),
+			);
 		}
 		if ((frm.doc.careers_criteria || []).length && !frm.doc.careers_criteria_reviewed) {
 			frm.dashboard.set_headline(
-				__("These reading criteria were proposed by Nora. Check them, then save the opening."),
-				"orange"
+				__(
+					"These reading criteria were proposed by Nora. Check them, then save the opening.",
+				),
+				"orange",
 			);
 		}
 	},
@@ -79,12 +91,17 @@ hrms_careers.fill_from_ad = function (frm, data) {
 	}
 	if ((data.careers_criteria || []).length) {
 		frm.clear_table("careers_criteria");
-		data.careers_criteria.forEach((row) => frm.add_child("careers_criteria", { ...row, suggested_by_ai: 1 }));
+		data.careers_criteria.forEach((row) =>
+			frm.add_child("careers_criteria", { ...row, suggested_by_ai: 1 }),
+		);
 		frm.refresh_field("careers_criteria");
 	}
 	frappe.show_alert(
-		{ message: __("Nora filled the opening from the job ad: check it before saving."), indicator: "green" },
-		8
+		{
+			message: __("Nora filled the opening from the job ad: check it before saving."),
+			indicator: "green",
+		},
+		8,
 	);
 };
 
@@ -99,7 +116,11 @@ hrms_careers.propose_criteria = function (frm) {
 		.then((r) => {
 			const criteria = (r.message && r.message.criteria) || [];
 			if (!criteria.length) {
-				frappe.msgprint(__("Nora found no criteria in the description. Describe the profile you are looking for first."));
+				frappe.msgprint(
+					__(
+						"Nora found no criteria in the description. Describe the profile you are looking for first.",
+					),
+				);
 				return;
 			}
 			const dialog = new frappe.ui.Dialog({
@@ -109,7 +130,7 @@ hrms_careers.propose_criteria = function (frm) {
 					{
 						fieldtype: "HTML",
 						options: `<p class="text-muted">${__(
-							"Every application to this opening is read against these criteria. Remove or correct them, then add them."
+							"Every application to this opening is read against these criteria. Remove or correct them, then add them.",
 						)}</p>`,
 					},
 					{
@@ -119,7 +140,14 @@ hrms_careers.propose_criteria = function (frm) {
 						in_place_edit: true,
 						data: criteria,
 						fields: [
-							{ fieldname: "criterion", fieldtype: "Data", label: __("Criterion"), in_list_view: 1, columns: 5, reqd: 1 },
+							{
+								fieldname: "criterion",
+								fieldtype: "Data",
+								label: __("Criterion"),
+								in_list_view: 1,
+								columns: 5,
+								reqd: 1,
+							},
 							{
 								fieldname: "axis",
 								fieldtype: "Select",
@@ -136,7 +164,13 @@ hrms_careers.propose_criteria = function (frm) {
 								in_list_view: 1,
 								columns: 2,
 							},
-							{ fieldname: "weight", fieldtype: "Int", label: __("Weight"), in_list_view: 1, columns: 1 },
+							{
+								fieldname: "weight",
+								fieldtype: "Int",
+								label: __("Weight"),
+								in_list_view: 1,
+								columns: 1,
+							},
 						],
 					},
 				],

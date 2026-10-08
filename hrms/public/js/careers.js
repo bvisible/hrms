@@ -49,7 +49,12 @@
 				if (accepted.indexOf(ext) === -1) {
 					problems.push(format(form.dataset.msgType, [file.name]));
 				} else if (file.size > maxBytes) {
-					problems.push(format(form.dataset.msgTooBig, [file.name, Math.round(maxBytes / 1048576)]));
+					problems.push(
+						format(form.dataset.msgTooBig, [
+							file.name,
+							Math.round(maxBytes / 1048576),
+						]),
+					);
 				}
 			});
 			return problems.join(" ");
@@ -76,10 +81,15 @@
 				} else {
 					empty = !input.value.trim();
 				}
-				if (empty && setError(name, form.dataset.msgRequired) && !firstInvalid) firstInvalid = input;
+				if (empty && setError(name, form.dataset.msgRequired) && !firstInvalid)
+					firstInvalid = input;
 			});
 			var email = form.querySelector('input[name="email"]');
-			if (email && email.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+			if (
+				email &&
+				email.value.trim() &&
+				!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())
+			) {
 				setError("email", form.dataset.msgEmail);
 				firstInvalid = firstInvalid || email;
 			}
@@ -117,10 +127,14 @@
 			})
 				.then(function (response) {
 					if (response.status === 429) {
-						return { message: { ok: false, errors: {}, message: form.dataset.msgTooMany } };
+						return {
+							message: { ok: false, errors: {}, message: form.dataset.msgTooMany },
+						};
 					}
 					return response.json().catch(function () {
-						return { message: { ok: false, errors: {}, message: form.dataset.msgFailed } };
+						return {
+							message: { ok: false, errors: {}, message: form.dataset.msgFailed },
+						};
 					});
 				})
 				.then(function (data) {

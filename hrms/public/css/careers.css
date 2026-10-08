@@ -92,7 +92,9 @@
 	background: var(--hj-surface);
 	border: 1px solid var(--hj-line);
 	border-radius: var(--hj-radius);
-	transition: border-color 0.2s ease, transform 0.2s ease;
+	transition:
+		border-color 0.2s ease,
+		transform 0.2s ease;
 }
 
 .hj-card:hover,

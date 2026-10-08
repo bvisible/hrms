@@ -8,7 +8,11 @@ frappe.ui.form.on("Job Applicant", {
 		hrms_careers_applicant.render(frm);
 
 		if (!frm.is_new() && frm.doc.careers_privacy_consent_on) {
-			frm.add_custom_button(__("Read again"), () => hrms_careers_applicant.reread(frm), __("Nora"));
+			frm.add_custom_button(
+				__("Read again"),
+				() => hrms_careers_applicant.reread(frm),
+				__("Nora"),
+			);
 		}
 		if (!frm.is_new()) {
 			const blind = hrms_careers_applicant.is_blind();
@@ -44,10 +48,18 @@ window.hrms_careers_applicant = {
 	},
 
 	reread(frm) {
-		frappe.call({ method: "hrms.hr.careers.review.rerun_review", args: { job_applicant: frm.doc.name } }).then(() => {
-			frappe.show_alert({ message: __("Nora reads the application again."), indicator: "blue" });
-			setTimeout(() => frm.reload_doc(), 1500);
-		});
+		frappe
+			.call({
+				method: "hrms.hr.careers.review.rerun_review",
+				args: { job_applicant: frm.doc.name },
+			})
+			.then(() => {
+				frappe.show_alert({
+					message: __("Nora reads the application again."),
+					indicator: "blue",
+				});
+				setTimeout(() => frm.reload_doc(), 1500);
+			});
 	},
 
 	render(frm) {
@@ -59,7 +71,10 @@ window.hrms_careers_applicant = {
 		}
 		frm.toggle_display("careers_review_section", true);
 		frappe
-			.call({ method: "hrms.hr.careers.review.get_review", args: { job_applicant: frm.doc.name } })
+			.call({
+				method: "hrms.hr.careers.review.get_review",
+				args: { job_applicant: frm.doc.name },
+			})
 			.then((r) => field.$wrapper.html(this.card(r.message || {})));
 	},
 
@@ -136,16 +151,19 @@ window.hrms_careers_applicant = {
 	card(data) {
 		const esc = (t) => this.esc(t);
 		this.ensure_style();
-		const head = (title) => `<div class="hj-desk__eyebrow"><img src="/assets/nora/images/nora-orb.svg" alt="">${__(
-			"Read by Nora"
-		)}</div><h3 class="hj-desk__title">${title}</h3>`;
+		const head = (title) =>
+			`<div class="hj-desk__eyebrow"><img src="/assets/nora/images/nora-orb.svg" alt="">${__(
+				"Read by Nora",
+			)}</div><h3 class="hj-desk__title">${title}</h3>`;
 		if (data.status === "Queued" || data.status === "Failed" || !data.review) {
 			const message =
 				data.status === "Queued"
 					? __("Nora is reading the application. Reload in a moment.")
-					: __("Nora could not read this application. Read the documents below, or ask Nora to read it again.");
+					: __(
+							"Nora could not read this application. Read the documents below, or ask Nora to read it again.",
+					  );
 			return `<div class="hj-desk hj-desk--quiet"><div class="hj-desk__head"><div class="hj-desk__intro">${head(
-				__("Job Applicant Review")
+				__("Job Applicant Review"),
 			)}</div></div><div class="hj-desk__body">${esc(message)}</div></div>`;
 		}
 		const review = data.review;
@@ -158,39 +176,72 @@ window.hrms_careers_applicant = {
 					<span class="hj-axis__num">${value}</span></div>`;
 			})
 			.join("");
-		const list = (items) => `<ul>${(items || []).map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`;
-		const column = (title, items) => ((items || []).length ? `<div><div class="hj-h">${title}</div>${list(items)}</div>` : "");
+		const list = (items) =>
+			`<ul>${(items || []).map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`;
+		const column = (title, items) =>
+			(items || []).length
+				? `<div><div class="hj-h">${title}</div>${list(items)}</div>`
+				: "";
 		const criteria = (details.criteria || [])
 			.map(
 				(c) => `<tr><td>${this.verdict_pill(c.verdict)}</td><td>
 					<div class="hj-crit__name">${esc(c.criterion)}${
-						c.importance === "Required" ? ` <span class="hj-crit__req">· ${__("required")}</span>` : ""
+						c.importance === "Required"
+							? ` <span class="hj-crit__req">· ${__("required")}</span>`
+							: ""
 					}</div>
-					${c.evidence ? `<div class="hj-crit__quote">« ${esc(c.evidence)} »${c.source ? ` — ${esc(c.source)}` : ""}</div>` : ""}
-				</td></tr>`
+					${
+						c.evidence
+							? `<div class="hj-crit__quote">« ${esc(c.evidence)} »${
+									c.source ? ` — ${esc(c.source)}` : ""
+							  }</div>`
+							: ""
+					}
+				</td></tr>`,
 			)
 			.join("");
 		const warnings = [];
-		if (data.stale) warnings.push(__("The criteria changed after this reading: ask Nora to read it again."));
+		if (data.stale)
+			warnings.push(
+				__("The criteria changed after this reading: ask Nora to read it again."),
+			);
 		if (!data.criteria_reviewed)
-			warnings.push(__("The criteria of this opening were proposed by Nora and nobody has checked them yet."));
+			warnings.push(
+				__(
+					"The criteria of this opening were proposed by Nora and nobody has checked them yet.",
+				),
+			);
 		const unread = (details.unread || []).length
-			? `<p class="hj-foot">${__("Not readable, open it yourself:")} ${(details.unread || []).map(esc).join(", ")}</p>`
+			? `<p class="hj-foot">${__("Not readable, open it yourself:")} ${(details.unread || [])
+					.map(esc)
+					.join(", ")}</p>`
 			: "";
 		const score = review.score == null ? "–" : review.score;
 		return `<div class="hj-desk">
 			<div class="hj-desk__head">
 				<div class="hj-desk__intro">${head(__("Job Applicant Review"))}</div>
 				<div class="hj-desk__kpis">
-					<div class="hj-kpi"><div class="hj-kpi__value">${score}<small>/100</small></div><div class="hj-kpi__label">${__("Match with the job")}</div></div>
-					<div class="hj-kpi"><div class="hj-kpi__value">${review.completeness}<small>%</small></div><div class="hj-kpi__label">${__("Complete file")}</div></div>
+					<div class="hj-kpi"><div class="hj-kpi__value">${score}<small>/100</small></div><div class="hj-kpi__label">${__(
+						"Match with the job",
+					)}</div></div>
+					<div class="hj-kpi"><div class="hj-kpi__value">${
+						review.completeness
+					}<small>%</small></div><div class="hj-kpi__label">${__(
+						"Complete file",
+					)}</div></div>
 				</div>
 			</div>
 			<div class="hj-desk__body">
 				${warnings.map((w) => `<p class="hj-warn">${esc(w)}</p>`).join("")}
 				<p class="hj-desk__summary">${esc(review.summary)}</p>
 				${axes ? `<div class="hj-axes">${axes}</div>` : ""}
-				${criteria ? `<div class="hj-h">${__("Reading criteria")}</div><table class="hj-crit">${criteria}</table>` : ""}
+				${
+					criteria
+						? `<div class="hj-h">${__(
+								"Reading criteria",
+						  )}</div><table class="hj-crit">${criteria}</table>`
+						: ""
+				}
 				<div class="hj-cols">
 					${column(__("Strengths"), details.strengths)}
 					${column(__("To check"), details.to_check)}
@@ -198,7 +249,9 @@ window.hrms_careers_applicant = {
 					${column(__("Missing"), details.missing)}
 				</div>
 				${unread}
-				<p class="hj-foot">${__("Read by Nora on our own servers. A help to read the application: the decision is yours.")}</p>
+				<p class="hj-foot">${__(
+					"Read by Nora on our own servers. A help to read the application: the decision is yours.",
+				)}</p>
 			</div>
 		</div>`;
 	},
