@@ -168,3 +168,49 @@ class TestTheCompanyList(HolidaysCase):
 			(getdate(doc.from_date), getdate(doc.to_date)),
 			(datetime.date(2027, 1, 1), datetime.date(2028, 12, 31)),
 		)
+
+
+def site_language(lang):
+	"""The site's language (System Settings), every other single value read as it is."""
+	real = frappe.db.get_single_value
+
+	def get_single_value(doctype, field, *args, **kwargs):
+		if (doctype, field) == ("System Settings", "language"):
+			return lang
+		return real(doctype, field, *args, **kwargs)
+
+	return patch.object(frappe.db, "get_single_value", side_effect=get_single_value)
+
+
+class TestTheLanguageOfTheNames(HolidaysCase):
+	"""The names are written in the site's language, also by the monthly top-up: a background job runs
+	with frappe.local.lang = "en" whatever the site speaks, and rewrote a French list in English
+	(#1520). The choices are kept by name: in English they matched nothing."""
+
+	LIST = "_Test Payroll Holidays Language"
+
+	def test_a_job_writes_the_legal_holidays_in_the_sites_language(self):
+		frappe.local.lang = "en"  # what a background job holds
+		with site_language("fr"):
+			self.assertEqual(
+				public_holidays.legal_holidays("VS", 2027)[datetime.date(2027, 1, 1)], "Nouvel An"
+			)
+		with site_language("de"):
+			self.assertEqual(
+				public_holidays.legal_holidays("VS", 2027)[datetime.date(2027, 1, 1)], "Neujahrstag"
+			)
+
+	def test_a_job_writes_the_weekends_and_keeps_the_choices_made_in_french(self):
+		frappe.local.lang = "en"
+		samedi = frappe._("Saturday", lang="fr")
+		self.assertNotEqual(samedi, "Saturday")  # the catalogue has it: otherwise this test proves nothing
+		with site_language("fr"), provider(PROVIDER_2027):
+			public_holidays.sync_holiday_list(
+				self.LIST, "VS", [2027], {"legal_off": ["Fête-Dieu"], "local_on": ["Lundi de Pâques"]}
+			)
+		doc = frappe.get_doc("Holiday List", self.LIST)
+		rows = {getdate(row.holiday_date): row for row in doc.holidays}
+		self.assertEqual(rows[datetime.date(2027, 1, 2)].description, samedi)
+		self.assertEqual(rows[datetime.date(2027, 1, 1)].description, "Nouvel An")
+		self.assertIn(EASTER_MONDAY, rows)  # the local day chosen by its French name
+		self.assertNotIn(CORPUS_CHRISTI, rows)  # the legal day unticked by its French name

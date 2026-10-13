@@ -34,12 +34,18 @@ from frappe.utils import add_days, cint, getdate, nowdate
 OPENHOLIDAYS_ENDPOINT = "https://openholidaysapi.org/PublicHolidays"
 TIMEOUT = 20
 WEEKEND = ((5, "Saturday"), (6, "Sunday"))
-# The language python-holidays and the provider give the names in, by the user's language.
+# The language python-holidays and the provider give the names in, by the site's language.
 LANGUAGES = {"fr": "fr", "de": "de", "it": "it", "en": "en_US"}
 
 
 def _language():
-	return (frappe.local.lang or "fr")[:2]
+	"""The language the holiday names are written in: the site's.
+
+	The names are the company's, read by everyone on the site. And the monthly top-up runs in a
+	background job, where ``frappe.local.lang`` is "en" whatever the site speaks: on 01.10.2026 it
+	rewrote a French company's list in English (« Christmas Day », « Saturday », #1520).
+	"""
+	return (frappe.db.get_single_value("System Settings", "language") or frappe.local.lang or "fr")[:2]
 
 
 def legal_holidays(canton, year, language=None):
@@ -188,6 +194,7 @@ def sync_holiday_list(list_name, canton, years, choices=None):
 	doc.to_date = max(getdate(doc.to_date), last) if doc.get("to_date") else last
 	doc.weekly_off = "Sunday"
 
+	language = _language()
 	written, owned, unread = {}, set(), set()
 	for year in years:
 		chosen, provider_read = chosen_holidays(canton, year, choices)
@@ -202,7 +209,7 @@ def sync_holiday_list(list_name, canton, years, choices=None):
 		while day.year == year:
 			for weekday, label in WEEKEND:
 				if day.weekday() == weekday:
-					written[day] = (_(label), 1)
+					written[day] = (_(label, lang=language), 1)
 			day += datetime.timedelta(days=1)
 
 	kept = []
