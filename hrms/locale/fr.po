@@ -1314,8 +1314,9 @@ msgstr "Comptabilité & Paiement"
 
 #. Label of a Section Break field in DocType 'Expense Claim'
 #: hrms/hr/doctype/expense_claim/expense_claim.json
+# //// Neoffice — plural noun, so the adjective agrees; the same label as erpnext, which loads before this app and was overridden by it
 msgid "Accounting Details"
-msgstr "Détails Comptable"
+msgstr "Détails comptables"
 
 #. Label of a Section Break field in DocType 'Expense Claim'
 #. Label of a Section Break field in DocType 'Expense Claim Detail'
