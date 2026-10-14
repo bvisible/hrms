@@ -12,10 +12,19 @@ frappe.pages["swiss-employee-wizard"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 	wrapper.wizard = new SwissEmployeeWizard(page);
+	//// Neoffice — Frappe's page view wires on_page_show and never on_page_hide: the desk's container fires a `hide` on
+	//// the page's wrapper when it leaves, which nothing listened to, so the badge watch (a read every three seconds)
+	//// went on from a page nobody was looking at. Bound here, to the hook below (14.10.2026).
+	$(wrapper).on("hide", () => frappe.pages["swiss-employee-wizard"].on_page_hide(wrapper));
 };
 
 frappe.pages["swiss-employee-wizard"].on_page_hide = function (wrapper) {
 	wrapper.wizard && wrapper.wizard.stop_badge_watch();
+};
+
+//// Neoffice — back on the page, the badge watch the leaving stopped starts again, on the badge step only.
+frappe.pages["swiss-employee-wizard"].on_page_show = function (wrapper) {
+	wrapper.wizard && wrapper.wizard.resume_badge_watch();
 };
 
 const CANTONS = [
@@ -491,6 +500,7 @@ class SwissEmployeeWizard {
 
 	watch_badges(holder) {
 		this.stop_badge_watch();
+		this.badge_holder = holder;
 		const load = async () => {
 			let res;
 			try {
@@ -549,6 +559,15 @@ class SwissEmployeeWizard {
 	stop_badge_watch() {
 		if (this.badge_timer) clearInterval(this.badge_timer);
 		this.badge_timer = null;
+	}
+
+	//// Neoffice — the page was left and shown again: the watch runs again if the badge step is the one on screen
+	//// (its holder is still in the page: the steps are not drawn again by the desk coming back).
+	resume_badge_watch() {
+		const step = this.steps()[this.step];
+		if (this.badge_holder && !this.badge_timer && step && step.key === "badge") {
+			this.watch_badges(this.badge_holder);
+		}
 	}
 
 	ago(seconds) {
