@@ -49,6 +49,11 @@ class HolidaysCase(FrappeTestCase):
 		frappe.local.lang = "fr"
 		self.addCleanup(setattr, frappe.local, "lang", self.lang)
 		self.addCleanup(frappe.db.rollback)
+		# A French site, as osiris: since #1520 the names follow the site's language (System Settings),
+		# and the site of the CI speaks English, where « Fête-Dieu » chose nothing.
+		language = site_language("fr")
+		language.start()
+		self.addCleanup(language.stop)
 
 
 class TestTheSources(HolidaysCase):
