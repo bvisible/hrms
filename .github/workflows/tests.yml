@@ -18,7 +18,10 @@ on:
         default: ""
 concurrency:
   group: tests-${{ github.ref }}
-  cancel-in-progress: true
+  # A scheduled or manual run no longer cuts the run before it: it waits behind the running one, and a
+  # run still waiting gives way to a newer one, so one runs and one waits at most. The runs of a pull
+  # request still cancel each other.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   ci:
     uses: bvisible/neoffice-ci/.github/workflows/frappe-app-ci.yml@main
