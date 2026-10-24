@@ -13113,7 +13113,7 @@ msgstr "Masque de numérotation"
 
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:225
 msgid "Nationality"
-msgstr ""
+msgstr "Nationalité"
 
 #: hrms/regional/switzerland/swissdec_validation.py:228
 msgid "Nationality is not set. Recommended for ELM."
@@ -23818,3 +23818,7 @@ msgstr "Canton avec lequel cette fiche a été décomptée — le canton auquel 
 #: hrms/regional/switzerland/setup.py
 msgid "Tariff code this slip was settled with — the audit trail retroactive corrections rely on."
 msgstr "Code de barème avec lequel cette fiche a été décomptée — la piste d'audit sur laquelle reposent les corrections rétroactives."
+
+#: hrms/regional/switzerland/setup.py:223
+msgid "Printed on"
+msgstr "Imprimé le"
