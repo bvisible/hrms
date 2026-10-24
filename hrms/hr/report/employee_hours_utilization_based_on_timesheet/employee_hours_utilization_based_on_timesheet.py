@@ -4,7 +4,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate
+from frappe.utils import add_days, flt, getdate
 # //// Neoffice — added import, used by the two blocks below (7da51ade7, bvisible
 # //// 2024-01-29, "update to get a real usable report on timesheet"): upstream counts
 # //// calendar days, ours counts business days minus holidays.
@@ -139,80 +139,45 @@ class EmployeeHoursReport:
 		self.stats_by_employee = filtered_data
 
 	def generate_filtered_time_logs(self):
-		additional_filters = ""
+		Timesheet = frappe.qb.DocType("Timesheet")
+		TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
 
-		filter_fields = ["employee", "project", "company"]
-
-		for field in filter_fields:
-			if self.filters.get(field):
-				if field == "project":
-					additional_filters += f" AND ttd.{field} = {self.filters.get(field)!r}"
-				else:
-					additional_filters += f" AND tt.{field} = {self.filters.get(field)!r}"
-		# //// Neoffice — upstream's query, kept but DISABLED inside the ''' string below.
-		# //// Ours (further down) also selects ttd.from_time / ttd.to_time, and tests for an
-		# //// OVERLAP with the period instead of requiring both tt.start_date and tt.end_date
-		# //// to fall inside it — a timesheet straddling a boundary was dropped entirely.
-		# //// AT A MERGE: upstream's `# nosemgrep` line went into the string with the query,
-		# //// so our replacement below carries no nosemgrep annotation. Commit 7da51ade7.
-		# //// commented
-		'''# nosemgrep: frappe-semgrep-rules.rules.frappe-using-db-sql
-		self.filtered_time_logs = frappe.db.sql(
-		f"""
-			SELECT tt.employee AS employee, ttd.hours AS hours, ttd.is_billable AS is_billable, ttd.project AS project
-			FROM `tabTimesheet Detail` AS ttd
-			JOIN `tabTimesheet` AS tt
-				ON ttd.parent = tt.name
-			WHERE tt.employee IS NOT NULL
-			AND tt.start_date BETWEEN '{self.filters.from_date}' AND '{self.filters.to_date}'
-			AND tt.end_date BETWEEN '{self.filters.from_date}' AND '{self.filters.to_date}'
-			{additional_filters}
-		"""'''
-		# ////
-
-		# //// Neoffice — our replacement for the query disabled above: start/end times plus
-		# //// the overlap test. Interpolated with .format() exactly as upstream interpolated
-		# //// its f-string; the values come from the report filters. Commit 7da51ade7.
-		# //// added
-		self.filtered_time_logs = frappe.db.sql(
-			"""
-			SELECT tt.employee AS employee, ttd.hours AS hours, ttd.is_billable AS is_billable, ttd.project AS project,
-			ttd.from_time AS start_time, ttd.to_time AS end_time
-			FROM `tabTimesheet Detail` AS ttd
-			JOIN `tabTimesheet` AS tt
-				ON ttd.parent = tt.name
-			WHERE tt.employee IS NOT NULL
-			AND NOT (tt.start_date > '{1}' OR tt.end_date < '{0}')
-			AND ttd.from_time BETWEEN '{0}' AND DATE_ADD('{1}', INTERVAL 1 DAY)
-			{2}
-		""".format(
-				self.filters.from_date, self.filters.to_date, additional_filters
+		# //// Neoffice — upstream's query selects four columns and keeps only the timesheets whose
+		# //// start_date AND end_date both fall inside the period, so a timesheet straddling a boundary
+		# //// was dropped entirely. Ours also selects the detail's from_time / to_time (generate_stats_by_employee
+		# //// unpacks six columns) and tests for an OVERLAP with the period. Upstream now builds the query
+		# //// with frappe.qb; our version is that query with our three differences, so filters stay
+		# //// parameterised. Earlier carried as raw SQL, commit 7da51ade7; re-expressed at the merge of
+		# //// upstream 15.64.6.
+		query = (
+			frappe.qb.from_(TimesheetDetail)
+			.join(Timesheet)
+			.on(TimesheetDetail.parent == Timesheet.name)
+			.select(
+				Timesheet.employee.as_("employee"),
+				TimesheetDetail.hours.as_("hours"),
+				TimesheetDetail.is_billable.as_("is_billable"),
+				TimesheetDetail.project.as_("project"),
+				TimesheetDetail.from_time.as_("start_time"),  # //// added
+				TimesheetDetail.to_time.as_("end_time"),  # //// added
 			)
-			#AND (tt.start_date BETWEEN '{0}' AND '{1}' OR tt.end_date BETWEEN '{0}' AND '{1}')
+			.where(Timesheet.employee.isnotnull())
+			# //// Neoffice — overlap with the period instead of both dates inside it
+			.where(Timesheet.start_date <= self.to_date)
+			.where(Timesheet.end_date >= self.from_date)
+			.where(TimesheetDetail.from_time >= self.from_date)
+			.where(TimesheetDetail.from_time <= add_days(self.to_date, 1))
+			# ////
 		)
-		'''data_list = [list(record) for record in self.filtered_time_logs]
-		for record in data_list:
-			from_date_datetime = datetime.strptime(self.filters.from_date, "%Y-%m-%d")
-			to_date_datetime = datetime.strptime(self.filters.to_date, "%Y-%m-%d")
-			to_date_datetime = to_date_datetime.replace(hour=23, minute=59, second=59)
-			frappe.neolog("record", record)
-			frappe.neolog(str(type(record[4])) + " " + str(type(from_date_datetime)) + " " + str(type(record[5])) + " " + str(type(to_date_datetime)))
-			frappe.neolog("{} <? {}".format(record[4], from_date_datetime))
-			frappe.neolog("{} >? {}".format(record[5], to_date_datetime))
-			if record[4] < from_date_datetime:
-				frappe.neolog("record[4] < from_date_datetime")
-				time_diff = from_date_datetime - record[4]
-				hours_diff = time_diff.total_seconds() / 3600
-				record[4] = from_date_datetime
-				record[1] = flt(record[1] - hours_diff, 2)
-			if record[5] > to_date_datetime:
-				frappe.neolog("record[5] > to_date_datetime")
-				time_diff = record[5] - to_date_datetime
-				hours_diff = time_diff.total_seconds() / 3600
-				record[5] = to_date_datetime
-				record[1] = flt(record[1] - hours_diff, 2)
-		self.filtered_time_logs = [tuple(record) for record in data_list]'''
-		# ////
+
+		for field in ("employee", "company"):
+			if self.filters.get(field):
+				query = query.where(Timesheet[field] == self.filters.get(field))
+
+		if self.filters.get("project"):
+			query = query.where(TimesheetDetail.project == self.filters.get("project"))
+
+		self.filtered_time_logs = query.run()
 
 	def generate_stats_by_employee(self):
 		self.stats_by_employee = frappe._dict()
