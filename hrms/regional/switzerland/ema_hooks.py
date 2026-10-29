@@ -30,6 +30,12 @@ def detect_ema_changes(doc, method=None):
 		doc: Employee document being saved.
 		method: Hook method name (unused).
 	"""
+	# //// Neoffice — a record made by the « every desk account is an employee » catch-up (neoffice_theme.users) is an
+	# //// anchor for people already in post, not a hire: it must not drop a draft « Eintritt ». Made in the same save
+	# //// by that code only; remove it together with that catch-up (vault note Neoffice/03-DevOps/269).
+	if doc.flags.get("neo_account_employee"):
+		return
+
 	if not _is_swiss_company(doc.company):
 		return
 
