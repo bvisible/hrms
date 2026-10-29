@@ -607,7 +607,9 @@ class SwissEmployeeWizard {
 		this.form = null;
 		if (this.mode === "finish") {
 			//// Neoffice — which record is being finished, and how many wait. Built first (see render_review).
-			const who = __("Finishing the record of {0}", [esc(`${this.data.first_name} ${this.data.last_name}`)]);
+			// A record with a single name has no last name: never print « undefined ».
+			const name = [this.data.first_name, this.data.last_name].filter(Boolean).join(" ");
+			const who = __("Finishing the record of {0}", [esc(name)]);
 			const left = __("{0} records to complete", [this.info.remaining]);
 			this.body.append(`<div class="text-muted" style="margin-bottom: 8px;">${who} · ${left}</div>`);
 		}
