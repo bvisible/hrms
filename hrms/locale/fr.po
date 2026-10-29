@@ -23822,3 +23822,57 @@ msgstr "Code de barème avec lequel cette fiche a été décomptée — la piste
 #: hrms/regional/switzerland/setup.py:223
 msgid "Printed on"
 msgstr "Imprimé le"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:907
+msgid "All the records are complete."
+msgstr "Toutes les fiches sont complètes."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:846
+msgid "Already known from the account"
+msgstr "Déjà connu grâce au compte"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:107
+msgid "Check and finish"
+msgstr "Vérifier et terminer"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:758
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:829
+msgid "Finish the record"
+msgstr "Finir la fiche"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:610
+#, python-brace-format
+msgid "Finishing the record of {0}"
+msgstr "Finalisation de la fiche de {0}"
+
+#: hrms/regional/switzerland/employee_wizard.py:655
+msgid "Gender and date of birth are needed to finish the record."
+msgstr "Le sexe et la date de naissance sont nécessaires pour finir la fiche."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:918
+#, python-brace-format
+msgid "Next record: {0}"
+msgstr "Fiche suivante : {0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:812
+msgid "No record to finish."
+msgstr "Aucune fiche à finir."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:874
+msgid "Saving the record…"
+msgstr "Enregistrement de la fiche…"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:770
+msgid "Skip this record"
+msgstr "Passer cette fiche"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:904
+#, python-brace-format
+msgid "{0} is complete"
+msgstr "{0} : fiche complète"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:611
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:906
+#, python-brace-format
+msgid "{0} records to complete"
+msgstr "{0} fiches à compléter"

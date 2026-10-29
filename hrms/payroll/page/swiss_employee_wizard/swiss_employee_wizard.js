@@ -24,6 +24,8 @@ frappe.pages["swiss-employee-wizard"].on_page_hide = function (wrapper) {
 
 //// Neoffice — back on the page, the badge watch the leaving stopped starts again, on the badge step only.
 frappe.pages["swiss-employee-wizard"].on_page_show = function (wrapper) {
+	//// Neoffice — the route can name a record to finish (swiss-employee-wizard/<employee>, or /next): a new route is a new run.
+	wrapper.wizard && wrapper.wizard.route_changed();
 	wrapper.wizard && wrapper.wizard.resume_badge_watch();
 };
 
@@ -63,11 +65,19 @@ class SwissEmployeeWizard {
 		this.step = 0;
 		this.badge = null;
 		this.tax = null;
+		//// Neoffice — back to the hire (the finish mode sets these).
+		this.mode = null;
+		this.employee = null;
+		this.info = null;
+		this.page.set_title(__("New Employee"));
 	}
 
 	async start() {
+		this.current_target = this.route_target();
 		const genders = await frappe.db.get_list("Gender", { fields: ["name"], limit: 20 });
 		this.genders = genders.map((g) => g.name);
+		//// Neoffice — a record to finish is named by the route.
+		if (this.current_target) return this.start_finish(this.current_target);
 		await this.load_defaults();
 		this.render_step();
 	}
@@ -92,7 +102,10 @@ class SwissEmployeeWizard {
 			{ key: "job", label: __("The job") },
 			{ key: "tax", label: __("Permit and tax") },
 			...(this.with_badges ? [{ key: "badge", label: __("Badge") }] : []),
-			{ key: "review", label: __("Check and create") },
+			{
+				key: "review",
+				label: this.mode === "finish" ? __("Check and finish") : __("Check and create"),
+			},
 		];
 	}
 
@@ -592,6 +605,12 @@ class SwissEmployeeWizard {
 			.join("");
 		this.body.empty();
 		this.form = null;
+		if (this.mode === "finish") {
+			//// Neoffice — which record is being finished, and how many wait. Built first (see render_review).
+			const who = __("Finishing the record of {0}", [esc(`${this.data.first_name} ${this.data.last_name}`)]);
+			const left = __("{0} records to complete", [this.info.remaining]);
+			this.body.append(`<div class="text-muted" style="margin-bottom: 8px;">${who} · ${left}</div>`);
+		}
 		this.body.append(
 			`<div class="sew-progress" style="margin-bottom: 20px;">${progress}</div>`,
 		);
@@ -610,6 +629,7 @@ class SwissEmployeeWizard {
 		}
 		this.form.set_values(this.data);
 
+		if (this.mode === "finish" && step.key === "person") this.render_known(holder);
 		if (step.key === "person") this.watch_avs();
 		if (step.key === "tax") this.refresh_tax();
 		this.render_nav();
@@ -734,10 +754,22 @@ class SwissEmployeeWizard {
 					this.step += 1;
 					this.render_step();
 				});
+		} else if (this.mode === "finish") {
+			$(`<button class="btn btn-primary btn-sm">${__("Finish the record")}</button>`)
+				.appendTo(nav)
+				.on("click", () => this.finish());
 		} else {
 			$(`<button class="btn btn-primary btn-sm">${__("Create the employee")}</button>`)
 				.appendTo(nav)
 				.on("click", () => this.create());
+		}
+		if (this.mode === "finish") {
+			$(`<button class="btn btn-link btn-sm">${__("Later")}</button>`)
+				.appendTo(nav)
+				.on("click", () => this.later());
+			$(`<button class="btn btn-link btn-sm">${__("Skip this record")}</button>`)
+				.appendTo(nav)
+				.on("click", () => this.skip());
 		}
 	}
 
@@ -754,6 +786,146 @@ class SwissEmployeeWizard {
 		}
 		Object.assign(this.data, this.form.get_values(true));
 		return true;
+	}
+
+	// ---------------------------------------------------------------- finish
+	//// Neoffice — « finish » mode (29.10.2026): the record the theme made for a desk account (a name, a company, a date)
+	//// is completed here, with the same steps and the same checks as a hire, instead of being created.
+	//// Route: swiss-employee-wizard/<employee>; swiss-employee-wizard/next opens the first record still to complete.
+
+	route_target() {
+		const route = frappe.get_route();
+		return route[0] === "swiss-employee-wizard" && route[1] ? route[1] : null;
+	}
+
+	route_changed() {
+		if (this.route_target() === this.current_target) return;
+		this.stop_badge_watch();
+		this.reset();
+		this.start();
+	}
+
+	async start_finish(target) {
+		if (target === "next") {
+			const following = await frappe.xcall(`${WIZARD}.next_employee_to_finish`);
+			if (!following) {
+				frappe.show_alert({ message: __("No record to finish."), indicator: "green" });
+				frappe.set_route("List", "Employee");
+				return;
+			}
+			frappe.set_route("swiss-employee-wizard", following.name);
+			return;
+		}
+		let info;
+		try {
+			info = await frappe.xcall(`${WIZARD}.employee_to_finish`, { employee: target });
+		} catch (e) {
+			frappe.set_route("List", "Employee");
+			return; // frappe.xcall has shown the server's message
+		}
+		this.mode = "finish";
+		this.employee = target;
+		this.info = info;
+		this.page.set_title(__("Finish the record"));
+		Object.assign(this.data, info.data);
+		await this.load_defaults();
+		this.step = Math.max(
+			0,
+			this.steps().findIndex((s) => s.key === info.first_step),
+		);
+		this.render_step();
+	}
+
+	render_known(holder) {
+		const known = this.info.known || {};
+		const parts = [
+			known.account && esc(known.account),
+			known.company && esc(known.company),
+			known.date_of_joining && esc(frappe.datetime.str_to_user(known.date_of_joining)),
+		].filter(Boolean);
+		const title = __("Already known from the account");
+		holder.prepend(
+			`<div class="frappe-card" style="padding: 10px 15px; margin-bottom: 15px;"><b>${title}</b> <span class="text-muted small">· ${parts.join(" · ")}</span></div>`,
+		);
+	}
+
+	later() {
+		frappe.set_route("List", "Employee");
+	}
+
+	async skip() {
+		const following = await frappe.xcall(`${WIZARD}.next_employee_to_finish`, {
+			after: this.employee,
+		});
+		if (following) frappe.set_route("swiss-employee-wizard", following.name);
+		else this.later();
+	}
+
+	async finish() {
+		const data = { ...this.tax_data(), qst_subject: this.data.qst_subject };
+		if (!data.qst_subject) data.tariff_letter = null;
+		else data.tariff_letter = this.data.tariff_letter;
+		let res;
+		try {
+			const r = await frappe.call({
+				method: `${WIZARD}.complete_employee`,
+				args: { employee: this.employee, data: JSON.stringify(data) },
+				freeze: true,
+				freeze_message: __("Saving the record…"),
+			});
+			res = r.message;
+		} catch (e) {
+			return; // frappe.call has shown the server's message
+		}
+		if (!res) return;
+		let badge_note = "";
+		if (this.badge) {
+			try {
+				await frappe.xcall(`${BADGES}.assign_badge_to_employee`, {
+					badge: this.badge.name,
+					employee: res.employee,
+				});
+				badge_note = __("Badge …{0} given: their next swipe clocks them in.", [
+					this.badge.uid_tail,
+				]);
+			} catch (e) {
+				badge_note = __("The badge could not be given: give it from their record.");
+			}
+		}
+		this.render_finished(res, badge_note);
+	}
+
+	render_finished(res, badge_note) {
+		const done = [
+			res.structure_assignment && __("Salary recorded ({0})", [res.structure_assignment]),
+			res.leave_allocation && __("Vacation of the year allocated"),
+			badge_note,
+		].filter(Boolean);
+		const title = __("{0} is complete", [esc(res.employee_name)]);
+		const left = res.remaining
+			? __("{0} records to complete", [res.remaining])
+			: __("All the records are complete.");
+		const list = done.length ? `<ul>${done.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>` : "";
+		this.body.empty().append(`
+			<div class="frappe-card" style="padding: 20px;">
+				<h4 style="margin-top: 0;">${title}</h4>
+				<div class="text-muted" style="margin-bottom: 10px;">${left}</div>
+				${list}
+				<div class="sew-finished-actions" style="margin-top: 20px; display: flex; gap: 10px;"></div>
+			</div>`);
+		const actions = this.body.find(".sew-finished-actions");
+		if (res.next) {
+			const next_label = __("Next record: {0}", [esc(res.next.employee_name || res.next.name)]);
+			$(`<button class="btn btn-primary btn-sm">${next_label}</button>`)
+				.appendTo(actions)
+				.on("click", () => frappe.set_route("swiss-employee-wizard", res.next.name));
+		}
+		$(`<button class="btn btn-default btn-sm">${__("Back to the list")}</button>`)
+			.appendTo(actions)
+			.on("click", () => this.later());
+		$(`<button class="btn btn-default btn-sm">${__("Open the record")}</button>`)
+			.appendTo(actions)
+			.on("click", () => frappe.set_route("Form", "Employee", res.employee));
 	}
 
 	// ---------------------------------------------------------------- create

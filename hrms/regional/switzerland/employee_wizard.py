@@ -430,3 +430,247 @@ def _allocate_vacation(employee, days_a_year):
 	allocation.insert()
 	allocation.submit()
 	return allocation.name
+
+
+# //// Neoffice — « finish » mode of the wizard (Jérémy, 29.10.2026). The Neoffice theme gives every desk account an
+# //// Employee record that knows a name, a company and a date; the HR staff completes it here, with the same steps and the
+# //// same checks as a hire, instead of creating it. The mark « still to complete » is a custom field of the theme
+# //// (neo_needs_completion): without it nothing is counted, but any record can still be finished.
+# //// Vault note Neoffice/03-DevOps/269.
+
+COMPLETION_FIELD = "neo_needs_completion"
+# Read by ema_hooks: completing the record of somebody already in post is not a hire nor a mutation to announce.
+ANCHOR_FLAG = "neo_account_employee"
+
+
+def _completion_ready():
+	return frappe.get_meta("Employee").has_field(COMPLETION_FIELD)
+
+
+def _to_finish():
+	"""The Active records still marked, oldest first, among those the caller may read; nothing for who may not write."""
+	if not _completion_ready() or not frappe.has_permission("Employee", "write"):
+		return []
+	return frappe.get_list(
+		"Employee",
+		filters={COMPLETION_FIELD: 1, "status": "Active"},
+		fields=["name", "employee_name"],
+		order_by="creation asc, name asc",
+		limit_page_length=0,
+	)
+
+
+def _latest_assignment(employee):
+	rows = frappe.get_all(
+		"Salary Structure Assignment",
+		filters={"employee": employee, "docstatus": 1},
+		fields=["salary_structure", "base"],
+		order_by="from_date desc",
+		limit=1,
+	)
+	return rows[0] if rows else None
+
+
+def _check_finishing_staff(doc):
+	"""Who may write the record finishes it, within the companies they are held to."""
+	frappe.has_permission("Employee", "write", doc=doc, throw=True)
+	check_company_access(doc.company)
+
+
+@frappe.whitelist()
+def employee_to_finish(employee):
+	"""What the assistant knows of a record it is asked to finish: the values to prefill, what is missing and the
+	step to start on (a step already complete is skipped)."""
+	doc = frappe.get_doc("Employee", employee)
+	_check_finishing_staff(doc)
+	lines = [line.strip() for line in (doc.permanent_address or "").splitlines() if line.strip()]
+	ssa = _latest_assignment(employee)
+	nationality = doc.get("ch_nationality") or "Switzerland"
+	data = {
+		"first_name": doc.first_name,
+		"last_name": doc.last_name,
+		"gender": doc.gender,
+		"date_of_birth": doc.date_of_birth,
+		"email": doc.personal_email or doc.company_email or doc.user_id,
+		"mobile": doc.cell_number,
+		"address_street": lines[0] if lines else None,
+		"address_town": lines[1] if len(lines) > 1 else None,
+		"avs_number": doc.get("ch_avs_number"),
+		"company": doc.company,
+		"date_of_joining": doc.date_of_joining,
+		"designation": doc.designation,
+		"work_percentage": doc.get("ch_work_percentage") or 100,
+		"iban": doc.bank_ac_no,
+		"holiday_list": doc.holiday_list,
+		"base": ssa.base if ssa else None,
+		"salary_structure": ssa.salary_structure if ssa else None,
+		"nationality": nationality,
+		"permit_type": doc.get("ch_permit_type") if nationality != "Switzerland" else None,
+		"canton": doc.get("ch_fiscal_canton"),
+		"residence_canton": doc.get("ch_qst_taxation_canton"),
+		"marital_status": doc.marital_status or "Single",
+		"num_children": doc.get("ch_qst_num_children") or 0,
+		"church_tax": doc.get("ch_qst_church_tax") or 0,
+	}
+	data = {key: value for key, value in data.items() if value not in (None, "")}
+	person_done = bool(doc.gender and doc.date_of_birth and lines and doc.get("ch_avs_number"))
+	job_done = bool(doc.designation and doc.bank_ac_no and ssa)
+	return {
+		"data": data,
+		"known": {"account": doc.user_id, "company": doc.company, "date_of_joining": doc.date_of_joining},
+		"first_step": "person" if not person_done else "job" if not job_done else "review",
+		"remaining": len(_to_finish()),
+	}
+
+
+@frappe.whitelist()
+def next_employee_to_finish(after=None):
+	"""The record to finish after ``after`` (the first one without it), or None when none is left."""
+	names = [row.name for row in _to_finish()]
+	titles = {row.name: row.employee_name for row in _to_finish()}
+	rest = [name for name in names if name != after]
+	if not rest:
+		return None
+	if after in names:
+		later = names[names.index(after) + 1 :]
+		pick = later[0] if later else rest[0]
+	else:
+		pick = rest[0]
+	return {"name": pick, "employee_name": titles.get(pick), "remaining": len(names) - (1 if after in names else 0)}
+
+
+def _assign_salary(doc, data):
+	"""The salary of the record, when it has none yet and the wizard knows one."""
+	if not flt(data.get("base")) or frappe.db.exists(
+		"Salary Structure Assignment", {"employee": doc.name, "docstatus": 1}
+	):
+		return None
+	structure = data.get("salary_structure")
+	if not structure:
+		structures = frappe.get_all(
+			"Salary Structure",
+			filters={"company": doc.company, "docstatus": 1, "is_active": "Yes"},
+			pluck="name",
+		)
+		structure = structures[0] if len(structures) == 1 else None
+	if not structure:
+		return None
+	ssa = frappe.get_doc(
+		{
+			"doctype": "Salary Structure Assignment",
+			"employee": doc.name,
+			"salary_structure": structure,
+			"company": doc.company,
+			"from_date": doc.date_of_joining,
+			"base": flt(data.get("base")),
+		}
+	)
+	ssa.insert()
+	ssa.submit()
+	return ssa.name
+
+
+@frappe.whitelist()
+def complete_employee(employee, data):
+	"""Complete the record ``employee`` with the wizard's data and lift its mark.
+
+	Only what the wizard gives is written (a blank never erases what the record holds). Gender and date of birth are
+	what the form demands, so they are what finishing demands; the rest can still be missing, and the wizard has said so.
+	"""
+	if isinstance(data, str):
+		data = json.loads(data)
+	doc = frappe.get_doc("Employee", employee)
+	_check_finishing_staff(doc)
+	company = data.get("company") or doc.company
+	check_company_access(company)
+
+	if data.get("qst_subject") in (None, ""):
+		suggestion = suggest_source_tax(data)
+		data["qst_subject"] = 1 if suggestion["qst_subject"] else 0
+		if data["qst_subject"] and not data.get("tariff_letter") and suggestion.get("suggested_letter"):
+			data["tariff_letter"] = suggestion["suggested_letter"]
+	elif cint(data.get("qst_subject")) and not data.get("tariff_letter") and data.get("marital_status"):
+		data["tariff_letter"] = tariff_letter(data)
+
+	avs = data.get("avs_number")
+	if avs and not is_valid_avs_number(avs):
+		frappe.throw(_("Invalid AVS number: the EAN-13 check digit does not match."))
+	from hrms.regional.switzerland.payment_file import clean_iban, validate_iban
+
+	iban = clean_iban(data.get("iban"))
+	if iban and not validate_iban(iban):
+		frappe.throw(_("Invalid IBAN: the check digits do not match."))
+	address = "\n".join(
+		line.strip() for line in (data.get("address_street"), data.get("address_town")) if (line or "").strip()
+	)
+	email = (data.get("email") or "").strip()
+	designation = (data.get("designation") or "").strip()
+	if designation and not frappe.db.exists("Designation", designation):
+		frappe.get_doc({"doctype": "Designation", "designation_name": designation}).insert(
+			ignore_permissions=True
+		)
+	work_canton = (data.get("canton") or "").upper()
+	qst_canton = (
+		work_canton if data.get("is_cross_border") else (data.get("residence_canton") or work_canton).upper()
+	)
+
+	values = {
+		"first_name": data.get("first_name"),
+		"last_name": data.get("last_name"),
+		"gender": data.get("gender"),
+		"date_of_birth": data.get("date_of_birth"),
+		"date_of_joining": data.get("date_of_joining"),
+		"company": company,
+		"holiday_list": data.get("holiday_list"),
+		"ch_avs_number": format_avs_number(avs) if avs else None,
+		"ch_nationality": data.get("nationality"),
+		"ch_permit_type": data.get("permit_type"),
+		"ch_fiscal_canton": work_canton,
+		"ch_work_percentage": flt(data.get("work_percentage") or 100),
+		"ch_qst_subject": 1 if data.get("qst_subject") else 0,
+		"ch_qst_tariff_letter": data.get("tariff_letter"),
+		"ch_qst_num_children": int(data.get("num_children") or 0),
+		"ch_qst_church_tax": 1 if data.get("church_tax") else 0,
+		"ch_is_cross_border": 1 if data.get("is_cross_border") else 0,
+		"ch_residence_country": data.get("residence_country"),
+		"ch_de_gre1_attestation": 1 if data.get("de_gre1") else 0,
+		"ch_fr_2041as_attestation": 1 if data.get("fr_2041as") else 0,
+		"ch_is_italian_new_frontalier": 1 if data.get("it_new_frontalier") else 0,
+		"ch_cross_border_start_date": data.get("cross_border_start_date"),
+		"permanent_address": address,
+		"bank_ac_no": iban,
+		"salary_mode": "Bank" if iban else None,
+		"personal_email": email,
+		"prefered_contact_email": "Personal Email" if email else None,
+		"cell_number": (data.get("mobile") or "").strip(),
+		"designation": designation,
+		"marital_status": data.get("marital_status"),
+		"ch_qst_taxation_canton": qst_canton,
+		"ch_payslip_delivery": "Email" if email else None,
+		**other_employment_fields(data),
+	}
+	doc.update({key: value for key, value in values.items() if value not in (None, "")})
+
+	if not (doc.gender and doc.date_of_birth):
+		frappe.throw(_("Gender and date of birth are needed to finish the record."))
+	if _completion_ready():
+		doc.set(COMPLETION_FIELD, 0)
+	doc.flags[ANCHOR_FLAG] = True
+	doc.save()
+
+	assignment = _assign_salary(doc, data)
+	allocation = None
+	if cint(data.get("vacation_days")) > 0 and not frappe.db.exists(
+		"Leave Allocation", {"employee": doc.name, "docstatus": 1}
+	):
+		allocation = _allocate_vacation(doc, cint(data.get("vacation_days")))
+
+	following = next_employee_to_finish(after=doc.name)
+	return {
+		"employee": doc.name,
+		"employee_name": doc.employee_name,
+		"structure_assignment": assignment,
+		"leave_allocation": allocation,
+		"next": following,
+		"remaining": following["remaining"] if following else 0,
+	}
