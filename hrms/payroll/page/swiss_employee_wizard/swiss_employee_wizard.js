@@ -770,6 +770,7 @@ class SwissEmployeeWizard {
 							? this.other_employers_label()
 							: "",
 					)}
+					${line(__("Access"), this.access_summary())}
 					${line(__("Badge"), this.badge ? __("Badge …{0}", [this.badge.uid_tail]) : "")}
 					${line(__("Payslips"), d.email ? __("by e-mail") : __("printed, handed out"))}
 				</table>
