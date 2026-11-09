@@ -51,6 +51,13 @@ class SwissEmployeeWizard {
 			frappe.boot.neoffice_bornes === undefined
 				? !!(frappe.boot.versions && frappe.boot.versions.neoffice_theme)
 				: !!frappe.boot.neoffice_bornes;
+		//// Neoffice — the access step: where the theme brings the choice of how a person uses Neoffice (an account for the
+		//// employee, made with the record). Absent without the theme: the wizard then creates the record alone.
+		this.with_access = !!(
+			window.neoffice_theme &&
+			neoffice_theme.employee_access &&
+			neoffice_theme.employee_access.mount
+		);
 		this.reset();
 		this.start();
 	}
@@ -64,6 +71,8 @@ class SwissEmployeeWizard {
 		};
 		this.step = 0;
 		this.badge = null;
+		this.access = null;
+		this.access_state = null;
 		this.tax = null;
 		//// Neoffice — back to the hire (the finish mode sets these).
 		this.mode = null;
@@ -101,6 +110,9 @@ class SwissEmployeeWizard {
 			{ key: "person", label: __("The person") },
 			{ key: "job", label: __("The job") },
 			{ key: "tax", label: __("Permit and tax") },
+			...(this.with_access && this.mode !== "finish"
+				? [{ key: "access", label: __("Access") }]
+				: []),
 			...(this.with_badges ? [{ key: "badge", label: __("Badge") }] : []),
 			{
 				key: "review",
@@ -485,6 +497,29 @@ class SwissEmployeeWizard {
 		</div>`;
 	}
 
+	// ---------------------------------------------------------------- access
+	//// Neoffice — how the person uses Neoffice: the theme's choice (kind, application, tools, rights), mounted here. The
+	//// account is made after the record, by the same server function every door uses (neoffice_theme.employee_account).
+
+	async render_access() {
+		const holder = $('<div class="sew-access"></div>').appendTo(this.body);
+		const first_name = this.data.first_name || "";
+		this.access = await neoffice_theme.employee_access.mount(holder, {
+			first_name: first_name,
+			get_email: () => this.data.email || "",
+			initial: this.access_state,
+			on_change: (controller) => {
+				this.access = controller;
+				this.access_state = controller.raw();
+			},
+		});
+		this.render_nav();
+	}
+
+	access_kind() {
+		return this.access && this.access_state ? this.access_state.kind : "none";
+	}
+
 	// ---------------------------------------------------------------- badge
 
 	render_badge() {
@@ -611,7 +646,9 @@ class SwissEmployeeWizard {
 			const name = [this.data.first_name, this.data.last_name].filter(Boolean).join(" ");
 			const who = __("Finishing the record of {0}", [esc(name)]);
 			const left = __("{0} records to complete", [this.info.remaining]);
-			this.body.append(`<div class="text-muted" style="margin-bottom: 8px;">${who} · ${left}</div>`);
+			this.body.append(
+				`<div class="text-muted" style="margin-bottom: 8px;">${who} · ${left}</div>`,
+			);
 		}
 		this.body.append(
 			`<div class="sew-progress" style="margin-bottom: 20px;">${progress}</div>`,
@@ -619,6 +656,7 @@ class SwissEmployeeWizard {
 
 		if (step.key === "review") return this.render_review();
 		if (step.key === "badge") return this.render_badge();
+		if (step.key === "access") return this.render_access();
 
 		const holder = $("<div></div>").appendTo(this.body);
 		this.form = new frappe.ui.FieldGroup({
@@ -673,6 +711,13 @@ class SwissEmployeeWizard {
 			return __("gross {0} a month", [format_currency(d.other_activity_gross || 0, "CHF")]);
 		}
 		return __("unknown: extrapolated to 100 %");
+	}
+
+	access_summary() {
+		const kind = this.access_kind();
+		if (kind === "office") return __("An account at the office, with an invitation");
+		if (kind === "field") return __("An account in the field, with an invitation");
+		return "";
 	}
 
 	render_review() {
@@ -847,7 +892,9 @@ class SwissEmployeeWizard {
 		].filter(Boolean);
 		const title = __("Already known from the account");
 		holder.prepend(
-			`<div class="frappe-card" style="padding: 10px 15px; margin-bottom: 15px;"><b>${title}</b> <span class="text-muted small">· ${parts.join(" · ")}</span></div>`,
+			`<div class="frappe-card" style="padding: 10px 15px; margin-bottom: 15px;"><b>${title}</b> <span class="text-muted small">· ${parts.join(
+				" · ",
+			)}</span></div>`,
 		);
 	}
 
@@ -907,7 +954,9 @@ class SwissEmployeeWizard {
 		const left = res.remaining
 			? __("{0} records to complete", [res.remaining])
 			: __("All the records are complete.");
-		const list = done.length ? `<ul>${done.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>` : "";
+		const list = done.length
+			? `<ul>${done.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>`
+			: "";
 		this.body.empty().append(`
 			<div class="frappe-card" style="padding: 20px;">
 				<h4 style="margin-top: 0;">${title}</h4>
@@ -917,7 +966,9 @@ class SwissEmployeeWizard {
 			</div>`);
 		const actions = this.body.find(".sew-finished-actions");
 		if (res.next) {
-			const next_label = __("Next record: {0}", [esc(res.next.employee_name || res.next.name)]);
+			const next_label = __("Next record: {0}", [
+				esc(res.next.employee_name || res.next.name),
+			]);
 			$(`<button class="btn btn-primary btn-sm">${next_label}</button>`)
 				.appendTo(actions)
 				.on("click", () => frappe.set_route("swiss-employee-wizard", res.next.name));
@@ -963,6 +1014,21 @@ class SwissEmployeeWizard {
 				badge_note = __("The badge could not be given: give it from their record.");
 			}
 		}
+		//// Neoffice — the account, once the record exists: the record is never lost to a refusal of the access.
+		res.access_lines = [];
+		res.access_problem = "";
+		if (this.access && this.access_kind() !== "none") {
+			try {
+				const answer = await neoffice_theme.employee_access.give(
+					res.employee,
+					this.access,
+				);
+				if (answer.ok) res.access_lines = neoffice_theme.employee_access.summary(answer);
+				else res.access_problem = neoffice_theme.employee_access.refusal(answer);
+			} catch (e) {
+				res.access_problem = __("The access could not be given.");
+			}
+		}
 		this.render_done(res, badge_note);
 	}
 
@@ -972,8 +1038,14 @@ class SwissEmployeeWizard {
 			res.structure_assignment && __("Salary recorded ({0})", [res.structure_assignment]),
 			res.leave_allocation && __("Vacation of the year allocated"),
 			badge_note,
+			...(res.access_lines || []),
 			this.data.email && __("Payslips by e-mail"),
 		].filter(Boolean);
+		const access_problem = res.access_problem
+			? `<div class="alert alert-warning" style="margin-bottom: 16px;">${esc(
+					res.access_problem,
+			  )} ${esc(__("The record is created: give the access from their record."))}</div>`
+			: "";
 		this.body.empty().append(`
 			<div class="frappe-card" style="padding: 20px;">
 				<h4 style="margin-top: 0;">${__("{0} is hired", [esc(res.employee_name)])}</h4>
