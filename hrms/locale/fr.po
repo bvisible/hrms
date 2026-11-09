@@ -23876,3 +23876,19 @@ msgstr "{0} : fiche complète"
 #, python-brace-format
 msgid "{0} records to complete"
 msgstr "{0} fiches à compléter"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:718
+msgid "An account at the office, with an invitation"
+msgstr "Un compte au bureau, avec invitation"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:719
+msgid "An account in the field, with an invitation"
+msgstr "Un compte sur le terrain, avec invitation"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:1030
+msgid "The access could not be given."
+msgstr "L'accès n'a pas pu être accordé."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:1048
+msgid "The record is created: give the access from their record."
+msgstr "La fiche est créée : accordez-lui l'accès depuis sa fiche."
