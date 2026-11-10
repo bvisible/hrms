@@ -68,7 +68,10 @@ def reconcile(company, fiscal_year):
 	start, end = _fiscal_year_bounds(fiscal_year)
 	slips = _slips_of_year(company, start, end)
 	if not slips:
-		return {"employees": [], "issues": []}
+		# A year without a submitted slip (a payroll started later, another company) answered without `counts`: the
+		# page stopped on it and stayed blank after « Reconcile ». It gets the same recap, and says why it is empty.
+		message = _("No submitted salary slip for {0} in the fiscal year {1}.").format(company, fiscal_year)
+		return _recap(start, end, [], [{"level": "warning", "message": message}])
 
 	by_employee = {}
 	for slip in slips:
@@ -211,6 +214,11 @@ def reconcile(company, fiscal_year):
 		)
 
 	rows.sort(key=lambda r: r["employee_name"])
+	return _recap(start, end, rows, issues)
+
+
+def _recap(start, end, rows, issues):
+	"""What the desk page draws, in the same shape whether the year has slips or not."""
 	return {
 		"period": {"start": str(start), "end": str(end)},
 		"employees": rows,

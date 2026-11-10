@@ -15290,6 +15290,10 @@ msgstr "Veuillez sélectionner une société"
 msgid "Please select a company and a fiscal year"
 msgstr "Veuillez sélectionner une société et un exercice fiscal"
 
+#: hrms/regional/switzerland/year_end.py:73
+msgid "No submitted salary slip for {0} in the fiscal year {1}."
+msgstr "Aucune fiche de salaire validée pour {0} dans l'exercice fiscal {1}."
+
 #: hrms/public/js/hierarchy_chart/hierarchy_chart_mobile.js:233
 msgid "Please select a company first"
 msgstr "Veuillez d'abord sélectionner une entreprise"
