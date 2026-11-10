@@ -82,7 +82,9 @@ def _active_employees(company, start, end):
 
 
 @frappe.whitelist()
-def preflight(company, year, month):
+# //// Neoffice — 2026-11-10: `company` is annotated so that Frappe validates it: it reaches get_all and
+# //// db.exists as a filter, where a JSON body would make it an operator (the web method check, CI).
+def preflight(company: str, year, month):
 	"""Pre-payroll checks for the period. Returns issues and the employee list.
 
 	Issue levels: "error" blocks generation, "warning" is informational.

@@ -297,7 +297,7 @@ def _frame(company, year, month):
 
 
 @frappe.whitelist(methods=["POST"])
-def plan(company, year, month, lines, allow_wage_types=None):
+def plan(company: str, year, month, lines, allow_wage_types=None):
 	"""What the import of ``lines`` would do for the month. Writes nothing."""
 	check_payroll_staff(company)
 	results = classify(company, year, month, lines, allow_wage_types)
@@ -312,7 +312,7 @@ def plan(company, year, month, lines, allow_wage_types=None):
 
 
 @frappe.whitelist(methods=["POST"])
-def apply(company, year, month, lines, allow_wage_types=None):
+def apply(company: str, year, month, lines, allow_wage_types=None):
 	"""Create the Additional Salary of every ``to_create`` line; what is already there is left alone."""
 	check_payroll_staff(company)
 	frappe.has_permission("Additional Salary", "create", throw=True)
@@ -377,7 +377,7 @@ def apply(company, year, month, lines, allow_wage_types=None):
 
 
 @frappe.whitelist(methods=["POST"])
-def verify(company, year, month, lines, allow_wage_types=None):
+def verify(company: str, year, month, lines, allow_wage_types=None):
 	"""Read back what exists for ``lines``: is each one there, with its amount, and on the slip?"""
 	check_payroll_staff(company)
 	start, end = _period_bounds(year, month)
