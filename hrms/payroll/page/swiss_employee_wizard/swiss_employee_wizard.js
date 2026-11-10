@@ -797,6 +797,20 @@ class SwissEmployeeWizard {
 				.appendTo(nav)
 				.on("click", async () => {
 					if (!this.collect(true)) return;
+					//// Neoffice — the access step stops on what the account would be refused for at the end (10.11: no
+					//// e-mail, « an account at the office, with an invitation » in the summary, then the account refused
+					//// once the record was made). The theme's chooser says why; « No account » always goes on.
+					if (
+						this.steps()[this.step].key === "access" &&
+						this.access &&
+						this.access_kind() !== "none"
+					) {
+						const problem = this.access.problem();
+						if (problem) {
+							frappe.msgprint(problem);
+							return;
+						}
+					}
 					if (this.steps()[this.step].key === "tax" && !this.tax)
 						await this.refresh_tax();
 					this.step += 1;
