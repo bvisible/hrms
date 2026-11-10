@@ -61,7 +61,7 @@ def _slips_of_year(company, start, end):
 
 
 @frappe.whitelist()
-def reconcile(company, fiscal_year):
+def reconcile(company: str, fiscal_year: str):
 	"""Per-employee year recap: coverage, cumulatives, certificate status."""
 	# //// Neoffice — permission gate, see _check_payroll_read_permission.
 	_check_payroll_read_permission(company)
