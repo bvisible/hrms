@@ -170,6 +170,12 @@ setup_wizard_complete = [
 	"hrms.regional.switzerland.setup.setup_after_wizard",  # //// Neoffice — see after_install above
 ]
 
+# //// Neoffice — 2026-11-10: the apps that announce variable pay for a month (a commission statement, a bonus
+# //// sheet) name a function here, `provider(company, year, month) -> [{key, employee, wage_type_code, amount,
+# //// reason}]`; the monthly cycle's preflight warns about what is announced and not on the payroll yet
+# //// (hrms.regional.switzerland.variable_pay). Empty here: this app names no provider.
+variable_pay_providers = []
+
 # Uninstallation
 # ------------
 
@@ -257,6 +263,12 @@ doc_events = {
 	# //// (divisor, after-contract or calendar days), not a fixed amount typed on the structure.
 	"Leave Encashment": {
 		"validate": "hrms.regional.switzerland.vacation.value_leave_encashment",
+	},
+	# //// Neoffice — 2026-11-10: variable pay (a commission, a bonus) is imported as Additional Salaries keyed
+	# //// by ch_variable_pay_key; the core has no guard against paying one twice, ours refuses the second
+	# //// (hrms.regional.switzerland.variable_pay).
+	"Additional Salary": {
+		"before_insert": "hrms.regional.switzerland.variable_pay.refuse_duplicate_key",
 	},
 	"User": {
 		"validate": [

@@ -197,6 +197,17 @@ The **Monthly Payroll** page (`/app/swiss-payroll-cycle`) runs the month-end in 
 
 Every endpoint is for payroll staff of the company only (`permissions.check_payroll_staff`).
 
+## Variable pay (commission, bonus)
+
+An amount computed outside the payroll joins the slip of its month through `variable_pay.py`, as a non-recurring, submitted **Additional Salary** dated the last day of the month. Whoever computes it hands over lines `{key, employee, wage_type_code, amount, reason}`; the `key` makes the import idempotent (`Additional Salary.ch_variable_pay_key`).
+
+- `plan(company, year, month, lines)` writes nothing and says, per line: `to_create`, `already_created`, `blocked` (the slip of the month is submitted: cancel and amend it; a draft is left by an interrupted import; the key holds another amount) or `refused` (a negative or null amount, an unknown or inactive employee, none without a salary structure, an unknown wage type, a deduction).
+- `apply(...)` creates the `to_create` lines; run twice it creates nothing. A draft slip of the month is saved again to take the line; a submitted slip is never touched.
+- `verify(...)` reads back each line: its Additional Salary, its amount, its row on the slip.
+- A wage type that only raises the insurance bases without being paid (1920, tips) is refused unless the caller names it in `allow_wage_types`: how a tip is declared is the company's and the insurer's decision, never a default.
+- The commission (1218) and the tip (1920) are not prorated by the days paid.
+- An app that announces variable pay for a month names a function in the `variable_pay_providers` hook, `provider(company, year, month) -> lines`; the Monthly Payroll's preflight warns about what is announced and not on the payroll yet.
+
 ## Annual Salary Certificate (Lohnausweis Form 11)
 
 The **Swiss Salary Certificate** DocType (`hrms/payroll/doctype/swiss_salary_certificate/`) generates the annual Lohnausweis required by Swiss tax law, covering all 15 positions of Form 11:

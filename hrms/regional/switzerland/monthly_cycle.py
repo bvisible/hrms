@@ -233,6 +233,13 @@ def preflight(company, year, month):
 			}
 		)
 
+	# //// Neoffice — 2026-11-10: variable pay (a commission, a bonus) announced for the month by the apps
+	# //// that hook `variable_pay_providers` and not on the payroll yet: a warning, never an error, and
+	# //// never a failure of the preflight (variable_pay.preflight_issues).
+	from hrms.regional.switzerland.variable_pay import preflight_issues
+
+	issues.extend(preflight_issues(company, start, end))
+
 	return {
 		"period": {"start": str(start), "end": str(end)},
 		"ok": not any(i["level"] == "error" for i in issues),

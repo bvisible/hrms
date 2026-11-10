@@ -88,3 +88,6 @@ hrms.patches.v15_0.set_source_tax_canton_on_salary_slips
 hrms.patches.v15_0.switzerland_unprorated_advances_and_expenses
 hrms.patches.v15_0.switzerland_flat_rate_expenses
 hrms.patches.v15_0.switzerland_extra_salaries_table
+# //// Neoffice — 2026-11-10: a commission (1218) and a tip (1920) are paid in full, not prorated by the days
+# //// paid (variable_pay.py imports them as Additional Salaries); the catalogue default pushed to existing sites.
+hrms.patches.v15_0.switzerland_unprorated_variable_pay

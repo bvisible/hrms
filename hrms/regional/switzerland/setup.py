@@ -263,6 +263,29 @@ def get_custom_fields():
 				),
 			},
 		],
+		# //// Neoffice — 2026-11-10: the key and the reason of a variable pay imported as an Additional Salary
+		# //// (variable_pay.py). The key is what makes the import idempotent (not unique at the database: a
+		# //// cancelled one keeps it, and the guard counts the live ones only). Labels already in the French
+		# //// catalogues of the stack, no description: nothing new to translate.
+		"Additional Salary": [
+			{
+				"fieldname": "ch_variable_pay_key",
+				"label": "Key",
+				"fieldtype": "Data",
+				"insert_after": "ref_docname",
+				"read_only": 1,
+				"no_copy": 1,
+				"search_index": 1,
+			},
+			{
+				"fieldname": "ch_variable_pay_reason",
+				"label": "Reason",
+				"fieldtype": "Small Text",
+				"insert_after": "ch_variable_pay_key",
+				"read_only": 1,
+				"no_copy": 1,
+			},
+		],
 		"Salary Component": [
 			# --- Swiss Wage Type (top of form, after abbreviation) ---
 			{

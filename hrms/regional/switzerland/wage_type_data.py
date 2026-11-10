@@ -304,7 +304,10 @@ def get_swiss_wage_types():
 		_wt(1215, "Prime de reconnaissance", "Earning", "3", _ALL, vac=1, stat="VU"),
 		_wt(1216, "Prime pour propositions d'amélioration", "Earning", "3", _ALL, vac=1, stat="VU"),
 		_wt(1217, "Prime sur chiffre d'affaires", "Earning", "3", _ALL, vac=1, stat="VU"),
-		_wt(1218, "Commission", "Earning", "1", _ALL, vac=1, stat="BS", common=1),
+		# //// Neoffice — 2026-11-10: a commission is the amount of the month it was earned in, whatever the days
+		# //// paid: depending on them (the catalogue default) halved it on an entry month. Same for the tip below.
+		# //// Pushed to existing sites by patch switzerland_unprorated_variable_pay.
+		_wt(1218, "Commission", "Earning", "1", _ALL, vac=1, stat="BS", common=1, payment_days=0),
 		_wt(1219, "Prime de présence", "Earning", "1", _ALL, vac=1, stat="BS"),
 		_wt(1230, "Cadeau pour ancienneté de service", "Earning", "3", _ALL, vac=1, stat="VU"),
 		_wt(1231, "Cadeau de jubilé", "Earning", "3", _ALL, vac=1, stat="VU"),
@@ -384,6 +387,8 @@ def get_swiss_wage_types():
 			vac=1,
 			stat="BS",
 			bases_only=1,
+			# //// Neoffice — 2026-11-10: see 1218.
+			payment_days=0,
 		),
 		_wt(1950, "Réduction loyer logement locatif", "Earning", "2.3", _ALL, vac=1, stat="BS"),
 		_wt(
