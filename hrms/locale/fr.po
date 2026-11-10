@@ -23969,3 +23969,99 @@ msgstr "Son nom, ses moyens de contact et son adresse. Le numéro AVS peut atten
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:740
 msgid "Who are you hiring?"
 msgstr "Qui engagez-vous ?"
+
+#: hrms/regional/switzerland/variable_pay.py:53
+msgid "The month must be between 1 and 12."
+msgstr "Le mois doit être compris entre 1 et 12."
+
+#: hrms/regional/switzerland/variable_pay.py:67
+msgid "The lines must be a list of objects."
+msgstr "Les lignes doivent être une liste d'enregistrements."
+
+#: hrms/regional/switzerland/variable_pay.py:154
+msgid "A line needs a key, an employee and a wage type code."
+msgstr "Une ligne doit comporter une clé, un collaborateur et un code de type de salaire."
+
+#: hrms/regional/switzerland/variable_pay.py:157
+msgid "The key {0} appears twice in the same batch."
+msgstr "La clé {0} apparaît deux fois dans le même lot."
+
+#: hrms/regional/switzerland/variable_pay.py:164
+msgid "The amount must be positive: a negative or null amount is not paid, and not turned into a deduction."
+msgstr "Le montant doit être positif : un montant négatif ou nul n'est pas versé, et il n'est pas transformé en retenue."
+
+#: hrms/regional/switzerland/variable_pay.py:173
+msgid "No Swiss wage type {0}."
+msgstr "Aucun type de salaire suisse {0}."
+
+#: hrms/regional/switzerland/variable_pay.py:175
+msgid "Wage type {0} is not an earning."
+msgstr "Le type de salaire {0} n'est pas un gain."
+
+#: hrms/regional/switzerland/variable_pay.py:180
+msgid "Wage type {0} only raises the insurance bases: name it in allow_wage_types to pay it."
+msgstr "Le type de salaire {0} ne fait que relever les bases d'assurance : indiquez-le dans allow_wage_types pour le payer."
+
+#: hrms/regional/switzerland/variable_pay.py:192
+msgid "No employee {0}."
+msgstr "Aucun collaborateur {0}."
+
+#: hrms/regional/switzerland/variable_pay.py:198
+msgid "{0} belongs to another company."
+msgstr "{0} appartient à une autre société."
+
+#: hrms/regional/switzerland/variable_pay.py:201
+msgid "{0} is inactive."
+msgstr "{0} est inactif."
+
+#: hrms/regional/switzerland/variable_pay.py:206
+msgid "{0} joins after the end of the period."
+msgstr "{0} entre en fonction après la fin de la période."
+
+#: hrms/regional/switzerland/variable_pay.py:212
+msgid "{0} leaves before the end of the period: pay it with the exit slip."
+msgstr "{0} quitte l'entreprise avant la fin de la période : versez-le avec la fiche de sortie."
+
+#: hrms/regional/switzerland/variable_pay.py:223
+msgid "{0} has no submitted salary structure assignment."
+msgstr "{0} n'a aucune affectation de structure salariale soumise."
+
+#: hrms/regional/switzerland/variable_pay.py:249
+msgid "{0} already holds this key with another amount or employee: cancel and amend it, it is not changed here."
+msgstr "{0} a déjà cette clé avec un autre montant ou un autre collaborateur : annulez et amendez-la, elle n'est pas modifiée ici."
+
+#: hrms/regional/switzerland/variable_pay.py:257
+msgid "{0} is a draft left by an interrupted import: delete it or submit it by hand."
+msgstr "{0} est un brouillon laissé par un import interrompu : supprimez-le ou soumettez-le manuellement."
+
+#: hrms/regional/switzerland/variable_pay.py:271
+msgid "The slip {0} of the month is submitted: cancel and amend it, then run the import again."
+msgstr "La fiche de paie du mois {0} est soumise : annulez-la et amendez-la, puis relancez l'import."
+
+#: hrms/regional/switzerland/variable_pay.py:438
+msgid "{0} does not hold what the line says."
+msgstr "{0} ne correspond pas à ce qu'indique la ligne."
+
+#: hrms/regional/switzerland/variable_pay.py:455
+msgid "The slip {0} does not carry {1}."
+msgstr "La fiche de paie {0} ne porte pas {1}."
+
+#: hrms/regional/switzerland/variable_pay.py:462
+msgid "The slip {0} carries {1} for {2}, not {3}."
+msgstr "La fiche de paie {0} porte {1} pour {2}, et non {3}."
+
+#: hrms/regional/switzerland/variable_pay.py:483
+msgid "{0} already holds the variable pay {1}."
+msgstr "{0} a déjà le salaire variable {1}."
+
+#: hrms/regional/switzerland/variable_pay.py:510
+msgid "The variable pay of {0} could not be read: see the error log."
+msgstr "Le salaire variable de {0} n'a pas pu être lu : consultez le journal d'erreurs."
+
+#: hrms/regional/switzerland/variable_pay.py:522
+msgid "{0} variable pay line(s), CHF {1}, are announced for the month and not on the payroll yet."
+msgstr "{0} ligne(s) de salaire variable, CHF {1}, sont annoncées pour le mois et ne figurent pas encore sur la paie."
+
+#: hrms/regional/switzerland/variable_pay.py:532
+msgid "{0} variable pay line(s) cannot be added: a slip of the month is submitted, or an amount differs."
+msgstr "{0} ligne(s) de salaire variable ne peuvent pas être ajoutées : une fiche de paie du mois est soumise, ou un montant diffère."
