@@ -66,7 +66,7 @@ const SEW_CSS = `
 .sew .frappe-control .form-control:focus{background:var(--card-bg);border-color:#F55D1A;box-shadow:none}
 .sew .frappe-control .help-box,.sew .frappe-control .control-value+.help-box{font-size:13px;color:var(--text-muted)}
 .sew .form-section{border:0;padding:0}
-.sew .form-section .section-head{font-family:Forum,Georgia,serif;font-size:24px;font-weight:400;padding:6px 0 10px;margin:0}
+.sew .form-section .section-head{font-family:Forum,Georgia,serif;font-size:24px;font-weight:400;padding:6px 0 10px;margin:0;text-transform:none;letter-spacing:normal;color:var(--text-color)}
 .sew .form-section .section-body{padding:0}
 .sew .form-column{padding:0 10px}
 .sew .form-column:first-child{padding-left:0}
