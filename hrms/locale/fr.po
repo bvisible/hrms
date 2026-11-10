@@ -23896,3 +23896,76 @@ msgstr "L'accès n'a pas pu être accordé."
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:1048
 msgid "The record is created: give the access from their record."
 msgstr "La fiche est créée : accordez-lui l'accès depuis sa fiche."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:727
+msgid "Back to this step"
+msgstr "Revenir à cette étape"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:1222
+#, python-brace-format
+msgid "Employee record {0}"
+msgstr "Fiche employé {0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:1221
+#, python-brace-format
+msgid "Employee record {0} · starts on {1}"
+msgstr "Fiche employé {0} · entrée le {1}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:759
+msgid "Everything that will be made, in one click."
+msgstr "Tout ce qui sera créé, en un seul clic."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:1225
+msgid "Hired"
+msgstr "Engagé·e"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:1215
+msgid "No account: an access can be given later from their record."
+msgstr "Aucun compte : un accès pourra être accordé plus tard depuis sa fiche."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:755
+msgid "Optional: a badge presented at a terminal clocks them in."
+msgstr "Facultatif : un badge présenté à une borne le fait pointer."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:1202
+msgid "Payslips printed, handed out"
+msgstr "Fiches de salaire imprimées, remises en main propre"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:748
+#, python-brace-format
+msgid "Permit and tax of {0}"
+msgstr "Permis et impôt de {0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:754
+#, python-brace-format
+msgid "The badge of {0}"
+msgstr "Le badge de {0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:745
+msgid "The company, the start date, the activity rate and the salary."
+msgstr "L'entreprise, la date d'entrée, le taux d'activité et le salaire."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:744
+#, python-brace-format
+msgid "The job of {0}"
+msgstr "Le poste de {0}"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:1230
+msgid "The record"
+msgstr "La fiche"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:749
+msgid "The source tax follows from the nationality, the permit and the personal situation."
+msgstr "L'impôt à la source découle de la nationalité, du permis et de la situation personnelle."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:1231
+msgid "Their access"
+msgstr "Son accès"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:741
+msgid "Their name, how to reach them and their address. The AVS number can wait."
+msgstr "Son nom, ses moyens de contact et son adresse. Le numéro AVS peut attendre."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js:740
+msgid "Who are you hiring?"
+msgstr "Qui engagez-vous ?"

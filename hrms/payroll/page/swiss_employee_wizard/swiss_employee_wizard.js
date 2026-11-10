@@ -37,13 +37,97 @@ const WIZARD = "hrms.regional.switzerland.employee_wizard";
 const BADGES = "neoffice_theme.badge_assignment";
 const esc = (value) => frappe.utils.escape_html(value == null ? "" : String(value));
 
+//// Neoffice — the look of the boards Jérémy validated on 09.11 (« Employé et compte »: WizardAccess, WizardDone; copy in the
+//// vault, Roles-Permissions/28-Planches-Employe-Et-Compte): one centred column, the steps numbered at the top as on our other
+//// assistants (the design system's stepper: done in green with a check, the current one in a signal ring, the next ones
+//// numbered), a Forum title per step, filled fields, Back and Continue apart at the bottom, and a done page in two cards.
+//// On the desk's own variables, so the dark theme follows (10.11: « pourquoi tout est collé sur la gauche ? »).
+const SEW_CSS_ID = "sew-css";
+const SEW_CSS = `
+.sew{max-width:900px;margin:0 auto;padding:18px 0 40px;display:flex;flex-direction:column;gap:22px;color:var(--text-color)}
+.sew-steps{display:flex;align-items:flex-start;width:100%}
+.sew-step{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;position:relative;min-width:0;background:none;border:0;padding:0;font:inherit;color:inherit}
+.sew-step[data-go]{cursor:pointer}
+.sew-node{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;position:relative;z-index:1;border:2px solid var(--border-color);background:var(--card-bg);color:var(--text-muted)}
+.sew-step.is-done .sew-node{background:#2F6E4E;border-color:#2F6E4E;color:#fff}
+.sew-step.is-current .sew-node{border-color:#F55D1A;color:var(--text-color);box-shadow:0 0 0 5px rgba(245,93,26,.16)}
+.sew-rule{position:absolute;top:19px;left:calc(-50% + 20px);width:calc(100% - 40px);height:2px;background:var(--border-color)}
+.sew-rule.is-done{background:#2F6E4E}
+.sew-step-label{font-size:13.5px;font-weight:600;text-align:center;line-height:1.25;padding:0 4px}
+.sew-step.is-current .sew-step-label{color:#AA3700;font-weight:700}
+[data-theme=dark] .sew-step.is-current .sew-step-label{color:#FFB599}
+.sew-step.is-next .sew-step-label{color:var(--text-muted);font-weight:500}
+.sew-head{display:flex;flex-direction:column;gap:6px}
+.sew-title{margin:0;font-family:Forum,Georgia,serif;font-weight:400;font-size:30px;line-height:1.15}
+.sew-lead{font-size:14.5px;color:var(--text-muted)}
+.sew-note{font-size:14px;color:var(--text-muted)}
+.sew .frappe-control .control-label{font-size:14.5px;color:var(--text-muted);font-weight:400;margin-bottom:7px}
+.sew .frappe-control .form-control{background:var(--subtle-fg,var(--control-bg));border:1px solid transparent;border-radius:9px;min-height:44px;font-size:15.5px;box-shadow:none}
+.sew .frappe-control .form-control:focus{background:var(--card-bg);border-color:#F55D1A;box-shadow:none}
+.sew .frappe-control .help-box,.sew .frappe-control .control-value+.help-box{font-size:13px;color:var(--text-muted)}
+.sew .form-section{border:0;padding:0}
+.sew .form-section .section-head{font-family:Forum,Georgia,serif;font-size:24px;font-weight:400;padding:6px 0 10px;margin:0}
+.sew .form-section .section-body{padding:0}
+.sew .form-column{padding:0 10px}
+.sew .form-column:first-child{padding-left:0}
+.sew .form-column:last-child{padding-right:0}
+.sew-card{border:1px solid var(--border-color);border-radius:14px;padding:20px 24px;background:var(--card-bg);display:flex;flex-direction:column;gap:12px}
+.sew-card-title{font-family:Forum,Georgia,serif;font-size:24px;line-height:1.2}
+.sew-sum{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);border-top:1px solid var(--border-color)}
+.sew-sum>div{padding:10px 4px;border-bottom:1px solid var(--border-color);font-size:15px}
+.sew-sum>div:nth-child(odd){color:var(--text-muted)}
+.sew-later{display:flex;gap:10px;align-items:flex-start;background:#FDF3DC;color:#5C4A12;border-radius:10px;padding:10px 14px;font-size:14px}
+[data-theme=dark] .sew-later{background:rgba(161,98,7,.16);color:var(--text-color)}
+.sew-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sew-foot-right{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.sew-btn{border-radius:12px;padding:12px 24px;font-size:15.5px;font-weight:600;min-height:44px;border:1.5px solid var(--text-color);background:var(--card-bg);color:var(--text-color)}
+.sew-btn.primary{background:var(--text-color);color:var(--card-bg);padding:13px 28px}
+.sew-link{color:#AA3700;font-weight:600;font-size:15px;background:none;border:0;padding:6px 4px}
+[data-theme=dark] .sew-link{color:#FFB599}
+.sew-pick{display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:12px;border:1px solid var(--border-color);background:var(--card-bg);margin:0 0 8px;font-weight:400;cursor:pointer}
+.sew-pick.is-recent{border-color:#F55D1A}
+.sew-pill{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;font-size:13.5px;font-weight:500;white-space:nowrap}
+.sew-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.sew-pill.success{background:#E6F4EA;color:#15803D}
+.sew-pill.warn{background:#FDF3DC;color:#A16207}
+.sew-hero{position:relative;border:1px solid #FFD1C1;border-radius:18px;padding:34px 36px 30px;background:linear-gradient(115deg,#FFEFE9,#FBF6EE 60%,#FAF8F4);display:flex;flex-direction:column;gap:6px;margin-top:14px}
+[data-theme=dark] .sew-hero{background:linear-gradient(115deg,rgba(245,93,26,.16),var(--card-bg) 60%);border-color:rgba(245,93,26,.4)}
+.sew-hero .sew-pill{position:absolute;top:-14px;left:36px}
+.sew-hero-title{margin:0;font-family:Forum,Georgia,serif;font-weight:400;font-size:40px;line-height:1.1}
+.sew-hero-sub{font-size:15px;color:var(--text-muted)}
+.sew-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.sew-line{display:flex;gap:14px;align-items:flex-start;font-size:15.5px;line-height:1.4}
+.sew-ok,.sew-warn-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px}
+.sew-ok{background:#2F6E4E;color:#fff}
+.sew-warn-dot{background:#FDF3DC;color:#A16207;font-weight:700;font-size:14px}
+.sew-actions{display:flex;gap:12px;flex-wrap:wrap}
+@media (max-width:720px){.sew-two,.sew-sum{grid-template-columns:1fr}.sew-step-label{font-size:11.5px}.sew-title{font-size:26px}}
+`;
+const SEW_CHECK =
+	'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+function sew_ensure_css() {
+	if (document.getElementById(SEW_CSS_ID)) return;
+	const style = document.createElement("style");
+	style.id = SEW_CSS_ID;
+	style.textContent = SEW_CSS;
+	document.head.appendChild(style);
+}
+
 class SwissEmployeeWizard {
 	constructor(page) {
 		this.page = page;
 		this.step = 0;
-		this.body = $('<div style="max-width: 820px; padding: 15px 0;"></div>').appendTo(
-			this.page.main,
-		);
+		sew_ensure_css();
+		this.body = $('<div class="sew"></div>').appendTo(this.page.main);
+		this.body.on("click", "[data-go]", (e) => {
+			//// Neoffice — a done step is a way back: what was typed on this one is kept.
+			const target = Number($(e.currentTarget).attr("data-go"));
+			if (!(target < this.step)) return;
+			this.collect();
+			this.step = target;
+			this.render_step();
+		});
 		// The badge step exists where the terminals do (the Neoffice theme).
 		// The badge step needs neoffice_theme and a terminal that is on: its boot flag says both. A theme
 		// that does not set the flag yet (it ships separately) keeps the step wherever it is installed.
@@ -488,7 +572,7 @@ class SwissEmployeeWizard {
 						"The ESTV tariffs of this canton are not imported yet: import them before the first payroll.",
 				  )}</div>`
 				: "";
-		return `<div class="frappe-card" style="padding: 10px 14px;">
+		return `<div class="sew-card" style="gap: 4px;">
 			<b>${__("Source tax: tariff {0}", [esc(tax.tariff_code)])}</b>
 			${model ? `<span class="text-muted"> · ${esc(model)}</span>` : ""}
 			<div class="text-muted small" style="margin-top: 4px;">${(tax.notes || [])
@@ -507,6 +591,8 @@ class SwissEmployeeWizard {
 		this.access = await neoffice_theme.employee_access.mount(holder, {
 			first_name: first_name,
 			get_email: () => this.data.email || "",
+			//// Neoffice — the job title of the second step: Nora's suggestion reads it (« Cheffe de chantier » → in the field).
+			job: this.data.designation || "",
 			initial: this.access_state,
 			on_change: (controller) => {
 				this.access = controller;
@@ -528,16 +614,18 @@ class SwissEmployeeWizard {
 		// from the POT extractor, and the next update of the PO files would drop its translation.
 		const who = `<b>${esc(this.data.first_name || __("the employee"))}</b>`;
 		holder.html(`
-			<div style="margin-bottom: 12px;">${__(
-				"Have {0} present their badge at a terminal: it appears below within a few seconds. Choose it, and their next swipe clocks them in.",
-				[who],
-			)}</div>
-			<div class="sew-terminals text-muted small" style="margin-bottom: 10px;"></div>
-			<div class="sew-badges"></div>
-			<label style="margin-top: 12px; display: flex; gap: 8px; align-items: center; font-weight: normal;">
-				<input type="radio" name="sew-badge" value="" ${this.badge ? "" : "checked"}>
-				${__("No badge for now")}
-			</label>`);
+			<div class="sew-card">
+				<div>${__(
+					"Have {0} present their badge at a terminal: it appears below within a few seconds. Choose it, and their next swipe clocks them in.",
+					[who],
+				)}</div>
+				<div class="sew-terminals sew-note"></div>
+				<div class="sew-badges"></div>
+				<label class="sew-pick">
+					<input type="radio" name="sew-badge" value="" ${this.badge ? "" : "checked"}>
+					${__("No badge for now")}
+				</label>
+			</div>`);
 		holder.on("change", "input[name=sew-badge]", (e) => {
 			const value = $(e.currentTarget).val();
 			this.badge = value ? (this.badge_rows || []).find((b) => b.name === value) : null;
@@ -583,9 +671,7 @@ class SwissEmployeeWizard {
 					? res.badges
 							.map(
 								(b) => `
-						<label class="frappe-card" style="display: flex; gap: 10px; align-items: center; padding: 10px 14px; margin-bottom: 6px; font-weight: normal; ${
-							b.recent ? "border-color: var(--primary);" : ""
-						}">
+						<label class="sew-pick ${b.recent ? "is-recent" : ""}">
 							<input type="radio" name="sew-badge" value="${esc(b.name)}" ${chosen === b.name ? "checked" : ""}>
 							<span style="flex: 1;"><b>${__("Badge …{0}", [esc(b.uid_tail)])}</b>
 								<span class="text-muted small"> · ${
@@ -593,7 +679,7 @@ class SwissEmployeeWizard {
 										? ""
 										: __("presented {0} ago", [this.ago(b.seen_ago)])
 								}${b.borne ? " · " + esc(b.borne) : ""}</span></span>
-							${b.recent ? `<span class="indicator-pill green">${__("recent")}</span>` : ""}
+							${b.recent ? `<span class="sew-pill success">${__("recent")}</span>` : ""}
 						</label>`,
 							)
 							.join("")
@@ -627,17 +713,63 @@ class SwissEmployeeWizard {
 
 	// ---------------------------------------------------------------- steps
 
+	//// Neoffice — the steps at the top, numbered (the design system's stepper): a done step is a way back.
+	stepper_html() {
+		const steps = this.steps();
+		return `<div class="sew-steps">${steps
+			.map((s, i) => {
+				const state =
+					i < this.step ? "is-done" : i === this.step ? "is-current" : "is-next";
+				const rule = i
+					? `<div class="sew-rule ${i <= this.step ? "is-done" : ""}"></div>`
+					: "";
+				const go =
+					i < this.step ? ` data-go="${i}" title="${esc(__("Back to this step"))}"` : "";
+				return `<button type="button" class="sew-step ${state}"${go}>${rule}<div class="sew-node">${
+					i < this.step ? SEW_CHECK : i + 1
+				}</div><div class="sew-step-label">${esc(s.label)}</div></button>`;
+			})
+			.join("")}</div>`;
+	}
+
+	//// Neoffice — each step says what it asks, in a Forum title and one line (the access step brings its own).
+	step_head(key) {
+		const name = this.data.first_name || __("the employee");
+		const heads = {
+			person: [
+				__("Who are you hiring?"),
+				__("Their name, how to reach them and their address. The AVS number can wait."),
+			],
+			job: [
+				__("The job of {0}", [name]),
+				__("The company, the start date, the activity rate and the salary."),
+			],
+			tax: [
+				__("Permit and tax of {0}", [name]),
+				__(
+					"The source tax follows from the nationality, the permit and the personal situation.",
+				),
+			],
+			badge: [
+				__("The badge of {0}", [name]),
+				__("Optional: a badge presented at a terminal clocks them in."),
+			],
+			review: [
+				this.mode === "finish" ? __("Check and finish") : __("Check and create"),
+				__("Everything that will be made, in one click."),
+			],
+		};
+		const head = heads[key];
+		if (!head) return "";
+		return `<div class="sew-head"><h2 class="sew-title">${esc(
+			head[0],
+		)}</h2><div class="sew-lead">${esc(head[1])}</div></div>`;
+	}
+
 	render_step() {
 		this.stop_badge_watch();
 		const steps = this.steps();
 		const step = steps[this.step];
-		const progress = steps
-			.map(
-				(s, i) => `
-				<span class="indicator-pill ${i < this.step ? "green" : i === this.step ? "blue" : "gray"}"
-					style="margin-right: 6px;">${i + 1}. ${esc(s.label)}</span>`,
-			)
-			.join("");
 		this.body.empty();
 		this.form = null;
 		if (this.mode === "finish") {
@@ -646,13 +778,10 @@ class SwissEmployeeWizard {
 			const name = [this.data.first_name, this.data.last_name].filter(Boolean).join(" ");
 			const who = __("Finishing the record of {0}", [esc(name)]);
 			const left = __("{0} records to complete", [this.info.remaining]);
-			this.body.append(
-				`<div class="text-muted" style="margin-bottom: 8px;">${who} · ${left}</div>`,
-			);
+			this.body.append(`<div class="sew-note">${who} · ${left}</div>`);
 		}
-		this.body.append(
-			`<div class="sew-progress" style="margin-bottom: 20px;">${progress}</div>`,
-		);
+		this.body.append(this.stepper_html());
+		this.body.append(this.step_head(step.key));
 
 		if (step.key === "review") return this.render_review();
 		if (step.key === "badge") return this.render_badge();
@@ -723,11 +852,7 @@ class SwissEmployeeWizard {
 	render_review() {
 		const d = this.data;
 		const line = (label, value) =>
-			value
-				? `<tr><td class="text-muted" style="width: 40%;">${esc(label)}</td><td>${esc(
-						value,
-				  )}</td></tr>`
-				: "";
+			value ? `<div>${esc(label)}</div><div>${esc(value)}</div>` : "";
 		const structure =
 			d.salary_structure ||
 			((this.defaults.structures || []).length === 1 && this.defaults.structures[0]);
@@ -744,14 +869,14 @@ class SwissEmployeeWizard {
 		const start_date_label = __("Start date", null, "employment start date");
 		// The colon inside the message: French puts a space before it.
 		const later = missing.length
-			? `<div class="text-warning small">${__("Can be completed later: {0}", [
+			? `<div class="sew-later">${__("Can be completed later: {0}", [
 					missing.map(esc).join(" · "),
 			  ])}</div>`
 			: "";
 		this.body.append(`
-			<div class="frappe-card" style="padding: 15px; margin-bottom: 15px;">
-				<h5>${__("Summary")}</h5>
-				<table class="table table-sm">
+			<div class="sew-card">
+				<div class="sew-card-title">${__("Summary")}</div>
+				<div class="sew-sum">
 					${line(__("Name"), full_name)}
 					${line(__("Date of Birth"), d.date_of_birth && frappe.datetime.str_to_user(d.date_of_birth))}
 					${line(__("E-mail"), d.email)}
@@ -773,27 +898,37 @@ class SwissEmployeeWizard {
 					${line(__("Access"), this.access_summary())}
 					${line(__("Badge"), this.badge ? __("Badge …{0}", [this.badge.uid_tail]) : "")}
 					${line(__("Payslips"), d.email ? __("by e-mail") : __("printed, handed out"))}
-				</table>
+				</div>
 				${later}
 			</div>`);
 		this.render_nav(true);
 	}
 
+	//// Neoffice — Back on the left, the way forward on the right (the boards): outlined and ink, 44 px high.
 	render_nav(is_review = false) {
-		const nav = $('<div style="margin-top: 20px; display: flex; gap: 10px;"></div>').appendTo(
-			this.body,
-		);
+		const foot = $('<div class="sew-foot"></div>').appendTo(this.body);
+		const right = $('<div class="sew-foot-right"></div>');
 		if (this.step > 0) {
-			$(`<button class="btn btn-default btn-sm">${__("Back")}</button>`)
-				.appendTo(nav)
+			$(`<button type="button" class="sew-btn">${__("Back")}</button>`)
+				.appendTo(foot)
 				.on("click", () => {
 					this.collect();
 					this.step -= 1;
 					this.render_step();
 				});
 		}
+		right.appendTo(foot);
+		const nav = right;
+		if (this.mode === "finish") {
+			$(`<button type="button" class="sew-link">${__("Later")}</button>`)
+				.appendTo(nav)
+				.on("click", () => this.later());
+			$(`<button type="button" class="sew-link">${__("Skip this record")}</button>`)
+				.appendTo(nav)
+				.on("click", () => this.skip());
+		}
 		if (!is_review) {
-			$(`<button class="btn btn-primary btn-sm">${__("Next")}</button>`)
+			$(`<button type="button" class="sew-btn primary">${__("Continue")}</button>`)
 				.appendTo(nav)
 				.on("click", async () => {
 					if (!this.collect(true)) return;
@@ -817,21 +952,17 @@ class SwissEmployeeWizard {
 					this.render_step();
 				});
 		} else if (this.mode === "finish") {
-			$(`<button class="btn btn-primary btn-sm">${__("Finish the record")}</button>`)
+			$(`<button type="button" class="sew-btn primary">${__("Finish the record")}</button>`)
 				.appendTo(nav)
 				.on("click", () => this.finish());
 		} else {
-			$(`<button class="btn btn-primary btn-sm">${__("Create the employee")}</button>`)
+			$(
+				`<button type="button" class="sew-btn primary">${__(
+					"Create the employee",
+				)}</button>`,
+			)
 				.appendTo(nav)
 				.on("click", () => this.create());
-		}
-		if (this.mode === "finish") {
-			$(`<button class="btn btn-link btn-sm">${__("Later")}</button>`)
-				.appendTo(nav)
-				.on("click", () => this.later());
-			$(`<button class="btn btn-link btn-sm">${__("Skip this record")}</button>`)
-				.appendTo(nav)
-				.on("click", () => this.skip());
 		}
 	}
 
@@ -907,9 +1038,9 @@ class SwissEmployeeWizard {
 		].filter(Boolean);
 		const title = __("Already known from the account");
 		holder.prepend(
-			`<div class="frappe-card" style="padding: 10px 15px; margin-bottom: 15px;"><b>${title}</b> <span class="text-muted small">· ${parts.join(
+			`<div class="sew-card" style="margin-bottom: 15px;"><div><b>${title}</b> <span class="text-muted small">· ${parts.join(
 				" · ",
-			)}</span></div>`,
+			)}</span></div></div>`,
 		);
 	}
 
@@ -969,29 +1100,34 @@ class SwissEmployeeWizard {
 		const left = res.remaining
 			? __("{0} records to complete", [res.remaining])
 			: __("All the records are complete.");
-		const list = done.length
-			? `<ul>${done.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>`
-			: "";
+		const list = done
+			.map(
+				(d) =>
+					`<div class="sew-line"><div class="sew-ok">${SEW_CHECK}</div><span>${esc(
+						d,
+					)}</span></div>`,
+			)
+			.join("");
 		this.body.empty().append(`
-			<div class="frappe-card" style="padding: 20px;">
-				<h4 style="margin-top: 0;">${title}</h4>
-				<div class="text-muted" style="margin-bottom: 10px;">${left}</div>
-				${list}
-				<div class="sew-finished-actions" style="margin-top: 20px; display: flex; gap: 10px;"></div>
-			</div>`);
+			<div class="sew-hero">
+				<h2 class="sew-hero-title">${title}</h2>
+				<div class="sew-hero-sub">${left}</div>
+			</div>
+			${list ? `<div class="sew-card">${list}</div>` : ""}
+			<div class="sew-actions sew-finished-actions"></div>`);
 		const actions = this.body.find(".sew-finished-actions");
 		if (res.next) {
 			const next_label = __("Next record: {0}", [
 				esc(res.next.employee_name || res.next.name),
 			]);
-			$(`<button class="btn btn-primary btn-sm">${next_label}</button>`)
+			$(`<button type="button" class="sew-btn primary">${next_label}</button>`)
 				.appendTo(actions)
 				.on("click", () => frappe.set_route("swiss-employee-wizard", res.next.name));
 		}
-		$(`<button class="btn btn-default btn-sm">${__("Back to the list")}</button>`)
+		$(`<button type="button" class="sew-btn">${__("Back to the list")}</button>`)
 			.appendTo(actions)
 			.on("click", () => this.later());
-		$(`<button class="btn btn-default btn-sm">${__("Open the record")}</button>`)
+		$(`<button type="button" class="sew-btn">${__("Open the record")}</button>`)
 			.appendTo(actions)
 			.on("click", () => frappe.set_route("Form", "Employee", res.employee));
 	}
@@ -1047,31 +1183,59 @@ class SwissEmployeeWizard {
 		this.render_done(res, badge_note);
 	}
 
+	//// Neoffice — the done page of the boards (WizardDone): the person hired in a Forum title on the warm card, then two cards,
+	//// the record and their access, each fact with its green check; what went wrong with the access with its amber mark.
 	render_done(res, badge_note) {
-		const done = [
+		const ok = (text) =>
+			`<div class="sew-line"><div class="sew-ok">${SEW_CHECK}</div><span>${esc(
+				text,
+			)}</span></div>`;
+		const warn = (text) =>
+			`<div class="sew-line"><div class="sew-warn-dot">!</div><span>${esc(
+				text,
+			)}</span></div>`;
+		const record = [
 			__("Employee record created"),
 			res.structure_assignment && __("Salary recorded ({0})", [res.structure_assignment]),
 			res.leave_allocation && __("Vacation of the year allocated"),
 			badge_note,
-			...(res.access_lines || []),
-			this.data.email && __("Payslips by e-mail"),
-		].filter(Boolean);
-		const access_problem = res.access_problem
-			? `<div class="alert alert-warning" style="margin-bottom: 16px;">${esc(
-					res.access_problem,
-			  )} ${esc(__("The record is created: give the access from their record."))}</div>`
+			this.data.email ? __("Payslips by e-mail") : __("Payslips printed, handed out"),
+		]
+			.filter(Boolean)
+			.map(ok)
+			.join("");
+		let access;
+		if (res.access_problem) {
+			access =
+				warn(res.access_problem) +
+				warn(__("The record is created: give the access from their record."));
+		} else if ((res.access_lines || []).length) {
+			access = res.access_lines.map(ok).join("");
+		} else {
+			access = warn(__("No account: an access can be given later from their record."));
+		}
+		const start = this.data.date_of_joining
+			? frappe.datetime.str_to_user(this.data.date_of_joining)
 			: "";
+		const sub = start
+			? __("Employee record {0} · starts on {1}", [res.employee, start])
+			: __("Employee record {0}", [res.employee]);
 		this.body.empty().append(`
-			<div class="frappe-card" style="padding: 20px;">
-				<h4 style="margin-top: 0;">${__("{0} is hired", [esc(res.employee_name)])}</h4>
-				<ul style="margin-bottom: 16px;">${done.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>
-				<div style="display: flex; gap: 10px; flex-wrap: wrap;">
-					<a class="btn btn-primary btn-sm" href="/app/employee/${encodeURIComponent(res.employee)}">${__(
-						"Open their record",
-					)}</a>
-					<button class="btn btn-default btn-sm sew-again">${__("Hire someone else")}</button>
-					<a class="btn btn-default btn-sm" href="/app/swiss-payroll-cycle">${__("Monthly Payroll")}</a>
-				</div>
+			<div class="sew-hero">
+				<span class="sew-pill success">${esc(__("Hired"))}</span>
+				<h2 class="sew-hero-title">${__("{0} is hired", [esc(res.employee_name)])}</h2>
+				<div class="sew-hero-sub">${esc(sub)}</div>
+			</div>
+			<div class="sew-two">
+				<div class="sew-card"><div class="sew-card-title">${esc(__("The record"))}</div>${record}</div>
+				<div class="sew-card"><div class="sew-card-title">${esc(__("Their access"))}</div>${access}</div>
+			</div>
+			<div class="sew-actions">
+				<a class="sew-btn primary" href="/app/employee/${encodeURIComponent(res.employee)}">${__(
+					"Open their record",
+				)}</a>
+				<button type="button" class="sew-btn sew-again">${__("Hire someone else")}</button>
+				<a class="sew-btn" href="/app/swiss-payroll-cycle">${__("Monthly Payroll")}</a>
 			</div>`);
 		this.body.find(".sew-again").on("click", async () => {
 			this.reset();
