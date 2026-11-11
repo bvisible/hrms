@@ -108,6 +108,10 @@ router.isReady().then(async () => {
 	}
 
 	await translationsPlugin.isReady();
+
+	const boot = window.frappe?.boot
+	if (boot?.lang) document.documentElement.lang = boot.lang
+	document.documentElement.dir = boot?.layout_direction || "ltr"
 	registerServiceWorker()
 	//// Neoffice — added with the async initSocket above: exposed as $socket because the
 	//// module-scope const upstream relied on is gone.

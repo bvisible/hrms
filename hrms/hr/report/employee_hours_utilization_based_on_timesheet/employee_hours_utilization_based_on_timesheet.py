@@ -162,6 +162,7 @@ class EmployeeHoursReport:
 				TimesheetDetail.to_time.as_("end_time"),  # //// added
 			)
 			.where(Timesheet.employee.isnotnull())
+			.where(Timesheet.docstatus == 1)
 			# //// Neoffice — overlap with the period instead of both dates inside it
 			.where(Timesheet.start_date <= self.to_date)
 			.where(Timesheet.end_date >= self.from_date)
