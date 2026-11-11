@@ -11,8 +11,8 @@ Where the settings come from:
    `nora_model`.
 
 **The primary endpoint only.** No other provider is ever tried, and not Nora's configured fallback
-either: on the fleet that fallback is an Ollama *cloud* model, which runs at Ollama, off our machines
-(neoffice-maintenance#1126). The payroll assistant used to fall back to OpenAI: payroll data would
+either: that fallback was an Ollama *cloud* model, which ran at Ollama, off our machines; it is retired
+(neoffice-maintenance#1126) and Ollama itself is gone (11.11.2026), but a leftover setting is still never read. The payroll assistant used to fall back to OpenAI: payroll data would
 have left for the United States the day someone typed a key, while the sub-processor list promises
 an AI on our own servers, in Switzerland.
 

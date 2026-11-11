@@ -9,7 +9,7 @@ from frappe.tests.utils import FrappeTestCase
 from hrms.utils import nora
 
 PRIMARY = "https://olares.example.noraai.ch/v1"
-FALLBACK = "https://ollama.example.noraai.ch/v1"
+FALLBACK = "https://fallback.example.noraai.ch/v1"
 
 
 def _answer(content='{"ok": true}', status=200, headers=None, body=None):
@@ -40,7 +40,7 @@ class TestNoraClient(FrappeTestCase):
 		self.assertEqual(reply["prompt_tokens"], 12)
 
 	def test_a_dead_primary_never_falls_back(self):
-		"""The configured fallback is an Ollama cloud model, off our machines (#1126): never used."""
+		"""A leftover fallback setting (once an Ollama cloud model, off our machines: #1126) is never used."""
 		import requests
 
 		with patch.object(nora, "_config", return_value=_config()), patch("requests.post") as post:
