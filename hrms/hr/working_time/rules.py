@@ -47,11 +47,12 @@ GROUPS = {
 }
 
 WEEK, MONTH_AVERAGE, CALENDAR_YEAR = "Week", "Month average", "Calendar year"
-WEEKLY_HOURS, BY_COMPANY_STATUS, ANNUAL_CALENDAR, CONTRACT_HOURS = (
+WEEKLY_HOURS, BY_COMPANY_STATUS, ANNUAL_CALENDAR, CONTRACT_HOURS, CONSTANT_PLANNING = (
 	"Weekly hours",
 	"By company status",
 	"Annual calendar",
 	"Contract hours",
+	"Constant planning",
 )
 EXPIRING_LOTS, SLIDING_BALANCE, ANNUAL_BALANCE = "Expiring lots", "Sliding balance", "Annual balance"
 LOST, COMPENSATED, PAID = "Lost", "Compensated", "Paid"
@@ -66,7 +67,7 @@ RULES = {
 		"choice",
 		"time",
 		_lt("What the hours due are drawn from"),
-		choices=(WEEKLY_HOURS, BY_COMPANY_STATUS, ANNUAL_CALENDAR, CONTRACT_HOURS),
+		choices=(WEEKLY_HOURS, BY_COMPANY_STATUS, ANNUAL_CALENDAR, CONTRACT_HOURS, CONSTANT_PLANNING),
 	),
 	"weekly_hours": Rule("hours", "time", _lt("Normal hours of the week")),
 	"company_status_hours": Rule(

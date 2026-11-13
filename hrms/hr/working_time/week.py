@@ -3,7 +3,7 @@
 """The ledger of one week: what was due, what was done, what is over.
 
 The hours due come from the agreement's target (a number of hours a week, the hours of the company's status, a
-calendar of the year, or the contract's own hours), times the activity rate when the agreement says part time
+calendar of the year, the contract's own hours, or a constant planning of the day from its first date), times the activity rate when the agreement says part time
 follows it, spread evenly over the person's working days (the days of their holiday list that are not a weekly
 day off). A public holiday on a working day and a paid absence are credited the hours due that day. The hours
 done are the attendance's working hours (the clock, never typed here).
@@ -71,11 +71,23 @@ def weekly_hours_due(rules, facts: Facts, monday) -> float | None:
 		hours = _calendar_hours(rules, monday)
 	elif target == catalogue.CONTRACT_HOURS:
 		return flt(facts.contract_weekly_hours) or None
+	elif target == catalogue.CONSTANT_PLANNING:
+		hours = _planned_hours(rules, monday)
 	if hours is None:
 		return None
 	if rules.get("pro_rata", True) is not False:
 		hours = flt(hours) * flt(facts.activity_rate) / 100
 	return flt(hours)
+
+
+def _planned_hours(rules, monday):
+	"""The week's hours of a constant planning (the hours of a day, times the working days of the week); None
+	before the planning's first date, when the agreement does not allow it yet."""
+	plan = rules.get("constant_planning") or {}
+	first = plan.get("first_date")
+	if not plan.get("daily_hours") or (first and getdate(monday) < getdate(first)):
+		return None
+	return flt(plan["daily_hours"]) * flt(plan.get("workdays_per_week") or 5)
 
 
 def _calendar_hours(rules, monday):

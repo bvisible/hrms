@@ -116,6 +116,23 @@ class TestTheWeek(FrappeTestCase):
 		without = Rules(target=rules.ANNUAL_CALENDAR, annual_hours=2112)
 		self.assertAlmostEqual(compute_week(without, five, MONDAY).due, 2112 * 7 / 365, places=3)
 
+	def test_a_constant_planning_gives_the_hours_of_its_day_from_its_first_date(self):
+		plan = Rules(
+			target=rules.CONSTANT_PLANNING,
+			constant_planning={"daily_hours": 8.1, "workdays_per_week": 5, "first_date": "2027-01-01"},
+			pro_rata=True,
+		)
+		weekend = {day(5): "weekly_off", day(6): "weekly_off"}
+		self.assertIsNone(compute_week(plan, Facts(holidays=weekend), MONDAY), "not before its first date")
+		january = datetime.date(2027, 1, 11)
+		days_off = {
+			january + datetime.timedelta(days=5): "weekly_off",
+			january + datetime.timedelta(days=6): "weekly_off",
+		}
+		week = compute_week(plan, Facts(holidays=days_off), january)
+		self.assertEqual(week.weekly_due, 40.5)
+		self.assertEqual([entry["due"] for entry in week.days[:5]], [8.1] * 5)
+
 	def test_the_contract_hours_are_the_persons_own(self):
 		contract = Rules(target=rules.CONTRACT_HOURS, pro_rata=True)
 		facts = Facts(activity_rate=50, contract_weekly_hours=21)
