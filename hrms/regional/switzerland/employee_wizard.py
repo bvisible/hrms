@@ -13,6 +13,9 @@ Backs the desk page swiss-employee-wizard:
   tariff-data availability check for the resulting code.
 - create_employee: create the Employee (and optionally the salary
   structure assignment) from the wizard's collected data.
+- vacation_proposal: the vacation days a year the confirmed lines of a
+  labour agreement give the new employee (lot T); the employee keeps the
+  agreement chosen in the wizard.
 """
 
 import json
@@ -142,7 +145,59 @@ def wizard_defaults(company):
 		),
 		"holiday_list": frappe.db.get_value("Company", company, "default_holiday_list"),
 		"vacation_leave_type": existing_leave_type("Privilege Leave"),
+		"labour_agreement": _company_agreement(company),
 	}
+
+
+def _company_agreement(company):
+	"""The company's labour agreement when there is only one it may read (an agreement tied to no company counts
+	for every company); None when there are several to choose from, or none."""
+	if not frappe.db.table_exists("Labour Agreement"):
+		return None
+	names = [
+		row.name
+		for row in frappe.get_all("Labour Agreement", fields=["name", "company"])
+		if row.company in (company, None, "")
+	]
+	return names[0] if len(names) == 1 else None
+
+
+@frappe.whitelist()
+def vacation_proposal(agreement, date_of_birth=None, date_of_joining=None):
+	"""The vacation days a year the confirmed lines of ``agreement`` give a new employee: read in its vacation table
+	at their age at the end of the year of entry (completed years, as the law counts until 20), with no year in the
+	company yet. Returns {days, unit, source} or None when the agreement confirms no line that says it."""
+	_check_hiring_staff()
+	frappe.has_permission("Labour Agreement", "read", agreement, throw=True)
+	from hrms.hr.working_time.agreement import rules_of
+	from hrms.regional.switzerland.vacation import _completed_years, entitlement_from_table
+
+	rules = rules_of(agreement)
+	table = rules.get("vacation_entitlement")
+	if not table:
+		return None
+	joining = getdate(date_of_joining) if date_of_joining else getdate()
+	age = _completed_years(date_of_birth, get_year_ending(joining)) if date_of_birth else None
+	days = entitlement_from_table(table, age, 0)
+	if days is None:
+		return None
+	source = rules.source("vacation_entitlement")
+	return {
+		"days": days,
+		"unit": rules.get("vacation_unit"),
+		"source": " ".join(part for part in (source.get("title"), source.get("article")) if part),
+	}
+
+
+def _agreement_of(data):
+	"""The Employee field of the labour agreement chosen in the wizard, when one was chosen and may be read."""
+	from hrms.hr.working_time.agreement import EMPLOYEE_FIELD
+
+	agreement = data.get("labour_agreement")
+	if not agreement or not frappe.get_meta("Employee").has_field(EMPLOYEE_FIELD):
+		return {}
+	frappe.has_permission("Labour Agreement", "read", agreement, throw=True)
+	return {EMPLOYEE_FIELD: agreement}
 
 
 @frappe.whitelist()
@@ -336,6 +391,8 @@ def create_employee(data):
 			"ch_payslip_delivery": "Email" if email else "By Hand",
 			# //// Neoffice — the activity at other employers (#839).
 			**other_employment_fields(data),
+			# the labour agreement chosen in the wizard (lot T, #2623)
+			**_agreement_of(data),
 		}
 	)
 	employee.insert()
@@ -656,6 +713,7 @@ def complete_employee(employee, data):
 		"ch_qst_taxation_canton": qst_canton,
 		"ch_payslip_delivery": "Email" if email else None,
 		**other_employment_fields(data),
+		**_agreement_of(data),
 	}
 	doc.update({key: value for key, value in values.items() if value not in (None, "")})
 

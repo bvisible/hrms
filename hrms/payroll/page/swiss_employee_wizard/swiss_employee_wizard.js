@@ -327,6 +327,16 @@ class SwissEmployeeWizard {
 					description: __("Needed to pay the salary by bank transfer."),
 				},
 				{ fieldname: "col2", fieldtype: "Column Break" },
+				//// Neoffice — the labour agreement of the new employee (lot T, #2623): its confirmed lines propose
+				//// the vacation days, and the employee keeps it.
+				{
+					fieldname: "labour_agreement",
+					label: __("Labour agreement"),
+					fieldtype: "Link",
+					options: "Labour Agreement",
+					description: __("Its confirmed lines propose the vacation days."),
+					onchange: () => this.propose_vacation(),
+				},
 				{
 					fieldname: "vacation_days",
 					label: __("Vacation days a year"),
@@ -513,6 +523,8 @@ class SwissEmployeeWizard {
 		this.collect();
 		this.data.company = company;
 		this.data.canton = null;
+		//// Neoffice — another company, another agreement (lot T, #2623).
+		this.data.labour_agreement = null;
 		await this.load_defaults();
 		this.render_step();
 	}
@@ -795,15 +807,73 @@ class SwissEmployeeWizard {
 			body: holder[0],
 		});
 		this.form.make();
+		//// Neoffice — the company's only labour agreement is the obvious one (lot T, #2623).
+		if (
+			step.key === "job" &&
+			!this.data.labour_agreement &&
+			(this.defaults || {}).labour_agreement
+		) {
+			this.data.labour_agreement = this.defaults.labour_agreement;
+		}
 		if (step.key === "job" && !this.data.vacation_days) {
-			this.data.vacation_days = this.age_at_year_end() < 20 ? 25 : 20;
+			this.data.vacation_days = this.law_vacation_days();
 		}
 		this.form.set_values(this.data);
+		if (step.key === "job" && this.data.labour_agreement) this.propose_vacation();
 
 		if (this.mode === "finish" && step.key === "person") this.render_known(holder);
 		if (step.key === "person") this.watch_avs();
 		if (step.key === "tax") this.refresh_tax();
 		this.render_nav();
+	}
+
+	law_vacation_days() {
+		return this.age_at_year_end() < 20 ? 25 : 20;
+	}
+
+	//// Neoffice — the vacation days the agreement's confirmed lines give (lot T, #2623). A figure typed by the
+	//// person hiring is never replaced: only the law's default or an earlier proposal is.
+	async propose_vacation() {
+		const field = this.form && this.form.get_field("vacation_days");
+		if (!field) return;
+		const agreement = this.form.get_value("labour_agreement");
+		const law = __("At least 20 by law, 25 until the age of 20.");
+		if (!agreement) {
+			field.set_description(law);
+			return;
+		}
+		const proposal = await frappe.xcall(`${WIZARD}.vacation_proposal`, {
+			agreement,
+			date_of_birth: this.data.date_of_birth,
+			date_of_joining: this.form.get_value("date_of_joining") || this.data.date_of_joining,
+		});
+		if (!proposal) {
+			field.set_description(
+				__("The agreement confirms no line of vacation days: the law applies.") +
+					" " +
+					law,
+			);
+			return;
+		}
+		const current = flt(this.form.get_value("vacation_days"));
+		if (
+			!current ||
+			current === this.law_vacation_days() ||
+			current === this.proposed_vacation
+		) {
+			this.form.set_value("vacation_days", proposal.days);
+		}
+		this.proposed_vacation = flt(proposal.days);
+		const unit = {
+			"Calendar days": __("counted in calendar days"),
+			Hours: __("counted in hours for part time"),
+		}[proposal.unit];
+		field.set_description(
+			__("Proposed by the agreement: {0} days ({1}).", [
+				proposal.days,
+				[proposal.source, unit].filter(Boolean).join(", ") || agreement,
+			]),
+		);
 	}
 
 	age_at_year_end() {
@@ -888,6 +958,7 @@ class SwissEmployeeWizard {
 					${line(__("Activity rate (%)"), d.work_percentage)}
 					${line(__("Gross monthly salary"), d.base && format_currency(d.base, "CHF"))}
 					${line(__("Salary structure"), d.base && structure)}
+					${line(__("Labour agreement"), d.labour_agreement)}
 					${line(__("Vacation days a year"), d.vacation_days)}
 					${line(__("IBAN of the salary account"), d.iban)}
 					${line(__("Source tax"), tax && tax.qst_subject ? __("tariff {0}", [tax.tariff_code]) : __("No"))}

@@ -25033,3 +25033,27 @@ msgstr "Pour cette part, prenez l'un des choix prévus par la convention."
 #: hrms/hr/working_time/closing.py
 msgid "Only the employee of a closing decides their share."
 msgstr "Seul l'employé concerné par le bouclement peut décider de sa part."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Labour agreement"
+msgstr "Convention"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Its confirmed lines propose the vacation days."
+msgstr "Ses lignes confirmées proposent les jours de vacances."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "The agreement confirms no line of vacation days: the law applies."
+msgstr "La convention ne confirme aucune ligne de jours de vacances : la loi s'applique."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "Proposed by the agreement: {0} days ({1})."
+msgstr "Proposé par la convention : {0} jours ({1})."
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "counted in calendar days"
+msgstr "comptés en jours civils"
+
+#: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
+msgid "counted in hours for part time"
+msgstr "comptés en heures pour le temps partiel"
