@@ -92,6 +92,11 @@ class TestLabourAgreement(FrappeTestCase):
 				else:
 					self.assertIsNotNone(rules.parse(line["rule"], line.get("value")), where)
 
+	def test_every_template_can_be_copied(self):
+		for key in sorted(templates._all()):
+			name = self.copy(key, name=f"_Test copy of {key}")
+			self.assertEqual(frappe.db.get_value(agreement.DOCTYPE, name, "template"), key)
+
 	def test_a_template_arrives_with_no_line_confirmed(self):
 		name = self.copy()
 		lines = frappe.get_doc(agreement.DOCTYPE, name).rules
