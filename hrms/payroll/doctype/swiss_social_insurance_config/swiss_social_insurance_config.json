@@ -60,6 +60,8 @@
   "section_vacation_payout",
   "vacation_payout_method",
   "vacation_payout_divisor",
+  "vacation_average_months",
+  "default_vacation_days",
   "section_holidays",
   "holiday_list",
   "holiday_choices",
@@ -382,7 +384,7 @@
    "label": "Vacation Paid at the Exit"
   },
   {
-   "description": "How a vacation day is valued: the monthly salary with the extra salaries' share and the 12-month average of the variable pay of the vacation base, divided by the divisor (Divisor, 21.75 when empty); or the annual salary ÷ (260 − the yearly vacation days) (After the contract); or ÷ 30 for a balance counted in calendar days (Calendar days).",
+   "description": "How a vacation day is valued: the monthly salary with the extra salaries' share and the average of the variable pay of the vacation base over the months set below, divided by the divisor (Divisor, 21.75 when empty); or the annual salary ÷ (260 − the yearly vacation days) (After the contract); or ÷ 30 for a balance counted in calendar days (Calendar days).",
    "fieldname": "vacation_payout_method",
    "fieldtype": "Select",
    "label": "Vacation Day Value",
@@ -395,6 +397,22 @@
    "fieldname": "vacation_payout_divisor",
    "fieldtype": "Float",
    "label": "Vacation Day Divisor"
+  },
+  {
+   "default": "12",
+   "description": "The vacation pay of a variable salary is the average of the variable pay over these months. 12 unless set: a representative period (Federal Court 4A_231/2018); a confirmed rule of the employee's labour agreement comes first.",
+   "fieldname": "vacation_average_months",
+   "fieldtype": "Int",
+   "label": "Months of the Variable Pay Average",
+   "non_negative": 1
+  },
+  {
+   "default": "20",
+   "description": "The yearly vacation days of an employee with no allocation spanning the year. 20 unless set: four weeks of five working days (Code of Obligations art. 329a al. 1; five weeks until the age of 20 completed); a confirmed rule of the employee's labour agreement comes first.",
+   "fieldname": "default_vacation_days",
+   "fieldtype": "Float",
+   "label": "Vacation Days a Year When None Is Allocated",
+   "non_negative": 1
   },
   {
    "collapsible": 1,
@@ -711,7 +729,7 @@
   }
  ],
  "links": [],
- "modified": "2026-09-26 22:00:00.000000",
+ "modified": "2026-11-13 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "Swiss Social Insurance Config",

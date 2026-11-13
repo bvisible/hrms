@@ -152,3 +152,79 @@ class TestTheLeavePeriodOfAnEncashment(unittest.TestCase):
 		self.assertEqual(
 			(values["from_date"], values["to_date"], values["company"]), ("2026-01-01", "2026-12-31", "_T-co")
 		)
+
+
+class TestTheTwoNumbersAreTheClients(unittest.TestCase):
+	"""The months of the average and the yearly days were written in the code (12, 20): they are the client's now,
+	read from a confirmed rule of the employee's labour agreement, then from the company's setting, then 12 and 20
+	(lot T). A site that sets nothing pays exactly as before."""
+
+	@staticmethod
+	def agreement(rules):
+		class Agreement:
+			def get(self, key, default=None):
+				return rules.get(key, default)
+
+		return Agreement()
+
+	def test_the_average_runs_over_the_months_set(self):
+		seen = {}
+
+		def sql(query, values, as_dict=False):
+			seen["since"] = values[2]
+			return [frappe._dict(amount=600, ch_wage_type_code="1218", included_in_vacation_base=1)]
+
+		with patch("frappe.db.sql", side_effect=sql):
+			average = vacation.variable_average("_T-emp", "_T-co", "2027-07-01", 6)
+		self.assertEqual(str(seen["since"]), "2027-01-01")
+		self.assertEqual(average, 100)
+
+	def test_the_months_come_from_the_agreement_then_the_setting_then_twelve(self):
+		six = self.agreement({"vacation_pay_average_months": 6})
+		with patch.object(vacation, "_agreement_rules", return_value=six):
+			self.assertEqual(vacation.average_months("_T-emp", {"vacation_average_months": 3}), 6)
+		with patch.object(vacation, "_agreement_rules", return_value=None):
+			self.assertEqual(vacation.average_months("_T-emp", {"vacation_average_months": 3}), 3)
+			self.assertEqual(vacation.average_months("_T-emp", {}), 12)
+
+	def test_the_value_of_a_day_averages_over_those_months(self):
+		with (
+			patch.object(vacation, "_agreement_rules", return_value=None),
+			patch.object(vacation, "monthly_base", return_value=8000),
+			patch.object(vacation, "variable_average", return_value=0) as average,
+		):
+			_rate, detail = vacation.daily_rate(
+				"_T-emp", "_T-co", "2027-05-31", {"vacation_average_months": 6}, "_T-vacation"
+			)
+		self.assertEqual(average.call_args.args[3], 6)
+		self.assertEqual(detail["average_months"], 6)
+
+	def test_the_yearly_days_come_from_the_agreement_then_the_setting_then_twenty(self):
+		table = [
+			{"age_to": 20, "days": 27.5},
+			{"age_from": 20, "days": 22.5},
+			{"age_from": 20, "years_in_company_from": 5, "days": 27.5},
+		]
+		self.assertEqual(vacation.entitlement_from_table(table, 19, 0), 27.5)
+		self.assertEqual(vacation.entitlement_from_table(table, 30, 2), 22.5)
+		self.assertEqual(vacation.entitlement_from_table(table, 30, 6), 27.5)
+		self.assertIsNone(vacation.entitlement_from_table(table, None, 6), "an unknown age settles nothing")
+		rules = {"vacation_entitlement": table, "vacation_unit": "Hours"}
+		person = frappe._dict(date_of_birth="1996-03-01", date_of_joining="2020-01-15")
+		with (
+			patch.object(vacation, "_agreement_rules", return_value=self.agreement(rules)),
+			patch("frappe.db.get_value", return_value=person),
+		):
+			# 30 years old, 6 years in the company on 13-11-2026
+			self.assertEqual(
+				vacation.default_entitlement("_T-emp", "2026-11-13", {"default_vacation_days": 25}), 27.5
+			)
+			rules["vacation_unit"] = "Calendar days"
+			self.assertEqual(
+				vacation.default_entitlement("_T-emp", "2026-11-13", {"default_vacation_days": 25}), 25
+			)
+		with patch.object(vacation, "_agreement_rules", return_value=None):
+			self.assertEqual(
+				vacation.default_entitlement("_T-emp", "2026-11-13", {"default_vacation_days": 25}), 25
+			)
+			self.assertEqual(vacation.default_entitlement("_T-emp", "2026-11-13", {}), 20)

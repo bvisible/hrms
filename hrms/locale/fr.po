@@ -24618,3 +24618,23 @@ msgstr "Heures par semaine du contrat"
 #: hrms/hr/working_time/setup.py
 msgid "The hours due when the agreement draws them from the contract (the law alone, for instance)."
 msgstr "Les heures dues lorsque la convention les tire du contrat (la loi seule, par exemple)."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "How a vacation day is valued: the monthly salary with the extra salaries' share and the average of the variable pay of the vacation base over the months set below, divided by the divisor (Divisor, 21.75 when empty); or the annual salary ÷ (260 − the yearly vacation days) (After the contract); or ÷ 30 for a balance counted in calendar days (Calendar days)."
+msgstr "Comment un jour de vacances est valorisé : le salaire mensuel avec la part des 13e, 14e et 15e salaires et la moyenne sur les mois indiqués plus bas de la part variable de la base de vacances, divisé par le diviseur (Diviseur, 21.75 si vide) ; ou le salaire annuel ÷ (260 − les jours de vacances annuels) (Après le contrat) ; ou ÷ 30 pour un solde compté en jours civils (Jours civils)."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Months of the Variable Pay Average"
+msgstr "Mois de la moyenne de la part variable"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "The vacation pay of a variable salary is the average of the variable pay over these months. 12 unless set: a representative period (Federal Court 4A_231/2018); a confirmed rule of the employee's labour agreement comes first."
+msgstr "Pour un salaire variable, le salaire de vacances est la moyenne de la part variable sur ces mois. 12 mois si rien n'est réglé : une période représentative (Tribunal fédéral 4A_231/2018) ; une règle confirmée de la convention de l'employé passe avant."
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "Vacation Days a Year When None Is Allocated"
+msgstr "Jours de vacances annuels sans allocation"
+
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
+msgid "The yearly vacation days of an employee with no allocation spanning the year. 20 unless set: four weeks of five working days (Code of Obligations art. 329a al. 1; five weeks until the age of 20 completed); a confirmed rule of the employee's labour agreement comes first."
+msgstr "Le nombre annuel de jours de vacances d'un employé sans allocation couvrant l'année. 20 jours si rien n'est réglé : quatre semaines de cinq jours ouvrables (Code des obligations, art. 329a al. 1 ; cinq semaines jusqu'à 20 ans révolus) ; une règle confirmée de la convention de l'employé passe avant."

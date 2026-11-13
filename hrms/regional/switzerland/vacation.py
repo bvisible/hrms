@@ -12,8 +12,8 @@ M33, M35, M36). Upstream values a day with a fixed amount typed on the salary st
 company values it from the salary, by the method of its social insurance configuration:
 
 - Divisor (default, 21.75): the monthly salary with the extra salaries' share — a contractual 13th
-  counts (4A_161/2016) — and the monthly average over twelve months of the variable pay of the
-  vacation base (4A_231/2018), divided by the divisor. The Federal Court computed with 21.7 and
+  counts (4A_161/2016) — and the monthly average of the variable pay of the vacation base over the
+  months of `average_months` (12 unless set: 4A_231/2018), divided by the divisor. The Federal Court computed with 21.7 and
   upheld 21.75; no divisor is binding.
 - After the contract: the annual salary divided by (260 - the yearly vacation days), the days
   being paid as if taken after the end (ATF 134 III 399).
@@ -22,6 +22,11 @@ company values it from the salary, by the method of its social insurance configu
 
 The balance is the entitlement of the year worked (CO 329a al. 3) less the days taken. A negative
 balance is never deducted: the law gives no claim, short of an agreement or a dismissal for cause.
+
+The two numbers this used to hold in the code are the client's, with their source (lot T): the months of the
+average and the yearly days when no allocation spans the year come first from a confirmed rule of the employee's
+labour agreement (hr/working_time), then from the company's Swiss Social Insurance Config, and only then from the
+defaults below, which are those the code always applied (a site that sets nothing pays exactly as before).
 """
 
 import frappe
@@ -34,7 +39,8 @@ from hrms.regional.switzerland.rounding import round_to_5_centimes
 DIVISOR, AFTER_CONTRACT, CALENDAR_DAYS = "Divisor", "After the contract", "Calendar days"
 DEFAULT_DIVISOR = 21.75
 WORKING_DAYS_A_YEAR = 260
-DEFAULT_ENTITLEMENT = 20
+DEFAULT_ENTITLEMENT = 20  # CO art. 329a al. 1: four weeks of five working days, unless set
+DEFAULT_AVERAGE_MONTHS = 12  # Federal Court 4A_231/2018: a representative period, twelve months, unless set
 
 
 def vacation_leave_type():
@@ -57,10 +63,31 @@ def monthly_base(employee, on_date):
 	)
 
 
-def variable_average(employee, company, on_date):
-	"""The monthly average, over the twelve months before ``on_date``, of the pay of the vacation
+def _agreement_rules(employee):
+	"""The confirmed rules of the employee's labour agreement, or None (no agreement, or the engine not there)."""
+	if not employee:
+		return None
+	try:
+		from hrms.hr.working_time.agreement import rules_for
+	except ImportError:
+		return None
+	return rules_for(employee)
+
+
+def average_months(employee, config=None):
+	"""The months of the average of the variable pay: the employee's labour agreement when it confirmed the rule,
+	else the company's setting (« Months of the Variable Pay Average »), else 12."""
+	rules = _agreement_rules(employee)
+	months = rules.get("vacation_pay_average_months") if rules else None
+	months = months or cint((config or {}).get("vacation_average_months")) or DEFAULT_AVERAGE_MONTHS
+	return max(1, int(months))
+
+
+def variable_average(employee, company, on_date, months=DEFAULT_AVERAGE_MONTHS):
+	"""The monthly average, over the ``months`` before ``on_date``, of the pay of the vacation
 	base other than the base salary (commissions, regular premiums: wage types marked for it)."""
-	since = getdate(add_months(getdate(on_date), -12))
+	months = max(1, cint(months) or DEFAULT_AVERAGE_MONTHS)
+	since = getdate(add_months(getdate(on_date), -months))
 	rows = frappe.db.sql(
 		"""SELECT sd.amount, sc.ch_wage_type_code, wt.included_in_vacation_base
 		FROM `tabSalary Slip` ss
@@ -79,11 +106,54 @@ def variable_average(employee, company, on_date):
 		if cint(row.included_in_vacation_base)
 		and cint(row.ch_wage_type_code) not in BASE_SALARY_WAGE_TYPE_CODES
 	)
-	return total / 12
+	return total / months
 
 
-def yearly_entitlement(employee, leave_type, on_date):
-	"""The yearly vacation days: the allocation covering ``on_date`` when it spans a year, else 20."""
+def _completed_years(since, on_date):
+	if not since:
+		return None
+	since, on_date = getdate(since), getdate(on_date)
+	years = on_date.year - since.year - ((on_date.month, on_date.day) < (since.month, since.day))
+	return max(0, years)
+
+
+def entitlement_from_table(table, age, years_in_company):
+	"""The days of the most generous row of an agreement's vacation table that applies at this age and seniority
+	(completed years; `age_to` excluded), or None when no row applies or the age it needs is unknown."""
+	days = []
+	for row in table or []:
+		if row.get("age_from") is not None and (age is None or age < row["age_from"]):
+			continue
+		if row.get("age_to") is not None and (age is None or age >= row["age_to"]):
+			continue
+		since = row.get("years_in_company_from")
+		if since and (years_in_company is None or years_in_company < since):
+			continue
+		days.append(flt(row["days"]))
+	return max(days) if days else None
+
+
+def default_entitlement(employee, on_date, config=None):
+	"""The yearly vacation days when no allocation spans the year: the employee's labour agreement (its confirmed
+	vacation table, read at their age and years in the company, unless it counts in calendar days), else the
+	company's setting (« Vacation Days a Year When None Is Allocated »), else 20."""
+	rules = _agreement_rules(employee)
+	if rules and rules.get("vacation_unit") != "Calendar days":
+		person = frappe.db.get_value("Employee", employee, ["date_of_birth", "date_of_joining"], as_dict=True)
+		if person:
+			days = entitlement_from_table(
+				rules.get("vacation_entitlement"),
+				_completed_years(person.date_of_birth, on_date),
+				_completed_years(person.date_of_joining, on_date),
+			)
+			if days:
+				return days
+	return flt((config or {}).get("default_vacation_days")) or DEFAULT_ENTITLEMENT
+
+
+def yearly_entitlement(employee, leave_type, on_date, config=None):
+	"""The yearly vacation days: the allocation covering ``on_date`` when it spans a year, else the default
+	entitlement (the agreement, the company's setting, 20)."""
 	allocation = frappe.db.get_value(
 		"Leave Allocation",
 		{
@@ -97,8 +167,8 @@ def yearly_entitlement(employee, leave_type, on_date):
 		as_dict=True,
 	)
 	if allocation and (getdate(allocation.to_date) - getdate(allocation.from_date)).days >= 360:
-		return flt(allocation.new_leaves_allocated) or DEFAULT_ENTITLEMENT
-	return DEFAULT_ENTITLEMENT
+		return flt(allocation.new_leaves_allocated) or default_entitlement(employee, on_date, config)
+	return default_entitlement(employee, on_date, config)
 
 
 def daily_rate(employee, company, on_date, config, leave_type=None):
@@ -109,11 +179,18 @@ def daily_rate(employee, company, on_date, config, leave_type=None):
 	method = config.get("vacation_payout_method") or DIVISOR
 	base = monthly_base(employee, on_date)
 	per_year = salaries_per_year(config)
-	variable = variable_average(employee, company, on_date)
+	months = average_months(employee, config)
+	variable = variable_average(employee, company, on_date, months)
 	monthly = base * per_year / 12 + variable
-	detail = {"method": method, "base": base, "salaries_per_year": per_year, "variable": flt(variable, 2)}
+	detail = {
+		"method": method,
+		"base": base,
+		"salaries_per_year": per_year,
+		"variable": flt(variable, 2),
+		"average_months": months,
+	}
 	if method == AFTER_CONTRACT:
-		days = yearly_entitlement(employee, leave_type or vacation_leave_type(), on_date)
+		days = yearly_entitlement(employee, leave_type or vacation_leave_type(), on_date, config)
 		detail["divisor"] = WORKING_DAYS_A_YEAR - days
 		rate = monthly * 12 / detail["divisor"]
 	elif method == CALENDAR_DAYS:
