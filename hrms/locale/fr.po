@@ -24638,3 +24638,75 @@ msgstr "Jours de vacances annuels sans allocation"
 #: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json
 msgid "The yearly vacation days of an employee with no allocation spanning the year. 20 unless set: four weeks of five working days (Code of Obligations art. 329a al. 1; five weeks until the age of 20 completed); a confirmed rule of the employee's labour agreement comes first."
 msgstr "Le nombre annuel de jours de vacances d'un employé sans allocation couvrant l'année. 20 jours si rien n'est réglé : quatre semaines de cinq jours ouvrables (Code des obligations, art. 329a al. 1 ; cinq semaines jusqu'à 20 ans révolus) ; une règle confirmée de la convention de l'employé passe avant."
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Above the Legal Maximum"
+msgstr "Au-delà du maximum légal"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Approved On"
+msgstr "Accepté le"
+
+#: hrms/hr/working_time/store.py
+msgid "Between 0 and {0} hours can be approved for this week."
+msgstr "Vous pouvez accepter entre 0 et {0} heures pour cette semaine."
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Computed On"
+msgstr "Calculée le"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Day by Day"
+msgstr "Jour par jour"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Hours Approved"
+msgstr "Heures acceptées"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Hours Credited"
+msgstr "Heures créditées"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Hours Done"
+msgstr "Heures faites"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Hours Due"
+msgstr "Heures dues"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Hours Over"
+msgstr "Heures en plus"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Hours Short"
+msgstr "Heures en moins"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "The Employer's Approval"
+msgstr "L'accord de l'employeur"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "The Hours"
+msgstr "Les heures"
+
+#: hrms/hr/working_time/store.py
+msgid "This week has no hours over waiting for the employer."
+msgstr "Cette semaine n'a aucune heure en plus en attente de l'accord de l'employeur."
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Tolerance Taken"
+msgstr "Tolérance déduite"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Waits for the Employer"
+msgstr "Attend l'employeur"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Week Of"
+msgstr "Semaine du"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Working Time Week"
+msgstr "Semaine de travail"

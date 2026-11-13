@@ -390,6 +390,9 @@ scheduler_events = {
 		"hrms.hr.doctype.leave_ledger_entry.leave_ledger_entry.process_expired_allocation",
 		"hrms.hr.utils.generate_leave_encashment",
 		"hrms.hr.utils.allocate_earned_leaves",
+		# //// Neoffice — the working time's weeks (the last one and this one) written each night from the clock and
+		# //// the confirmed rules of each employee's labour agreement (hr/working_time/store.py, lot T, #2623).
+		"hrms.hr.working_time.store.record_recent_weeks",
 	],
 	"weekly": ["hrms.controllers.employee_reminders.send_reminders_in_advance_weekly"],
 	"monthly": [

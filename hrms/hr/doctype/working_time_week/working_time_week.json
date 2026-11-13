@@ -1,0 +1,223 @@
+{
+ "actions": [],
+ "autoname": "format:{employee}-{monday}",
+ "creation": "2026-11-13 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "monday",
+  "column_break_who",
+  "agreement",
+  "computed_on",
+  "section_figures",
+  "due",
+  "done",
+  "credited",
+  "column_break_figures",
+  "difference",
+  "tolerance",
+  "over",
+  "short",
+  "legal_excess",
+  "section_approval",
+  "needs_approval",
+  "approved_hours",
+  "column_break_approval",
+  "approved_by",
+  "approved_on",
+  "section_days",
+  "days"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "monday",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Week Of",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_who",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "agreement",
+   "fieldtype": "Link",
+   "label": "Labour Agreement",
+   "options": "Labour Agreement",
+   "read_only": 1
+  },
+  {
+   "fieldname": "computed_on",
+   "fieldtype": "Datetime",
+   "label": "Computed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_figures",
+   "fieldtype": "Section Break",
+   "label": "The Hours"
+  },
+  {
+   "fieldname": "due",
+   "fieldtype": "Float",
+   "label": "Hours Due",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "done",
+   "fieldtype": "Float",
+   "label": "Hours Done",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "credited",
+   "fieldtype": "Float",
+   "label": "Hours Credited",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_figures",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "difference",
+   "fieldtype": "Float",
+   "label": "Difference",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tolerance",
+   "fieldtype": "Float",
+   "label": "Tolerance Taken",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "over",
+   "fieldtype": "Float",
+   "label": "Hours Over",
+   "precision": "2",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "short",
+   "fieldtype": "Float",
+   "label": "Hours Short",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "legal_excess",
+   "fieldtype": "Float",
+   "label": "Above the Legal Maximum",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_approval",
+   "fieldtype": "Section Break",
+   "label": "The Employer's Approval"
+  },
+  {
+   "fieldname": "needs_approval",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Waits for the Employer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approved_hours",
+   "fieldtype": "Float",
+   "label": "Hours Approved",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_approval",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approved_on",
+   "fieldtype": "Datetime",
+   "label": "Approved On",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_days",
+   "fieldtype": "Section Break",
+   "label": "Day by Day"
+  },
+  {
+   "fieldname": "days",
+   "fieldtype": "Long Text",
+   "label": "Days",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-13 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HR",
+ "name": "Working Time Week",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "write": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User"
+  }
+ ],
+ "sort_field": "monday",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee_name",
+ "track_changes": 1
+}
