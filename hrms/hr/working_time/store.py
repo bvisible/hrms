@@ -14,10 +14,10 @@ import json
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, flt, getdate, now_datetime, nowdate
+from frappe.utils import add_days, flt, get_last_day, getdate, now_datetime, nowdate
 
 from hrms.hr.working_time.agreement import EMPLOYEE_FIELD, EXTENSION_FIELD, rules_for
-from hrms.hr.working_time.balance import WeekLine, compute_balance
+from hrms.hr.working_time.balance import WeekLine, compute_balance, overtime_supplement
 from hrms.hr.working_time.rest import rest_account, rest_of_week
 from hrms.hr.working_time.week import week_of
 
@@ -106,7 +106,49 @@ def balance_of(employee: str, on_date=None):
 		for row in rows
 	]
 	extended = bool(frappe.db.get_value("Employee", employee, EXTENSION_FIELD))
-	return compute_balance(rules, weeks, on_date, extended_in_writing=extended)
+	supplement = overtime_supplement(
+		rules,
+		recorded=_recorded([week.monday for week in weeks], on_date),
+		communicated=_communicated(employee, weeks[0].monday if weeks else None, on_date),
+	)
+	return compute_balance(rules, weeks, on_date, extended_in_writing=extended, supplement=supplement)
+
+
+def _recorded(mondays, on_date) -> bool:
+	"""Whether every week was kept, from the first one to the last week ended by `on_date`."""
+	if not mondays:
+		return False
+	kept = set(mondays)
+	last = _monday(add_days(getdate(on_date), -6))
+	monday = min(kept)
+	while monday <= last:
+		if monday not in kept:
+			return False
+		monday = add_days(monday, 7)
+	return True
+
+
+def _communicated(employee: str, first_monday, on_date) -> bool:
+	"""Whether a statement was given for every month ended by `on_date`, from the month of the first week kept."""
+	from hrms.hr.working_time.statement import STATEMENT_DOCTYPE
+
+	if not first_monday:
+		return False
+	given = {
+		getdate(month).replace(day=1)
+		for month in frappe.get_all(
+			STATEMENT_DOCTYPE,
+			filters={"employee": employee, "copy_given_on": ["is", "set"]},
+			pluck="month",
+		)
+	}
+	month = getdate(first_monday).replace(day=1)
+	current = getdate(on_date).replace(day=1)
+	while month < current:
+		if month not in given:
+			return False
+		month = getdate(add_days(get_last_day(month), 1))
+	return True
 
 
 def record_recent_weeks():

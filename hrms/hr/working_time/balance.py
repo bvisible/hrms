@@ -17,6 +17,11 @@ Three ways of keeping it, a rule of the agreement (`balance_kind`), and a legal 
 - **The legal counter**: the hours above the legal maximum of the week, added up per calendar year, against the
   legal yearly cap. A warning, never a block.
 
+The supplement of an hour over that is paid (`overtime_supplement`) is the agreement's fixed one, or the one its
+conditions decide: a conditional supplement gives the rate paid (100 = the hour without supplement) when the time
+was recorded and the balance communicated in writing every month, the higher rate otherwise. Whether the hours are
+paid at the latest with the last salary is the payroll's to keep: it is left open here.
+
 `compute_balance` is pure: the weeks (hours counted over, hours short, legal excess) and the day come in, the
 state of the balance comes out; nothing is written. An hour over that waits for the employer's approval is not
 in the weeks given to it.
@@ -58,6 +63,7 @@ class Balance:
 	legal: dict = field(default_factory=dict)  # {year: hours above the legal maximum}
 	legal_cap: float | None = None
 	warnings: list = field(default_factory=list)
+	supplement: dict = field(default_factory=dict)  # the supplement of an hour paid, and why
 
 
 def _sunday(monday):
@@ -77,14 +83,38 @@ def _month_ends(start, end):
 		day = day + relativedelta(months=1)
 
 
-def compute_balance(rules, weeks: list, on_date, extended_in_writing: bool = False) -> Balance | None:
-	"""The balance on `on_date` from the weeks up to it, or None when the agreement does not say how it is kept."""
+def overtime_supplement(rules, recorded: bool = False, communicated: bool = False) -> dict:
+	"""The supplement in per cent of an hour over that is paid; `percent` is None when the agreement does not say.
+
+	Without the facts, the conditions are taken as not met: the higher rate is the one that cannot be wrong."""
+	conditional = rules.get("conditional_supplement")
+	if conditional:
+		met = bool(recorded and communicated)
+		rate = conditional["percent_if_met"] if met else conditional["percent_otherwise"]
+		return {
+			"percent": flt(flt(rate) - 100, 4),
+			"rule": "conditional_supplement",
+			"recorded": bool(recorded),
+			"communicated": bool(communicated),
+			"paid_in_time": None,
+		}
+	fixed = rules.get("overtime_supplement_percent")
+	return {"percent": None if fixed in (None, "") else flt(fixed), "rule": "overtime_supplement_percent"}
+
+
+def compute_balance(
+	rules, weeks: list, on_date, extended_in_writing: bool = False, supplement: dict | None = None
+) -> Balance | None:
+	"""The balance on `on_date` from the weeks up to it, or None when the agreement does not say how it is kept.
+
+	`supplement` is what `overtime_supplement` says from the facts of the person; without it, the conditions of a
+	conditional supplement are taken as not met."""
 	kind = rules.get("balance_kind")
 	if kind not in (catalogue.EXPIRING_LOTS, catalogue.SLIDING_BALANCE, catalogue.ANNUAL_BALANCE):
 		return None
 	on_date = getdate(on_date)
 	weeks = sorted((w for w in weeks if _sunday(w.monday) <= on_date), key=lambda w: getdate(w.monday))
-	result = Balance(kind=kind, on_date=on_date)
+	result = Balance(kind=kind, on_date=on_date, supplement=supplement or overtime_supplement(rules))
 	if kind == catalogue.EXPIRING_LOTS:
 		_lots(rules, weeks, on_date, extended_in_writing, result)
 	else:
@@ -94,10 +124,6 @@ def compute_balance(rules, weeks: list, on_date, extended_in_writing: bool = Fal
 	return result
 
 
-def _supplement(rules):
-	return flt(rules.get("overtime_supplement_percent") or 0)
-
-
 def _lots(rules, weeks, on_date, extended, result):
 	months = rules.get("written_extension_months") if extended else None
 	months = months or rules.get("compensation_months")
@@ -105,7 +131,7 @@ def _lots(rules, weeks, on_date, extended, result):
 	for week in weeks:
 		earned = _sunday(week.monday)
 		expires = earned + relativedelta(months=int(months)) if months else None
-		_expire(open_lots, earned, rules, result)
+		_expire(open_lots, earned, result)
 		if week.over > EPSILON:
 			open_lots.append(
 				{"earned": earned, "hours": flt(week.over), "left": flt(week.over), "expires": expires}
@@ -119,21 +145,21 @@ def _lots(rules, weeks, on_date, extended, result):
 			short -= used
 		open_lots[:] = [lot for lot in open_lots if lot["left"] > EPSILON]
 		minus += short
-	_expire(open_lots, on_date, rules, result)
+	_expire(open_lots, on_date, result)
 	result.lots = [{**lot, "left": flt(lot["left"], 4), "hours": flt(lot["hours"], 4)} for lot in open_lots]
 	result.total = sum(lot["left"] for lot in open_lots) - minus
 	if months is None and open_lots:
 		result.warnings.append("compensation_months")
 
 
-def _expire(open_lots, day, rules, result):
+def _expire(open_lots, day, result):
 	for lot in list(open_lots):
 		if lot["expires"] and lot["expires"] <= day:
 			result.payable.append(
 				{
 					"on": lot["expires"],
 					"hours": flt(lot["left"], 4),
-					"supplement_percent": _supplement(rules),
+					"supplement_percent": result.supplement["percent"],
 					"why": "lot_expired",
 					"earned": lot["earned"],
 				}
@@ -201,7 +227,12 @@ def _running(rules, weeks, on_date, kind, result):
 			else:
 				why = "above_threshold" if kind == catalogue.SLIDING_BALANCE else "above_ceiling"
 				result.payable.append(
-					{"on": day, "hours": flt(excess, 4), "supplement_percent": None, "why": why}
+					{
+						"on": day,
+						"hours": flt(excess, 4),
+						"supplement_percent": result.supplement["percent"],
+						"why": why,
+					}
 				)
 			paid_this_year += excess
 		if floor is not None and balance < -flt(floor) - EPSILON:

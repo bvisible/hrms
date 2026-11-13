@@ -147,6 +147,7 @@ RULES = {
 	"overtime_supplement_percent": Rule(
 		"percent", "supplements", _lt("Supplement when the hours over are paid")
 	),
+	# the two figures are the rate paid for an hour over: 100 is the hour without supplement
 	"conditional_supplement": Rule(
 		"object",
 		"supplements",

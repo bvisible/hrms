@@ -6,9 +6,11 @@ Expiring lots: the oldest lot is compensated first, a lot left at its expiry is 
 an extension agreed in writing moves the expiry, hours short beyond the lots make the balance negative. Sliding
 balance: above the threshold at a month's end, to be paid. Annual balance: above the ceiling to be paid (without
 supplement until the hours set, with it after), below the floor lapsed, at the closing the balance waits for the
-shared decisions. The legal counter warns above the yearly cap. From the database: a week is written once and
-rewritten, the hours over wait for the employer when the agreement says so, an approval is a person and a moment,
-a week whose figures change loses its approval, the HR user approves nothing.
+shared decisions. The legal counter warns above the yearly cap. A conditional supplement: the rate paid when the
+time was recorded and the balance communicated every month, the higher one otherwise or without the facts. From the
+database: a week is written once and rewritten, the hours over wait for the employer when the agreement says so, an
+approval is a person and a moment, a week whose figures change loses its approval, the HR user approves nothing;
+the conditions are read from the weeks kept and the statements given.
 """
 
 import datetime
@@ -18,8 +20,8 @@ import frappe
 from frappe.tests.roles import as_role
 from frappe.tests.utils import FrappeTestCase
 
-from hrms.hr.working_time import agreement, rules, setup, store, templates
-from hrms.hr.working_time.balance import WeekLine, compute_balance
+from hrms.hr.working_time import agreement, rules, setup, statement, store, templates
+from hrms.hr.working_time.balance import WeekLine, compute_balance, overtime_supplement
 from hrms.hr.working_time.week import Week
 
 
@@ -125,6 +127,26 @@ class TestTheBalance(FrappeTestCase):
 	def test_without_a_way_of_keeping_it_there_is_no_balance(self):
 		self.assertIsNone(compute_balance(Rules(), [], d("2026-06-01")))
 
+	def test_the_conditions_decide_the_supplement_of_an_hour_over_paid(self):
+		conditional = Rules(
+			balance_kind=rules.SLIDING_BALANCE,
+			payment_threshold_hours=20,
+			overtime_supplement_percent=25,
+			conditional_supplement={"percent_if_met": 100, "percent_otherwise": 125},
+		)
+		weeks = [WeekLine(d("2026-01-05") + datetime.timedelta(weeks=n), over=10) for n in range(3)]
+		met = overtime_supplement(conditional, recorded=True, communicated=True)
+		balance = compute_balance(conditional, weeks, d("2026-02-15"), supplement=met)
+		self.assertEqual([(p["hours"], p["supplement_percent"]) for p in balance.payable], [(10.0, 0.0)])
+		self.assertEqual(overtime_supplement(conditional, recorded=True, communicated=False)["percent"], 25.0)
+		self.assertEqual(
+			compute_balance(conditional, weeks, d("2026-02-15")).payable[0]["supplement_percent"],
+			25.0,
+			"without the facts: the higher rate",
+		)
+		self.assertEqual(overtime_supplement(Rules(overtime_supplement_percent=25))["percent"], 25.0)
+		self.assertIsNone(overtime_supplement(Rules())["percent"])
+
 
 class TestTheWeeksKept(FrappeTestCase):
 	MANAGER = "lt-balance-manager@yopmail.com"
@@ -134,7 +156,12 @@ class TestTheWeeksKept(FrappeTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		frappe.set_user("Administrator")
-		for doctype in ("labour_agreement_rule", "labour_agreement", "working_time_week"):
+		for doctype in (
+			"labour_agreement_rule",
+			"labour_agreement",
+			"working_time_week",
+			"working_time_statement",
+		):
 			frappe.reload_doc("hr", "doctype", doctype)
 		setup.after_migrate()
 		for email, role in ((cls.MANAGER, "HR Manager"), (cls.READER, "HR User")):
@@ -238,3 +265,24 @@ class TestTheWeeksKept(FrappeTestCase):
 		with patch.object(store, "week_of", return_value=None):
 			self.assertIsNone(store.record_week(self.employee, "2026-11-09"))
 		self.assertEqual(frappe.db.count(store.WEEK_DOCTYPE, {"employee": self.employee}), 0)
+
+	def test_the_conditions_are_read_from_the_weeks_kept_and_the_statements_given(self):
+		with as_role(self.MANAGER):
+			name = templates.create_from_template(
+				"ch_hotels_restaurants_ccnt_2017", agreement_name="_Test conditional agreement"
+			)
+			doc = frappe.get_doc(agreement.DOCTYPE, name)
+			wanted = {"balance_kind", "payment_threshold_hours", "conditional_supplement"}
+			agreement.confirm_rules(name, [row.name for row in doc.rules if row.rule in wanted])
+		frappe.db.set_value("Employee", self.employee, agreement.EMPLOYEE_FIELD, name)
+		for monday in ("2026-11-02", "2026-11-09", "2026-11-16", "2026-11-23"):
+			self.record(1.0, monday)
+		before = store.balance_of(self.employee, "2026-12-03").supplement
+		self.assertEqual((before["recorded"], before["communicated"], before["percent"]), (True, False, 25.0))
+		with as_role(self.MANAGER):
+			statement.establish_statement(self.employee, "2026-11-01")
+		given = store.balance_of(self.employee, "2026-12-03").supplement
+		self.assertEqual((given["communicated"], given["percent"]), (True, 0.0))
+		frappe.db.delete(store.WEEK_DOCTYPE, {"employee": self.employee, "monday": "2026-11-09"})
+		gap = store.balance_of(self.employee, "2026-12-03").supplement
+		self.assertEqual((gap["recorded"], gap["percent"]), (False, 25.0))
