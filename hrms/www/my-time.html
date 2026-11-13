@@ -7,8 +7,8 @@
 <style>
 .mt{--ink:#141414;--paper:#FFFDF8;--muted:#524B41;--line:#DCD4C7;--hero:#FCEEDB;--signal:#F55D1A;--signal-text:#AA3700;--card:#FFFFFF;
 	max-width:560px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:18px;color:var(--ink);font-family:Karla,system-ui,sans-serif}
-@media (prefers-color-scheme:dark){.mt{--ink:#F2EFE8;--paper:#15140F;--muted:#A39A8C;--line:rgba(220,210,190,.18);--hero:#322D1F;--signal-text:#FF8D64;--card:#2A2620}}
-.mt h1{margin:0;font:400 32px/1.1 Forum,Georgia,serif;color:var(--ink)}
+/* the site's own theme decides, as in the desk; the device's preference alone would put a dark card on a light site */
+[data-theme=dark] .mt{--ink:#F2EFE8;--paper:#15140F;--muted:#A39A8C;--line:rgba(220,210,190,.18);--hero:#322D1F;--signal-text:#FF8D64;--card:#2A2620}
 .mt-card{border-radius:18px;border:1px solid var(--line);background:var(--hero);padding:16px;display:flex;flex-direction:column;gap:10px}
 .mt-row{display:flex;align-items:center;gap:8px}
 .mt-month{flex:1;font:700 11px Karla,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -32,7 +32,6 @@
 .mt-text{width:100%;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 12px;font:400 15px Karla,sans-serif}
 </style>
 <div class="mt">
-	<h1>{{ _("My working time") }}</h1>
 	{% if no_employee %}
 		<p class="mt-empty">{{ _("No employee record is tied to your account: ask your HR manager.") }}</p>
 	{% elif not statements %}

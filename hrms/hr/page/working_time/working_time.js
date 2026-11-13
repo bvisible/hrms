@@ -40,6 +40,10 @@ function ltw_pill(text, tone) {
 	)}</span></span>`;
 }
 
+function ltw_month(value) {
+	return `${__(moment(value).format("MMMM"))} ${moment(value).format("YYYY")}`;
+}
+
 function ltw_date(value) {
 	return value ? frappe.datetime.str_to_user(String(value).slice(0, 10)) : "";
 }
@@ -207,7 +211,8 @@ class WorkingTimeScreen {
 			</button>`,
 			)
 			.join("");
-		const label = moment(view.month).format("MM-YYYY");
+		// the month's name in the reader's language (moment keeps its own, English, locale)
+		const label = ltw_month(view.month);
 		this.$body.html(`
 			${this.team_tabs()}
 			<div class="ltw-top"><div class="ltw-nav">
@@ -298,9 +303,7 @@ class WorkingTimeScreen {
 			: "";
 		return `
 			<div class="ltw-paper-head"><div><span class="ltw-cap">${__("Statement of the hours")}</span>
-				<div class="ltw-title">${ltw_esc(moment(s.month).format("MM-YYYY"))} · ${ltw_esc(
-					s.employee_name,
-				)}</div>
+				<div class="ltw-title">${ltw_esc(ltw_month(s.month))} · ${ltw_esc(s.employee_name)}</div>
 				<div class="ltw-muted">${ltw_esc(s.agreement || "")} · ${__("weeks of {0} to {1}", [
 					ltw_date(s.period_start),
 					ltw_date(s.period_end),
