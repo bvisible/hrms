@@ -27,6 +27,12 @@
   "column_break_approval",
   "approved_by",
   "approved_on",
+  "section_rest",
+  "days_off",
+  "days_off_missing",
+  "column_break_rest",
+  "sundays_holidays_worked",
+  "compensatory_days",
   "section_days",
   "days"
  ],
@@ -122,10 +128,10 @@
   {
    "fieldname": "over",
    "fieldtype": "Float",
+   "in_list_view": 1,
    "label": "Hours Over",
    "precision": "2",
-   "read_only": 1,
-   "in_list_view": 1
+   "read_only": 1
   },
   {
    "fieldname": "short",
@@ -178,6 +184,44 @@
    "read_only": 1
   },
   {
+   "fieldname": "section_rest",
+   "fieldtype": "Section Break",
+   "label": "Days of rest"
+  },
+  {
+   "description": "The days of rest of the week: a leave on a working day is not one.",
+   "fieldname": "days_off",
+   "fieldtype": "Float",
+   "label": "Days off",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "days_off_missing",
+   "fieldtype": "Float",
+   "label": "Days off missing",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rest",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sundays_holidays_worked",
+   "fieldtype": "Float",
+   "label": "Sundays and public holidays worked",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "compensatory_days",
+   "fieldtype": "Float",
+   "label": "Compensatory leave days",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
    "collapsible": 1,
    "fieldname": "section_days",
    "fieldtype": "Section Break",
@@ -193,7 +237,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-11-13 20:00:00.000000",
+ "modified": "2026-11-13 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "Working Time Week",

@@ -24822,3 +24822,27 @@ msgstr "Il n'existe aucun employé {0}."
 #: hrms/hr/working_time/statement.py
 msgid "{0} is tied to no labour agreement: there is no statement of their hours."
 msgstr "{0} n'est rattaché à aucune convention : il n'existe aucun décompte de ses heures."
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Days of rest"
+msgstr "Jours de repos"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Days off"
+msgstr "Jours de congé"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Days off missing"
+msgstr "Jours de congé manquants"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Sundays and public holidays worked"
+msgstr "Dimanches et jours fériés travaillés"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "Compensatory leave days"
+msgstr "Jours de congé compensatoire"
+
+#: hrms/hr/doctype/working_time_week/working_time_week.json
+msgid "The days of rest of the week: a leave on a working day is not one."
+msgstr "Les jours de repos de la semaine : un congé pris un jour ouvrable n'en est pas un."

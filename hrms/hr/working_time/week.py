@@ -34,7 +34,8 @@ class Facts:
 	contract_weekly_hours: float = 0.0
 	# dates of the week: "weekly_off" or "holiday" (a public holiday that is not a weekly day off)
 	holidays: dict = field(default_factory=dict)
-	# date -> {"status": Attendance status, "working_hours": float, "paid_leave": bool}
+	# date -> {"status": Attendance status, "working_hours": float, "paid_leave": bool,
+	#          "leave": None, "paid", "unpaid" or "compensatory"}
 	attendance: dict = field(default_factory=dict)
 
 
@@ -121,6 +122,9 @@ def compute_week(rules, facts: Facts, monday, indicative: bool = False) -> Week 
 				"due": flt(due, 4),
 				"done": flt(done, 4),
 				"credited": flt(credited, 4),
+				# what the days of rest are read from (rest.py)
+				"status": seen.get("status"),
+				"leave": seen.get("leave") or ("paid" if seen.get("paid_leave") else None),
 			}
 		)
 	due = sum(day["due"] for day in days)
@@ -184,11 +188,20 @@ def employee_facts(employee: str, monday) -> Facts:
 		fields=["attendance_date", "status", "working_hours", "leave_type"],
 	)
 	unpaid = set(frappe.get_all("Leave Type", filters={"is_lwp": 1}, pluck="name"))
+	compensatory = set(frappe.get_all("Leave Type", filters={"is_compensatory": 1}, pluck="name"))
 	for row in rows:
+		leave = None
+		if row.leave_type:
+			leave = (
+				"compensatory"
+				if row.leave_type in compensatory
+				else ("unpaid" if row.leave_type in unpaid else "paid")
+			)
 		facts.attendance[getdate(row.attendance_date)] = {
 			"status": row.status,
 			"working_hours": flt(row.working_hours),
-			"paid_leave": bool(row.leave_type) and row.leave_type not in unpaid,
+			"paid_leave": leave in ("paid", "compensatory"),
+			"leave": leave,
 		}
 	return facts
 

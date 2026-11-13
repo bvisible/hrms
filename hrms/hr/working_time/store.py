@@ -6,7 +6,8 @@
 nothing). Its figures follow the clock: when they change after an approval, the approval is withdrawn, since the
 employer approved other hours. `approve_week` is the employer's approval, a person and a moment, for all or part
 of the hours over; only someone who may write the week approves. `balance_of` gives the balance of an employee on a
-day, from the weeks kept: the hours over that wait for an approval are not in it.
+day, from the weeks kept: the hours over that wait for an approval are not in it. A week kept also carries its
+days of rest (`rest.py`), and `rest_of` gives the rest days owed and the Sundays to compensate on a day.
 """
 
 import json
@@ -17,6 +18,7 @@ from frappe.utils import add_days, flt, getdate, now_datetime, nowdate
 
 from hrms.hr.working_time.agreement import EMPLOYEE_FIELD, EXTENSION_FIELD, rules_for
 from hrms.hr.working_time.balance import WeekLine, compute_balance
+from hrms.hr.working_time.rest import rest_account, rest_of_week
 from hrms.hr.working_time.week import week_of
 
 WEEK_DOCTYPE = "Working Time Week"
@@ -46,6 +48,12 @@ def record_week(employee: str, day) -> str | None:
 	if changed and doc.approved_by:
 		doc.approved_by, doc.approved_on, doc.approved_hours = None, None, 0
 	doc.days = json.dumps(week.days, default=str)
+	rules = rules_for(employee)
+	rest = rest_of_week(rules if rules is not None else {}, week.days)
+	doc.days_off = rest.days_off
+	doc.days_off_missing = rest.missing
+	doc.sundays_holidays_worked = flt(sum(day["days"] for day in rest.sundays_holidays), 4)
+	doc.compensatory_days = rest.compensatory
 	doc.computed_on = now_datetime()
 	doc.flags.ignore_permissions = True
 	doc.save() if name else doc.insert()
@@ -115,3 +123,26 @@ def record_recent_weeks():
 				record_week(employee, day)
 			except Exception:
 				frappe.log_error("Working time: a week could not be recorded", frappe.get_traceback())
+
+
+def rest_of(employee: str, on_date=None):
+	"""The days of rest of an employee on a day, from the weeks kept; None without an agreement."""
+	rules = rules_for(employee)
+	if rules is None:
+		return None
+	on_date = getdate(on_date or nowdate())
+	rows = frappe.get_all(
+		WEEK_DOCTYPE,
+		filters={"employee": employee, "monday": ["<=", on_date]},
+		fields=["days"],
+		order_by="monday asc",
+	)
+	weeks = []
+	for row in rows:
+		days = json.loads(row.days or "[]")
+		if days:
+			weeks.append((rest_of_week(rules, days), days))
+	person = frappe.db.get_value("Employee", employee, ["date_of_joining", "relieving_date"], as_dict=True)
+	return rest_account(
+		rules, weeks, on_date, employed_from=person.date_of_joining, employed_to=person.relieving_date
+	)
