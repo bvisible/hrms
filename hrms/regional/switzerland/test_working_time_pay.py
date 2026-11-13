@@ -301,6 +301,64 @@ class TestTheMonthIsPaidOnceFromItsStatement(WorkingTimeCase):
 						getattr(wt, action)(self.company, YEAR, MONTH)
 
 
+class TestTheComponentIsNotCutByTheDaysPaid(WorkingTimeCase):
+	def test_a_wage_type_whose_component_is_cut_by_the_days_paid_is_refused_and_said(self):
+		employee = self.employee("WtProrated")
+		self.statement(employee)
+		self.engine(over("2033-05-10", 3.0))
+		self.chosen(**{wt.OVERTIME: CODE})
+		frappe.db.set_value("Salary Component", vp._component(CODE), "depends_on_payment_days", 1)
+		plan = self.pay("plan")
+		self.assertEqual(plan["summary"]["total"], 0)
+		self.assertEqual(
+			[(item["code"], item["kind"]) for item in plan["unpaid"]], [("wage_type_prorated", wt.OVERTIME)]
+		)
+		self.pay("apply")
+		self.assertEqual(self.held_by(employee), [])
+
+	def test_the_component_made_for_the_hours_does_not_depend_on_the_days_paid(self):
+		from hrms.regional.switzerland.test_payroll_hooks import _ensure_wage_type
+
+		frappe.db.set_value(
+			"Swiss Wage Type",
+			_ensure_wage_type(SECOND_CODE, "Test hours over"),
+			{"type": "Earning", "bases_only": 0},
+		)
+		made = []
+
+		def make_the_component(code):
+			if made:
+				return made[0]
+			# what the importer does, without its commit (a test never commits): a component of the catalogue, cut by the days paid
+			name = (
+				frappe.get_doc(
+					{
+						"doctype": "Salary Component",
+						"salary_component": f"_Test WT Hours {code}",
+						"salary_component_abbr": "TWT",
+						"type": "Earning",
+						"depends_on_payment_days": 1,
+						"ch_wage_type": f"CH-WT-{code}",
+						"ch_wage_type_code": code,
+					}
+				)
+				.insert(ignore_permissions=True)
+				.name
+			)
+			made.append(name)
+			return name
+
+		employee = self.employee("WtMade")
+		self.statement(employee)
+		self.engine(over("2033-05-10", 3.0))
+		self.chosen(**{wt.OVERTIME: SECOND_CODE})
+		self.assertIsNone(vp._component(SECOND_CODE))
+		with patch.object(vp, "ensure_component", side_effect=make_the_component):
+			self.assertEqual(self.pay("apply")["summary"]["created"], 1)
+		self.assertEqual(len(made), 1)
+		self.assertEqual(frappe.db.get_value("Salary Component", made[0], "depends_on_payment_days"), 0)
+
+
 class TestTheExit(WorkingTimeCase):
 	def leaver(self, name):
 		employee = self.employee(name, relieving_date=EXIT_DAY)

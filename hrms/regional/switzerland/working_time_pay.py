@@ -31,7 +31,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate
+from frappe.utils import cint, flt, getdate
 
 from hrms.hr.working_time import payable
 from hrms.regional.switzerland import variable_pay as vp
@@ -215,6 +215,8 @@ def lines_of_statement(statement, payable_result, base, wage_type_of, relieving_
 		lines.append(item)
 		meta[key] = {
 			"nature": nature,
+			"statement": statement["name"],
+			"employee_name": statement.get("employee_name"),
 			"relieving_date": str(getdate(relieving_date)) if relieving_date else None,
 		}
 	return lines, unpaid, meta
@@ -323,6 +325,45 @@ def build(company, year, month):
 					),
 				}
 			)
+	return _without_the_prorated(result)
+
+
+def _prorated(code):
+	"""Whether the component that carries the wage type is cut by the days paid: an amount paid for hours must not be
+	(an exit month would pay a part of its hours). A component that does not exist yet is made not to depend on them."""
+	component = vp._component(code)
+	return bool(
+		component and cint(frappe.db.get_value("Salary Component", component, "depends_on_payment_days"))
+	)
+
+
+def _without_the_prorated(result):
+	"""Take the lines whose wage type is prorated out of the lines, and say why."""
+	cut, kept = {}, []
+	for line in result["lines"]:
+		code = line["wage_type_code"]
+		if code not in cut:
+			cut[code] = _prorated(code)
+		if not cut[code]:
+			kept.append(line)
+			continue
+		meta = result["meta"].pop(line["key"], {})
+		result["unpaid"].append(
+			{
+				"employee": line["employee"],
+				"employee_name": meta.get("employee_name"),
+				"statement": meta.get("statement"),
+				"kind": meta.get("nature"),
+				"date": None,
+				"hours": None,
+				"days": None,
+				"code": "wage_type_prorated",
+				"message": _(
+					"The component of wage type {0} is cut by the days paid: an amount paid for hours would be cut with it. Choose a wage type whose component does not depend on the payment days."
+				).format(code),
+			}
+		)
+	result["lines"] = kept
 	return result
 
 
@@ -357,6 +398,10 @@ def apply(company: str, year, month):
 	"""Make the Additional Salary of every line to create; what is already there is left alone."""
 	check_payroll_staff(company)
 	built = build(company, year, month)
+	for code in {line["wage_type_code"] for line in built["lines"]}:
+		if vp._component(code) is None:
+			# made here, for hours: it does not depend on the days paid (an existing one that does is refused by `build`)
+			frappe.db.set_value("Salary Component", vp.ensure_component(code), "depends_on_payment_days", 0)
 	return _answer(vp.apply(company, year, month, built["lines"]), built)
 
 
