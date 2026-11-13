@@ -224,6 +224,17 @@ def employee_facts(employee: str, monday) -> Facts:
 			"paid_leave": leave in ("paid", "compensatory"),
 			"leave": leave,
 		}
+	# a day the HR manager corrected counts the corrected hours, whatever the attendance said (correction.py)
+	from hrms.hr.working_time.correction import corrected_days
+
+	for day, correction in corrected_days(employee, monday, sunday).items():
+		seen = facts.attendance.get(day) or {}
+		facts.attendance[day] = {
+			**seen,
+			"status": "Present" if correction["hours"] else "Absent",
+			"working_hours": flt(correction["hours"]),
+			"corrected": correction["reason"],
+		}
 	return facts
 
 

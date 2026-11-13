@@ -25765,3 +25765,82 @@ msgstr "Votre remarque sur ce décompte"
 #: hrms/www/my-time.html
 msgid "Send the remark"
 msgstr "Envoyer la remarque"
+
+#: hrms/hr/working_time/correction.py
+msgid "Write each time as HH:MM."
+msgstr "Saisissez chaque heure au format HH:MM."
+
+#: hrms/hr/working_time/correction.py
+msgid "An interval ends after it starts, within the day: {0} – {1}."
+msgstr "Une plage doit finir après son début, dans la journée : {0} – {1}."
+
+#: hrms/hr/working_time/correction.py
+msgid "Two intervals of the day overlap."
+msgstr "Deux plages de la journée se chevauchent."
+
+#: hrms/hr/working_time/correction.py
+msgid "Say why the clock is corrected: the reason stays with the correction."
+msgstr "Indiquez le motif de la correction du pointage : ce motif reste rattaché à la correction."
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Corrected by {0}: {1}"
+msgstr "Corrigé par {0} : {1}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Correct"
+msgstr "Corriger"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Correct the clock of {0}"
+msgstr "Corriger le pointage du {0}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "The day's intervals"
+msgstr "Les plages de la journée"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "One interval a line, as 08:30-12:15. Leave it empty for a day not worked. The clock itself stays as it was: the correction is kept beside it."
+msgstr "Une plage par ligne, au format 08:30-12:15. Laissez vide pour une journée non travaillée. Le pointage lui-même reste tel quel : la correction est conservée à côté."
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Reason"
+msgstr "Motif"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Corrected"
+msgstr "Corrigé"
+
+#: hrms/hr/doctype/working_time_correction/working_time_correction.json
+msgid "Working Time Correction"
+msgstr "Correction du pointage"
+
+#: hrms/hr/doctype/working_time_correction/working_time_correction.json
+msgid "Corrected By"
+msgstr "Corrigé par"
+
+#: hrms/hr/doctype/working_time_correction/working_time_correction.json
+msgid "Corrected On"
+msgstr "Corrigé le"
+
+#: hrms/hr/doctype/working_time_correction/working_time_correction.json
+msgid "The Clock"
+msgstr "Le pointage"
+
+#: hrms/hr/doctype/working_time_correction/working_time_correction.json
+msgid "Hours Before"
+msgstr "Heures avant"
+
+#: hrms/hr/doctype/working_time_correction/working_time_correction.json
+msgid "Intervals Before"
+msgstr "Plages avant"
+
+#: hrms/hr/doctype/working_time_correction/working_time_correction.json
+msgid "Hours After"
+msgstr "Heures après"
+
+#: hrms/hr/doctype/working_time_correction/working_time_correction.json
+msgid "Intervals After"
+msgstr "Plages après"

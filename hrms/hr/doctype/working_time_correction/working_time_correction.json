@@ -1,0 +1,143 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-14 01:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "day",
+  "column_break_who",
+  "corrected_by",
+  "corrected_on",
+  "section_clock",
+  "hours_before",
+  "before",
+  "column_break_clock",
+  "hours_after",
+  "after",
+  "section_reason",
+  "reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "day",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Day",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_who",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "corrected_by",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Corrected By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "corrected_on",
+   "fieldtype": "Datetime",
+   "label": "Corrected On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_clock",
+   "fieldtype": "Section Break",
+   "label": "The Clock"
+  },
+  {
+   "fieldname": "hours_before",
+   "fieldtype": "Float",
+   "label": "Hours Before",
+   "read_only": 1
+  },
+  {
+   "fieldname": "before",
+   "fieldtype": "Long Text",
+   "label": "Intervals Before",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_clock",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "hours_after",
+   "fieldtype": "Float",
+   "label": "Hours After",
+   "read_only": 1
+  },
+  {
+   "fieldname": "after",
+   "fieldtype": "Long Text",
+   "label": "Intervals After",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_reason",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason",
+   "read_only": 1,
+   "reqd": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-14 01:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HR",
+ "name": "Working Time Correction",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "write": 1,
+   "create": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User"
+  }
+ ],
+ "sort_field": "corrected_on",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee_name",
+ "track_changes": 1
+}

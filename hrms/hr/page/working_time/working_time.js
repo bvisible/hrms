@@ -107,6 +107,57 @@ class WorkingTimeScreen {
 		this.$body.find("[data-ltw-move]").on("click", (event) => {
 			this.move(Number($(event.currentTarget).attr("data-ltw-move")));
 		});
+		this.$body.find("[data-ltw-correct]").on("click", (event) => {
+			const $button = $(event.currentTarget);
+			this.correct(
+				$button.attr("data-ltw-correct"),
+				($button.attr("data-ltw-clock") || "").split(" · ").filter(Boolean).join("\n"),
+			);
+		});
+	}
+
+	correct(day, clock) {
+		const dialog = new frappe.ui.Dialog({
+			title: __("Correct the clock of {0}", [ltw_date(day)]),
+			fields: [
+				{
+					fieldname: "intervals",
+					fieldtype: "Small Text",
+					label: __("The day's intervals"),
+					default: clock.replace(/ – /g, "-"),
+					description: __(
+						"One interval a line, as 08:30-12:15. Leave it empty for a day not worked. The clock itself stays as it was: the correction is kept beside it.",
+					),
+				},
+				{
+					fieldname: "reason",
+					fieldtype: "Small Text",
+					label: __("Reason", null, "working time"),
+					reqd: 1,
+				},
+			],
+			primary_action_label: __("Correct", null, "working time"),
+			primary_action: async (values) => {
+				const intervals = (values.intervals || "")
+					.split(/\n+/)
+					.map((line) => line.trim())
+					.filter(Boolean)
+					.map((line) => line.split(/\s*[-–]\s*/));
+				await frappe.xcall(`${LTW}.correction.correct_day`, {
+					employee: this.employee,
+					day,
+					intervals: JSON.stringify(intervals),
+					reason: values.reason,
+				});
+				dialog.hide();
+				frappe.show_alert({
+					message: __("Corrected", null, "working time"),
+					indicator: "green",
+				});
+				this.show_person();
+			},
+		});
+		dialog.show();
 	}
 
 	// ---------------------------------------------------------------------------------------- the team
@@ -474,7 +525,7 @@ class WorkingTimeScreen {
 					  )
 					: "—";
 				const difference = day.done + day.credited - day.due;
-				const clock = off
+				const plain = off
 					? `<span class="ltw-muted">${__("Day of rest", null, "working time")}</span>`
 					: holiday
 					  ? `<span class="ltw-muted">${__(
@@ -483,6 +534,25 @@ class WorkingTimeScreen {
 								"working time",
 					    )}</span>`
 					  : ltw_esc(day.clock) || "—";
+				const corrected = day.correction
+					? `<div class="ltw-small">${ltw_pill(
+							__("Corrected by {0}: {1}", [
+								day.correction.by,
+								day.correction.reason,
+							]),
+							"blue",
+					  )}</div>`
+					: "";
+				const fix = view.can_correct
+					? ` <button class="ltw-link" data-ltw-correct="${ltw_esc(
+							day.date,
+					  )}" data-ltw-clock="${ltw_esc(day.clock)}">${__(
+							"Correct",
+							null,
+							"working time",
+					  )}</button>`
+					: "";
+				const clock = `${plain}${fix}${corrected}`;
 				return `<div class="ltw-row ltw-days">
 					<span class="ltw-strong">${name}</span>
 					<span>${day.due ? ltw_hm(day.due) : "—"}</span>
@@ -736,6 +806,8 @@ a.ltw-row:hover{background:var(--subtle-fg,var(--control-bg));text-decoration:no
 .ltw-lots{grid-template-columns:repeat(5,minmax(0,1fr))}
 .ltw-th{border-top:0;background:var(--subtle-fg,var(--control-bg));font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
 .ltw-strong{font-weight:600}
+.ltw-small{margin-top:4px}
+.ltw-link{background:none;border:0;padding:0 0 0 6px;font-size:13px;font-weight:700;color:#AA3700}
 .ltw-muted{color:var(--text-muted)}
 .ltw-sub{font-family:Forum,Georgia,serif;font-size:22px}
 .ltw-notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}

@@ -19,7 +19,7 @@ night work) is taken out of the table by the client before confirming it: the en
 and range comes out (`date`, `label`, `article`, `hours`, `percent`, `amount_per_hour`). Turning a line into money
 is the payroll's: the hourly wage is the monthly one divided by the agreement's `hourly_divisor`.
 `worked_intervals` reads the intervals of an employee from their check-ins (an IN, then the next OUT), or from the
-attendance's in and out times when there are none.
+attendance's in and out times when there are none; a day the HR manager corrected is read from its correction.
 """
 
 import datetime
@@ -136,6 +136,14 @@ def worked_intervals(employee: str, first, last) -> list:
 	for row in rows:
 		if getdate(row.attendance_date) not in worked_days:
 			intervals.append((get_datetime(row.in_time), get_datetime(row.out_time)))
+	# a day the HR manager corrected is read from the correction, never from the clock (correction.py)
+	from hrms.hr.working_time.correction import as_datetimes, corrected_days
+
+	corrected = corrected_days(employee, first, last)
+	if corrected:
+		intervals = [pair for pair in intervals if pair[0].date() not in corrected]
+		for day, correction in corrected.items():
+			intervals.extend(as_datetimes(day, correction["intervals"]))
 	return sorted(intervals)
 
 

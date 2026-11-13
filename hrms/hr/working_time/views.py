@@ -326,6 +326,16 @@ def team_view(day=None) -> dict:
 	}
 
 
+def _correction(found) -> dict | None:
+	if not found:
+		return None
+	return {
+		"reason": found["reason"],
+		"by": frappe.utils.get_fullname(found["by"]) if found["by"] else "",
+		"on": found["on"],
+	}
+
+
 @frappe.whitelist()
 def week_view(employee: str, day=None) -> dict:
 	"""An employee's week as its screen shows it: the days, the clock, the credits, the figures and the approval.
@@ -335,6 +345,7 @@ def week_view(employee: str, day=None) -> dict:
 	import datetime
 
 	from hrms.hr.working_time.agreement import rules_for
+	from hrms.hr.working_time.correction import CORRECTION_DOCTYPE, corrected_days
 	from hrms.hr.working_time.supplements import worked_intervals
 	from hrms.hr.working_time.week import compute_week, employee_facts
 
@@ -394,6 +405,7 @@ def week_view(employee: str, day=None) -> dict:
 		],
 		as_dict=True,
 	)
+	corrections = corrected_days(employee, monday, sunday)
 	order = confirmed.source("employer_order_required")
 	answer.update(
 		{
@@ -418,6 +430,7 @@ def week_view(employee: str, day=None) -> dict:
 					**entry,
 					"clock": " · ".join(clock.get(getdate(entry["date"]), [])),
 					"leave_type": leaves.get(getdate(entry["date"])) or "",
+					"correction": _correction(corrections.get(getdate(entry["date"]))),
 				}
 				for entry in (week.days if week else [])
 			],
@@ -429,6 +442,7 @@ def week_view(employee: str, day=None) -> dict:
 				and frappe.has_permission("Working Time Week", "write")
 			),
 			"approval_article": order.get("article") or "",
+			"can_correct": frappe.has_permission(CORRECTION_DOCTYPE, "create"),
 			"legal_weekly_maximum": confirmed.get("legal_weekly_maximum"),
 		}
 	)
