@@ -91,19 +91,30 @@
   {
    "rule": "travel_time",
    "value": {
-    "compte_dans_les_heures_de_l_annee": false,
-    "paye": "Le trajet aller et retour depuis le lieu de rassemblement ne compte pas dans les heures de l'année ; il est payé le mois suivant au salaire de base, sous déduction de la part forfaitaire.",
-    "part_forfaitaire_minutes": {
-     "2026-2028": 30,
-     "2029": 25,
-     "dès 2030": 20
+    "counts_in_yearly_hours": false,
+    "paid": "Le trajet aller et retour depuis le lieu de rassemblement ne compte pas dans les heures de l'année ; il est payé le mois suivant au salaire de base, sous déduction de la part forfaitaire.",
+    "flat_share_minutes": [
+     {
+      "from_year": 2026,
+      "to_year": 2028,
+      "minutes": 30
+     },
+     {
+      "from_year": 2029,
+      "to_year": 2029,
+      "minutes": 25
+     },
+     {
+      "from_year": 2030,
+      "minutes": 20
+     }
+    ],
+    "daily_threshold_minutes": {
+     "calendar": 60,
+     "constant_plan": 90
     },
-    "seuil_par_jour_minutes": {
-     "calendrier": 60,
-     "plan_constant": 90
-    },
-    "au_dela_du_seuil": "Dès le 01-01-2027, le temps au-delà du seuil va au compte d'heures.",
-    "minutes_de_bonus": "Jusqu'à 10 minutes peuvent compter comme temps de travail au lieu d'être payées."
+    "beyond_threshold": "Dès le 01-01-2027, le temps au-delà du seuil va au compte d'heures.",
+    "bonus_minutes": "Jusqu'à 10 minutes peuvent compter comme temps de travail au lieu d'être payées."
    },
    "status": "found",
    "source": "LMV",
