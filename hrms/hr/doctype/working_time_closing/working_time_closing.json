@@ -1,0 +1,198 @@
+{
+ "actions": [],
+ "autoname": "format:{employee}-{closing_date}",
+ "creation": "2026-11-13 22:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "closing_date",
+  "status",
+  "column_break_who",
+  "agreement",
+  "hours",
+  "section_employer",
+  "employer_hours",
+  "employer_choice",
+  "column_break_employer",
+  "employer_by",
+  "employer_on",
+  "section_employee",
+  "employee_hours",
+  "employee_choice",
+  "column_break_employee",
+  "employee_by",
+  "employee_on",
+  "section_options",
+  "options"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "closing_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Closing Date",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Waiting\nDecided",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_who",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "agreement",
+   "fieldtype": "Link",
+   "label": "Labour Agreement",
+   "options": "Labour Agreement",
+   "read_only": 1
+  },
+  {
+   "fieldname": "hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Balance at the Closing",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_employer",
+   "fieldtype": "Section Break",
+   "label": "The Employer's Share"
+  },
+  {
+   "fieldname": "employer_hours",
+   "fieldtype": "Float",
+   "label": "Hours of the Share",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employer_choice",
+   "fieldtype": "Small Text",
+   "label": "Choice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_employer",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "employer_by",
+   "fieldtype": "Link",
+   "label": "Decided By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employer_on",
+   "fieldtype": "Datetime",
+   "label": "Decided On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_employee",
+   "fieldtype": "Section Break",
+   "label": "The Employee's Share"
+  },
+  {
+   "fieldname": "employee_hours",
+   "fieldtype": "Float",
+   "label": "Hours of the Share",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee_choice",
+   "fieldtype": "Small Text",
+   "label": "Choice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_employee",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "employee_by",
+   "fieldtype": "Link",
+   "label": "Decided By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee_on",
+   "fieldtype": "Datetime",
+   "label": "Decided On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_options",
+   "fieldtype": "Section Break",
+   "label": "The Agreement's Choices"
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Long Text",
+   "label": "Choices",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-13 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HR",
+ "name": "Working Time Closing",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "write": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User"
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "role": "Employee"
+  }
+ ],
+ "sort_field": "closing_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee_name",
+ "track_changes": 1
+}

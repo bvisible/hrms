@@ -111,7 +111,16 @@ def balance_of(employee: str, on_date=None):
 		recorded=_recorded([week.monday for week in weeks], on_date),
 		communicated=_communicated(employee, weeks[0].monday if weeks else None, on_date),
 	)
-	return compute_balance(rules, weeks, on_date, extended_in_writing=extended, supplement=supplement)
+	from hrms.hr.working_time.closing import decisions_of
+
+	return compute_balance(
+		rules,
+		weeks,
+		on_date,
+		extended_in_writing=extended,
+		supplement=supplement,
+		decisions=decisions_of(employee),
+	)
 
 
 def _recorded(mondays, on_date) -> bool:
@@ -152,19 +161,26 @@ def _communicated(employee: str, first_monday, on_date) -> bool:
 
 
 def record_recent_weeks():
-	"""Scheduler (daily): the last week and this one, for every active employee tied to an agreement."""
+	"""Scheduler (daily): the last week and this one, and the closings reached, for every active employee tied to
+	an agreement."""
 	if not frappe.get_meta("Employee").has_field(EMPLOYEE_FIELD):
 		return
 	today = getdate(nowdate())
 	employees = frappe.get_all(
 		"Employee", filters={"status": "Active", EMPLOYEE_FIELD: ["is", "set"]}, pluck="name"
 	)
+	from hrms.hr.working_time.closing import record_closings
+
 	for employee in employees:
 		for day in (add_days(today, -7), today):
 			try:
 				record_week(employee, day)
 			except Exception:
 				frappe.log_error("Working time: a week could not be recorded", frappe.get_traceback())
+		try:
+			record_closings(employee, today)
+		except Exception:
+			frappe.log_error("Working time: a closing could not be recorded", frappe.get_traceback())
 
 
 def rest_of(employee: str, on_date=None):

@@ -227,11 +227,14 @@ permission_query_conditions = {
 	"Swiss Salary Certificate": "hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.get_permission_query_conditions",
 	# //// Neoffice — an employee reads their own monthly working-time statements, never a colleague's (lot T, #2623).
 	"Working Time Statement": "hrms.hr.working_time.statement.get_permission_query_conditions",
+	# //// Neoffice — an employee reads their own closings of the yearly balance, never a colleague's (lot T, #2623).
+	"Working Time Closing": "hrms.hr.working_time.closing.get_permission_query_conditions",
 }
 
 has_permission = {
 	"Swiss Salary Certificate": "hrms.payroll.doctype.swiss_salary_certificate.swiss_salary_certificate.has_permission",
 	"Working Time Statement": "hrms.hr.working_time.statement.has_permission",  # //// Neoffice — lot T, as above
+	"Working Time Closing": "hrms.hr.working_time.closing.has_permission",  # //// Neoffice — lot T, as above
 }
 
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}

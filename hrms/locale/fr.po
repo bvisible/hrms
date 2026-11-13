@@ -24997,3 +24997,39 @@ msgstr "Décompte du temps de travail {0} : {1}, {2} {3} ({4})"
 #, python-brace-format
 msgid "{0} per hour"
 msgstr "{0} par heure"
+
+#: hrms/hr/doctype/working_time_closing/working_time_closing.json
+msgid "Working Time Closing"
+msgstr "Bouclement des heures"
+
+#: hrms/hr/doctype/working_time_closing/working_time_closing.json
+msgid "Balance at the Closing"
+msgstr "Solde au bouclement"
+
+#: hrms/hr/doctype/working_time_closing/working_time_closing.json
+msgid "The Employer's Share"
+msgstr "La part de l'employeur"
+
+#: hrms/hr/doctype/working_time_closing/working_time_closing.json
+msgid "Hours of the Share"
+msgstr "Heures de la part"
+
+#: hrms/hr/doctype/working_time_closing/working_time_closing.json
+msgid "The Employee's Share"
+msgstr "La part de l'employé"
+
+#: hrms/hr/doctype/working_time_closing/working_time_closing.json
+msgid "The Agreement's Choices"
+msgstr "Les choix prévus par la convention"
+
+#: hrms/hr/working_time/closing.py
+msgid "This share of the closing is already decided."
+msgstr "Cette part du bouclement est déjà décidée."
+
+#: hrms/hr/working_time/closing.py
+msgid "Choose one of the agreement's choices for this share."
+msgstr "Pour cette part, prenez l'un des choix prévus par la convention."
+
+#: hrms/hr/working_time/closing.py
+msgid "Only the employee of a closing decides their share."
+msgstr "Seul l'employé concerné par le bouclement peut décider de sa part."

@@ -13,7 +13,9 @@ Three ways of keeping it, a rule of the agreement (`balance_kind`), and a legal 
 - **Annual balance**: one running balance between a floor and a ceiling; at the end of each month the hours above
   the ceiling are to be paid (without supplement until the agreement's number of hours paid that year, with it
   after), the hours below the floor lapse; at the closing day the balance left waits for the decisions the
-  agreement shares out (half for the employer, half for the employee, say).
+  agreement shares out (half for the employer, half for the employee, say). A decided share to pay leaves the
+  balance as a line to pay, with the choice's supplement; a share moved to a long-term account leaves it too;
+  a share kept stays.
 - **The legal counter**: the hours above the legal maximum of the week, added up per calendar year, against the
   legal yearly cap. A warning, never a block.
 
@@ -37,6 +39,7 @@ from frappe.utils import flt, getdate
 from hrms.hr.working_time import rules as catalogue
 
 EPSILON = 1e-6
+KEEP, PAY, LONG_TERM = "keep", "pay", "long_term"  # what a share decided at the closing becomes
 
 
 @dataclass
@@ -60,6 +63,7 @@ class Balance:
 	)  # {"on": date, "hours": h, "supplement_percent": p, "why": key}
 	lapsed: list = field(default_factory=list)  # hours short beyond the floor, at the employer's charge
 	closings: list = field(default_factory=list)  # {"on": date, "hours": h, "employer_share": .5, ...}
+	moved: list = field(default_factory=list)  # {"on": date, "hours": h}: shares moved to a long-term account
 	legal: dict = field(default_factory=dict)  # {year: hours above the legal maximum}
 	legal_cap: float | None = None
 	warnings: list = field(default_factory=list)
@@ -103,12 +107,18 @@ def overtime_supplement(rules, recorded: bool = False, communicated: bool = Fals
 
 
 def compute_balance(
-	rules, weeks: list, on_date, extended_in_writing: bool = False, supplement: dict | None = None
+	rules,
+	weeks: list,
+	on_date,
+	extended_in_writing: bool = False,
+	supplement: dict | None = None,
+	decisions: dict | None = None,
 ) -> Balance | None:
 	"""The balance on `on_date` from the weeks up to it, or None when the agreement does not say how it is kept.
 
 	`supplement` is what `overtime_supplement` says from the facts of the person; without it, the conditions of a
-	conditional supplement are taken as not met."""
+	conditional supplement are taken as not met. `decisions` are the shares decided at each closing day
+	({day: [{"hours", "action", "supplement_percent"}]}, from `closing.decisions_of`)."""
 	kind = rules.get("balance_kind")
 	if kind not in (catalogue.EXPIRING_LOTS, catalogue.SLIDING_BALANCE, catalogue.ANNUAL_BALANCE):
 		return None
@@ -118,7 +128,7 @@ def compute_balance(
 	if kind == catalogue.EXPIRING_LOTS:
 		_lots(rules, weeks, on_date, extended_in_writing, result)
 	else:
-		_running(rules, weeks, on_date, kind, result)
+		_running(rules, weeks, on_date, kind, result, decisions or {})
 	_legal(rules, weeks, result)
 	result.total = flt(result.total, 4)
 	return result
@@ -167,7 +177,7 @@ def _expire(open_lots, day, result):
 			open_lots.remove(lot)
 
 
-def _running(rules, weeks, on_date, kind, result):
+def _running(rules, weeks, on_date, kind, result, decisions):
 	balance = 0.0
 	paid_this_year, year = 0.0, None
 	threshold = rules.get("payment_threshold_hours")
@@ -203,6 +213,22 @@ def _running(rules, weeks, on_date, kind, result):
 						"options": decision.get("options") or [],
 					}
 				)
+			for share in decisions.get(day, []):
+				hours = flt(share.get("hours"))
+				if share.get("action") not in (PAY, LONG_TERM) or hours <= EPSILON:
+					continue
+				balance -= hours
+				if share["action"] == PAY:
+					result.payable.append(
+						{
+							"on": day,
+							"hours": flt(hours, 4),
+							"supplement_percent": share.get("supplement_percent"),
+							"why": "closing",
+						}
+					)
+				else:
+					result.moved.append({"on": day, "hours": flt(hours, 4)})
 			continue
 		limit = threshold if kind == catalogue.SLIDING_BALANCE else ceiling
 		if limit is not None and balance > flt(limit) + EPSILON:

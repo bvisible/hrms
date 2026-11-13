@@ -128,6 +128,8 @@ RULES = {
 	"balance_ceiling_hours": Rule("hours", "overtime", _lt("Highest balance")),
 	"balance_floor_hours": Rule("hours", "overtime", _lt("Hours short the balance may carry")),
 	"closing_date": Rule("month_day", "overtime", _lt("Closing of the balance")),
+	# each option: {"label": the words the client reads, "action": "keep", "pay" or "long_term",
+	# "supplement_percent": for a payment}; a bare text is an option the engine only records
 	"closing_decision": Rule(
 		"object",
 		"overtime",

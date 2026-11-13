@@ -209,9 +209,19 @@
     "employer_share": 0.5,
     "employee_share": 0.5,
     "options": [
-     "Laisser les heures au compte",
-     "Les payer fin janvier avec 25 %",
-     "Les verser au compte de vacances de longue durée, s'il a été convenu par écrit"
+     {
+      "label": "Laisser les heures au compte",
+      "action": "keep"
+     },
+     {
+      "label": "Les payer fin janvier avec 25 %",
+      "action": "pay",
+      "supplement_percent": 25
+     },
+     {
+      "label": "Les verser au compte de vacances de longue durée, s'il a été convenu par écrit",
+      "action": "long_term"
+     }
     ],
     "default_if_no_decision": null
    },
