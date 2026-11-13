@@ -365,7 +365,7 @@ def create_employee(data):
 		ssa.submit()
 		assignment = ssa.name
 
-	allocation = _allocate_vacation(employee, cint(data.get("vacation_days")))
+	allocation = _allocate_vacation(employee, _vacation_days_a_year(data))
 
 	frappe.db.commit()
 	return {
@@ -396,6 +396,14 @@ def other_employment_fields(data):
 		if basis == "Gross Income"
 		else 0,
 	}
+
+
+# //// Neoffice — the days were read with cint, which cut 22.5 to 22: a half day lost a year for everyone entitled to
+# //// 22.5 or 27.5 days (the collective agreement of hairdressing, and any contract that gives a half day). The days stay a
+# //// float; `_allocate_vacation` already works to the half day. Read once here, so the two entry points cannot differ.
+def _vacation_days_a_year(data):
+	"""The wizard's « vacation days a year », half days kept."""
+	return flt(data.get("vacation_days"))
 
 
 def _allocate_vacation(employee, days_a_year):
@@ -660,10 +668,10 @@ def complete_employee(employee, data):
 
 	assignment = _assign_salary(doc, data)
 	allocation = None
-	if cint(data.get("vacation_days")) > 0 and not frappe.db.exists(
+	if _vacation_days_a_year(data) > 0 and not frappe.db.exists(
 		"Leave Allocation", {"employee": doc.name, "docstatus": 1}
 	):
-		allocation = _allocate_vacation(doc, cint(data.get("vacation_days")))
+		allocation = _allocate_vacation(doc, _vacation_days_a_year(data))
 
 	following = next_employee_to_finish(after=doc.name)
 	return {

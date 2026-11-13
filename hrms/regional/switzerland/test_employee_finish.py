@@ -177,6 +177,14 @@ class TestFinishTheRecord(FrappeTestCase):
 		self.assertEqual(doc.designation, "Finish Test Designation")
 		self.addCleanup(frappe.delete_doc, "Designation", "Finish Test Designation", force=1, ignore_permissions=True)
 
+	def test_finishing_keeps_the_half_day_of_the_yearly_vacation(self):
+		record = self._record("vacation", date_of_joining="2026-01-01")
+		data = self._data(record, date_of_joining="2026-01-01", vacation_days=22.5)
+		out = wizard.complete_employee(record.name, data)
+		# the whole year, 22.5 days a year: it was cut to 22 (cint) before the allocation
+		allocated = frappe.db.get_value("Leave Allocation", out["leave_allocation"], "new_leaves_allocated")
+		self.assertEqual(allocated, 22.5)
+
 	def test_a_blank_never_erases_what_the_record_holds(self):
 		record = self._record("keeps", personal_email="keeps@example.ch", cell_number="079 111 11 11")
 		wizard.complete_employee(record.name, self._data(record, email="", mobile=""))

@@ -406,6 +406,19 @@ class TestEmployeeWizardHiring(SiteSafeTestCase):
 		)
 		self.assertEqual((allocation.new_leaves_allocated, allocation.docstatus), (6.5, 1))
 
+	def test_a_hire_keeps_the_half_day_of_the_yearly_vacation(self):
+		# Hired on 1 January the whole year counts: 22.5 days a year are 22.5. They were cut to 22 (cint) before the allocation.
+		hired = {"permit_type": "Permit C (Settlement)", "canton": "VD", "date_of_joining": "2026-01-01"}
+		# a number, and a string as a form or a script may send it
+		for sent, allocated in ((22.5, 22.5), ("27.5", 27.5)):
+			with self.subTest(vacation_days=sent):
+				# the employee is named after the person: one name for each hire
+				result = self.hire(**hired, last_name=f"HalfDay{allocated}", vacation_days=sent)
+				self.assertEqual(
+					frappe.db.get_value("Leave Allocation", result["leave_allocation"], "new_leaves_allocated"),
+					allocated,
+				)
+
 	def test_without_an_email_the_payslip_is_handed_out(self):
 		employee = self.hire(permit_type="Permit C (Settlement)", canton="VD")["employee"]
 		self.assertEqual(frappe.db.get_value("Employee", employee, "ch_payslip_delivery"), "By Hand")

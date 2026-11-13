@@ -330,7 +330,9 @@ class SwissEmployeeWizard {
 				{
 					fieldname: "vacation_days",
 					label: __("Vacation days a year"),
-					fieldtype: "Int",
+					// //// Neoffice — an Int field cut 22.5 to 22 (a half day lost a year); the days are kept to the half day.
+					fieldtype: "Float",
+					precision: 1,
 					description: __("At least 20 by law, 25 until the age of 20."),
 				},
 			];
