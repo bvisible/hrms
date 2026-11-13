@@ -76,6 +76,7 @@ RULES = {
 		columns=("status", "hours"),
 		required=("status", "hours"),
 	),
+	"company_status": Rule("text", "time", _lt("Status of the company")),
 	"annual_hours": Rule("hours", "time", _lt("Hours of the year")),
 	"calendar_week_min": Rule("hours", "time", _lt("Fewest hours a week of the calendar may plan")),
 	"calendar_week_max": Rule("hours", "time", _lt("Most hours a week of the calendar may plan")),

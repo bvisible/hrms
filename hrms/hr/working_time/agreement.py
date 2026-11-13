@@ -22,6 +22,7 @@ DOCTYPE = "Labour Agreement"
 ROW = "Labour Agreement Rule"
 EMPLOYEE_FIELD = "labour_agreement"
 EXTENSION_FIELD = "agreement_written_extension"
+CONTRACT_HOURS_FIELD = "contract_weekly_hours"
 
 TO_CONFIRM, CONFIRMED, DEDUCED, NOT_FOUND = "To confirm", "Confirmed", "Deduced", "Not found"
 STATES = (TO_CONFIRM, CONFIRMED, DEDUCED, NOT_FOUND)

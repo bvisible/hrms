@@ -24606,3 +24606,15 @@ msgstr "Sans calendrier de l'entreprise"
 #: hrms/hr/working_time/rules.py
 msgid "Years the records are kept"
 msgstr "Années de conservation des registres"
+
+#: hrms/hr/working_time/rules.py
+msgid "Status of the company"
+msgstr "Statut de l'entreprise"
+
+#: hrms/hr/working_time/setup.py
+msgid "Hours a Week of the Contract"
+msgstr "Heures par semaine du contrat"
+
+#: hrms/hr/working_time/setup.py
+msgid "The hours due when the agreement draws them from the contract (the law alone, for instance)."
+msgstr "Les heures dues lorsque la convention les tire du contrat (la loi seule, par exemple)."
