@@ -25253,3 +25253,23 @@ msgstr "Un solde glissant"
 #: hrms/hr/working_time/rules.py
 msgid "Annual balance"
 msgstr "Un solde de l'année"
+
+#: hrms/hr/working_time/views.py
+msgctxt "Labour Agreement Rule"
+msgid "Confirmed"
+msgstr "Confirmée"
+
+#: hrms/hr/working_time/views.py
+msgctxt "Labour Agreement Rule"
+msgid "To confirm"
+msgstr "À confirmer"
+
+#: hrms/hr/working_time/views.py
+msgctxt "Labour Agreement Rule"
+msgid "Deduced, to check"
+msgstr "Déduite, à vérifier"
+
+#: hrms/hr/working_time/views.py
+msgctxt "Labour Agreement Rule"
+msgid "Not found"
+msgstr "Introuvable"

@@ -161,9 +161,11 @@ function lta_source(row) {
 	if (row.state === "Not found") {
 		return `<span class="lta-muted">${__("Not found in the text, left empty")}</span>`;
 	}
-	const article = row.article ? `<b>${frappe.utils.escape_html(row.article)}</b>` : "";
+	// the article, the version and the date read; the title of the text is the link's own words
+	const article = row.article
+		? `<b>${frappe.utils.escape_html(row.article)}</b>`
+		: frappe.utils.escape_html(row.source);
 	const rest = [
-		row.source,
 		row.version && __("version {0}", [row.version]),
 		row.read_on && __("read on {0}", [frappe.datetime.str_to_user(row.read_on)]),
 	]
@@ -171,9 +173,12 @@ function lta_source(row) {
 		.map(frappe.utils.escape_html)
 		.join(" · ");
 	const text = [article, rest].filter(Boolean).join(" · ");
+	const title = frappe.utils.escape_html(row.source || "");
 	return row.url
-		? `<a href="${encodeURI(row.url)}" target="_blank" rel="noopener noreferrer">${text}</a>`
-		: text;
+		? `<a href="${encodeURI(
+				row.url,
+		  )}" target="_blank" rel="noopener noreferrer" title="${title}">${text}</a>`
+		: `<span title="${title}">${text}</span>`;
 }
 
 function lta_lines(view) {
@@ -476,7 +481,7 @@ function lta_style() {
 .lta-pick{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:12px;border:1px solid var(--border-color);background:var(--card-bg);margin:0 0 10px;font-weight:400;cursor:pointer}
 .lta-pick.is-on{border-color:#F55D1A;background:rgba(245,93,26,.06)}
 .lta-pick input{margin-top:4px}
-@media (max-width:768px){.lta-row{grid-template-columns:1fr}.lta-th{display:none}.lta-count{text-align:left}}
+@media (max-width:768px){.lta-row{grid-template-columns:1fr}.lta-th{display:none}.lta-hero{flex-direction:column;align-items:flex-start}.lta-count{text-align:left}.lta-title{font-size:26px}}
 `;
 	document.head.appendChild(style);
 }

@@ -172,7 +172,10 @@ def agreement_view(agreement: str) -> dict:
 				"url": row.source_url or "",
 				"read_on": row.read_on,
 				"state": row.state,
-				"state_label": _(STATE_LABELS.get(row.state, row.state or "")),
+				# a line is feminine in French (« confirmée »): the bare word of another app would not agree
+				"state_label": _(
+					STATE_LABELS.get(row.state, row.state or ""), context="Labour Agreement Rule"
+				),
 				"confirmed_by": frappe.utils.get_fullname(row.confirmed_by) if row.confirmed_by else "",
 				"confirmed_on": row.confirmed_on,
 				"note": row.note or "",
