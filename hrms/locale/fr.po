@@ -24814,3 +24814,11 @@ msgstr "Rédigez votre remarque."
 #: hrms/hr/working_time/statement.py
 msgid "Your remark is waiting for its answer: the statement is countersigned once it is answered."
 msgstr "Votre remarque attend une réponse : le décompte sera contresigné une fois celle-ci donnée."
+
+#: hrms/hr/working_time/statement.py
+msgid "There is no employee {0}."
+msgstr "Il n'existe aucun employé {0}."
+
+#: hrms/hr/working_time/statement.py
+msgid "{0} is tied to no labour agreement: there is no statement of their hours."
+msgstr "{0} n'est rattaché à aucune convention : il n'existe aucun décompte de ses heures."

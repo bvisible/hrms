@@ -62,6 +62,12 @@ def establish_statement(employee: str, month) -> str:
 	"""Establish (or establish again, until countersigned) an employee's statement of a month. Returns its name."""
 	# the engine creates statements (in_create): establishing one is the HR manager's, who may write them
 	frappe.has_permission(STATEMENT_DOCTYPE, "write", throw=True)
+	if not frappe.db.exists("Employee", employee):
+		frappe.throw(_("There is no employee {0}.").format(employee))
+	if not frappe.db.get_value("Employee", employee, EMPLOYEE_FIELD):
+		frappe.throw(
+			_("{0} is tied to no labour agreement: there is no statement of their hours.").format(employee)
+		)
 	first = getdate(month).replace(day=1)
 	last = getdate(get_last_day(first))
 	name = frappe.db.get_value(STATEMENT_DOCTYPE, {"employee": employee, "month": first})

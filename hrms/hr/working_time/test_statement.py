@@ -186,3 +186,11 @@ class TestTheMonthlyStatement(FrappeTestCase):
 				statement.establish_statement(self.anna, NOVEMBER)
 			with self.assertRaises(frappe.PermissionError):
 				statement.answer_remark(name, "non")
+
+	def test_an_unknown_employee_or_one_without_an_agreement_gets_no_statement(self):
+		with as_role(MANAGER), self.assertRaisesRegex(frappe.ValidationError, "no employee"):
+			statement.establish_statement("_no such employee", NOVEMBER)
+		frappe.db.set_value("Employee", self.bruno, agreement.EMPLOYEE_FIELD, None)
+		with as_role(MANAGER), self.assertRaisesRegex(frappe.ValidationError, "no labour agreement"):
+			statement.establish_statement(self.bruno, NOVEMBER)
+		self.assertFalse(frappe.db.exists(statement.STATEMENT_DOCTYPE, {"employee": "_no such employee"}))
