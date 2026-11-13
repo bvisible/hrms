@@ -7,17 +7,20 @@
 A template arrives with no line confirmed; the engine reads only the confirmed lines, an indicative reading says
 it is one; a confirmation is a person and a moment; a confirmed line that changes is to be confirmed again; a line
 is confirmed with its value and its source; the HR user reads and does not confirm. Every template's line is a
-rule of the catalogue, with a source and a value of the right shape, and the engine names no trade.
+rule of the catalogue, with a source and a value of the right shape, and the engine names no trade. A count of
+vacation in calendar days warns when the vacation leave type counts working days.
 """
 
 import os
 import re
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.roles import as_role
 from frappe.tests.utils import FrappeTestCase
 
 from hrms.hr.working_time import agreement, rules, setup, templates
+from hrms.regional.switzerland import vacation
 
 MANAGER = "lt-hr-manager@yopmail.com"
 READER = "lt-hr-user@yopmail.com"
@@ -172,6 +175,31 @@ class TestLabourAgreement(FrappeTestCase):
 			doc.append("rules", {"rule": "overtime_supplement_percent", "value": "25", "source_title": "Ici"})
 			with self.assertRaisesRegex(frappe.ValidationError, "already on the agreement"):
 				doc.save()
+
+	def test_a_count_in_calendar_days_warns_when_the_vacation_leave_type_counts_working_days(self):
+		found = frappe.get_all("Leave Type", pluck="name", limit=1)
+		if not found:
+			self.skipTest("no leave type on this site")
+		for counts_holidays, warned in ((0, True), (1, False)):
+			frappe.db.set_value("Leave Type", found[0], "include_holiday", counts_holidays)
+			name = self.copy("ch_hotels_restaurants_ccnt_2017", name=f"_Test calendar days {counts_holidays}")
+			frappe.clear_messages()
+			with as_role(MANAGER), patch.object(vacation, "vacation_leave_type", return_value=found[0]):
+				doc = frappe.get_doc(agreement.DOCTYPE, name)
+				next(row for row in doc.rules if row.rule == "vacation_unit").state = agreement.CONFIRMED
+				doc.save()
+			said = any("calendar days" in str(message) for message in frappe.message_log)
+			self.assertEqual(said, warned, f"the leave type counts the holidays: {counts_holidays}")
+		frappe.db.set_value("Leave Type", found[0], "include_holiday", 0)
+		name = self.copy("ch_law_only", name="_Test working days")
+		frappe.clear_messages()
+		with as_role(MANAGER), patch.object(vacation, "vacation_leave_type", return_value=found[0]):
+			doc = frappe.get_doc(agreement.DOCTYPE, name)
+			next(row for row in doc.rules if row.rule == "vacation_unit").state = agreement.CONFIRMED
+			doc.save()
+		self.assertFalse(
+			any("calendar days" in str(message) for message in frappe.message_log), "a count in working days"
+		)
 
 	def test_an_employee_without_an_agreement_gets_no_rule(self):
 		employee = frappe.get_all("Employee", filters={"status": "Active"}, pluck="name", limit=1)

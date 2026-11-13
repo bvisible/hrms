@@ -8,6 +8,10 @@ Its lines are the client's values, each with its source. A line counts for the e
 the controller keeps that promise whatever the screen does: a line confirmed in this save is stamped with the person
 and the moment, a confirmed line whose value or source changes goes back to « to confirm », and a line is only
 confirmed with a value and a source.
+
+An agreement that counts vacation in calendar days (five weeks = 35 days) needs the site's vacation leave type to
+count the public holidays and days off inside a leave too: otherwise hrms counts working days, and 35 of them are
+seven weeks. Confirming that line says so when the leave type does not.
 """
 
 import frappe
@@ -37,6 +41,27 @@ class LabourAgreement(Document):
 			if row.state != CONFIRMED:
 				row.confirmed_by = None
 				row.confirmed_on = None
+		self._warn_calendar_days()
+
+	def _warn_calendar_days(self):
+		"""Say it when a confirmed count in calendar days meets a vacation leave type that counts working days."""
+		unit = next(
+			(row for row in self.rules if row.rule == "vacation_unit" and row.state == CONFIRMED), None
+		)
+		if not unit or rules.parse(unit.rule, unit.value) != rules.CALENDAR_DAYS:
+			return
+		from hrms.regional.switzerland.vacation import vacation_leave_type
+
+		leave_type = vacation_leave_type()
+		if leave_type and not frappe.db.get_value("Leave Type", leave_type, "include_holiday"):
+			frappe.msgprint(
+				_(
+					"This agreement counts vacation in calendar days, but the leave type {0} counts working days: "
+					"tick « Include holidays within leaves as leaves » on it, or a leave of 35 days lasts seven weeks."
+				).format(leave_type),
+				indicator="orange",
+				alert=True,
+			)
 
 	def _check_rule(self, row, seen):
 		try:

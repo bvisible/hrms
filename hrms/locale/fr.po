@@ -24846,3 +24846,7 @@ msgstr "Jours de congé compensatoire"
 #: hrms/hr/doctype/working_time_week/working_time_week.json
 msgid "The days of rest of the week: a leave on a working day is not one."
 msgstr "Les jours de repos de la semaine : un congé pris un jour ouvrable n'en est pas un."
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.py
+msgid "This agreement counts vacation in calendar days, but the leave type {0} counts working days: tick « Include holidays within leaves as leaves » on it, or a leave of 35 days lasts seven weeks."
+msgstr "Cette convention compte les vacances en jours civils, alors que le type de congé {0} compte les jours ouvrables : cochez-y « Inclure les vacances dans les congés en tant que congés », sinon un congé de 35 jours dure sept semaines."
