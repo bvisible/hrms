@@ -25844,3 +25844,8 @@ msgstr "Heures après"
 #: hrms/hr/doctype/working_time_correction/working_time_correction.json
 msgid "Intervals After"
 msgstr "Plages après"
+
+#: hrms/hr/working_time/menu.py
+msgctxt "Labour agreements"
+msgid "Agreements"
+msgstr "Conventions"

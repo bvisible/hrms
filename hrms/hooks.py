@@ -112,6 +112,10 @@ website_route_rules = [
 unpress_plugins = ["hrms.hr.careers.plugin.manifest"]
 # //// Neoffice — added: the shop's sitemap index names /sitemap_jobs.xml (webshop seo/sitemaps.py).
 sitemap_index_entries = ["hrms.hr.careers.seo.sitemap_index_entries"]
+# //// Neoffice — added: the working time in the HR space's menu (hr/working_time/menu.py, neoffice-maintenance#2623):
+# //// the agreements, the weeks and balances, the monthly statements. Neoffice's theme reads this hook to build a
+# //// space's tab bar; without the theme nothing calls it.
+neoffice_workspace_tabs = ["hrms.hr.working_time.menu.tabs"]
 # Jinja
 # ----------
 
