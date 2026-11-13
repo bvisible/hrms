@@ -87,6 +87,9 @@ frappe.ui.SwissPayrollSetup = class SwissPayrollSetup {
 				bot_name: __("Swiss Payroll Assistant"),
 				placeholder: __("Describe your company setup..."),
 				enable_upload: false,
+				// « Help » beside the assistant's name: the manual's pages for the question, asked with this page's
+				// subject (a module of Nora's one conversation, nora_chat_features.js)
+				features: { blocks: { topic: __("Swiss Payroll") } },
 			},
 		});
 
