@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "creation": "2026-11-13 18:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "istable": 1,
+ "field_order": [
+  "rule",
+  "label",
+  "value",
+  "state",
+  "column_break_source",
+  "source_title",
+  "source_article",
+  "source_version",
+  "source_url",
+  "read_on",
+  "section_confirmation",
+  "confirmed_by",
+  "confirmed_on",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "rule",
+   "fieldtype": "Data",
+   "label": "Rule",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "What It Says",
+   "read_only": 1
+  },
+  {
+   "description": "The client's value, kept as JSON: a number, a choice, true or false, or a table.",
+   "fieldname": "value",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Value"
+  },
+  {
+   "default": "To confirm",
+   "fieldname": "state",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "State",
+   "options": "To confirm\nConfirmed\nDeduced\nNot found",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_source",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "source_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Source"
+  },
+  {
+   "fieldname": "source_article",
+   "fieldtype": "Data",
+   "label": "Article"
+  },
+  {
+   "fieldname": "source_version",
+   "fieldtype": "Data",
+   "label": "Version of the Source"
+  },
+  {
+   "fieldname": "source_url",
+   "fieldtype": "Data",
+   "label": "Link to the Source",
+   "options": "URL"
+  },
+  {
+   "fieldname": "read_on",
+   "fieldtype": "Date",
+   "label": "Read On"
+  },
+  {
+   "fieldname": "section_confirmation",
+   "fieldtype": "Section Break",
+   "label": "Confirmation"
+  },
+  {
+   "fieldname": "confirmed_by",
+   "fieldtype": "Link",
+   "label": "Confirmed By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "confirmed_on",
+   "fieldtype": "Datetime",
+   "label": "Confirmed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-13 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HR",
+ "name": "Labour Agreement Rule",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

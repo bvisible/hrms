@@ -1,0 +1,31 @@
+{
+ "key": "ch_law_only",
+ "title": "La loi seule (CO, LTr, OLT 1)",
+ "kind": "Law only",
+ "version": "Droit fédéral lu le 13-11-2026",
+ "read_on": "2026-11-13",
+ "expires_on": null,
+ "sources": {
+  "CO": {"title": "Code des obligations (RS 220)", "version": "", "url": "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr"},
+  "LTr": {"title": "Loi sur le travail (RS 822.11)", "version": "", "url": "https://www.fedlex.admin.ch/eli/cc/1966/57_57_57/fr"},
+  "OLT1": {"title": "Ordonnance 1 relative à la loi sur le travail (RS 822.111)", "version": "", "url": "https://www.fedlex.admin.ch/eli/cc/2000/243/fr"},
+  "TF": {"title": "Tribunal fédéral, arrêt 4A_231/2018", "version": "", "url": ""}
+ },
+ "rules": [
+  {"rule": "reference_period", "value": "Week", "status": "deduced", "source": "LTr", "article": "art. 9 al. 1", "note": "La loi fixe un maximum par semaine ; la durée normale est celle du contrat."},
+  {"rule": "target", "value": "Contract hours", "status": "deduced", "source": "CO", "article": "art. 321c al. 1", "note": "Les heures en plus sont celles qui dépassent l'horaire convenu par le contrat."},
+  {"rule": "pro_rata", "value": true, "status": "deduced", "source": "CO", "article": "art. 321c al. 1", "note": "La durée due est celle du contrat de chacun, temps partiel compris."},
+  {"rule": "legal_weekly_maximum", "value": 50, "status": "found", "source": "LTr", "article": "art. 9 al. 1", "note": "50 h pour la plupart des travailleurs ; 45 h pour l'industrie, les bureaux, le personnel technique et la vente des grandes entreprises du commerce de détail (let. a). Choisissez celui de votre entreprise."},
+  {"rule": "employer_order_required", "value": null, "status": "not_found", "source": "CO", "article": "art. 321c al. 1", "note": "La loi parle d'heures « nécessaires » sans exiger un ordre écrit."},
+  {"rule": "balance_kind", "value": "Sliding balance", "status": "deduced", "source": "CO", "article": "art. 321c al. 2", "note": "La compensation par un congé se fait avec l'accord du travailleur, sans délai fixé par la loi."},
+  {"rule": "compensation_months", "value": null, "status": "not_found", "source": "CO", "article": "art. 321c al. 2", "note": "Aucun délai en mois dans la loi : « dans un délai convenable »."},
+  {"rule": "overtime_supplement_percent", "value": 25, "status": "found", "source": "CO", "article": "art. 321c al. 3", "note": "Sauf accord écrit contraire, les heures en plus non compensées sont payées avec un supplément d'un quart au moins."},
+  {"rule": "legal_yearly_overtime_cap", "value": 140, "status": "found", "source": "LTr", "article": "art. 12 al. 2", "note": "140 h par an pour une semaine maximale de 50 h ; 170 h pour une semaine de 45 h."},
+  {"rule": "days_off_per_week", "value": 1, "status": "found", "source": "CO", "article": "art. 329 al. 1", "note": "Un jour de congé par semaine, en règle générale le dimanche."},
+  {"rule": "vacation_entitlement", "value": [{"age_to": 20, "days": 25}, {"age_from": 20, "days": 20}], "status": "found", "source": "CO", "article": "art. 329a al. 1", "note": "Quatre semaines au moins, cinq jusqu'à l'âge de 20 ans révolus ; en jours pour une semaine de cinq jours."},
+  {"rule": "vacation_unit", "value": "Working days", "status": "deduced", "source": "CO", "article": "art. 329a al. 1", "note": "La loi compte en semaines ; les jours sont ceux de la semaine de travail de la personne."},
+  {"rule": "vacation_pay_average_months", "value": 12, "status": "deduced", "source": "TF", "article": "4A_231/2018", "note": "La jurisprudence retient la moyenne de la part variable sur une période représentative, souvent douze mois ; aucun nombre de mois n'est fixé par la loi."},
+  {"rule": "statement_frequency", "value": "Avec chaque salaire", "status": "found", "source": "CO", "article": "art. 323b al. 1", "note": "Un décompte écrit est remis au travailleur avec chaque paiement du salaire."},
+  {"rule": "retention_years", "value": 5, "status": "found", "source": "OLT1", "article": "art. 73 al. 2", "note": "Les registres et pièces sont tenus à disposition pendant cinq ans au moins après leur expiration."}
+ ]
+}

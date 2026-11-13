@@ -24294,3 +24294,315 @@ msgstr "<h3>Barèmes de l'impôt à la source (AFC)</h3>\n\nL'assistant de confi
 
 msgid "<h3>Monthly Payroll Cycle</h3>\n\nAnalyse the month (the preflight lists anything missing), generate the slips, submit them, then download the pain.001 bank file for your e-banking."
 msgstr "<h3>Cycle de paie mensuel</h3>\n\nAnalysez le mois (les contrôles listent ce qui manque), générez les fiches, soumettez-les, puis téléchargez le fichier bancaire pain.001 pour votre e-banking."
+
+#: hrms/hr/working_time/setup.py
+msgid "Agreed in writing with this person: the agreement's longer time to compensate the hours over applies."
+msgstr "Convenu par écrit avec cette personne : le délai de compensation des heures en plus, plus long, prévu par la convention s'applique."
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.json
+msgid "Agreement Name"
+msgstr "Nom de la convention"
+
+#: hrms/hr/working_time/rules.py
+msgid "At the end of the contract"
+msgstr "À la fin du contrat"
+
+#: hrms/hr/working_time/rules.py
+msgid "Balance above which the hours over are paid"
+msgstr "Solde au-delà duquel les heures en plus sont payées"
+
+#: hrms/hr/working_time/rules.py
+msgid "Calendar of the year"
+msgstr "Calendrier de l'année"
+
+#: hrms/hr/working_time/rules.py
+msgid "Closing of the balance"
+msgstr "Bouclement du solde"
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "Collective agreement"
+msgstr "Convention collective"
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "Company rules"
+msgstr "Règles de l'entreprise"
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "Confirmed By"
+msgstr "Confirmée par"
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "Confirmed On"
+msgstr "Confirmée le"
+
+#: hrms/hr/working_time/rules.py
+msgid "Constant planning of the day"
+msgstr "Planification constante de la journée"
+
+#: hrms/hr/working_time/rules.py
+msgid "Days off a week, the rest day included"
+msgstr "Jours de congé par semaine, jour de repos compris"
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "Deduced"
+msgstr "Déduite"
+
+#: hrms/hr/working_time/rules.py
+msgid "Fewest hours a week of the calendar may plan"
+msgstr "Nombre minimal d'heures par semaine que le calendrier peut planifier"
+
+#: hrms/hr/working_time/rules.py
+msgid "Highest balance"
+msgstr "Plafond du solde"
+
+#: hrms/hr/working_time/rules.py
+msgid "Hours above the highest balance"
+msgstr "Heures au-delà du plafond du solde"
+
+#: hrms/hr/working_time/rules.py
+msgid "Hours of the week by status of the company"
+msgstr "Heures de la semaine selon le statut de l'entreprise"
+
+#: hrms/hr/working_time/rules.py
+msgid "Hours of the year"
+msgstr "Heures de l'année"
+
+#: hrms/hr/working_time/rules.py
+msgid "Hours short the balance may carry"
+msgstr "Heures en moins que le solde peut reporter"
+
+#: hrms/hr/working_time/rules.py
+msgid "How the balance is kept"
+msgstr "Mode de tenue du solde"
+
+#: hrms/hr/doctype
+msgid "Labour Agreement"
+msgstr "Convention"
+
+#: hrms/hr/doctype
+msgid "Labour Agreement Rule"
+msgstr "Ligne de convention"
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "Law only"
+msgstr "Loi seule"
+
+#: hrms/hr/working_time/rules.py
+msgid "Legal maximum of the week"
+msgstr "Maximum légal de la semaine"
+
+#: hrms/hr/working_time/rules.py
+msgid "Legal overtime allowed in a year"
+msgstr "Travail supplémentaire légal autorisé par année"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.py
+msgid "Line {0} ({1}): a rule is confirmed with its value and its source."
+msgstr "Ligne {0} ({1}) : une règle est confirmée avec sa valeur et sa source."
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.py
+msgid "Line {0}: the rule {1} is already on the agreement."
+msgstr "Ligne {0} : la règle {1} figure déjà dans la convention."
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.py
+msgid "Line {0}: the value does not fit the rule ({1})."
+msgstr "Ligne {0} : la valeur ne convient pas à la règle ({1})."
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.py
+msgid "Line {0}: {1} is not a rule the working time knows."
+msgstr "Ligne {0} : {1} n'est pas une règle connue du temps de travail."
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "Link to the Source"
+msgstr "Lien vers la source"
+
+#: hrms/hr/working_time/rules.py
+msgid "Monthly salary divided by, for a day"
+msgstr "Diviseur du salaire mensuel, pour une journée"
+
+#: hrms/hr/working_time/rules.py
+msgid "Monthly salary divided by, for an hour"
+msgstr "Diviseur du salaire mensuel, pour une heure"
+
+#: hrms/hr/working_time/rules.py
+msgid "Months of the average of the variable pay"
+msgstr "Mois de la moyenne de la part variable du salaire"
+
+#: hrms/hr/working_time/rules.py
+msgid "Most hours a week of the calendar may plan"
+msgstr "Nombre maximal d'heures par semaine que le calendrier peut planifier"
+
+#: hrms/hr/working_time/rules.py
+msgid "Normal hours of the week"
+msgstr "Heures normales de la semaine"
+
+#: hrms/hr/working_time/rules.py
+msgid "Paid public holidays a year"
+msgstr "Jours fériés payés par année"
+
+#: hrms/hr/working_time/rules.py
+msgid "Part time: the hours due follow the activity rate"
+msgstr "Temps partiel : les heures dues suivent le taux d'activité"
+
+#: hrms/hr/working_time/rules.py
+msgid "Pay left out of the average"
+msgstr "Salaire exclu de la moyenne"
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "Read On"
+msgstr "Lue le"
+
+#: hrms/hr/working_time/rules.py
+msgid "Reference period"
+msgstr "Période de référence"
+
+#: hrms/hr/working_time/rules.py
+msgid "Rest, Sundays and public holidays"
+msgstr "Repos, dimanches et jours fériés"
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "Standard contract"
+msgstr "Contrat-type"
+
+#: hrms/hr/working_time/rules.py
+msgid "Statement of the hours given"
+msgstr "Décompte des heures remis"
+
+#: hrms/hr/working_time/rules.py
+msgid "Supplement that depends on conditions"
+msgstr "Supplément qui dépend de conditions"
+
+#: hrms/hr/working_time/rules.py
+msgid "Supplement when the hours over are paid"
+msgstr "Supplément lorsque les heures en plus sont payées"
+
+#: hrms/hr/working_time/rules.py
+msgid "Supplements and divisors"
+msgstr "Suppléments et diviseurs"
+
+#: hrms/hr/working_time/rules.py
+msgid "Supplements by time range"
+msgstr "Suppléments par plage horaire"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.json
+msgid "Template Expires On"
+msgstr "Le modèle échoit le"
+
+#: hrms/hr/working_time/setup.py
+msgid "The agreement whose confirmed rules count this person's working time."
+msgstr "La convention dont les règles confirmées régissent le temps de travail de cette personne."
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "The client's value, kept as JSON: a number, a choice, true or false, or a table."
+msgstr "La valeur du client, conservée en JSON : un nombre, un choix, vrai ou faux, ou un tableau."
+
+#: hrms/hr/working_time/rules.py
+msgid "The employee countersigns the statement"
+msgstr "L'employé contresigne le décompte"
+
+#: hrms/hr/working_time/rules.py
+msgid "The hours over"
+msgstr "Les heures en plus"
+
+#: hrms/hr/working_time/rules.py
+msgid "The hours over count only when the employer ordered them"
+msgstr "Les heures en plus ne comptent que lorsque l'employeur les a ordonnées"
+
+#: hrms/hr/working_time/rules.py
+msgid "The monthly statement"
+msgstr "Le décompte mensuel"
+
+#: hrms/hr/working_time/rules.py
+msgid "The supplements of time ranges add up"
+msgstr "Les suppléments des plages horaires s'additionnent"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.json
+msgid "The template the lines were copied from: they are the client's from then on, each one confirmed by a person."
+msgstr "Le modèle d'où les lignes ont été copiées : elles sont désormais celles du client, chacune confirmée par une personne."
+
+#: hrms/hr/working_time/rules.py
+msgid "The time and its period"
+msgstr "La durée et sa période"
+
+#: hrms/hr/working_time/templates.py
+msgid "There is no template {0}."
+msgstr "Il n'existe aucun modèle {0}."
+
+#: hrms/hr/working_time/agreement.py
+msgid "These lines are not lines of {0}."
+msgstr "Ces lignes ne sont pas des lignes de {0}."
+
+#: hrms/hr/working_time/setup.py
+msgid "Time to Compensate Extended in Writing"
+msgstr "Délai de compensation prolongé par écrit"
+
+#: hrms/hr/working_time/rules.py
+msgid "Time to compensate a Sunday or public holiday worked"
+msgstr "Délai de compensation d'un dimanche ou d'un jour férié travaillé"
+
+#: hrms/hr/working_time/rules.py
+msgid "Time to compensate the hours over"
+msgstr "Délai de compensation des heures en plus"
+
+#: hrms/hr/working_time/rules.py
+msgid "Time to compensate when agreed in writing"
+msgstr "Délai de compensation en cas d'accord écrit"
+
+#: hrms/hr/working_time/rules.py
+msgid "Time to give back a rest day not taken"
+msgstr "Délai de récupération d'un jour de repos non pris"
+
+#: hrms/hr/working_time/rules.py
+msgid "Tolerance a week"
+msgstr "Tolérance par semaine"
+
+#: hrms/hr/working_time/rules.py
+msgid "Travel time"
+msgstr "Temps de déplacement"
+
+#: hrms/hr/working_time/rules.py
+msgid "Vacation"
+msgstr "Vacances"
+
+#: hrms/hr/working_time/rules.py
+msgid "Vacation a year"
+msgstr "Vacances par année"
+
+#: hrms/hr/working_time/rules.py
+msgid "Vacation counted in"
+msgstr "Vacances comptées en"
+
+#: hrms/hr/working_time/rules.py
+msgid "Vacation pay"
+msgstr "Salaire de vacances"
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "Version of the Source"
+msgstr "Version de la source"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.json
+msgid "Version of the Template"
+msgstr "Version du modèle"
+
+#: hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json
+msgid "What It Says"
+msgstr "Ce qu'elle dit"
+
+#: hrms/hr/working_time/rules.py
+msgid "What the hours due are drawn from"
+msgstr "D'où sont tirées les heures dues"
+
+#: hrms/hr/working_time/rules.py
+msgid "What the tolerance becomes"
+msgstr "Ce que devient la tolérance"
+
+#: hrms/hr/working_time/rules.py
+msgid "Who decides at the closing"
+msgstr "Qui décide au bouclement"
+
+#: hrms/hr/working_time/rules.py
+msgid "Without a calendar of the company"
+msgstr "Sans calendrier de l'entreprise"
+
+#: hrms/hr/working_time/rules.py
+msgid "Years the records are kept"
+msgstr "Années de conservation des registres"

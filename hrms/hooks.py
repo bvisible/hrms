@@ -142,6 +142,7 @@ after_install = [
 	"hrms.install.after_install",
 	"hrms.regional.switzerland.setup.make_custom_fields",
 	"hrms.hr.careers.setup.after_migrate",  # //// Neoffice — the careers page's fields and defaults (#1294)
+	"hrms.hr.working_time.setup.after_migrate",  # //// Neoffice — the Employee fields of the working time (lot T)
 ]
 after_migrate = [
 	"hrms.setup.update_select_perm_after_install",
@@ -163,6 +164,9 @@ after_migrate = [
 	# //// Neoffice — the careers page's Custom Fields, sources and defaults, idempotent like the
 	# //// Swiss ones above (hr/careers/setup.py, neoffice-maintenance#1294).
 	"hrms.hr.careers.setup.after_migrate",
+	# //// Neoffice — the working time's Employee fields (the labour agreement, the extension agreed in
+	# //// writing), idempotent like the ones above (hr/working_time/setup.py, lot T, neoffice-maintenance#2623).
+	"hrms.hr.working_time.setup.after_migrate",
 ]
 
 setup_wizard_complete = [

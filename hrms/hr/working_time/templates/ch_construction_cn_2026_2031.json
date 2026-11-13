@@ -1,0 +1,718 @@
+{
+ "key": "ch_construction_cn_2026_2031",
+ "title": "Convention nationale du secteur principal de la construction (CN 2026-2031)",
+ "kind": "Collective agreement",
+ "version": "CN/LMV 2026-2031, état du 01-04-2026 (déclarée de force obligatoire dès le 01-04-2026 ; extension du 17-09-2026, FF 2026 2574, en vigueur le 01-11-2026)",
+ "read_on": "2026-11-13",
+ "expires_on": "2031-12-31",
+ "sources": {
+  "LMV": {
+   "title": "Landesmantelvertrag für das schweizerische Bauhauptgewerbe (LMV) 2026-2031, tirage spécial (le texte allemand a été lu)",
+   "version": "état du 01-04-2026",
+   "url": "https://svk-bau.ch/wp-content/uploads/2026_10_08-LMV_DE_def.pdf"
+  },
+  "LTr": {
+   "title": "Loi sur le travail (RS 822.11)",
+   "version": "",
+   "url": "https://www.fedlex.admin.ch/eli/cc/1966/57_57_57/fr"
+  },
+  "OLT1": {
+   "title": "Ordonnance 1 relative à la loi sur le travail (RS 822.111)",
+   "version": "",
+   "url": "https://www.fedlex.admin.ch/eli/cc/2000/243/fr"
+  }
+ },
+ "rules": [
+  {
+   "rule": "reference_period",
+   "value": "Calendar year",
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 26 al. 1 ; art. 71 al. 1",
+   "note": "Depuis 2026, la période va de janvier à décembre (de mai à avril jusqu'en 2025)."
+  },
+  {
+   "rule": "target",
+   "value": "Annual calendar",
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 27 al. 1 et 3",
+   "note": "Les heures de la semaine sont planifiées par le calendrier de l'entreprise, dans une fourchette, pour faire les heures de l'année."
+  },
+  {
+   "rule": "annual_hours",
+   "value": 2112,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 26 al. 2",
+   "note": "365 jours ÷ 7 × 40,5 h ; avant déduction des fériés, vacances et absences."
+  },
+  {
+   "rule": "calendar_week_min",
+   "value": 37.5,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 27 al. 3 let. a",
+   "note": "En règle générale ; 32 h avec une semaine régulière de 4 ou 4,5 jours ; jusqu'à cinq jours à zéro heure."
+  },
+  {
+   "rule": "calendar_week_max",
+   "value": 45,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 27 al. 3 let. b",
+   "note": "En règle générale ; la commission paritaire locale peut élargir la fourchette."
+  },
+  {
+   "rule": "no_calendar_default",
+   "value": "Le calendrier de la commission paritaire locale du lieu de l'entreprise s'applique.",
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 27 al. 1",
+   "note": "Quand l'entreprise n'établit ni n'annonce de calendrier."
+  },
+  {
+   "rule": "constant_planning",
+   "value": {
+    "daily_hours": 8.1,
+    "weekly_hours": 40.5,
+    "workdays_per_week": 5,
+    "max_zero_hour_days": 5,
+    "first_date": "2027-01-01",
+    "requires_monthly_balanced_wage": true,
+    "balance_floor_hours": 50,
+    "travel_time_credit_minutes": 90
+   },
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 27bis ; art. 28 al. 7 ; art. 49 al. 1",
+   "note": "Possible dès le 01-01-2027, avec un salaire mensuel égalisé (art. 43) ; les écarts au plan comptent comme heures en plus ou en moins."
+  },
+  {
+   "rule": "travel_time",
+   "value": {
+    "compte_dans_les_heures_de_l_annee": false,
+    "paye": "Le trajet aller et retour depuis le lieu de rassemblement ne compte pas dans les heures de l'année ; il est payé le mois suivant au salaire de base, sous déduction de la part forfaitaire.",
+    "part_forfaitaire_minutes": {
+     "2026-2028": 30,
+     "2029": 25,
+     "dès 2030": 20
+    },
+    "seuil_par_jour_minutes": {
+     "calendrier": 60,
+     "plan_constant": 90
+    },
+    "au_dela_du_seuil": "Dès le 01-01-2027, le temps au-delà du seuil va au compte d'heures.",
+    "minutes_de_bonus": "Jusqu'à 10 minutes peuvent compter comme temps de travail au lieu d'être payées."
+   },
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 49 al. 1, 3, 3bis et 4",
+   "note": "La part forfaitaire est couverte par l'indemnité de chantier (art. 55)."
+  },
+  {
+   "rule": "pro_rata",
+   "value": true,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 26 al. 4",
+   "note": "Une entrée ou une sortie en cours d'année réduit la cible au prorata."
+  },
+  {
+   "rule": "legal_weekly_maximum",
+   "value": 50,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 28 al. 2",
+   "note": "50 h par semaine, travail et déplacement compris (LTr art. 9 al. 1 let. b)."
+  },
+  {
+   "rule": "tolerance_hours",
+   "value": 0,
+   "status": "deduced",
+   "source": "LMV",
+   "article": "art. 28 al. 1",
+   "note": "Le texte compte chaque heure au-delà du plan comme heure en plus : aucune tolérance."
+  },
+  {
+   "rule": "tolerance_fate",
+   "status": "not_found",
+   "source": "LMV",
+   "article": "art. 28 al. 1",
+   "note": "Sans tolérance, rien à en dire."
+  },
+  {
+   "rule": "employer_order_required",
+   "status": "not_found",
+   "source": "LMV",
+   "article": "art. 28 al. 1",
+   "note": "Les heures en plus sont celles faites au-delà du calendrier, sans condition d'ordre."
+  },
+  {
+   "rule": "balance_kind",
+   "value": "Annual balance",
+   "status": "deduced",
+   "source": "LMV",
+   "article": "art. 28 al. 3 et 5",
+   "note": "Un solde reporté de mois en mois, plafonné et bouclé chaque 31 décembre."
+  },
+  {
+   "rule": "balance_ceiling_hours",
+   "value": 120,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 28 al. 3",
+   "note": "Pour les heures jusqu'à la 50e de la semaine."
+  },
+  {
+   "rule": "balance_floor_hours",
+   "value": 20,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 28 al. 7",
+   "note": "20 h en moins au plus avec un calendrier ; 50 h avec le plan constant ; au-delà, elles tombent à la charge de l'employeur."
+  },
+  {
+   "rule": "payment_above_ceiling",
+   "value": {
+    "timing": "À la fin du mois suivant, au salaire de base",
+    "paid_hours_before_supplement": 100,
+    "supplement_percent": 25
+   },
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 28 al. 3",
+   "note": "Au-delà de 100 heures ainsi payées dans l'année civile, chaque heure de plus est payée avec 25 %."
+  },
+  {
+   "rule": "closing_date",
+   "value": "12-31",
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 28 al. 5",
+   "note": "Applicable pour la première fois le 31-12-2026."
+  },
+  {
+   "rule": "closing_decision",
+   "value": {
+    "employer_share": 0.5,
+    "employee_share": 0.5,
+    "options": [
+     "Laisser les heures au compte",
+     "Les payer fin janvier avec 25 %",
+     "Les verser au compte de vacances de longue durée, s'il a été convenu par écrit"
+    ],
+    "default_if_no_decision": null
+   },
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 28 al. 5",
+   "note": "L'employeur décide de la moitié du solde, le travailleur de l'autre moitié ; le texte ne dit pas ce qui arrive sans décision."
+  },
+  {
+   "rule": "end_of_contract",
+   "value": "Les heures en plus sont payées au salaire de base avec supplément ; les heures en moins ne sont retenues que si elles sont dues à la faute du travailleur et dans une mesure proportionnée.",
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 28 al. 7 et 8",
+   "note": "Le supplément n'est pas chiffré à cet alinéa ; le seul que nomme l'art. 28 est 25 %."
+  },
+  {
+   "rule": "compensation_months",
+   "status": "not_found",
+   "source": "LMV",
+   "article": "art. 28 al. 4",
+   "note": "L'employeur peut exiger une compensation par un congé de même durée ; aucun délai en mois."
+  },
+  {
+   "rule": "legal_yearly_overtime_cap",
+   "value": 140,
+   "status": "deduced",
+   "source": "LTr",
+   "article": "art. 12 al. 2",
+   "note": "Non repris par la convention ; 140 h par an pour une semaine maximale légale de 50 h."
+  },
+  {
+   "rule": "overtime_supplement_percent",
+   "value": 25,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 28 al. 2, 3 et 5",
+   "note": "Au-delà de 50 h par semaine : payé le mois suivant avec 25 % ; au bouclement : 25 % pour la part payée."
+  },
+  {
+   "rule": "time_range_supplements",
+   "value": [
+    {
+     "label": "Travail de jour, avril à septembre (sans supplément d'horaire)",
+     "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "from": "05:00",
+     "to": "20:00",
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "article": "Art. 48 al. 1",
+     "condition": "Seuls les suppléments d'heures en plus ou du dimanche s'appliquent.",
+     "percent": 0
+    },
+    {
+     "label": "Travail de jour, octobre à mars (sans supplément d'horaire)",
+     "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "from": "06:00",
+     "to": "20:00",
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "article": "Art. 48 al. 1",
+     "condition": "Seuls les suppléments d'heures en plus ou du dimanche s'appliquent.",
+     "percent": 0
+    },
+    {
+     "label": "Travail de nuit temporaire jusqu'à une semaine, avril à septembre",
+     "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "from": "20:00",
+     "to": "05:00",
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "article": "Art. 50 al. 1 let. a",
+     "condition": "Travaux d'une durée d'une semaine au plus.",
+     "percent": 50
+    },
+    {
+     "label": "Travail de nuit temporaire jusqu'à une semaine, octobre à mars",
+     "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "from": "20:00",
+     "to": "06:00",
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "article": "Art. 50 al. 1 let. a",
+     "condition": "Travaux d'une durée d'une semaine au plus.",
+     "percent": 50
+    },
+    {
+     "label": "Travail de nuit temporaire de plus d'une semaine, avril à septembre",
+     "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "from": "20:00",
+     "to": "05:00",
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "article": "Art. 50 al. 1 let. b",
+     "condition": "Travaux de plus d'une semaine.",
+     "percent": 25
+    },
+    {
+     "label": "Travail de nuit temporaire de plus d'une semaine, octobre à mars",
+     "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "from": "20:00",
+     "to": "06:00",
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "article": "Art. 50 al. 1 let. b",
+     "condition": "Travaux de plus d'une semaine.",
+     "percent": 25
+    },
+    {
+     "label": "Travail de nuit permanent, avril à septembre",
+     "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "from": "20:00",
+     "to": "05:00",
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "article": "Art. 54 al. 1 et 3",
+     "condition": "Indemnité en francs par heure, pas en pour cent ; jamais en plus du supplément de nuit temporaire.",
+     "amount_per_hour": 2.0
+    },
+    {
+     "label": "Travail de nuit permanent, octobre à mars",
+     "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "from": "20:00",
+     "to": "06:00",
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "article": "Art. 54 al. 1 et 3",
+     "condition": "Indemnité en francs par heure, pas en pour cent ; jamais en plus du supplément de nuit temporaire.",
+     "amount_per_hour": 2.0
+    },
+    {
+     "label": "Travail du samedi",
+     "weekdays": [
+      6
+     ],
+     "from": "00:00",
+     "to": "24:00",
+     "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+     ],
+     "article": "Art. 29 al. 3",
+     "condition": "Dès 17 h le samedi, la plage du dimanche commence : 50 % l'emporte (art. 48 al. 3).",
+     "percent": 25
+    },
+    {
+     "label": "Travail du dimanche dès le samedi 17 h, avril à septembre",
+     "weekdays": [
+      6
+     ],
+     "from": "17:00",
+     "to": "24:00",
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "article": "Art. 51",
+     "condition": "La plage du dimanche va du samedi 17 h au lundi 5 h.",
+     "percent": 50
+    },
+    {
+     "label": "Travail du dimanche dès le samedi 17 h, octobre à mars",
+     "weekdays": [
+      6
+     ],
+     "from": "17:00",
+     "to": "24:00",
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "article": "Art. 51",
+     "condition": "La plage du dimanche va du samedi 17 h au lundi 6 h.",
+     "percent": 50
+    },
+    {
+     "label": "Travail du dimanche",
+     "weekdays": [
+      7
+     ],
+     "from": "00:00",
+     "to": "24:00",
+     "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+     ],
+     "article": "Art. 51",
+     "condition": "Toute la journée du dimanche.",
+     "percent": 50
+    },
+    {
+     "label": "Travail du dimanche jusqu'au lundi 5 h, avril à septembre",
+     "weekdays": [
+      1
+     ],
+     "from": "00:00",
+     "to": "05:00",
+     "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ],
+     "article": "Art. 51",
+     "condition": "Fin de la plage du dimanche.",
+     "percent": 50
+    },
+    {
+     "label": "Travail du dimanche jusqu'au lundi 6 h, octobre à mars",
+     "weekdays": [
+      1
+     ],
+     "from": "00:00",
+     "to": "06:00",
+     "months": [
+      10,
+      11,
+      12,
+      1,
+      2,
+      3
+     ],
+     "article": "Art. 51",
+     "condition": "Fin de la plage du dimanche.",
+     "percent": 50
+    },
+    {
+     "label": "Jours fériés reconnus",
+     "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "from": "00:00",
+     "to": "24:00",
+     "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+     ],
+     "article": "Art. 51",
+     "condition": "De 0 h à 24 h, comptés comme travail du dimanche.",
+     "percent": 50,
+     "day_type": "public_holiday"
+    }
+   ],
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 29 al. 3 ; art. 48 ; art. 50 ; art. 51 ; art. 54",
+   "note": "Les montants et taux des annexes et accords particuliers plus élevés sont réservés."
+  },
+  {
+   "rule": "supplements_cumulate",
+   "value": false,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 48 al. 3",
+   "note": "Le taux le plus élevé s'applique, sans cumul."
+  },
+  {
+   "rule": "hourly_divisor",
+   "value": 176,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 37 al. 2 ; art. 43",
+   "note": "Heures de l'année ÷ 12 (2 112 ÷ 12)."
+  },
+  {
+   "rule": "days_off_per_week",
+   "value": 2,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 29 al. 1",
+   "note": "On ne travaille ni le samedi ni le dimanche, ni les jours fériés cantonaux et le 1er août."
+  },
+  {
+   "rule": "sunday_holiday_compensation_months",
+   "status": "not_found",
+   "source": "LMV",
+   "article": "art. 51",
+   "note": "La convention paie un supplément de 50 % ; aucun délai de compensation en congé."
+  },
+  {
+   "rule": "paid_public_holidays_days",
+   "value": 8,
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 34 al. 1",
+   "note": "Au moins huit jours fériés par an, s'ils tombent un jour ouvrable."
+  },
+  {
+   "rule": "vacation_entitlement",
+   "value": [
+    {
+     "age_to": 20,
+     "days": 30
+    },
+    {
+     "age_from": 20,
+     "age_to": 50,
+     "days": 25
+    },
+    {
+     "age_from": 50,
+     "days": 30
+    }
+   ],
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 31 al. 1",
+   "note": "Six semaines jusqu'à 20 ans révolus, cinq de 20 à 50 ans révolus, six ensuite ; le texte fait se toucher les deux bornes à 50 ans."
+  },
+  {
+   "rule": "vacation_unit",
+   "value": "Working days",
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 31 al. 1",
+   "note": "Semaines de cinq jours ouvrables."
+  },
+  {
+   "rule": "vacation_pay_average_months",
+   "status": "not_found",
+   "source": "LMV",
+   "article": "art. 31 al. 2",
+   "note": "Pour les salaires horaires, un pourcentage ; aucune moyenne sur des mois."
+  },
+  {
+   "rule": "vacation_pay_excluded",
+   "value": "13e salaire, parts au bénéfice, gratifications, commissions, indemnités journalières, indemnités de frais, cadeaux et allocations familiales (annexe 6)",
+   "status": "found",
+   "source": "LMV",
+   "article": "annexe 6 ; art. 46 al. 4",
+   "note": "Le tableau de l'annexe 6 dit, composante par composante, ce qui entre dans la base."
+  },
+  {
+   "rule": "statement_frequency",
+   "value": "Chaque mois, avec le décompte des heures",
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 44",
+   "note": "Chaque travailleur a droit à un décompte de salaire mensuel détaillé qui comprend les heures."
+  },
+  {
+   "rule": "employee_countersigns",
+   "status": "not_found",
+   "source": "LMV",
+   "article": "art. 44",
+   "note": "La convention ne parle pas d'une signature du travailleur."
+  },
+  {
+   "rule": "retention_years",
+   "value": 5,
+   "status": "deduced",
+   "source": "OLT1",
+   "article": "art. 73 al. 2",
+   "note": "La convention ne fixe pas de durée ; celle de l'ordonnance s'applique."
+  }
+ ]
+}

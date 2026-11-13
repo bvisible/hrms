@@ -1,0 +1,303 @@
+{
+ "key": "ch_hotels_restaurants_ccnt_2017",
+ "title": "CCNT des hôtels, restaurants et cafés (L-GAV)",
+ "kind": "Collective agreement",
+ "version": "état au 01-01-2017, 3e édition 2024, salaires minimaux 2026 et 2027 ; déclarée de force obligatoire jusqu'au 31-12-2027",
+ "read_on": "2026-11-13",
+ "expires_on": "2027-12-31",
+ "sources": {
+  "LGAV": {
+   "title": "Landes-Gesamtarbeitsvertrag des Gastgewerbes / CCNT (le texte allemand a été lu ; il fait foi) et son commentaire officiel",
+   "version": "état au 01-01-2017, 3e édition 2024",
+   "url": "https://l-gav.ch/fileadmin/user_upload/Brosch%C3%BCre_deu_L%C3%B6hne_2027.pdf"
+  },
+  "LTr": {
+   "title": "Loi sur le travail (RS 822.11)",
+   "version": "",
+   "url": "https://www.fedlex.admin.ch/eli/cc/1966/57_57_57/fr"
+  }
+ },
+ "rules": [
+  {
+   "rule": "reference_period",
+   "value": "Month average",
+   "status": "deduced",
+   "source": "LGAV",
+   "article": "art. 15 al. 1 et 5",
+   "note": "Le texte fixe une durée moyenne de la semaine sans nommer la période ; le commentaire calcule la cible par mois civil."
+  },
+  {
+   "rule": "target",
+   "value": "By company status",
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 15 al. 1 ; annexe à l'art. 15 ch. 1",
+   "note": "Trois moyennes selon le statut de l'entreprise ; le temps de présence compte comme temps de travail."
+  },
+  {
+   "rule": "weekly_hours",
+   "value": 42,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 15 al. 1",
+   "note": "42 h pour une entreprise ni saisonnière ni petite ; voir le statut de l'entreprise."
+  },
+  {
+   "rule": "company_status_hours",
+   "value": [
+    {
+     "status": "Entreprise ni saisonnière ni petite",
+     "hours": 42
+    },
+    {
+     "status": "Entreprise saisonnière",
+     "hours": 43.5
+    },
+    {
+     "status": "Petite entreprise",
+     "hours": 45
+    }
+   ],
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 15 al. 1 ; annexe à l'art. 15 ch. 1",
+   "note": "La petite entreprise n'est pas définie de la même façon dans l'annexe (au plus 4 employés en plus de l'employeur, famille comprise) et dans le commentaire de 2024 : à vérifier pour votre entreprise."
+  },
+  {
+   "rule": "pro_rata",
+   "value": true,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 2 al. 2",
+   "note": "Les droits et obligations se mesurent au taux d'occupation."
+  },
+  {
+   "rule": "legal_weekly_maximum",
+   "value": 50,
+   "status": "found",
+   "source": "LTr",
+   "article": "art. 9 al. 1 let. b",
+   "note": "Le commentaire de la convention retient aussi 50 h."
+  },
+  {
+   "rule": "tolerance_hours",
+   "status": "not_found",
+   "source": "LGAV",
+   "article": "art. 15 et 21",
+   "note": "Aucune tolérance dans le texte ni le commentaire."
+  },
+  {
+   "rule": "tolerance_fate",
+   "status": "not_found",
+   "source": "LGAV",
+   "article": "art. 15 et 21",
+   "note": "Sans tolérance, rien à en dire."
+  },
+  {
+   "rule": "employer_order_required",
+   "value": false,
+   "status": "deduced",
+   "source": "LGAV",
+   "article": "art. 15 al. 4",
+   "note": "Les heures en plus sont celles faites au-delà de la moyenne convenue, sans condition d'ordre."
+  },
+  {
+   "rule": "balance_kind",
+   "value": "Sliding balance",
+   "status": "deduced",
+   "source": "LGAV",
+   "article": "art. 15 al. 4 et 5 ; art. 21 al. 3",
+   "note": "Un solde tenu en continu et communiqué chaque mois ; ni lots qui échoient ni bouclement annuel."
+  },
+  {
+   "rule": "compensation_months",
+   "status": "not_found",
+   "source": "LGAV",
+   "article": "art. 15 al. 4",
+   "note": "Compensées par un congé de même durée ou payées « dans un délai utile », sans nombre de mois."
+  },
+  {
+   "rule": "written_extension_months",
+   "status": "not_found",
+   "source": "LGAV",
+   "article": "art. 15",
+   "note": "Sans délai en mois, pas de prolongation."
+  },
+  {
+   "rule": "payment_threshold_hours",
+   "value": 200,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 15 al. 5",
+   "note": "Les heures au-delà de 200 en fin de mois sont payées avec le salaire du mois suivant et ne peuvent plus être compensées."
+  },
+  {
+   "rule": "balance_ceiling_hours",
+   "value": 200,
+   "status": "deduced",
+   "source": "LGAV",
+   "article": "art. 15 al. 5",
+   "note": "Le paiement obligatoire au-delà de 200 h fait office de plafond du solde."
+  },
+  {
+   "rule": "balance_floor_hours",
+   "status": "not_found",
+   "source": "LGAV",
+   "article": "art. 13, 15 et 17",
+   "note": "Aucune limite aux heures en moins ; les associations recommandent de solder dans un délai raisonnable."
+  },
+  {
+   "rule": "closing_date",
+   "status": "not_found",
+   "source": "LGAV",
+   "article": "art. 14 al. 3 ; art. 15",
+   "note": "Le solde court sans bouclement annuel ; il est réglé au décompte final de la sortie."
+  },
+  {
+   "rule": "legal_yearly_overtime_cap",
+   "value": 140,
+   "status": "deduced",
+   "source": "LTr",
+   "article": "art. 12 al. 2 let. b",
+   "note": "140 h par an pour une semaine maximale légale de 50 h."
+  },
+  {
+   "rule": "overtime_supplement_percent",
+   "value": 25,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 15 al. 6",
+   "note": "Seulement si les conditions de l'al. 5 ne sont pas remplies : voir le supplément selon conditions."
+  },
+  {
+   "rule": "conditional_supplement",
+   "value": {
+    "percent_if_met": 100,
+    "percent_otherwise": 125,
+    "conditions": [
+     "Le temps de travail est enregistré selon l'art. 21",
+     "Le solde des heures en plus est communiqué par écrit chaque mois",
+     "Les heures en plus sont payées au plus tard avec le dernier salaire (art. 14)"
+    ]
+   },
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 15 al. 5 et 6",
+   "note": "Les trois conditions sont cumulatives ; si l'une manque, le paiement à 125 % est obligatoire. Dès 6 750 CHF brut par mois sans 13e salaire, un contrat écrit peut régler librement le paiement (art. 15 al. 7)."
+  },
+  {
+   "rule": "time_range_supplements",
+   "status": "not_found",
+   "source": "LGAV",
+   "article": "contrat et commentaire",
+   "note": "La convention ne prévoit aucun supplément de nuit, du dimanche ni des jours fériés ; ceux de la loi (LTr art. 17b et 19) restent à vérifier pour la branche."
+  },
+  {
+   "rule": "hourly_divisor",
+   "value": 182,
+   "status": "found",
+   "source": "LGAV",
+   "article": "commentaire de l'art. 8",
+   "note": "182 pour 42 h ; 189 pour 43,5 h ; 195 pour 45 h ; le commentaire donne un tableau pour les autres taux."
+  },
+  {
+   "rule": "daily_divisor",
+   "value": 30,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 8 al. 3 ; art. 17 al. 5",
+   "note": "Un jour civil = salaire mensuel ÷ 30 ; un jour de repos ou un férié non pris et payé = ÷ 22 (art. 16 al. 5 ; art. 18 al. 3)."
+  },
+  {
+   "rule": "days_off_per_week",
+   "value": 2,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 16 al. 1 et 2",
+   "note": "Au moins un jour entier par semaine ; le reste peut être donné en demi-journées."
+  },
+  {
+   "rule": "rest_day_compensation_weeks",
+   "value": 4,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 16 al. 5",
+   "note": "12 semaines dans une entreprise saisonnière ; à défaut, payés à la sortie à 1/22 du salaire mensuel brut chacun."
+  },
+  {
+   "rule": "sunday_holiday_compensation_months",
+   "status": "not_found",
+   "source": "LGAV",
+   "article": "art. 16 et 18",
+   "note": "Aucun délai en mois pour le dimanche ou les fériés."
+  },
+  {
+   "rule": "paid_public_holidays_days",
+   "value": 6,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 18 al. 1 à 3",
+   "note": "Six jours payés par année civile, au prorata ; ils peuvent être donnés n'importe quel jour de l'année."
+  },
+  {
+   "rule": "vacation_entitlement",
+   "value": [
+    {
+     "days": 35
+    }
+   ],
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 17 al. 1 et 2",
+   "note": "Cinq semaines, soit 35 jours civils, pour chacun ; aucun palier d'âge ni d'ancienneté."
+  },
+  {
+   "rule": "vacation_unit",
+   "value": "Calendar days",
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 17 al. 1",
+   "note": "Cinq semaines de vacances = 35 jours civils libres, et non 25 jours ouvrables (commentaire)."
+  },
+  {
+   "rule": "vacation_pay_average_months",
+   "value": 12,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 8 al. 2",
+   "note": "Salaire fixe : le salaire brut du mois précédent ; salaire variable : la moyenne de la période d'emploi précédente, douze mois au plus."
+  },
+  {
+   "rule": "vacation_pay_excluded",
+   "value": "Allocations familiales, prestations des assurances accident et maladie, indemnités de vêtements, une part des frais",
+   "status": "deduced",
+   "source": "LGAV",
+   "article": "art. 8 al. 1 ; commentaire",
+   "note": "La base est le salaire brut AVS ; le commentaire en exclut ces éléments."
+  },
+  {
+   "rule": "statement_frequency",
+   "value": "Chaque mois",
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 14 al. 2 ; art. 15 al. 5 ; art. 21 al. 2",
+   "note": "Fiche de salaire claire, solde des heures en plus par écrit, et enregistrement du temps signé : chaque mois."
+  },
+  {
+   "rule": "employee_countersigns",
+   "value": true,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 21 al. 2",
+   "note": "L'enregistrement du temps est signé par le collaborateur au moins une fois par mois."
+  },
+  {
+   "rule": "retention_years",
+   "value": 10,
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 15 al. 8",
+   "note": "Dix ans pour les fiches de salaire et les documents nécessaires."
+  }
+ ]
+}
