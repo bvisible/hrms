@@ -2,6 +2,7 @@
  "actions": [],
  "autoname": "format:{employee}-{month}",
  "creation": "2026-11-13 21:00:00.000000",
+ "default_print_format": "Working Time Statement",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -300,7 +301,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-11-13 21:00:00.000000",
+ "modified": "2026-11-14 00:30:00.000000",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "Working Time Statement",

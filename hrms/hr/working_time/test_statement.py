@@ -21,6 +21,7 @@ READER = "lt-statement-reader@yopmail.com"
 ANNA = "lt-statement-anna@yopmail.com"
 BRUNO = "lt-statement-bruno@yopmail.com"
 NOVEMBER = datetime.date(2026, 11, 1)
+PRINT_FORMAT = "Working Time Statement"
 
 
 def _account(email, role):
@@ -49,6 +50,7 @@ class TestTheMonthlyStatement(FrappeTestCase):
 			"working_time_statement",
 		):
 			frappe.reload_doc("hr", "doctype", doctype)
+		frappe.reload_doc("hr", "print_format", "working_time_statement")
 		setup.after_migrate()
 		_account(MANAGER, "HR Manager")
 		_account(READER, "HR User")
@@ -225,3 +227,56 @@ class TestTheMonthlyStatement(FrappeTestCase):
 			with self.assertRaises(frappe.PermissionError):
 				views.statement_view(other)
 		self.assertEqual(mine["statements"][0]["weeks"][1]["monday"], "2026-11-09")
+
+	def print_html(self, name):
+		from frappe.www.printview import get_rendered_template
+
+		doc = frappe.get_doc(statement.STATEMENT_DOCTYPE, name)
+		return get_rendered_template(
+			doc, print_format=frappe.get_doc("Print Format", PRINT_FORMAT), no_letterhead=1
+		)
+
+	def test_the_statement_prints_in_words_with_its_own_format(self):
+		name = self.establish()
+		self.assertEqual(frappe.get_meta(statement.STATEMENT_DOCTYPE).default_print_format, PRINT_FORMAT)
+		language = frappe.local.lang
+		frappe.local.lang = "en"
+		self.addCleanup(setattr, frappe.local, "lang", language)
+		with as_role(MANAGER):
+			html = self.print_html(name)
+		for words in (
+			"November 2026",
+			"StatementAnna",
+			"68 h 48",
+			"71 h 21",
+			"+ 2 h 33",
+			"Not asked by the agreement",
+		):
+			self.assertIn(words, html)
+		self.assertNotIn("counted_over", html, "the weeks are written in words, never as the stored JSON")
+		with as_role(ANNA):
+			statement.add_remark(name, "Le samedi 14, je suis restée.")
+		with as_role(MANAGER):
+			statement.answer_remark(name, "Corrigé la semaine suivante.")
+		with as_role(ANNA):
+			statement.countersign_statement(name)
+		# written past the cleaning each save does (the answer and the countersignature save again): the print
+		# must escape what it reads all the same
+		frappe.db.set_value(
+			statement.STATEMENT_DOCTYPE,
+			name,
+			"remark",
+			"<script>alert(1)</script> Le samedi 14, je suis restée.",
+		)
+		with as_role(MANAGER):
+			html = self.print_html(name)
+		self.assertIn("Corrigé la semaine suivante.", html)
+		self.assertNotIn("<script>alert(1)</script>", html)
+		self.assertIn(frappe.utils.get_fullname(ANNA), html.split("Countersigned", 1)[1])
+
+	def test_an_employee_prints_their_own_statement_never_a_colleagues(self):
+		own, other = self.establish(self.anna), self.establish(self.bruno)
+		with as_role(ANNA):
+			self.assertIn("StatementAnna", self.print_html(own))
+			with self.assertRaises(frappe.PermissionError):
+				self.print_html(other)

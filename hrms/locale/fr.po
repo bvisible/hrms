@@ -25849,3 +25849,11 @@ msgstr "Plages après"
 msgctxt "Labour agreements"
 msgid "Agreements"
 msgstr "Conventions"
+
+#: hrms/hr/print_format/working_time_statement/working_time_statement.html
+msgid "Kept until {0}"
+msgstr "Conservé jusqu'au {0}"
+
+#: hrms/hr/print_format/working_time_statement/working_time_statement.html
+msgid "Signature of the employee"
+msgstr "Signature de l'employé"

@@ -1,0 +1,93 @@
+{# //// Neoffice — added file (no upstream equivalent): the monthly statement of the hours on paper (lot T, #}
+{# //// neoffice-maintenance#2623): the month, its weeks, their sums, the remark and the three signatures, in words. #}
+{%- set s = statement_print_data(doc) -%}
+<style>
+	/* //// Neoffice — laid out for printing: black text, thin rules and white space, no filled bars (they print muddy). */
+	.wts { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 10pt; color: #141414; line-height: 1.4; }
+	.wts-kind { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #444; }
+	.wts-title { margin-top: 2mm; font-size: 18pt; font-weight: 700; line-height: 1.15; }
+	.wts-sub { margin-top: 1.5mm; color: #333; }
+	.wts table { width: 100%; border-collapse: collapse; }
+	.wts-weeks { margin-top: 8mm; }
+	.wts-weeks th { text-align: left; font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #444;
+		border-bottom: 0.75pt solid #141414; padding: 0 0 1.5mm; }
+	.wts-weeks td { padding: 2mm 0; border-bottom: 0.5pt solid #bbb; }
+	.wts-weeks .num { text-align: right; white-space: nowrap; width: 24mm; }
+	.wts-weeks tfoot td { font-weight: 700; border-bottom: 0; border-top: 0.75pt solid #141414; }
+	.wts-sums { margin-top: 6mm; }
+	.wts-sums td { padding: 1.5mm 0; }
+	.wts-sums td.num { text-align: right; font-weight: 700; white-space: nowrap; }
+	.wts-remark { margin-top: 6mm; padding: 3mm 4mm; border: 0.5pt solid #888; }
+	.wts-signs { margin-top: 12mm; }
+	.wts-signs td { width: 33%; vertical-align: top; padding-right: 6mm; }
+	.wts-cap { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #444; }
+	.wts-who { margin-top: 1.5mm; font-weight: 700; }
+	.wts-line { margin-top: 12mm; border-bottom: 0.75pt solid #141414; }
+	.wts-note { margin-top: 1mm; font-size: 8.5pt; color: #444; }
+</style>
+<div class="wts">
+	<div class="wts-kind">{{ _("Statement of the hours") }}</div>
+	<div class="wts-title">{{ s.month }} · {{ s.employee_name|e }}</div>
+	<div class="wts-sub">{{ [s.company, s.agreement, s.period]|select|join(" · ")|e }}</div>
+
+	<table class="wts-weeks">
+		<thead>
+			<tr>
+				<th>{{ _("Week", context="working time") }}</th>
+				<th class="num">{{ _("Due", context="working time") }}</th>
+				<th class="num">{{ _("Done", context="working time") }}</th>
+				<th class="num">{{ _("Over", context="working time") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%- for w in s.weeks %}
+			<tr><td>{{ w.label }}</td><td class="num">{{ w.due }}</td><td class="num">{{ w.done }}</td><td class="num">{{ w.over }}</td></tr>
+			{%- endfor %}
+		</tbody>
+		<tfoot>
+			<tr><td>{{ _("Total") }}</td><td class="num">{{ s.total.due }}</td><td class="num">{{ s.total.done }}</td><td class="num">{{ s.total.over }}</td></tr>
+		</tfoot>
+	</table>
+
+	<table class="wts-sums">
+		<tr><td>{{ _("Hours over of the month") }}</td><td class="num">{{ s.over }}</td></tr>
+		<tr><td>{{ _("Paid in the month") }}</td><td class="num">{{ s.paid }}</td></tr>
+		<tr>
+			<td>{{ _("Balance to compensate at the month's end") }}{% if s.next_expiry %} · {{ _("the next lot expires on {0}").format(s.next_expiry) }}{% endif %}</td>
+			<td class="num">{{ s.balance_end }}</td>
+		</tr>
+	</table>
+
+	{%- if s.remark %}
+	<div class="wts-remark">
+		<b>{{ _("The employee's remark") }}</b> : {{ s.remark|e }}
+		{%- if s.remark_answer %}<br><b>{{ _("The answer") }}</b> ({{ s.answered_by|e }}) : {{ s.remark_answer|e }}{% endif %}
+	</div>
+	{%- endif %}
+
+	<table class="wts-signs">
+		<tr>
+			<td>
+				<div class="wts-cap">{{ _("Established", context="working time") }}</div>
+				<div class="wts-who">{{ s.established|e }}</div>
+				<div class="wts-note">{{ _("For the employer") }}</div>
+			</td>
+			<td>
+				<div class="wts-cap">{{ _("Countersigned", context="working time") }}</div>
+				{%- if s.countersigned %}
+				<div class="wts-who">{{ s.countersigned|e }}</div>
+				{%- elif s.countersign_expected %}
+				<div class="wts-line">&#8203;</div>
+				<div class="wts-note">{{ _("Signature of the employee") }}</div>
+				{%- else %}
+				<div class="wts-note">{{ _("Not asked by the agreement") }}</div>
+				{%- endif %}
+			</td>
+			<td>
+				<div class="wts-cap">{{ _("Copy given") }}</div>
+				<div class="wts-who">{{ s.copy_given_on }}</div>
+				{%- if s.retention_until %}<div class="wts-note">{{ _("Kept until {0}").format(s.retention_until) }}</div>{% endif %}
+			</td>
+		</tr>
+	</table>
+</div>

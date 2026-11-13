@@ -24,6 +24,16 @@ from hrms.hr.working_time.agreement import (
 )
 
 
+def hours_minutes(hours, signed=False) -> str:
+	"""Hours as « 2 h 33 »; signed, with a plus or a minus sign before them."""
+	value = float(hours or 0)
+	minutes = round(abs(value) * 60)
+	text = f"{minutes // 60} h {minutes % 60:02d}"
+	if signed and minutes:
+		return ("− " if value < 0 else "+ ") + text
+	return text
+
+
 def _number(value) -> str:
 	value = flt(value)
 	return str(int(value)) if value.is_integer() else f"{value:g}"
@@ -568,6 +578,61 @@ def statement_view(statement: str) -> dict:
 	doc = frappe.get_doc("Working Time Statement", statement)
 	doc.check_permission("read")
 	return _statement(doc)
+
+
+def statement_print_data(doc) -> dict:
+	"""What the statement's print format shows, in words: the month, the weeks, their sums, the remark and the three
+	signatures. Called from the print format (hooks.jinja), after the print view checked the reader's right to print."""
+	from frappe.utils import formatdate
+
+	data = _statement(doc)
+
+	def day(value) -> str:
+		return formatdate(value) if value else ""
+
+	def signed(who, when) -> str:
+		return " · ".join(part for part in (who, day(when)) if part)
+
+	weeks, due, done, net = [], 0.0, 0.0, 0.0
+	for week in data["weeks"]:
+		week_done = flt(week.get("done")) + flt(week.get("credited"))
+		week_net = flt(week.get("counted_over")) - abs(flt(week.get("short")))
+		due, done, net = due + flt(week.get("due")), done + week_done, net + week_net
+		weeks.append(
+			{
+				"label": _("Week of {0}").format(day(week.get("monday"))),
+				"due": hours_minutes(week.get("due")),
+				"done": hours_minutes(week_done),
+				"over": hours_minutes(week_net, signed=True),
+			}
+		)
+	return {
+		"month": formatdate(doc.month, "MMMM yyyy"),
+		"employee_name": doc.employee_name,
+		"company": frappe.db.get_value("Employee", doc.employee, "company") or "",
+		"agreement": doc.agreement or "",
+		"period": _("weeks of {0} to {1}").format(day(doc.period_start), day(doc.period_end)),
+		"weeks": weeks,
+		"total": {
+			"due": hours_minutes(due),
+			"done": hours_minutes(done),
+			"over": hours_minutes(net, signed=True),
+		},
+		"over": hours_minutes(doc.over),
+		"paid": hours_minutes(doc.paid_hours),
+		"balance_end": hours_minutes(doc.balance_end),
+		"next_expiry": day(doc.next_expiry),
+		"remark": doc.remark or "",
+		"remark_answer": doc.remark_answer or "",
+		"answered_by": data["answered_by_name"],
+		"established": signed(data["established_by_name"], doc.established_on),
+		"countersigned": signed(data["countersigned_by_name"], doc.countersigned_on)
+		if doc.countersigned_by
+		else "",
+		"countersign_expected": bool(doc.countersign_expected),
+		"copy_given_on": day(doc.copy_given_on),
+		"retention_until": day(doc.retention_until),
+	}
 
 
 @frappe.whitelist()

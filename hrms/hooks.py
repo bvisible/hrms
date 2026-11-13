@@ -129,6 +129,9 @@ jinja = {
 		"hrms.regional.switzerland.utils.get_component_rates_for_salary_slip",
 		"hrms.regional.switzerland.utils.get_salary_slip_print_data",
 		"hrms.regional.switzerland.utils.format_chf",
+		# //// Neoffice — added: the print format of the monthly statement of the hours reads it in words
+		# //// (hr/working_time/views.py, lot T, neoffice-maintenance#2623).
+		"hrms.hr.working_time.views.statement_print_data",
 	],
 }
 

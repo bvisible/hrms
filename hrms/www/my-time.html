@@ -28,6 +28,7 @@
 .mt-btn{height:52px;border-radius:14px;border:0;background:var(--ink);color:var(--paper);font:700 16px Karla,sans-serif}
 .mt-btn.is-outline{height:48px;border:1.5px solid var(--ink);background:transparent;color:var(--ink)}
 .mt-empty{color:var(--muted)}
+.mt-print{font:700 13px Karla,sans-serif;color:var(--signal-text);text-decoration:none;white-space:nowrap}
 .mt-write{display:flex;flex-direction:column;gap:8px}
 .mt-text{width:100%;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 12px;font:400 15px Karla,sans-serif}
 </style>
@@ -48,6 +49,7 @@
 			{% else %}
 				<span class="mt-pill is-amber">{{ _("To countersign", context="working time") }}</span>
 			{% endif %}
+			<a class="mt-print" href="/printview?doctype=Working%20Time%20Statement&name={{ s.name|urlencode }}" target="_blank" rel="noopener">{{ _("Print") }}</a>
 		</div>
 		<div class="mt-lead">{{ _("{0} established it on {1}, from your clocking.").format(s.established_by_name or s.established_by, frappe.utils.formatdate(s.established_on)) }}</div>
 		<div class="mt-kpis">

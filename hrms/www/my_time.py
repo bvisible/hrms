@@ -5,17 +5,9 @@
 import frappe
 from frappe import _
 
+from hrms.hr.working_time.views import hours_minutes
+
 no_cache = 1
-
-
-def hours_minutes(hours, signed=False) -> str:
-	"""Hours as « 2 h 33 »; signed, with a plus or a minus sign before them."""
-	value = float(hours or 0)
-	minutes = round(abs(value) * 60)
-	text = f"{minutes // 60} h {minutes % 60:02d}"
-	if signed and minutes:
-		return ("− " if value < 0 else "+ ") + text
-	return text
 
 
 def get_context(context):
