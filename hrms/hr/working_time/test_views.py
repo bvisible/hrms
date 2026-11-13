@@ -236,6 +236,8 @@ class TestTheWeeksAndBalanceScreen(FrappeTestCase):
 			self.assertEqual(views.balance_view(self.employee, "2026-11-20")["balance"]["total"], 0)
 			store.approve_week(self.week)
 			balance = views.balance_view(self.employee, "2026-11-20")
+			on_its_monday = views.balance_view(self.employee, "2026-11-09")
 		self.assertEqual(balance["kind"], "Expiring lots")
 		self.assertAlmostEqual(balance["balance"]["total"], 2.5, places=3)
 		self.assertEqual(len(balance["balance"]["lots"]), 1)
+		self.assertAlmostEqual(on_its_monday["balance"]["total"], 2.5, places=3, msg="read at the week's end")

@@ -228,7 +228,10 @@ class WorkingTimeScreen {
 		const days = view.days
 			.map((day) => {
 				const date = moment(day.date);
-				const name = `${ltw_esc(date.format("ddd"))} ${date.format("DD-MM")}`;
+				// the day's name in the reader's language (moment keeps its own, English, locale)
+				const name = `${ltw_esc(__(date.format("dddd")).slice(0, 3))}. ${date.format(
+					"DD-MM",
+				)}`;
 				const off = day.kind === "weekly_off" && !day.done;
 				const holiday = day.kind === "holiday" && !day.done;
 				const credited = day.credited

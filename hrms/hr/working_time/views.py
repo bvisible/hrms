@@ -438,13 +438,16 @@ def week_view(employee: str, day=None) -> dict:
 @frappe.whitelist()
 def balance_view(employee: str, day=None) -> dict:
 	"""An employee's balance and rest on a day, the agreement's way, read from the weeks kept."""
+	import datetime
+
 	from hrms.hr.working_time.agreement import rules_for
 	from hrms.hr.working_time.store import balance_of, rest_of
 
 	_check_reader()
 	person = frappe.get_doc("Employee", employee)
 	person.check_permission("read")
-	on_date = getdate(day or nowdate())
+	# the balance at the end of the week shown: a week's hours over enter it on its Sunday
+	on_date = _monday(day) + datetime.timedelta(days=6) if day else getdate(nowdate())
 	answer = {"employee": employee, "employee_name": person.employee_name, "on_date": on_date}
 	rules = rules_for(employee)
 	if rules is None:
