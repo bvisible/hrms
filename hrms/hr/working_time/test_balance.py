@@ -20,7 +20,7 @@ import frappe
 from frappe.tests.roles import as_role
 from frappe.tests.utils import FrappeTestCase
 
-from hrms.hr.working_time import agreement, rules, setup, statement, store, templates
+from hrms.hr.working_time import agreement, closing, rules, setup, statement, store, templates
 from hrms.hr.working_time.balance import WeekLine, compute_balance, overtime_supplement
 from hrms.hr.working_time.week import Week
 
@@ -286,3 +286,15 @@ class TestTheWeeksKept(FrappeTestCase):
 		frappe.db.delete(store.WEEK_DOCTYPE, {"employee": self.employee, "monday": "2026-11-09"})
 		gap = store.balance_of(self.employee, "2026-12-03").supplement
 		self.assertEqual((gap["recorded"], gap["percent"]), (False, 25.0))
+
+	def test_the_night_leaves_at_once_a_site_without_a_confirmed_line(self):
+		frappe.db.delete(agreement.ROW, {"state": agreement.CONFIRMED})
+		with patch.object(store, "record_week") as week, patch.object(frappe, "get_all") as listed:
+			store.record_recent_weeks()
+		week.assert_not_called()
+		listed.assert_not_called()
+
+	def test_the_night_records_the_weeks_of_an_employee_tied_to_a_confirmed_agreement(self):
+		with patch.object(store, "record_week") as week, patch.object(closing, "record_closings"):
+			store.record_recent_weeks()
+		self.assertIn(self.employee, [call.args[0] for call in week.call_args_list])

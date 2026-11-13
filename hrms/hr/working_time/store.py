@@ -16,7 +16,7 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, flt, get_last_day, getdate, now_datetime, nowdate
 
-from hrms.hr.working_time.agreement import EMPLOYEE_FIELD, EXTENSION_FIELD, rules_for
+from hrms.hr.working_time.agreement import CONFIRMED, EMPLOYEE_FIELD, EXTENSION_FIELD, ROW, rules_for
 from hrms.hr.working_time.balance import WeekLine, compute_balance, overtime_supplement
 from hrms.hr.working_time.rest import rest_account, rest_of_week
 from hrms.hr.working_time.week import week_of
@@ -162,7 +162,10 @@ def _communicated(employee: str, first_monday, on_date) -> bool:
 
 def record_recent_weeks():
 	"""Scheduler (daily): the last week and this one, and the closings reached, for every active employee tied to
-	an agreement."""
+	an agreement. It runs on every site: one query, and a site where no line of an agreement is confirmed leaves at
+	once, reading and writing nothing."""
+	if not frappe.db.exists(ROW, {"state": CONFIRMED}):
+		return
 	if not frappe.get_meta("Employee").has_field(EMPLOYEE_FIELD):
 		return
 	today = getdate(nowdate())
