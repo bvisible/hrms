@@ -24710,3 +24710,107 @@ msgstr "Semaine du"
 #: hrms/hr/doctype/working_time_week/working_time_week.json
 msgid "Working Time Week"
 msgstr "Semaine de travail"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Balance at the End of the Month"
+msgstr "Solde à la fin du mois"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Copy Given On"
+msgstr "Copie remise le"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Countersigned"
+msgstr "Contresigné"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Countersigned By"
+msgstr "Contresigné par"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Countersigned On"
+msgstr "Contresigné le"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Established"
+msgstr "Établi"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Established By"
+msgstr "Établi par"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Established On"
+msgstr "Établi le"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Established, Countersigned, Given"
+msgstr "Établi, contresigné, remis"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Hours Due for Payment This Month"
+msgstr "Heures à payer ce mois"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Hours Over Counted"
+msgstr "Heures en plus comptées"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Hours to Pay"
+msgstr "Heures à payer"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Next Hours Expire On"
+msgstr "Prochaines heures échues le"
+
+#: hrms/hr/working_time/statement.py
+msgid "Only the employee of a statement countersigns it or makes a remark."
+msgstr "Seul l'employé concerné par un décompte peut le contresigner ou y laisser une remarque."
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Remark Made On"
+msgstr "Remarque faite le"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "The Balance"
+msgstr "Le solde"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "The Employee Countersigns"
+msgstr "L'employé contresigne"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "The Employee's Remark"
+msgstr "La remarque de l'employé"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "The Hours of the Month"
+msgstr "Les heures du mois"
+
+#: hrms/hr/working_time/statement.py
+msgid "This statement has no remark waiting for an answer."
+msgstr "Ce décompte ne comporte aucune remarque en attente de réponse."
+
+#: hrms/hr/working_time/statement.py
+msgid "This statement is already countersigned."
+msgstr "Ce décompte est déjà contresigné."
+
+#: hrms/hr/working_time/statement.py
+msgid "This statement was countersigned: a correction goes into the next month's statement."
+msgstr "Ce décompte a été contresigné : toute correction figurera dans le décompte du mois suivant."
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Week by Week"
+msgstr "Semaine par semaine"
+
+#: hrms/hr/doctype/working_time_statement/working_time_statement.json
+msgid "Working Time Statement"
+msgstr "Décompte du temps de travail"
+
+#: hrms/hr/working_time/statement.py
+msgid "Write the remark."
+msgstr "Rédigez votre remarque."
+
+#: hrms/hr/working_time/statement.py
+msgid "Your remark is waiting for its answer: the statement is countersigned once it is answered."
+msgstr "Votre remarque attend une réponse : le décompte sera contresigné une fois celle-ci donnée."

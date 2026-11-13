@@ -55,7 +55,7 @@ site's design, the application endpoint, Nora's reading of each application. `hr
 one door from hrms to a language model (Nora only, #1295). Its fields on Job Opening, Job Applicant and
 Website Profile are Custom Fields (`hr/careers/setup.py`), like the Swiss ones.
 
-`hrms/hr/working_time/**` and the doctypes `labour_agreement`, `labour_agreement_rule` and `working_time_week` are the **working-time
+`hrms/hr/working_time/**` and the doctypes `labour_agreement`, `labour_agreement_rule`, `working_time_week` and `working_time_statement` are the **working-time
 engine** (lot T, neoffice-maintenance#2623, 2026-11-13): a labour agreement the client creates or copies from a
 template, whose lines the engine reads only once a person confirmed them. The templates (`working_time/templates/*.json`)
 are public texts turned into data, one line per rule with its source; the engine names no trade. Its two Employee
@@ -172,6 +172,7 @@ Every path below is **added** by this fork; upstream has no equivalent.
 - `hrms/hr/doctype/careers_settings/careers_settings.json` — Single, 13 fields, perms HR Manager + System Manager — the settings of the careers page (unsolicited applications, recipients, Nora's reading, retention), headed by the page's status and its on/off switch (`careers_settings.js`, the plugin's own switch through `plugin.set_page_enabled`).
 - `hrms/hr/doctype/labour_agreement/labour_agreement.json` — DocType, 11 fields, links Company/Labour Agreement Rule, perms HR Manager + HR User (read) — a labour agreement (collective agreement, standard contract, company rules or the law alone) and its lines.
 - `hrms/hr/doctype/labour_agreement_rule/labour_agreement_rule.json` — Child table, 14 fields, links User — one rule of an agreement: its value (JSON), its source, its state and who confirmed it when.
+- `hrms/hr/doctype/working_time_statement/working_time_statement.json` — DocType, 40 fields, links Employee/Labour Agreement/User, perms HR Manager + HR User (read) + Employee (read, own only through `has_permission` and `permission_query_conditions`) — the monthly statement of the hours: established, countersigned or remarked, given, kept.
 - `hrms/hr/doctype/working_time_week/working_time_week.json` — DocType, 24 fields, links Employee/Labour Agreement/User, perms HR Manager + HR User (read) — one week of an employee as the working-time engine computed it, with the employer's approval of the hours over.
 - `hrms/hr/working_time/templates/ch_construction_cn_2026_2031.json` — Template of a labour agreement (data): one line per rule, with the article and what the reading found.
 - `hrms/hr/working_time/templates/ch_hairdressing_cct_2024_2027.json` — Template of a labour agreement (data): one line per rule, with the article and what the reading found.

@@ -1,0 +1,335 @@
+{
+ "actions": [],
+ "autoname": "format:{employee}-{month}",
+ "creation": "2026-11-13 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "month",
+  "status",
+  "column_break_who",
+  "agreement",
+  "period_start",
+  "period_end",
+  "countersign_expected",
+  "section_hours",
+  "due",
+  "done",
+  "credited",
+  "column_break_hours",
+  "over",
+  "short",
+  "weeks_count",
+  "section_balance",
+  "paid_hours",
+  "balance_end",
+  "column_break_balance",
+  "next_expiry",
+  "section_signatures",
+  "established_by",
+  "established_on",
+  "copy_given_on",
+  "column_break_signatures",
+  "countersigned_by",
+  "countersigned_on",
+  "retention_until",
+  "section_remark",
+  "remark",
+  "remark_on",
+  "column_break_remark",
+  "remark_answer",
+  "answered_by",
+  "answered_on",
+  "section_details",
+  "weeks",
+  "payable"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "read_only": 1,
+   "options": "Employee",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "month",
+   "fieldtype": "Date",
+   "label": "Month",
+   "read_only": 1,
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "read_only": 1,
+   "options": "Established\nRemark\nCountersigned",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_who",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "agreement",
+   "fieldtype": "Link",
+   "label": "Labour Agreement",
+   "read_only": 1,
+   "options": "Labour Agreement"
+  },
+  {
+   "fieldname": "period_start",
+   "fieldtype": "Date",
+   "label": "From",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_end",
+   "fieldtype": "Date",
+   "label": "To",
+   "read_only": 1
+  },
+  {
+   "fieldname": "countersign_expected",
+   "fieldtype": "Check",
+   "label": "The Employee Countersigns",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_hours",
+   "fieldtype": "Section Break",
+   "label": "The Hours of the Month"
+  },
+  {
+   "fieldname": "due",
+   "fieldtype": "Float",
+   "label": "Hours Due",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "done",
+   "fieldtype": "Float",
+   "label": "Hours Done",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "credited",
+   "fieldtype": "Float",
+   "label": "Hours Credited",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_hours",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "over",
+   "fieldtype": "Float",
+   "label": "Hours Over Counted",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "short",
+   "fieldtype": "Float",
+   "label": "Hours Short",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "weeks_count",
+   "fieldtype": "Int",
+   "label": "Weeks",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_balance",
+   "fieldtype": "Section Break",
+   "label": "The Balance"
+  },
+  {
+   "fieldname": "paid_hours",
+   "fieldtype": "Float",
+   "label": "Hours Due for Payment This Month",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "balance_end",
+   "fieldtype": "Float",
+   "label": "Balance at the End of the Month",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_balance",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "next_expiry",
+   "fieldtype": "Date",
+   "label": "Next Hours Expire On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_signatures",
+   "fieldtype": "Section Break",
+   "label": "Established, Countersigned, Given"
+  },
+  {
+   "fieldname": "established_by",
+   "fieldtype": "Link",
+   "label": "Established By",
+   "read_only": 1,
+   "options": "User"
+  },
+  {
+   "fieldname": "established_on",
+   "fieldtype": "Datetime",
+   "label": "Established On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "copy_given_on",
+   "fieldtype": "Datetime",
+   "label": "Copy Given On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_signatures",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "countersigned_by",
+   "fieldtype": "Link",
+   "label": "Countersigned By",
+   "read_only": 1,
+   "options": "User"
+  },
+  {
+   "fieldname": "countersigned_on",
+   "fieldtype": "Datetime",
+   "label": "Countersigned On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "retention_until",
+   "fieldtype": "Date",
+   "label": "Kept Until",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_remark",
+   "fieldtype": "Section Break",
+   "label": "The Employee's Remark"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Small Text",
+   "label": "Remark",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remark_on",
+   "fieldtype": "Datetime",
+   "label": "Remark Made On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_remark",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "remark_answer",
+   "fieldtype": "Small Text",
+   "label": "Answer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "answered_by",
+   "fieldtype": "Link",
+   "label": "Answered By",
+   "read_only": 1,
+   "options": "User"
+  },
+  {
+   "fieldname": "answered_on",
+   "fieldtype": "Datetime",
+   "label": "Answered On",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_details",
+   "fieldtype": "Section Break",
+   "label": "Week by Week"
+  },
+  {
+   "fieldname": "weeks",
+   "fieldtype": "Long Text",
+   "label": "Weeks",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payable",
+   "fieldtype": "Long Text",
+   "label": "Hours to Pay",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-13 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HR",
+ "name": "Working Time Statement",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "write": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User"
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "role": "Employee"
+  }
+ ],
+ "sort_field": "month",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee_name",
+ "track_changes": 1
+}
