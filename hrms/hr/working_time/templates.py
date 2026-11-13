@@ -28,7 +28,8 @@ KINDS = ("Collective agreement", "Standard contract", "Company rules", "Law only
 def _all() -> dict:
 	found = {}
 	for name in sorted(os.listdir(FOLDER)):
-		if name.endswith(".json"):
+		# a hidden file is not a template (a copy from a Mac can carry ._ files beside the real ones)
+		if name.endswith(".json") and not name.startswith("."):
 			with open(os.path.join(FOLDER, name), encoding="utf-8") as handle:
 				data = json.load(handle)
 			found[data["key"]] = data

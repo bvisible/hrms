@@ -25057,3 +25057,199 @@ msgstr "comptés en jours civils"
 #: hrms/payroll/page/swiss_employee_wizard/swiss_employee_wizard.js
 msgid "counted in hours for part time"
 msgstr "comptés en heures pour le temps partiel"
+
+#: hrms/hr/working_time/views.py
+msgid "1 month"
+msgstr "1 mois"
+
+#: hrms/hr/working_time/views.py
+msgid "1 year"
+msgstr "1 an"
+
+#: hrms/hr/working_time/views.py
+msgid "after {0} years in the company"
+msgstr "après {0} ans dans l'entreprise"
+
+#: hrms/hr/working_time/views.py
+msgid "{0} % when its conditions are met, {1} % otherwise"
+msgstr "{0} % si ses conditions sont remplies, {1} % sinon"
+
+#: hrms/hr/working_time/views.py
+msgid "The employer decides {0} %, the employee {1} %"
+msgstr "L'employeur décide {0} %, l'employé {1} %"
+
+#: hrms/hr/working_time/views.py
+msgid "{0} h a year without supplement, then {1} %"
+msgstr "{0} h par an sans supplément, puis {1} %"
+
+#: hrms/hr/working_time/views.py
+msgid "{0} h a day"
+msgstr "{0} h par jour"
+
+#: hrms/hr/working_time/views.py
+msgid "{0} days a week"
+msgstr "{0} jours par semaine"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Confirm the {0} lines read"
+msgstr "Confirmer les {0} lignes lues"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Confirm the {0} lines that wait for it? Each one is then stamped with your name and the moment, and the working time reads it."
+msgstr "Confirmer les {0} lignes qui l'attendent ? Chacune porte alors votre nom et l'heure, et le temps de travail la lit."
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "The template expired on {0}"
+msgstr "Le modèle a échu le {0}"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "{0} lines to confirm"
+msgstr "{0} lignes à confirmer"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Every line read"
+msgstr "Toutes les lignes lues"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "from the template of {0}"
+msgstr "du modèle de {0}"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "the template expires on {0}"
+msgstr "le modèle échoit le {0}"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "{0} employees tied"
+msgstr "{0} employés rattachés"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Lines confirmed"
+msgstr "Lignes confirmées"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Your confirmed lines go on applying: they are yours. When the new text is out, a new template arrives and shows what changes, line by line."
+msgstr "Vos lignes confirmées continuent de s'appliquer : ce sont les vôtres. Quand le nouveau texte paraît, un nouveau modèle arrive et montre ce qui change, ligne par ligne."
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Employees tied ({0})"
+msgstr "Employés rattachés ({0})"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Journal of the confirmations"
+msgstr "Journal des confirmations"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Not found in the text, left empty"
+msgstr "Introuvable dans le texte, laissée vide"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "read on {0}"
+msgstr "lue le {0}"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "The client's value"
+msgstr "Valeur du client"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "No employee is tied to this agreement: the working time computes nothing for them, their pay and vacation stay as they were."
+msgstr "Aucun employé n'est rattaché à cette convention : le temps de travail ne calcule rien pour eux, leur salaire et leurs vacances restent tels quels."
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Tie employees"
+msgstr "Rattacher des employés"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "No line is confirmed yet."
+msgstr "Aucune ligne n'est encore confirmée."
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Written as the working time stores it (a number, a text in quotes, a list of rows). Changing it sets the line back to « to confirm »."
+msgstr "Écrit tel que le temps de travail le stocke (un nombre, un texte entre guillemets, une liste de lignes). Toute modification remet la ligne à « à confirmer »."
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "The whole team (the active employees of {0})"
+msgstr "Toute l'équipe (les employés actifs de {0})"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "every company"
+msgstr "chaque entreprise"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "I choose"
+msgstr "Je choisis"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Tie"
+msgstr "Rattacher"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "{0} lines: {1} drawn from the text, {2} deduced, {3} not found"
+msgstr "{0} lignes : {1} tirées du texte, {2} déduites, {3} introuvables"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "The employees you tie to this agreement"
+msgstr "Les employés que vous rattachez à cette convention"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "The whole team"
+msgstr "Toute l'équipe"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Copy the template"
+msgstr "Copier le modèle"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "Start from an empty agreement"
+msgstr "Partir d'une convention vide"
+
+#: hrms/hr/doctype/labour_agreement/labour_agreement.js
+msgid "A template fills the lines with their source. Every line arrives « to confirm »: nothing applies before you have read it. What the text does not settle arrives empty."
+msgstr "Un modèle remplit les lignes avec leur source. Chaque ligne arrive « à confirmer » : rien ne s'applique avant que vous ne l'ayez lue. Ce que le texte ne tranche pas arrive vide."
+
+#: hrms/hr/working_time/views.py
+msgid "Deduced, to check"
+msgstr "Déduite, à vérifier"
+
+#: hrms/hr/working_time/rules.py
+msgid "Compensated"
+msgstr "Compensée"
+
+#: hrms/hr/working_time/rules.py
+msgid "Month average"
+msgstr "Une moyenne sur le mois"
+
+#: hrms/hr/working_time/rules.py
+msgid "Calendar year"
+msgstr "L'année civile"
+
+#: hrms/hr/working_time/rules.py
+msgid "Weekly hours"
+msgstr "Les heures de la semaine"
+
+#: hrms/hr/working_time/rules.py
+msgid "By company status"
+msgstr "Selon le statut de l'entreprise"
+
+#: hrms/hr/working_time/rules.py
+msgid "Annual calendar"
+msgstr "Un calendrier de l'année"
+
+#: hrms/hr/working_time/rules.py
+msgid "Contract hours"
+msgstr "Les heures du contrat"
+
+#: hrms/hr/working_time/rules.py
+msgid "Constant planning"
+msgstr "Un planning constant"
+
+#: hrms/hr/working_time/rules.py
+msgid "Expiring lots"
+msgstr "Des lots qui échoient"
+
+#: hrms/hr/working_time/rules.py
+msgid "Sliding balance"
+msgstr "Un solde glissant"
+
+#: hrms/hr/working_time/rules.py
+msgid "Annual balance"
+msgstr "Un solde de l'année"

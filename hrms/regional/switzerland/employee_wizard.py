@@ -185,7 +185,8 @@ def vacation_proposal(agreement, date_of_birth=None, date_of_joining=None):
 	return {
 		"days": days,
 		"unit": rules.get("vacation_unit"),
-		"source": " ".join(part for part in (source.get("title"), source.get("article")) if part),
+		# the article says it in a few words; the title of the text only when there is no article
+		"source": source.get("article") or source.get("title") or "",
 	}
 
 
