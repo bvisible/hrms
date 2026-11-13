@@ -623,7 +623,7 @@ def establish_month(month) -> dict:
 
 
 @frappe.whitelist()
-def my_statements() -> dict:
+def my_statements() -> dict:  # permission-check: ok the signed-in person's own statements only
 	"""The statements of the person signed in, newest first: their own, never a colleague's."""
 	employees = frappe.get_all("Employee", filters={"user_id": frappe.session.user}, pluck="name")
 	if not employees:

@@ -126,7 +126,7 @@ def extend_bootinfo(bootinfo):
 
 
 @frappe.whitelist()
-def wizard_defaults(company):
+def wizard_defaults(company: str):
 	"""What the wizard proposes for ``company``: the canton of its payroll, its salary structures,
 	its default holiday list and the leave type of the vacation."""
 	_check_hiring_staff()
@@ -289,7 +289,7 @@ def suggest_source_tax(data):
 
 
 @frappe.whitelist()
-def create_employee(data):
+def create_employee(data: str | dict):
 	"""Create the Employee (and optional structure assignment) from wizard data.
 
 	Args:
@@ -637,7 +637,7 @@ def _assign_salary(doc, data):
 
 
 @frappe.whitelist()
-def complete_employee(employee, data):
+def complete_employee(employee: str, data: str | dict):
 	"""Complete the record ``employee`` with the wizard's data and lift its mark.
 
 	Only what the wizard gives is written (a blank never erases what the record holds). Gender and date of birth are
