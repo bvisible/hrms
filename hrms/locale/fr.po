@@ -25553,3 +25553,215 @@ msgstr "aucun travail supplémentaire légal cette année"
 msgctxt "working time"
 msgid "Rest"
 msgstr "Repos"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "The team's week"
+msgstr "La semaine de l'équipe"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Monthly statements"
+msgstr "Décomptes du mois"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Establish the {0} statements left"
+msgstr "Établir les {0} décomptes restants"
+
+#: hrms/www/my-time.html
+msgctxt "working time"
+msgid "Established"
+msgstr "Établi"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "To establish"
+msgstr "À établir"
+
+#: hrms/www/my-time.html
+msgctxt "working time"
+msgid "Countersigned"
+msgstr "Contresigné"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "A remark"
+msgstr "Une remarque"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Established, to countersign"
+msgstr "Établi, à contresigner"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Previous month"
+msgstr "Mois précédent"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Statements of {0}"
+msgstr "Décomptes de {0}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Next month"
+msgstr "Mois suivant"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Choose an established statement."
+msgstr "Choisissez un décompte établi."
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Your answer"
+msgstr "Votre réponse"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Answer the remark"
+msgstr "Répondre à la remarque"
+
+#: hrms/www/my-time.html
+msgctxt "working time"
+msgid "Send"
+msgstr "Envoyer"
+
+#: hrms/www/my-time.html
+msgid "Week of {0}"
+msgstr "Semaine du {0}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "The employee's remark"
+msgstr "La remarque de l'employé"
+
+#: hrms/www/my-time.html
+msgid "The answer"
+msgstr "La réponse"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Answer"
+msgstr "Répondre"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Statement of the hours"
+msgstr "Décompte des heures"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "weeks of {0} to {1}"
+msgstr "semaines du {0} au {1}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Print"
+msgstr "Imprimer"
+
+#: hrms/www/my-time.html
+msgctxt "working time"
+msgid "Week"
+msgstr "Semaine"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Hours over of the month"
+msgstr "Heures en plus du mois"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Paid in the month"
+msgstr "Payées dans le mois"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Balance to compensate at the month's end"
+msgstr "Solde à compenser à la fin du mois"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "the next lot expires on {0}"
+msgstr "le prochain lot échoit le {0}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "For the employer"
+msgstr "Pour l'employeur"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Waiting"
+msgstr "En attente"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Not asked by the agreement"
+msgstr "La convention ne le demande pas"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Copy given"
+msgstr "Copie remise"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "in their space · kept until {0}"
+msgstr "dans son espace · conservé jusqu'au {0}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "in their space"
+msgstr "dans son espace"
+
+#: hrms/www/my-time.html
+msgid "My working time"
+msgstr "Mon temps de travail"
+
+#: hrms/www/my-time.html
+msgid "No employee record is tied to your account: ask your HR manager."
+msgstr "Aucune fiche d'employé n'est liée à votre compte : adressez-vous à votre responsable RH."
+
+#: hrms/www/my-time.html
+msgid "No statement of your hours has been established yet."
+msgstr "Aucun décompte de vos heures n'a encore été établi."
+
+#: hrms/www/my-time.html
+msgid "Countersigned on {0}"
+msgstr "Contresigné le {0}"
+
+#: hrms/www/my-time.html
+msgid "Your remark waits for its answer"
+msgstr "Votre remarque attend sa réponse"
+
+#: hrms/www/my-time.html
+msgctxt "working time"
+msgid "To countersign"
+msgstr "À contresigner"
+
+#: hrms/www/my-time.html
+msgid "{0} established it on {1}, from your clocking."
+msgstr "{0} l'a établi le {1}, d'après vos pointages."
+
+#: hrms/www/my-time.html
+msgctxt "working time"
+msgid "over"
+msgstr "en plus"
+
+#: hrms/www/my-time.html
+msgctxt "working time"
+msgid "to compensate"
+msgstr "à compenser"
+
+#: hrms/www/my-time.html
+msgctxt "working time"
+msgid "paid"
+msgstr "payées"
+
+#: hrms/www/my-time.html
+msgid "{0} done · {1} due"
+msgstr "{0} faites · {1} dues"
+
+#: hrms/www/my-time.html
+msgid "Your remark"
+msgstr "Votre remarque"
+
+#: hrms/www/my-time.html
+msgid "By countersigning, you say you received this statement. A mistake? Add a remark: it stays attached to the statement and the HR manager answers it."
+msgstr "En contresignant, vous confirmez avoir reçu ce décompte. Une erreur ? Ajoutez une remarque : elle reste attachée au décompte, et le responsable RH y répond."
+
+#: hrms/www/my-time.html
+msgctxt "working time"
+msgid "Countersign"
+msgstr "Contresigner"
+
+#: hrms/www/my-time.html
+msgid "Add a remark"
+msgstr "Ajouter une remarque"
+
+#: hrms/www/my-time.html
+msgid "Your remark on this statement"
+msgstr "Votre remarque sur ce décompte"
+
+#: hrms/www/my-time.html
+msgid "Send the remark"
+msgstr "Envoyer la remarque"

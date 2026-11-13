@@ -498,3 +498,130 @@ def balance_view(employee: str, day=None) -> dict:
 		}
 	)
 	return answer
+
+
+# ------------------------------------------------------------------------------------------ the monthly statements
+
+STATEMENT_FIELDS = (
+	"name",
+	"employee",
+	"employee_name",
+	"month",
+	"status",
+	"agreement",
+	"period_start",
+	"period_end",
+	"countersign_expected",
+	"due",
+	"done",
+	"credited",
+	"over",
+	"short",
+	"weeks_count",
+	"paid_hours",
+	"balance_end",
+	"next_expiry",
+	"established_by",
+	"established_on",
+	"copy_given_on",
+	"countersigned_by",
+	"countersigned_on",
+	"retention_until",
+	"remark",
+	"remark_on",
+	"remark_answer",
+	"answered_by",
+	"answered_on",
+	"weeks",
+	"payable",
+)
+
+
+def _statement(doc) -> dict:
+	import json
+
+	data = {field: doc.get(field) for field in STATEMENT_FIELDS}
+	for field in ("weeks", "payable"):
+		data[field] = json.loads(doc.get(field) or "[]")
+	for field in ("established_by", "countersigned_by", "answered_by"):
+		data[f"{field}_name"] = frappe.utils.get_fullname(doc.get(field)) if doc.get(field) else ""
+	return data
+
+
+@frappe.whitelist()
+def statement_view(statement: str) -> dict:
+	"""A statement as its screens show it: the HR staff read every one, an employee their own only."""
+	doc = frappe.get_doc("Working Time Statement", statement)
+	doc.check_permission("read")
+	return _statement(doc)
+
+
+@frappe.whitelist()
+def month_view(month=None) -> dict:
+	"""The statements of a month for every active employee tied to an agreement: established or not, their state."""
+	_check_reader()
+	first = getdate(month or nowdate()).replace(day=1)
+	employees = frappe.get_all(
+		"Employee",
+		filters={"status": "Active", EMPLOYEE_FIELD: ["is", "set"]},
+		fields=["name", "employee_name"],
+		order_by="employee_name asc",
+	)
+	statements = {
+		row.employee: row
+		for row in frappe.get_all(
+			"Working Time Statement",
+			filters={"month": first, "employee": ["in", [person.name for person in employees] or [""]]},
+			fields=["name", "employee", "status", "countersign_expected", "established_on"],
+		)
+	}
+	return {
+		"month": first,
+		"employees": [
+			{
+				"employee": person.name,
+				"employee_name": person.employee_name,
+				"statement": statements.get(person.name),
+			}
+			for person in employees
+		],
+		"can_establish": frappe.has_permission("Working Time Statement", "write"),
+	}
+
+
+@frappe.whitelist()
+def establish_month(month) -> dict:
+	"""Establish the statements of a month still to establish (never one countersigned), for the HR manager."""
+	from hrms.hr.working_time.statement import COUNTERSIGNED, establish_statement
+
+	frappe.has_permission("Working Time Statement", "write", throw=True)
+	first = getdate(month).replace(day=1)
+	established, kept = [], []
+	for row in month_view(first)["employees"]:
+		statement = row["statement"]
+		if statement and statement.status == COUNTERSIGNED:
+			kept.append(row["employee"])
+			continue
+		if statement:
+			continue
+		established.append(establish_statement(row["employee"], first))
+	return {"established": established, "countersigned": kept}
+
+
+@frappe.whitelist()
+def my_statements() -> dict:
+	"""The statements of the person signed in, newest first: their own, never a colleague's."""
+	employees = frappe.get_all("Employee", filters={"user_id": frappe.session.user}, pluck="name")
+	if not employees:
+		return {"employees": [], "statements": []}
+	names = frappe.get_all(
+		"Working Time Statement",
+		filters={"employee": ["in", employees]},
+		pluck="name",
+		order_by="month desc",
+		limit=24,
+	)
+	return {
+		"employees": employees,
+		"statements": [_statement(frappe.get_doc("Working Time Statement", name)) for name in names],
+	}

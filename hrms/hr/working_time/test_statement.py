@@ -194,3 +194,34 @@ class TestTheMonthlyStatement(FrappeTestCase):
 		with as_role(MANAGER), self.assertRaisesRegex(frappe.ValidationError, "no labour agreement"):
 			statement.establish_statement(self.bruno, NOVEMBER)
 		self.assertFalse(frappe.db.exists(statement.STATEMENT_DOCTYPE, {"employee": "_no such employee"}))
+
+	# ------------------------------------------------------------------------------------------ the screens
+
+	def test_the_month_is_the_hr_staffs_and_the_hr_manager_establishes_what_is_left(self):
+		from hrms.hr.working_time import views
+
+		with as_role(ANNA), self.assertRaises(frappe.PermissionError):
+			views.month_view(NOVEMBER)
+		with as_role(READER), self.assertRaises(frappe.PermissionError):
+			views.establish_month(NOVEMBER)
+		self.establish(self.anna)
+		with as_role(MANAGER):
+			done = views.establish_month(NOVEMBER)
+			month = views.month_view(NOVEMBER)
+		self.assertIn(
+			frappe.db.get_value(statement.STATEMENT_DOCTYPE, {"employee": self.bruno}), done["established"]
+		)
+		states = {row["employee"]: row["statement"] for row in month["employees"]}
+		self.assertTrue(states[self.anna] and states[self.bruno])
+
+	def test_an_employee_reads_their_own_statements_on_their_page_never_a_colleagues(self):
+		from hrms.hr.working_time import views
+
+		own, other = self.establish(self.anna), self.establish(self.bruno)
+		with as_role(ANNA):
+			mine = views.my_statements()
+			self.assertEqual([item["name"] for item in mine["statements"]], [own])
+			self.assertEqual(views.statement_view(own)["employee"], self.anna)
+			with self.assertRaises(frappe.PermissionError):
+				views.statement_view(other)
+		self.assertEqual(mine["statements"][0]["weeks"][1]["monday"], "2026-11-09")

@@ -1,0 +1,118 @@
+{% extends "templates/web.html" %}
+{# //// Neoffice — added file (no upstream equivalent): the employee's own page of their working time (lot T, #2623). #}
+
+{% block title %}{{ _("My working time") }}{% endblock %}
+
+{% block page_content %}
+<style>
+.mt{--ink:#141414;--paper:#FFFDF8;--muted:#524B41;--line:#DCD4C7;--hero:#FCEEDB;--signal:#F55D1A;--signal-text:#AA3700;--card:#FFFFFF;
+	max-width:560px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:18px;color:var(--ink);font-family:Karla,system-ui,sans-serif}
+@media (prefers-color-scheme:dark){.mt{--ink:#F2EFE8;--paper:#15140F;--muted:#A39A8C;--line:rgba(220,210,190,.18);--hero:#322D1F;--signal-text:#FF8D64;--card:#2A2620}}
+.mt h1{margin:0;font:400 32px/1.1 Forum,Georgia,serif;color:var(--ink)}
+.mt-card{border-radius:18px;border:1px solid var(--line);background:var(--hero);padding:16px;display:flex;flex-direction:column;gap:10px}
+.mt-row{display:flex;align-items:center;gap:8px}
+.mt-month{flex:1;font:700 11px Karla,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mt-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font:600 12px Karla,sans-serif;max-width:100%}
+.mt-pill:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.mt-pill.is-amber{background:#FFEAE2;color:#AA3700}.mt-pill.is-green{background:#E6F4EA;color:#15803D}.mt-pill.is-red{background:#FDEAE4;color:#C2410C}
+.mt-lead{font:400 15px/1.4 Karla,sans-serif;color:var(--muted)}
+.mt-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mt-kpi b{display:block;font:700 22px Karla,sans-serif}.mt-kpi b.is-signal{color:var(--signal-text)}
+.mt-kpi span{font:600 11px Karla,sans-serif;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.mt-weeks{display:flex;flex-direction:column;gap:8px}
+.mt-week{border-radius:12px;background:var(--card);border:1px solid var(--line);padding:12px 14px;display:flex;align-items:center;gap:10px}
+.mt-week div{flex:1;display:flex;flex-direction:column;gap:2px}.mt-week small{color:var(--muted);font-size:12px}
+.mt-note{font:400 13px/1.45 Karla,sans-serif;color:var(--muted)}
+.mt-remark{border-radius:12px;background:var(--card);border:1px solid var(--line);padding:12px 14px;font-size:14px}
+.mt-actions{display:flex;flex-direction:column;gap:8px}
+.mt-btn{height:52px;border-radius:14px;border:0;background:var(--ink);color:var(--paper);font:700 16px Karla,sans-serif}
+.mt-btn.is-outline{height:48px;border:1.5px solid var(--ink);background:transparent;color:var(--ink)}
+.mt-empty{color:var(--muted)}
+.mt-write{display:flex;flex-direction:column;gap:8px}
+.mt-text{width:100%;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 12px;font:400 15px Karla,sans-serif}
+</style>
+<div class="mt">
+	<h1>{{ _("My working time") }}</h1>
+	{% if no_employee %}
+		<p class="mt-empty">{{ _("No employee record is tied to your account: ask your HR manager.") }}</p>
+	{% elif not statements %}
+		<p class="mt-empty">{{ _("No statement of your hours has been established yet.") }}</p>
+	{% endif %}
+	{% for s in statements %}
+	<section class="mt-card" data-statement="{{ s.name }}">
+		<div class="mt-row">
+			<span class="mt-month">{{ frappe.utils.formatdate(s.month, "MMMM yyyy") }}</span>
+			{% if s.status == "Countersigned" %}
+				<span class="mt-pill is-green">{{ _("Countersigned on {0}").format(frappe.utils.formatdate(s.countersigned_on)) }}</span>
+			{% elif s.status == "Remark" %}
+				<span class="mt-pill is-red">{{ _("Your remark waits for its answer") }}</span>
+			{% else %}
+				<span class="mt-pill is-amber">{{ _("To countersign", context="working time") }}</span>
+			{% endif %}
+		</div>
+		<div class="mt-lead">{{ _("{0} established it on {1}, from your clocking.").format(s.established_by_name or s.established_by, frappe.utils.formatdate(s.established_on)) }}</div>
+		<div class="mt-kpis">
+			<div class="mt-kpi"><b class="is-signal">{{ hm(s.over) }}</b><span>{{ _("over", context="working time") }}</span></div>
+			<div class="mt-kpi"><b>{{ hm(s.balance_end) }}</b><span>{{ _("to compensate", context="working time") }}</span></div>
+			<div class="mt-kpi"><b>{{ hm(s.paid_hours) }}</b><span>{{ _("paid", context="working time") }}</span></div>
+		</div>
+		<div class="mt-weeks">
+			{% for w in s.weeks %}
+			<div class="mt-week">
+				<div><span>{{ _("Week of {0}").format(frappe.utils.formatdate(w.monday)) }}</span>
+				<small>{{ _("{0} done · {1} due").format(hm((w.done or 0) + (w.credited or 0)), hm(w.due)) }}</small></div>
+				<b>{{ hm((w.counted_over or 0) - ((w.short or 0)|abs), true) }}</b>
+			</div>
+			{% endfor %}
+		</div>
+		{% if s.remark %}
+		<div class="mt-remark"><b>{{ _("Your remark") }}</b> : {{ s.remark }}
+			{% if s.remark_answer %}<br><b>{{ _("The answer") }}</b> ({{ s.answered_by_name }}) : {{ s.remark_answer }}{% endif %}
+		</div>
+		{% endif %}
+		{% if s.status == "Established" %}
+		<div class="mt-note">{{ _("By countersigning, you say you received this statement. A mistake? Add a remark: it stays attached to the statement and the HR manager answers it.") }}</div>
+		<div class="mt-actions">
+			<button class="mt-btn" data-mt-sign="{{ s.name }}">{{ _("Countersign", context="working time") }}</button>
+			<button class="mt-btn is-outline" data-mt-remark="{{ s.name }}">{{ _("Add a remark") }}</button>
+			<div class="mt-write" hidden>
+				<textarea class="mt-text" rows="3" placeholder="{{ _('Your remark on this statement') }}"></textarea>
+				<button class="mt-btn" data-mt-send="{{ s.name }}">{{ _("Send the remark") }}</button>
+			</div>
+		</div>
+		{% endif %}
+	</section>
+	{% endfor %}
+</div>
+<script>
+frappe.ready(() => {
+	const M = "hrms.hr.working_time.statement";
+	document.querySelectorAll("[data-mt-sign]").forEach((button) =>
+		button.addEventListener("click", () => {
+			button.disabled = true;
+			frappe.call({ method: `${M}.countersign_statement`, args: { statement: button.dataset.mtSign } })
+				.then(() => window.location.reload())
+				.catch(() => (button.disabled = false));
+		}),
+	);
+	document.querySelectorAll("[data-mt-remark]").forEach((button) =>
+		button.addEventListener("click", () => {
+			const write = button.parentElement.querySelector(".mt-write");
+			write.hidden = false;
+			button.hidden = true;
+			write.querySelector("textarea").focus();
+		}),
+	);
+	document.querySelectorAll("[data-mt-send]").forEach((button) =>
+		button.addEventListener("click", () => {
+			const text = button.parentElement.querySelector("textarea").value;
+			if (!text.trim()) return;
+			button.disabled = true;
+			frappe.call({ method: `${M}.add_remark`, args: { statement: button.dataset.mtSend, text } })
+				.then(() => window.location.reload())
+				.catch(() => (button.disabled = false));
+		}),
+	);
+});
+</script>
+{% endblock %}

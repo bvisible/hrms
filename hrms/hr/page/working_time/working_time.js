@@ -55,11 +55,33 @@ class WorkingTimeScreen {
 
 	route() {
 		const route = frappe.get_route();
-		this.employee = route[1] || null;
+		this.employee = route[1] && route[1] !== "statements" ? route[1] : null;
+		this.team_tab = route[1] === "statements" ? "statements" : "weeks";
 		this.tab = route[2] || this.tab || "week";
 		if (frappe.route_options && frappe.route_options.day) this.day = frappe.route_options.day;
 		frappe.route_options = null;
-		return this.employee ? this.show_person() : this.show_team();
+		if (this.employee) return this.show_person();
+		return this.team_tab === "statements" ? this.show_statements() : this.show_team();
+	}
+
+	team_tabs() {
+		return `<div class="ltw-tabs">
+			<button class="ltw-tab ${this.team_tab === "weeks" ? "is-on" : ""}" data-ltw-team="weeks">${__(
+				"The team's week",
+			)}</button>
+			<button class="ltw-tab ${
+				this.team_tab === "statements" ? "is-on" : ""
+			}" data-ltw-team="statements">${__("Monthly statements")}</button>
+		</div>`;
+	}
+
+	bind_team_tabs() {
+		this.$body.find("[data-ltw-team]").on("click", (event) => {
+			const tab = $(event.currentTarget).attr("data-ltw-team");
+			frappe.set_route(
+				...(tab === "statements" ? ["working-time", "statements"] : ["working-time"]),
+			);
+		});
 	}
 
 	move(weeks) {
@@ -115,6 +137,7 @@ class WorkingTimeScreen {
 			"No active employee is tied to a labour agreement: tie them on the agreement's screen.",
 		)}</div>`;
 		this.$body.html(`
+			${this.team_tabs()}
 			<div class="ltw-top">${this.week_nav(view.monday)}</div>
 			<div class="ltw-table">
 				<div class="ltw-row ltw-team ltw-th"><span>${__(
@@ -133,6 +156,206 @@ class WorkingTimeScreen {
 				${rows || empty}
 			</div>`);
 		this.bind_nav();
+		this.bind_team_tabs();
+	}
+
+	// ---------------------------------------------------------------------------------------- the statements
+
+	async show_statements(selected) {
+		this.page.set_title(__("Monthly statements"));
+		this.page.clear_primary_action();
+		this.month =
+			this.month ||
+			frappe.datetime.month_start(
+				frappe.datetime.add_months(frappe.datetime.get_today(), -1),
+			);
+		const view = await frappe.xcall(`${LTW}.views.month_view`, { month: this.month });
+		const left = view.employees.filter((row) => !row.statement);
+		if (view.can_establish && left.length) {
+			this.page.set_primary_action(
+				__("Establish the {0} statements left", [left.length]),
+				async () => {
+					await frappe.xcall(`${LTW}.views.establish_month`, { month: this.month });
+					frappe.show_alert({
+						message: __("Established", null, "working time"),
+						indicator: "green",
+					});
+					this.show_statements(selected);
+				},
+			);
+		}
+		const state = (statement) => {
+			if (!statement) return ltw_pill(__("To establish", null, "working time"), "grey");
+			if (statement.status === "Countersigned")
+				return ltw_pill(__("Countersigned", null, "working time"), "green");
+			if (statement.status === "Remark") return ltw_pill(__("A remark"), "red");
+			return ltw_pill(
+				statement.countersign_expected
+					? __("Established, to countersign")
+					: __("Established", null, "working time"),
+				"amber",
+			);
+		};
+		const rows = view.employees
+			.map(
+				(row) => `<button class="ltw-who ${
+					row.statement && row.statement.name === selected ? "is-on" : ""
+				}" data-ltw-statement="${row.statement ? ltw_esc(row.statement.name) : ""}">
+				<span class="ltw-strong">${ltw_esc(row.employee_name || row.employee)}</span>${state(
+					row.statement,
+				)}
+			</button>`,
+			)
+			.join("");
+		const label = moment(view.month).format("MM-YYYY");
+		this.$body.html(`
+			${this.team_tabs()}
+			<div class="ltw-top"><div class="ltw-nav">
+				<button class="ltw-arrow" data-ltw-month="-1" aria-label="${__("Previous month")}">‹</button>
+				<span>${__("Statements of {0}", [label])}</span>
+				<button class="ltw-arrow" data-ltw-month="1" aria-label="${__("Next month")}">›</button>
+			</div></div>
+			<div class="ltw-split">
+				<div class="ltw-people">${
+					rows ||
+					`<div class="ltw-empty">${__(
+						"No active employee is tied to a labour agreement: tie them on the agreement's screen.",
+					)}</div>`
+				}</div>
+				<div class="ltw-paper">${
+					selected
+						? await this.statement_html(selected)
+						: `<div class="ltw-empty">${__("Choose an established statement.")}</div>`
+				}</div>
+			</div>`);
+		this.bind_team_tabs();
+		this.$body.find("[data-ltw-month]").on("click", (event) => {
+			this.month = frappe.datetime.add_months(
+				this.month,
+				Number($(event.currentTarget).attr("data-ltw-month")),
+			);
+			this.show_statements();
+		});
+		this.$body.find("[data-ltw-statement]").on("click", (event) => {
+			const name = $(event.currentTarget).attr("data-ltw-statement");
+			if (name) this.show_statements(name);
+		});
+		this.$body.find("[data-ltw-answer]").on("click", (event) => {
+			const name = $(event.currentTarget).attr("data-ltw-answer");
+			frappe.prompt(
+				{ fieldname: "text", fieldtype: "Small Text", label: __("Your answer"), reqd: 1 },
+				async (values) => {
+					await frappe.xcall(`${LTW}.statement.answer_remark`, {
+						statement: name,
+						text: values.text,
+					});
+					this.show_statements(name);
+				},
+				__("Answer the remark"),
+				__("Send", null, "working time"),
+			);
+		});
+	}
+
+	async statement_html(name) {
+		const s = await frappe.xcall(`${LTW}.views.statement_view`, { statement: name });
+		const weeks = (s.weeks || [])
+			.map(
+				(week) => `<div class="ltw-row ltw-sweeks">
+				<span>${__("Week of {0}", [ltw_date(week.monday)])}</span>
+				<span>${ltw_hm(week.due)}</span>
+				<span>${ltw_hm(Number(week.done || 0) + Number(week.credited || 0))}</span>
+				<span>${ltw_hm(Number(week.counted_over || 0) - Math.abs(Number(week.short || 0)), true)}</span>
+			</div>`,
+			)
+			.join("");
+		const sign = (
+			label,
+			who,
+			when,
+			note,
+		) => `<div class="ltw-sign"><span class="ltw-cap">${label}</span>
+			<span class="ltw-strong">${ltw_esc(
+				[who, ltw_date(when)].filter(Boolean).join(" · ") || "—",
+			)}</span>
+			<span class="ltw-muted">${note || ""}</span></div>`;
+		const remark = s.remark
+			? `<div class="ltw-note ${s.status === "Remark" ? "is-amber" : ""}"><b>${__(
+					"The employee's remark",
+			  )}</b> : ${ltw_esc(s.remark)}${
+					s.remark_answer
+						? `<br><b>${__("The answer")}</b> (${ltw_esc(
+								s.answered_by_name,
+						  )}) : ${ltw_esc(s.remark_answer)}`
+						: ""
+			  }${
+					s.status === "Remark"
+						? `<div class="ltw-actions"><button class="ltw-btn" data-ltw-answer="${ltw_esc(
+								s.name,
+						  )}">${__("Answer", null, "working time")}</button></div>`
+						: ""
+			  }</div>`
+			: "";
+		return `
+			<div class="ltw-paper-head"><div><span class="ltw-cap">${__("Statement of the hours")}</span>
+				<div class="ltw-title">${ltw_esc(moment(s.month).format("MM-YYYY"))} · ${ltw_esc(
+					s.employee_name,
+				)}</div>
+				<div class="ltw-muted">${ltw_esc(s.agreement || "")} · ${__("weeks of {0} to {1}", [
+					ltw_date(s.period_start),
+					ltw_date(s.period_end),
+				])}</div></div>
+				<a class="ltw-print" href="/printview?doctype=${encodeURIComponent(
+					"Working Time Statement",
+				)}&name=${encodeURIComponent(s.name)}" target="_blank" rel="noopener">${__(
+					"Print",
+				)}</a>
+			</div>
+			<div class="ltw-table"><div class="ltw-row ltw-sweeks ltw-th"><span>${__(
+				"Week",
+				null,
+				"working time",
+			)}</span><span>${__("Due", null, "working time")}</span><span>${__(
+				"Done",
+				null,
+				"working time",
+			)}</span><span>${__("Over", null, "working time")}</span></div>${weeks}</div>
+			<div class="ltw-sums">
+				<div><span>${__("Hours over of the month")}</span><b>${ltw_hm(s.over)}</b></div>
+				<div><span>${__("Paid in the month")}</span><b>${ltw_hm(s.paid_hours)}</b></div>
+				<div><span>${__("Balance to compensate at the month's end")}</span><b>${ltw_hm(s.balance_end)}${
+					s.next_expiry
+						? " · " + __("the next lot expires on {0}", [ltw_date(s.next_expiry)])
+						: ""
+				}</b></div>
+			</div>
+			${remark}
+			<div class="ltw-signs">
+				${sign(
+					__("Established", null, "working time"),
+					s.established_by_name,
+					s.established_on,
+					__("For the employer"),
+				)}
+				${sign(
+					__("Countersigned", null, "working time"),
+					s.countersigned_by_name,
+					s.countersigned_on,
+					s.countersign_expected
+						? s.countersigned_by
+							? ""
+							: __("Waiting", null, "working time")
+						: __("Not asked by the agreement"),
+				)}
+				${sign(
+					__("Copy given"),
+					"",
+					s.copy_given_on,
+					s.retention_until
+						? __("in their space · kept until {0}", [ltw_date(s.retention_until)])
+						: __("in their space"),
+				)}
+			</div>`;
 	}
 
 	// ---------------------------------------------------------------------------------------- a person
@@ -531,7 +754,21 @@ a.ltw-row:hover{background:var(--subtle-fg,var(--control-bg));text-decoration:no
 [data-theme=dark] .ltw-pill.is-amber{background:rgba(161,98,7,.22);color:#FCD34D}
 [data-theme=dark] .ltw-pill.is-blue{background:rgba(29,78,216,.22);color:#93C5FD}
 [data-theme=dark] .ltw-pill.is-red{background:rgba(194,65,12,.22);color:#FDBA74}
-@media (max-width:768px){.ltw-row{grid-template-columns:1fr 1fr}.ltw-th{display:none}.ltw-kpi{padding:6px 14px 6px 0;border-left:0}.ltw-top{justify-content:flex-start}}
+.ltw-split{display:grid;grid-template-columns:minmax(0,290px) minmax(0,1fr);gap:18px;align-items:start}
+.ltw-people{display:flex;flex-direction:column;gap:4px}
+.ltw-who{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;padding:11px 12px;border-radius:12px;border:0;background:none;text-align:left;color:var(--text-color);font-size:14.5px}
+.ltw-who.is-on,.ltw-who:hover{background:var(--subtle-fg,var(--control-bg))}
+.ltw-paper{border:1px solid var(--border-color);border-radius:16px;background:var(--card-bg);padding:24px 26px;display:flex;flex-direction:column;gap:14px;box-shadow:0 8px 24px rgba(40,28,18,.06)}
+.ltw-paper-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.ltw-print{font-weight:700;color:#AA3700}
+.ltw-sweeks{grid-template-columns:minmax(0,1.6fr) repeat(3,minmax(0,1fr))}
+.ltw-sums{display:flex;flex-direction:column}
+.ltw-sums div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--border-color);font-size:14px}
+.ltw-signs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.ltw-sign{border:1px solid var(--border-color);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.ltw-actions{display:flex;justify-content:flex-end;margin-top:8px}
+.ltw-btn{border-radius:10px;padding:8px 16px;font-size:13.5px;font-weight:700;border:0;background:var(--text-color);color:var(--card-bg)}
+@media (max-width:768px){.ltw-split{grid-template-columns:1fr}.ltw-row{grid-template-columns:1fr 1fr}.ltw-th{display:none}.ltw-kpi{padding:6px 14px 6px 0;border-left:0}.ltw-top{justify-content:flex-start}}
 `;
 	document.head.appendChild(style);
 }
