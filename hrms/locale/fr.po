@@ -25273,3 +25273,283 @@ msgstr "Déduite, à vérifier"
 msgctxt "Labour Agreement Rule"
 msgid "Not found"
 msgstr "Introuvable"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Weeks and Balances"
+msgstr "Semaines et soldes"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Previous week"
+msgstr "Semaine précédente"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Week {0} · {1} to {2}"
+msgstr "Semaine {0} · du {1} au {2}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Next week"
+msgstr "Semaine suivante"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "No week kept"
+msgstr "Aucune semaine enregistrée"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Hours over waiting for the approval"
+msgstr "Heures en plus en attente de l'accord de l'employeur"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Approved · {0}"
+msgstr "Approuvées · {0}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Kept"
+msgstr "Enregistrée"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "No active employee is tied to a labour agreement: tie them on the agreement's screen."
+msgstr "Aucun employé actif n'est rattaché à une convention de travail : rattachez-les depuis l'écran de la convention."
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Employee"
+msgstr "Employé"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Due"
+msgstr "Dues"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Done"
+msgstr "Faites"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Over"
+msgstr "En plus"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "State"
+msgstr "État"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "The week"
+msgstr "La semaine"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "The balance"
+msgstr "Le solde"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "No agreement"
+msgstr "Aucune convention"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "The working time computes nothing for this person: no week, no balance, no statement. Their pay and vacation stay as they were."
+msgstr "Le temps de travail ne calcule rien pour cette personne : ni semaine, ni solde, ni décompte. Son salaire et ses vacances restent tels quels."
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Nothing settles the hours due"
+msgstr "Rien ne fixe les heures dues"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Neither the confirmed lines nor the lines to confirm of the agreement say how many hours are due."
+msgstr "Ni les lignes confirmées ni les lignes à confirmer de la convention n'indiquent le nombre d'heures dues."
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Approve {0} over"
+msgstr "Approuver {0} en plus"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Approve the {0} over of this week? Your name and the moment are kept with the approval."
+msgstr "Approuver les {0} en plus de cette semaine ? Votre nom et l'heure sont gardés avec l'accord."
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Approved"
+msgstr "Approuvées"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Indicative calculation"
+msgstr "Calcul indicatif"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Approved by {0} on {1}"
+msgstr "Approuvées par {0} le {1}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "indicative: {0} to confirm"
+msgstr "indicatif : {0} à confirmer"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "every line used is confirmed"
+msgstr "chaque ligne utilisée est confirmée"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Public holiday"
+msgstr "Jour férié"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Day of rest"
+msgstr "Jour de repos"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "The hours over wait for the employer's approval"
+msgstr "Les heures en plus attendent l'accord de l'employeur"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Approved, they enter the balance; the approval is kept with who and when."
+msgstr "Approuvées, elles entrent dans le solde ; l'accord est gardé avec qui et quand."
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "The legal base"
+msgstr "Le socle légal"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "{0} of {1} at most this week. Nothing is blocked: the employer is warned."
+msgstr "{0} sur {1} au maximum cette semaine. Rien n'est bloqué : l'employeur est averti."
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "{0} above it"
+msgstr "{0} au-delà"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Done · clocked and credited"
+msgstr "Faites · pointées et créditées"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Difference"
+msgstr "Écart"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Tolerance"
+msgstr "Tolérance"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Hours over"
+msgstr "Heures en plus"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Day"
+msgstr "Jour"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Clocked"
+msgstr "Pointé"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Credited"
+msgstr "Crédité"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "No way of keeping the balance"
+msgstr "Aucune façon de tenir le solde"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "The agreement confirms no line saying how the hours over are kept: there is no balance yet."
+msgstr "La convention ne confirme aucune ligne qui dise comment tenir les heures en plus : il n'y a pas encore de solde."
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "supplement not settled"
+msgstr "supplément non réglé"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "with {0} %"
+msgstr "avec {0} %"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "{0}: {1} of legal overtime"
+msgstr "{0} : {1} de travail supplémentaire légal"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "{0} day(s) owed from the week of {1}"
+msgstr "{0} jour(s) dû(s) pour la semaine du {1}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "by {0}"
+msgstr "d'ici le {0}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Overdue"
+msgstr "En retard"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Sunday or public holiday of {0} to compensate"
+msgstr "Dimanche ou jour férié du {0} à compenser"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "The next lot expires on {0}"
+msgstr "Le prochain lot échoit le {0}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Balance"
+msgstr "Solde"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Paid this year"
+msgstr "Payées cette année"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Supplement if paid"
+msgstr "Supplément si payé"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Earned"
+msgstr "Gagnées"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Hours"
+msgstr "Heures"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Compensated"
+msgstr "Compensées"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Left"
+msgstr "Restent"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Expires on"
+msgstr "Échoit le"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "To pay"
+msgstr "À payer"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "The legal counter"
+msgstr "Le compteur légal"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "no legal overtime this year"
+msgstr "aucun travail supplémentaire légal cette année"
+
+#: hrms/hr/page/working_time/working_time.js
+msgctxt "working time"
+msgid "Rest"
+msgstr "Repos"

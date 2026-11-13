@@ -243,3 +243,255 @@ def attach_employees(agreement: str, employees: str | list | None = None, all_ac
 		person.db_set(EMPLOYEE_FIELD, agreement)
 		tied.append(employee)
 	return {"agreement": agreement, "employees": tied}
+
+
+# ------------------------------------------------------------------------------------------ the weeks and the balance
+
+
+def _check_reader():
+	"""The weeks and the balances are the HR staff's to read (HR manager, HR user)."""
+	frappe.has_permission("Working Time Week", "read", throw=True)
+
+
+def _monday(day):
+	import datetime
+
+	day = getdate(day or nowdate())
+	return day - datetime.timedelta(days=day.weekday())
+
+
+def _week_row(row) -> dict | None:
+	if not row:
+		return None
+	return {
+		"name": row.name,
+		"due": flt(row.due, 4),
+		"done": flt(row.done, 4),
+		"credited": flt(row.credited, 4),
+		"over": flt(row.over, 4),
+		"short": flt(row.short, 4),
+		"legal_excess": flt(row.legal_excess, 4),
+		"needs_approval": bool(row.needs_approval),
+		"approved_hours": flt(row.approved_hours, 4),
+		"approved_by": frappe.utils.get_fullname(row.approved_by) if row.approved_by else "",
+		"approved_on": row.approved_on,
+	}
+
+
+@frappe.whitelist()
+def team_view(day=None) -> dict:
+	"""The week of every active employee tied to an agreement, as the engine kept it."""
+	_check_reader()
+	monday = _monday(day)
+	employees = frappe.get_all(
+		"Employee",
+		filters={"status": "Active", EMPLOYEE_FIELD: ["is", "set"]},
+		fields=["name", "employee_name", EMPLOYEE_FIELD],
+		order_by="employee_name asc",
+	)
+	fields = [
+		"name",
+		"employee",
+		"due",
+		"done",
+		"credited",
+		"over",
+		"short",
+		"legal_excess",
+		"needs_approval",
+		"approved_hours",
+		"approved_by",
+		"approved_on",
+	]
+	weeks = {
+		row.employee: row
+		for row in frappe.get_all(
+			"Working Time Week",
+			filters={"monday": monday, "employee": ["in", [person.name for person in employees] or [""]]},
+			fields=fields,
+		)
+	}
+	return {
+		"monday": monday,
+		"employees": [
+			{
+				"employee": person.name,
+				"employee_name": person.employee_name,
+				"agreement": person.get(EMPLOYEE_FIELD),
+				"week": _week_row(weeks.get(person.name)),
+			}
+			for person in employees
+		],
+		"can_approve": frappe.has_permission("Working Time Week", "write"),
+	}
+
+
+@frappe.whitelist()
+def week_view(employee: str, day=None) -> dict:
+	"""An employee's week as its screen shows it: the days, the clock, the credits, the figures and the approval.
+
+	A week whose confirmed lines do not settle the hours due is shown indicative (the lines to confirm let in), and
+	says so: such a week feeds nothing."""
+	import datetime
+
+	from hrms.hr.working_time.agreement import rules_for
+	from hrms.hr.working_time.supplements import worked_intervals
+	from hrms.hr.working_time.week import compute_week, employee_facts
+
+	_check_reader()
+	person = frappe.get_doc("Employee", employee)
+	person.check_permission("read")
+	monday = _monday(day)
+	sunday = monday + datetime.timedelta(days=6)
+	answer = {
+		"employee": employee,
+		"employee_name": person.employee_name,
+		"agreement": person.get(EMPLOYEE_FIELD),
+		"monday": monday,
+		"sunday": sunday,
+	}
+	confirmed = rules_for(employee)
+	if confirmed is None:
+		return answer
+	facts = employee_facts(employee, monday)
+	week = compute_week(confirmed, facts, monday)
+	indicative = week is None
+	if indicative:
+		every_line = rules_for(employee, confirmed_only=False)
+		week = compute_week(every_line, facts, monday, indicative=True)
+		answer["unconfirmed"] = [_(catalogue.rule(key).label.msg) for key in every_line.unconfirmed]
+	clock = {}
+	for start, end in worked_intervals(employee, monday, sunday):
+		clock.setdefault(start.date(), []).append(f"{start:%H:%M} – {end:%H:%M}")
+	leaves = {
+		getdate(row.attendance_date): row.leave_type
+		for row in frappe.get_all(
+			"Attendance",
+			filters={
+				"employee": employee,
+				"docstatus": 1,
+				"attendance_date": ["between", [monday, sunday]],
+				"leave_type": ["is", "set"],
+			},
+			fields=["attendance_date", "leave_type"],
+		)
+	}
+	kept = frappe.db.get_value(
+		"Working Time Week",
+		{"employee": employee, "monday": monday},
+		[
+			"name",
+			"due",
+			"done",
+			"credited",
+			"over",
+			"short",
+			"legal_excess",
+			"needs_approval",
+			"approved_hours",
+			"approved_by",
+			"approved_on",
+		],
+		as_dict=True,
+	)
+	order = confirmed.source("employer_order_required")
+	answer.update(
+		{
+			"activity_rate": facts.activity_rate,
+			"indicative": indicative,
+			"figures": None
+			if week is None
+			else {
+				"weekly_due": week.weekly_due,
+				"due": week.due,
+				"done": week.done,
+				"credited": week.credited,
+				"difference": week.difference,
+				"tolerance": week.tolerance,
+				"over": week.over,
+				"short": week.short,
+				"legal_excess": week.legal_excess,
+				"needs_approval": week.needs_approval,
+			},
+			"days": [
+				{
+					**entry,
+					"clock": " · ".join(clock.get(getdate(entry["date"]), [])),
+					"leave_type": leaves.get(getdate(entry["date"])) or "",
+				}
+				for entry in (week.days if week else [])
+			],
+			"kept": _week_row(kept),
+			"can_approve": bool(
+				kept
+				and kept.needs_approval
+				and not kept.approved_by
+				and frappe.has_permission("Working Time Week", "write")
+			),
+			"approval_article": order.get("article") or "",
+			"legal_weekly_maximum": confirmed.get("legal_weekly_maximum"),
+		}
+	)
+	return answer
+
+
+@frappe.whitelist()
+def balance_view(employee: str, day=None) -> dict:
+	"""An employee's balance and rest on a day, the agreement's way, read from the weeks kept."""
+	from hrms.hr.working_time.agreement import rules_for
+	from hrms.hr.working_time.store import balance_of, rest_of
+
+	_check_reader()
+	person = frappe.get_doc("Employee", employee)
+	person.check_permission("read")
+	on_date = getdate(day or nowdate())
+	answer = {"employee": employee, "employee_name": person.employee_name, "on_date": on_date}
+	rules = rules_for(employee)
+	if rules is None:
+		return answer
+	balance = balance_of(employee, on_date)
+	rest = rest_of(employee, on_date)
+	kind = rules.get("balance_kind")
+	answer.update(
+		{
+			"kind": kind,
+			"kind_label": _(kind) if kind else "",
+			"kind_article": rules.source("balance_kind").get("article") or "",
+			"rule_words": [
+				{"label": _(catalogue.rule(key).label.msg), "value": describe(key, rules.get(key))}
+				for key in (
+					"compensation_months",
+					"written_extension_months",
+					"payment_threshold_hours",
+					"balance_ceiling_hours",
+					"balance_floor_hours",
+					"overtime_supplement_percent",
+					"conditional_supplement",
+				)
+				if rules.get(key) not in (None, "")
+			],
+			"balance": None
+			if balance is None
+			else {
+				"total": balance.total,
+				"lots": balance.lots,
+				"payable": balance.payable,
+				"lapsed": balance.lapsed,
+				"closings": balance.closings,
+				"moved": balance.moved,
+				"legal": balance.legal,
+				"legal_cap": balance.legal_cap,
+				"supplement": balance.supplement,
+				"warnings": balance.warnings,
+			},
+			"rest": None
+			if rest is None
+			else {
+				"rest_owed": rest.rest_owed,
+				"sundays_owed": rest.sundays_owed,
+				"public_holidays": rest.public_holidays,
+				"warnings": rest.warnings,
+			},
+		}
+	)
+	return answer

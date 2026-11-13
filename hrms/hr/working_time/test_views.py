@@ -142,3 +142,100 @@ class TestTheScreenOfAnAgreement(FrappeTestCase):
 			view = views.agreement_view(self.agreement)
 		self.assertEqual(frappe.db.get_value("Employee", found[0], agreement.EMPLOYEE_FIELD), self.agreement)
 		self.assertIn(found[0], [person["name"] for person in view["employees"]])
+
+
+class TestTheWeeksAndBalanceScreen(FrappeTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+		for doctype in ("labour_agreement_rule", "labour_agreement", "working_time_week"):
+			frappe.reload_doc("hr", "doctype", doctype)
+		setup.after_migrate()
+		_account(MANAGER, "HR Manager")
+		_account(READER, "HR User")
+		_account(CLERK, "Employee")
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit
+
+	def setUp(self):
+		from unittest.mock import patch
+
+		from hrms.hr.working_time import store
+		from hrms.hr.working_time.week import Week
+
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.db.savepoint("working_time_week_screen_test")
+		self.addCleanup(frappe.db.rollback, save_point="working_time_week_screen_test")
+		found = frappe.get_all("Employee", filters={"status": "Active"}, pluck="name", limit=1)
+		if not found:
+			self.skipTest("no active employee on this site")
+		self.employee = found[0]
+		frappe.db.delete(store.WEEK_DOCTYPE, {"employee": self.employee})
+		wanted = {
+			"target",
+			"weekly_hours",
+			"employer_order_required",
+			"balance_kind",
+			"compensation_months",
+			"overtime_supplement_percent",
+			"legal_weekly_maximum",
+		}
+		with as_role(MANAGER):
+			name = templates.create_from_template(
+				"ch_hairdressing_cct_2024_2027", agreement_name="_Test week screen agreement"
+			)
+			doc = frappe.get_doc(agreement.DOCTYPE, name)
+			agreement.confirm_rules(name, [row.name for row in doc.rules if row.rule in wanted])
+		frappe.db.set_value("Employee", self.employee, agreement.EMPLOYEE_FIELD, name)
+		kept = Week(
+			monday=frappe.utils.getdate("2026-11-09"),
+			days=[],
+			weekly_due=43,
+			due=43,
+			done=46,
+			credited=0,
+			difference=3,
+			tolerance=0.5,
+			over=2.5,
+			short=0,
+			legal_excess=0,
+			needs_approval=True,
+			indicative=False,
+			warnings=[],
+		)
+		with patch.object(store, "week_of", return_value=kept):
+			self.week = store.record_week(self.employee, "2026-11-09")
+
+	def test_the_weeks_and_balances_are_the_hr_staffs_to_read(self):
+		with as_role(CLERK):
+			for read in (
+				lambda: views.team_view("2026-11-09"),
+				lambda: views.week_view(self.employee, "2026-11-09"),
+				lambda: views.balance_view(self.employee, "2026-11-20"),
+			):
+				with self.assertRaises(frappe.PermissionError):
+					read()
+
+	def test_a_week_shows_its_days_and_who_may_approve_it(self):
+		with as_role(READER):
+			view = views.week_view(self.employee, "2026-11-11")
+		self.assertEqual(str(view["monday"]), "2026-11-09")
+		self.assertEqual(len(view["days"]), 7)
+		self.assertEqual(view["kept"]["over"], 2.5)
+		self.assertFalse(view["can_approve"], "the HR user reads, the HR manager approves")
+		with as_role(MANAGER):
+			self.assertTrue(views.week_view(self.employee, "2026-11-09")["can_approve"])
+
+	def test_the_team_and_the_balance_follow_the_approval(self):
+		from hrms.hr.working_time import store
+
+		with as_role(MANAGER):
+			team = views.team_view("2026-11-09")
+			self.assertIn(self.employee, [row["employee"] for row in team["employees"]])
+			self.assertEqual(views.balance_view(self.employee, "2026-11-20")["balance"]["total"], 0)
+			store.approve_week(self.week)
+			balance = views.balance_view(self.employee, "2026-11-20")
+		self.assertEqual(balance["kind"], "Expiring lots")
+		self.assertAlmostEqual(balance["balance"]["total"], 2.5, places=3)
+		self.assertEqual(len(balance["balance"]["lots"]), 1)
