@@ -177,8 +177,8 @@ setup_wizard_complete = [
 # //// Neoffice — 2026-11-10: the apps that announce variable pay for a month (a commission statement, a bonus
 # //// sheet) name a function here, `provider(company, year, month) -> [{key, employee, wage_type_code, amount,
 # //// reason}]`; the monthly cycle's preflight warns about what is announced and not on the payroll yet
-# //// (hrms.regional.switzerland.variable_pay). Empty here: this app names no provider.
-variable_pay_providers = []
+# //// (hrms.regional.switzerland.variable_pay). This app names one: the working time that pays (working_time_pay.lines_of).
+variable_pay_providers = ["hrms.regional.switzerland.working_time_pay.lines_of"]
 
 # Uninstallation
 # ------------

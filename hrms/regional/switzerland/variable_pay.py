@@ -117,6 +117,15 @@ def _blocked(result, code, message):
 	return result
 
 
+def _payroll_date(value, start, end):
+	"""The day a line is paid: a day of the month (the last one when the line names none), None when it is not one."""
+	try:
+		day = getdate(value)
+	except Exception:
+		return None
+	return day if start <= day <= end else None
+
+
 # ─── the plan ────────────────────────────────────────────────────────────
 
 
@@ -135,7 +144,7 @@ def classify(company, year, month, lines, allow_wage_types=None):
 			"component": None,
 			"amount": flt(raw.get("amount"), PRECISION),
 			"reason": str(raw.get("reason") or ""),
-			"payroll_date": str(end),
+			"payroll_date": str(raw.get("payroll_date") or end),
 			"status": TO_CREATE,
 			"code": None,
 			"message": None,
@@ -157,6 +166,12 @@ def _classify_line(result, company, start, end, allowed, seen_keys):
 			result, "duplicate_key", _("The key {0} appears twice in the same batch.").format(key)
 		)
 	seen_keys.add(key)
+	# //// Neoffice — a line may name the day it is paid (the working time's exit lines are paid the relieving day, so that the last slip takes them)
+	payroll_date = _payroll_date(result["payroll_date"], start, end)
+	if payroll_date is None:
+		return _refused(
+			result, "payroll_date_outside_period", _("The payroll date of a line must be a day of the month.")
+		)
 	if result["amount"] <= 0:
 		return _refused(
 			result,
@@ -205,7 +220,7 @@ def _classify_line(result, company, start, end, allowed, seen_keys):
 			"outside_employment",
 			_("{0} joins after the end of the period.").format(person.employee_name),
 		)
-	if person.relieving_date and getdate(person.relieving_date) < end:
+	if person.relieving_date and getdate(person.relieving_date) < payroll_date:
 		return _refused(
 			result,
 			"outside_employment",
@@ -230,7 +245,7 @@ def _classify_line(result, company, start, end, allowed, seen_keys):
 	elif cint(frappe.db.get_value("Salary Component", component, "depends_on_payment_days")):
 		result["warnings"].append("prorated_by_days_paid")
 
-	slips = _slips(employee, end)
+	slips = _slips(employee, payroll_date)
 	result["draft_slips"] = [slip.name for slip in slips if slip.docstatus == 0]
 	submitted = next((slip.name for slip in slips if slip.docstatus == 1), None)
 
@@ -318,8 +333,6 @@ def apply(company: str, year, month, lines, allow_wage_types=None):
 	frappe.has_permission("Additional Salary", "create", throw=True)
 	results = classify(company, year, month, lines, allow_wage_types)
 	currency = frappe.get_cached_value("Company", company, "default_currency")
-	payroll_date = _period_bounds(year, month)[1]
-
 	# The components are made first: making one commits, which a line's savepoint must not straddle.
 	for code in {r["wage_type_code"] for r in results if r["status"] == TO_CREATE}:
 		ensure_component(code)
@@ -341,7 +354,7 @@ def apply(company: str, year, month, lines, allow_wage_types=None):
 					"amount": result["amount"],
 					"currency": currency,
 					"is_recurring": 0,
-					"payroll_date": payroll_date,
+					"payroll_date": result["payroll_date"],
 					"overwrite_salary_structure_amount": 0,
 					KEY_FIELD: result["key"],
 					REASON_FIELD: result["reason"],
@@ -417,6 +430,7 @@ def verify(company: str, year, month, lines, allow_wage_types=None):
 def _check_created(result, end):
 	"""The state of a line whose Additional Salary exists: it is valid and on the slip of the month."""
 	name = result["additional_salary"]
+	payroll_date = getdate(result["payroll_date"])
 	doc = frappe.db.get_value(
 		"Additional Salary",
 		name,
@@ -428,7 +442,7 @@ def _check_created(result, end):
 		doc.docstatus != 1
 		or cint(doc.disabled)
 		or cint(doc.is_recurring)
-		or getdate(doc.payroll_date) != end
+		or getdate(doc.payroll_date) != payroll_date
 		or doc.salary_component != expected_component
 		or flt(doc.amount, PRECISION) != result["amount"]
 	):
@@ -437,7 +451,7 @@ def _check_created(result, end):
 			"code": "additional_salary_differs",
 			"message": _("{0} does not hold what the line says.").format(name),
 		}
-	slips = _slips(result["employee"], end)
+	slips = _slips(result["employee"], payroll_date)
 	if not slips:
 		return {"state": "no_slip_yet", "code": None, "message": None}
 	for slip in slips:

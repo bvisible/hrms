@@ -62,6 +62,8 @@
   "vacation_payout_divisor",
   "vacation_average_months",
   "default_vacation_days",
+  "section_working_time_pay",
+  "working_time_wage_types",
   "section_holidays",
   "holiday_list",
   "holiday_choices",
@@ -416,6 +418,19 @@
   },
   {
    "collapsible": 1,
+   "description": "The wage type that carries each nature of what the working time pays: the hours over, the supplements of a time range, the hours over left at the exit, the rest days left at the exit. Nothing is paid on a nature that has no row, and every row says where its choice comes from.",
+   "fieldname": "section_working_time_pay",
+   "fieldtype": "Section Break",
+   "label": "Working Time Pay"
+  },
+  {
+   "fieldname": "working_time_wage_types",
+   "fieldtype": "Table",
+   "label": "Wage Types of the Working Time",
+   "options": "Swiss Working Time Wage Type"
+  },
+  {
+   "collapsible": 1,
    "fieldname": "section_holidays",
    "fieldtype": "Section Break",
    "label": "Public Holidays"
@@ -729,7 +744,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-13 19:00:00.000000",
+ "modified": "2026-11-13 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Payroll",
  "name": "Swiss Social Insurance Config",

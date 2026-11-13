@@ -1,0 +1,59 @@
+{
+	"actions": [],
+	"creation": "2026-11-13 20:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"nature",
+		"time_range",
+		"wage_type",
+		"source"
+	],
+	"fields": [
+		{
+			"fieldname": "nature",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "What Is Paid",
+			"options": "Hours over\nTime range supplement\nHours over at the exit\nRest days at the exit",
+			"reqd": 1
+		},
+		{
+			"depends_on": "eval:doc.nature == 'Time range supplement'",
+			"description": "The name of the time range in the labour agreement (night, Sunday...). Left empty, the wage type holds every time range that has no row of its own.",
+			"fieldname": "time_range",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Time Range"
+		},
+		{
+			"description": "The wage type of the payroll that carries it. The model catalogue of the Swiss payroll standard (Swissdec, Lohnstandard-CH 6.0) offers, for the hours over, 1060 « Travail supplémentaire », 1061 « Heures supplémentaires à 125% » and 1065 « Heures supplémentaires »; for the time ranges, among others, 1073 (Sunday work), 1075 (night service) and 1076 (night work). The choice is yours, with your payroll's own chart.",
+			"fieldname": "wage_type",
+			"fieldtype": "Link",
+			"in_list_view": 1,
+			"label": "Wage Type",
+			"options": "Swiss Wage Type",
+			"reqd": 1
+		},
+		{
+			"description": "Where the choice comes from: the catalogue, your payroll consultant, your agreement. Nothing is paid on a nature that has no row.",
+			"fieldname": "source",
+			"fieldtype": "Small Text",
+			"in_list_view": 1,
+			"label": "Source",
+			"reqd": 1
+		}
+	],
+	"istable": 1,
+	"links": [],
+	"modified": "2026-11-13 20:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Payroll",
+	"name": "Swiss Working Time Wage Type",
+	"naming_rule": "Random",
+	"owner": "Administrator",
+	"permissions": [],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"track_changes": 1
+}

@@ -326,6 +326,11 @@ in a skipped file. The build bot writes the marker into it at the next `yarn bui
   becomes a row of this table (728c34b26 "feat(payroll): Swiss salary rules — 13th to
   15th salaries and their provision, vacation paid at the exit, flat-rate expenses,
   public holidays, one bank debit")
+- `hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json` — added
+  file, Child table — the wage type a company chose for one nature of what the working time
+  pays (the hours over, the supplements of a time range, the hours over and the rest days
+  left at the exit), with the source of its choice; a row of the Swiss Social Insurance
+  Config (lot T, bridge to the payroll, neoffice-maintenance#2623)
 
 
 ### English msgids instead of French source strings (2026-10-04)

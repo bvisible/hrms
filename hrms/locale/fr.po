@@ -24850,3 +24850,150 @@ msgstr "Les jours de repos de la semaine : un congé pris un jour ouvrable n'en 
 #: hrms/hr/doctype/labour_agreement/labour_agreement.py
 msgid "This agreement counts vacation in calendar days, but the leave type {0} counts working days: tick « Include holidays within leaves as leaves » on it, or a leave of 35 days lasts seven weeks."
 msgstr "Cette convention compte les vacances en jours civils, alors que le type de congé {0} compte les jours ouvrables : cochez-y « Inclure les vacances dans les congés en tant que congés », sinon un congé de 35 jours dure sept semaines."
+
+#: hrms/regional/switzerland/working_time_pay.py:226
+msgid "a day is the monthly base divided by the agreement's daily divisor"
+msgstr "un jour correspond à la base mensuelle divisée par le diviseur journalier de la convention"
+
+#: hrms/regional/switzerland/working_time_pay.py:112
+msgid "A line of a kind this payroll does not know."
+msgstr "Une ligne d'un genre que cette paie ne connaît pas."
+
+#: hrms/regional/switzerland/working_time_pay.py:198
+msgid "days"
+msgstr "jours"
+
+#: hrms/regional/switzerland/working_time_pay.py:322
+msgid "Establish the statement of the exit month first: the hours over and the rest days left at the exit are read from it."
+msgstr "Établissez d'abord le décompte du mois de sortie : les heures en plus et les jours de repos restant à la sortie y sont lus."
+
+#. Option for the 'What Is Paid' (Select) field in DocType 'Swiss Working Time
+#. Wage Type'
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json:18
+msgid "Hours over"
+msgstr "Heures en plus"
+
+#. Option for the 'What Is Paid' (Select) field in DocType 'Swiss Working Time
+#. Wage Type'
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json:18
+msgid "Hours over at the exit"
+msgstr "Heures en plus à la sortie"
+
+#: hrms/regional/switzerland/working_time_pay.py:104
+msgid "Hours short at the exit are never withheld here: the HR decides what becomes of them."
+msgstr "Les heures en moins à la sortie ne sont jamais retenues sur le salaire ici : les RH décident de leur sort."
+
+#: hrms/regional/switzerland/working_time_pay.py:124
+#, python-brace-format
+msgid "No wage type is chosen for « {0} »: choose it, with its source, in the Swiss payroll configuration (Working time pay)."
+msgstr "Aucun type de salaire n'est choisi pour « {0} » : choisissez-le, avec sa source, dans la configuration de paie suisse (Paie du temps de travail)."
+
+#. Option for the 'What Is Paid' (Select) field in DocType 'Swiss Working Time
+#. Wage Type'
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json:18
+msgid "Rest days at the exit"
+msgstr "Jours de repos à la sortie"
+
+#: hrms/regional/switzerland/working_time_pay.py:231
+#, python-brace-format
+msgid "supplement of {0} %"
+msgstr "supplément de {0} %"
+
+#. Name of a DocType
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json:52
+msgid "Swiss Working Time Wage Type"
+msgstr "Type de salaire du temps de travail (Suisse)"
+
+#: hrms/regional/switzerland/working_time_pay.py:163
+msgid "The agreement does not settle a supplement for these hours: nothing is paid until it does."
+msgstr "La convention ne fixe pas de supplément pour ces heures : rien n'est payé tant qu'elle n'en fixe pas."
+
+#: hrms/regional/switzerland/working_time_pay.py:146
+msgid "The agreement holds no confirmed divisor for a day: a rest day cannot be valued."
+msgstr "La convention ne contient aucun diviseur confirmé pour un jour : un jour de repos ne peut pas être valorisé."
+
+#: hrms/regional/switzerland/working_time_pay.py:174
+msgid "The agreement holds no confirmed divisor for an hour: an hour cannot be valued."
+msgstr "La convention ne contient aucun diviseur confirmé pour une heure : une heure ne peut pas être valorisée."
+
+#: hrms/regional/switzerland/working_time_pay.py:135
+msgid "The employee has no submitted salary structure assignment."
+msgstr "L'employé n'a pas d'affectation de structure salariale soumise."
+
+#: hrms/regional/switzerland/working_time_pay.py:390
+msgid "The last slip is submitted without this line: it is due at the latest with the last salary."
+msgstr "La dernière fiche est soumise sans cette ligne : elle est due au plus tard avec le dernier salaire."
+
+#. Description of the 'Time Range' (Data) field in DocType 'Swiss Working Time
+#. Wage Type'
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json:23
+msgid "The name of the time range in the labour agreement (night, Sunday...). Left empty, the wage type holds every time range that has no row of its own."
+msgstr "Le nom de la plage horaire dans la convention (nuit, dimanche...). Laissé vide, le type de salaire retient chaque plage horaire qui n'a pas de ligne propre."
+
+#: hrms/regional/switzerland/variable_pay.py:173
+msgid "The payroll date of a line must be a day of the month."
+msgstr "La date de paie d'une ligne doit être un jour du mois."
+
+#. Description of the 'Wage Type' (Link) field in DocType 'Swiss Working Time
+#. Wage Type'
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json
+msgid "The wage type of the payroll that carries it. The model catalogue of the Swiss payroll standard (Swissdec, Lohnstandard-CH 6.0) offers, for the hours over, 1060 « Travail supplémentaire », 1061 « Heures supplémentaires à 125% » and 1065 « Heures supplémentaires »; for the time ranges, among others, 1073 (Sunday work), 1075 (night service) and 1076 (night work). The choice is yours, with your payroll's own chart."
+msgstr "Le type de salaire de la paie qui le porte. Le catalogue modèle de la norme de paie suisse (Swissdec, Lohnstandard-CH 6.0) propose, pour les heures en plus, 1060 « Travail supplémentaire », 1061 « Heures supplémentaires à 125% » et 1065 « Heures supplémentaires » ; pour les plages horaires, entre autres, 1073 (travail du dimanche), 1075 (service de nuit) et 1076 (travail de nuit). Le choix vous appartient, avec le plan de paie de votre entreprise."
+
+#. Description of the 'Working Time Pay' (Section Break) field in DocType
+#. 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json:421
+msgid "The wage type that carries each nature of what the working time pays: the hours over, the supplements of a time range, the hours over left at the exit, the rest days left at the exit. Nothing is paid on a nature that has no row, and every row says where its choice comes from."
+msgstr "Le type de salaire qui porte chaque nature de ce que paie le temps de travail : les heures en plus, les suppléments d'une plage horaire, les heures en plus restant à la sortie, les jours de repos restant à la sortie. Rien n'est payé sur une nature qui n'a pas de ligne, et chaque ligne indique d'où vient son choix."
+
+#. Label of a Data field in DocType 'Swiss Working Time Wage Type'
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json:27
+msgid "Time Range"
+msgstr "Plage horaire"
+
+#. Option for the 'What Is Paid' (Select) field in DocType 'Swiss Working Time
+#. Wage Type'
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json:18
+msgid "Time range supplement"
+msgstr "Supplément de plage horaire"
+
+#. Label of a Link field in DocType 'Swiss Working Time Wage Type'
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json:34
+msgid "Wage Type"
+msgstr "Type de salaire"
+
+#. Label of a Table field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json:429
+msgid "Wage Types of the Working Time"
+msgstr "Types de salaire du temps de travail"
+
+#. Label of a Select field in DocType 'Swiss Working Time Wage Type'
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json:17
+msgid "What Is Paid"
+msgstr "Ce qui est payé"
+
+#. Description of the 'Source' (Small Text) field in DocType 'Swiss Working
+#. Time Wage Type'
+#: hrms/payroll/doctype/swiss_working_time_wage_type/swiss_working_time_wage_type.json:39
+msgid "Where the choice comes from: the catalogue, your payroll consultant, your agreement. Nothing is paid on a nature that has no row."
+msgstr "D'où vient le choix : le catalogue, votre conseiller en paie, votre convention. Rien n'est payé sur une nature qui n'a pas de ligne."
+
+#: hrms/regional/switzerland/working_time_pay.py:232
+#, python-brace-format
+msgid "with a supplement of {0} %"
+msgstr "avec un supplément de {0} %"
+
+#. Label of a Section Break field in DocType 'Swiss Social Insurance Config'
+#: hrms/payroll/doctype/swiss_social_insurance_config/swiss_social_insurance_config.json:424
+msgid "Working Time Pay"
+msgstr "Paie du temps de travail"
+
+#: hrms/regional/switzerland/working_time_pay.py:199
+#, python-brace-format
+msgid "Working time statement {0}: {1}, {2} {3} ({4})"
+msgstr "Décompte du temps de travail {0} : {1}, {2} {3} ({4})"
+
+#: hrms/regional/switzerland/working_time_pay.py:228
+#, python-brace-format
+msgid "{0} per hour"
+msgstr "{0} par heure"
