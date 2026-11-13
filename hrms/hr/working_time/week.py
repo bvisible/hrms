@@ -19,7 +19,7 @@ rules do not say how many hours are due.
 import datetime
 from dataclasses import dataclass, field
 
-from frappe.utils import add_days, cint, flt, getdate
+from frappe.utils import add_days, flt, getdate
 
 from hrms.hr.working_time import rules as catalogue
 
@@ -190,10 +190,19 @@ def employee_facts(employee: str, monday) -> Facts:
 		activity_rate=flt((person or {}).get("ch_work_percentage")) or 100.0,
 		contract_weekly_hours=flt((person or {}).get(CONTRACT_HOURS_FIELD)),
 	)
-	for holiday in get_holidays_for_employee(employee, monday, sunday, raise_exception=False) or []:
-		facts.holidays[getdate(holiday.holiday_date)] = (
-			"weekly_off" if cint(holiday.weekly_off) else "holiday"
+	# hrms returns the days of the holiday list without saying which are weekly days off: ask twice, every day and
+	# the public holidays only, so that a weekly day off is not credited as a public holiday
+	holidays = get_holidays_for_employee(employee, monday, sunday, raise_exception=False) or []
+	public = {
+		getdate(holiday.holiday_date)
+		for holiday in get_holidays_for_employee(
+			employee, monday, sunday, raise_exception=False, only_non_weekly=True
 		)
+		or []
+	}
+	for holiday in holidays:
+		day = getdate(holiday.holiday_date)
+		facts.holidays[day] = "holiday" if day in public else "weekly_off"
 	rows = frappe.get_all(
 		"Attendance",
 		filters={"employee": employee, "docstatus": 1, "attendance_date": ["between", [monday, sunday]]},

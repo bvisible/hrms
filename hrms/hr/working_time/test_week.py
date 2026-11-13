@@ -203,3 +203,23 @@ class TestTheWeekFromTheDatabase(FrappeTestCase):
 		self.assertIsNotNone(confirmed)
 		self.assertFalse(confirmed.indicative)
 		self.assertGreater(confirmed.weekly_due, 0)
+
+	def test_a_weekly_day_off_of_the_holiday_list_is_not_a_public_holiday(self):
+		from hrms.hr.working_time.week import employee_facts
+
+		days = {day(6): 1, day(2): 0}  # the Sunday a weekly day off, the Wednesday a public holiday
+		holidays = frappe.get_doc(
+			{
+				"doctype": "Holiday List",
+				"holiday_list_name": "_Test working time holidays",
+				"from_date": "2026-01-01",
+				"to_date": "2026-12-31",
+				"holidays": [
+					{"holiday_date": date, "description": "_Test", "weekly_off": weekly}
+					for date, weekly in days.items()
+				],
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Employee", self.employee, "holiday_list", holidays.name)
+		facts = employee_facts(self.employee, MONDAY)
+		self.assertEqual(facts.holidays, {day(6): "weekly_off", day(2): "holiday"})
