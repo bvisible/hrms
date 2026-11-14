@@ -9,7 +9,8 @@
   "CO": {"title": "Code des obligations (RS 220)", "version": "", "url": "https://www.fedlex.admin.ch/eli/cc/27/317_321_377/fr"},
   "LTr": {"title": "Loi sur le travail (RS 822.11)", "version": "", "url": "https://www.fedlex.admin.ch/eli/cc/1966/57_57_57/fr"},
   "OLT1": {"title": "Ordonnance 1 relative à la loi sur le travail (RS 822.111)", "version": "", "url": "https://www.fedlex.admin.ch/eli/cc/2000/243/fr"},
-  "TF": {"title": "Tribunal fédéral, arrêt 4A_231/2018", "version": "", "url": ""}
+  "TF": {"title": "Tribunal fédéral, arrêt 4A_231/2018", "version": "", "url": ""},
+  "GE": {"title": "Salaire minimum genevois (ge.ch, montant et calcul ; versement)", "version": "montants 2026 et 2027, pages lues le 13-11-2026", "url": "https://www.ge.ch/appliquer-salaire-minimum-genevois/montant-calcul-du-salaire-minimum"}
  },
  "rules": [
   {"rule": "reference_period", "value": "Week", "status": "deduced", "source": "LTr", "article": "art. 9 al. 1", "note": "La loi fixe un maximum par semaine ; la durée normale est celle du contrat."},
@@ -26,6 +27,7 @@
   {"rule": "vacation_unit", "value": "Working days", "status": "deduced", "source": "CO", "article": "art. 329a al. 1", "note": "La loi compte en semaines ; les jours sont ceux de la semaine de travail de la personne."},
   {"rule": "vacation_pay_average_months", "value": 12, "status": "deduced", "source": "TF", "article": "4A_231/2018", "note": "La jurisprudence retient la moyenne de la part variable sur une période représentative, souvent douze mois ; aucun nombre de mois n'est fixé par la loi."},
   {"rule": "statement_frequency", "value": "Avec chaque salaire", "status": "found", "source": "CO", "article": "art. 323b al. 1", "note": "Un décompte écrit est remis au travailleur avec chaque paiement du salaire."},
-  {"rule": "retention_years", "value": 5, "status": "found", "source": "OLT1", "article": "art. 73 al. 2", "note": "Les registres et pièces sont tenus à disposition pendant cinq ans au moins après leur expiration."}
+  {"rule": "retention_years", "value": 5, "status": "found", "source": "OLT1", "article": "art. 73 al. 2", "note": "Les registres et pièces sont tenus à disposition pendant cinq ans au moins après leur expiration."},
+  {"rule": "cantonal_minimum_wages", "value": [{"canton": "GE", "hourly": 24.59, "valid_from": "2026-01-01", "valid_to": "2026-12-31", "article": "LIRT art. 39K ; ge.ch"}, {"canton": "GE", "hourly": 24.73, "valid_from": "2027-01-01", "valid_to": "2027-12-31", "article": "LIRT art. 39K ; communiqué du Conseil d'État du 07-10-2026"}], "status": "found", "source": "GE", "article": "LIRT art. 39K", "note": "Genève seulement, lu sur ge.ch : 24,59 CHF de l'heure en 2026, 24,73 dès le 01-01-2027 ; le salaire déterminant AVS compte, un report de 8,33 % au plus est admis (non repris). Neuchâtel, Jura, Tessin, Bâle-Ville : à saisir par vous, avec la source de votre canton ; les exceptions de chaque loi cantonale sont à vérifier par vous."}
  ]
 }

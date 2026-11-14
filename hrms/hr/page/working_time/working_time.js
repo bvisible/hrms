@@ -225,6 +225,7 @@ class WorkingTimeScreen {
 				frappe.datetime.add_months(frappe.datetime.get_today(), -1),
 			);
 		const view = await frappe.xcall(`${LTW}.views.month_view`, { month: this.month });
+		const minimum = await frappe.xcall(`${LTW}.minimum.month_view`, { month: this.month });
 		const left = view.employees.filter((row) => !row.statement);
 		if (view.can_establish && left.length) {
 			this.page.set_primary_action(
@@ -271,6 +272,7 @@ class WorkingTimeScreen {
 				<span>${__("Statements of {0}", [label])}</span>
 				<button class="ltw-arrow" data-ltw-month="1" aria-label="${__("Next month")}">›</button>
 			</div></div>
+			${this.minimum_html(minimum)}
 			<div class="ltw-split">
 				<div class="ltw-people">${
 					rows ||
@@ -313,6 +315,60 @@ class WorkingTimeScreen {
 		});
 	}
 
+	// the check of the minimum wage of the month: who is under it and by how much, who is not checked and why
+	// (hr/working_time/minimum.py); a warning, never a change of the pay
+	minimum_html(view) {
+		const rows = (view && view.employees) || [];
+		if (!rows.length) return "";
+		const money = (value) => format_currency(value, frappe.defaults.get_default("currency"));
+		const name = (row) => ltw_esc(row.employee_name || row.employee);
+		const under = rows
+			.filter((row) => row.state === "under")
+			.map(
+				(row) =>
+					`<div>${__("{0}: {1} counted for a minimum of {2}, {3} short", [
+						`<b>${name(row)}</b>`,
+						money(row.pay),
+						money(row.amount),
+						money(row.shortfall),
+					])}</div>`,
+			)
+			.join("");
+		const unchecked = rows
+			.filter((row) => row.state === "not_checked")
+			.map(
+				(row) =>
+					`<div><b>${name(row)}</b> : ${ltw_esc((row.notes || []).join(" "))}</div>`,
+			)
+			.join("");
+		const waiting = rows.filter((row) => row.state === "no_pay").map(name);
+		const reached = rows.filter((row) => row.state === "reached").length;
+		return `<div class="ltw-notes ltw-minimum">
+			${
+				under
+					? `<div class="ltw-note is-amber"><b>${__("Under the minimum wage")}</b>${under}</div>`
+					: reached
+						? `<div class="ltw-note"><b>${__("The minimum wage")}</b> : ${__(
+								"reached for every person checked this month ({0}).",
+								[reached],
+							)}</div>`
+						: ""
+			}
+			${
+				unchecked
+					? `<div class="ltw-note"><b>${__("Minimum wage not checked")}</b>${unchecked}</div>`
+					: ""
+			}
+			${
+				waiting.length
+					? `<div class="ltw-note"><b>${__("No pay slip yet this month")}</b> : ${waiting.join(
+							", ",
+						)}</div>`
+					: ""
+			}
+		</div>`;
+	}
+
 	async statement_html(name) {
 		const s = await frappe.xcall(`${LTW}.views.statement_view`, { statement: name });
 		const weeks = (s.weeks || [])
@@ -338,19 +394,19 @@ class WorkingTimeScreen {
 		const remark = s.remark
 			? `<div class="ltw-note ${s.status === "Remark" ? "is-amber" : ""}"><b>${__(
 					"The employee's remark",
-			  )}</b> : ${ltw_esc(s.remark)}${
+				)}</b> : ${ltw_esc(s.remark)}${
 					s.remark_answer
 						? `<br><b>${__("The answer")}</b> (${ltw_esc(
 								s.answered_by_name,
-						  )}) : ${ltw_esc(s.remark_answer)}`
+							)}) : ${ltw_esc(s.remark_answer)}`
 						: ""
-			  }${
+				}${
 					s.status === "Remark"
 						? `<div class="ltw-actions"><button class="ltw-btn" data-ltw-answer="${ltw_esc(
 								s.name,
-						  )}">${__("Answer", null, "working time")}</button></div>`
+							)}">${__("Answer", null, "working time")}</button></div>`
 						: ""
-			  }</div>`
+				}</div>`
 			: "";
 		return `
 			<div class="ltw-paper-head"><div><span class="ltw-cap">${__("Statement of the hours")}</span>
@@ -522,18 +578,18 @@ class WorkingTimeScreen {
 								.filter(Boolean)
 								.join(" · "),
 							"blue",
-					  )
+						)
 					: "—";
 				const difference = day.done + day.credited - day.due;
 				const plain = off
 					? `<span class="ltw-muted">${__("Day of rest", null, "working time")}</span>`
 					: holiday
-					  ? `<span class="ltw-muted">${__(
+						? `<span class="ltw-muted">${__(
 								"Public holiday",
 								null,
 								"working time",
-					    )}</span>`
-					  : ltw_esc(day.clock) || "—";
+							)}</span>`
+						: ltw_esc(day.clock) || "—";
 				const corrected = day.correction
 					? `<div class="ltw-small">${ltw_pill(
 							__("Corrected by {0}: {1}", [
@@ -541,16 +597,16 @@ class WorkingTimeScreen {
 								day.correction.reason,
 							]),
 							"blue",
-					  )}</div>`
+						)}</div>`
 					: "";
 				const fix = view.can_correct
 					? ` <button class="ltw-link" data-ltw-correct="${ltw_esc(
 							day.date,
-					  )}" data-ltw-clock="${ltw_esc(day.clock)}">${__(
+						)}" data-ltw-clock="${ltw_esc(day.clock)}">${__(
 							"Correct",
 							null,
 							"working time",
-					  )}</button>`
+						)}</button>`
 					: "";
 				const clock = `${plain}${fix}${corrected}`;
 				return `<div class="ltw-row ltw-days">
@@ -584,7 +640,7 @@ class WorkingTimeScreen {
 					f.legal_excess
 						? ` <span class="ltw-accent">${__("{0} above it", [
 								ltw_hm(f.legal_excess),
-						  ])}</span>`
+							])}</span>`
 						: ""
 				}</div>`,
 			);
@@ -719,7 +775,7 @@ class WorkingTimeScreen {
 						? `<div class="ltw-hero-pill">${ltw_pill(
 								__("The next lot expires on {0}", [ltw_date(next)]),
 								"amber",
-						  )}</div>`
+							)}</div>`
 						: ""
 				}
 				<div class="ltw-facts">${rule}</div>
@@ -739,15 +795,15 @@ class WorkingTimeScreen {
 							"Earned",
 							null,
 							"working time",
-					  )}</span><span>${__("Hours", null, "working time")}</span><span>${__(
+						)}</span><span>${__("Hours", null, "working time")}</span><span>${__(
 							"Compensated",
 							null,
 							"working time",
-					  )}</span><span>${__("Left", null, "working time")}</span><span>${__(
+						)}</span><span>${__("Left", null, "working time")}</span><span>${__(
 							"Expires on",
 							null,
 							"working time",
-					  )}</span></div>${lots}</div>`
+						)}</span></div>${lots}</div>`
 					: ""
 			}
 			${
@@ -756,7 +812,7 @@ class WorkingTimeScreen {
 							"To pay",
 							null,
 							"working time",
-					  )}</div><div class="ltw-table">${payable}</div>`
+						)}</div><div class="ltw-table">${payable}</div>`
 					: ""
 			}
 			<div class="ltw-notes">
@@ -769,7 +825,7 @@ class WorkingTimeScreen {
 								"Rest",
 								null,
 								"working time",
-						  )}</b><ul class="ltw-list">${owed}${sundays}</ul></div>`
+							)}</b><ul class="ltw-list">${owed}${sundays}</ul></div>`
 						: ""
 				}
 			</div>`;
@@ -811,6 +867,7 @@ a.ltw-row:hover{background:var(--subtle-fg,var(--control-bg));text-decoration:no
 .ltw-muted{color:var(--text-muted)}
 .ltw-sub{font-family:Forum,Georgia,serif;font-size:22px}
 .ltw-notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.ltw-minimum{margin:0 0 16px}.ltw-minimum .ltw-note div{margin-top:6px}
 .ltw-note{border:1px solid var(--border-color);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.5;background:var(--card-bg)}
 .ltw-note.is-amber{background:#FDF3DC;border-color:#F3E2B3;color:#7A4B00}
 [data-theme=dark] .ltw-note.is-amber{background:rgba(161,98,7,.18);border-color:rgba(161,98,7,.35);color:var(--text-color)}

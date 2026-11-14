@@ -58,8 +58,12 @@ Website Profile are Custom Fields (`hr/careers/setup.py`), like the Swiss ones.
 `hrms/hr/working_time/**` and the doctypes `labour_agreement`, `labour_agreement_rule`, `working_time_week`, `working_time_statement`, `working_time_closing` and `working_time_correction` are the **working-time
 engine** (lot T, neoffice-maintenance#2623, 2026-11-13): a labour agreement the client creates or copies from a
 template, whose lines the engine reads only once a person confirmed them. The templates (`working_time/templates/*.json`)
-are public texts turned into data, one line per rule with its source; the engine names no trade. Its two Employee
-fields are Custom Fields (`hr/working_time/setup.py`), like the Swiss ones.
+are public texts turned into data, one line per rule with its source; the engine names no trade. Its Employee
+fields (the agreement, the written extension, the contract hours; for the minimum wage the category, the start of
+professional experience, the zone, the canton of work and the agreed reduction) and the Salary Component field
+`counts_toward_minimum_wage` are Custom Fields (`hr/working_time/setup.py`), like the Swiss ones. The check of the
+minimum wage (`working_time/minimum.py`) adds a second `validate` to the Salary Slip doc_events: a message, never a
+refusal nor a change of the pay.
 
 ### The Swiss fields are Custom Fields, not JSON edits — keep it that way
 

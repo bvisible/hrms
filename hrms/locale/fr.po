@@ -25857,3 +25857,203 @@ msgstr "Conservé jusqu'au {0}"
 #: hrms/hr/print_format/working_time_statement/working_time_statement.html
 msgid "Signature of the employee"
 msgstr "Signature de l'employé"
+
+#: hrms/hr/working_time/rules.py
+msgid "The minimum wage"
+msgstr "Le salaire minimum"
+
+#: hrms/hr/working_time/rules.py
+msgid "Minimum wages"
+msgstr "Salaires minimaux"
+
+#: hrms/hr/working_time/rules.py
+msgid "The minimum follows the activity rate"
+msgstr "Le minimum suit le taux d'activité"
+
+#: hrms/hr/working_time/rules.py
+msgid "What counts toward the minimum"
+msgstr "Ce qui compte pour le minimum"
+
+#: hrms/hr/working_time/rules.py
+msgid "The minimum is checked"
+msgstr "Le minimum est contrôlé"
+
+#: hrms/hr/working_time/rules.py
+msgid "Cantonal minimum wages"
+msgstr "Salaires minimaux cantonaux"
+
+#: hrms/hr/working_time/rules.py
+msgid "Reduction of the minimum by turnover"
+msgstr "Réduction du minimum selon le chiffre d'affaires"
+
+#: hrms/hr/working_time/views.py
+msgid "Under {0} of turnover a month"
+msgstr "Chiffre d'affaires inférieur à {0} par mois"
+
+#: hrms/hr/working_time/views.py
+msgid "{0} in year {1} of experience"
+msgstr "{0} pour l'année d'expérience {1}"
+
+#: hrms/hr/working_time/views.py
+msgid "from {0} years of experience"
+msgstr "dès {0} ans d'expérience professionnelle"
+
+#: hrms/hr/working_time/views.py
+msgid "under {0} years of experience"
+msgstr "moins de {0} ans d'expérience professionnelle"
+
+#: hrms/hr/working_time/views.py
+msgid "{0} a month"
+msgstr "{0} par mois"
+
+#: hrms/hr/working_time/minimum.py
+msgid "The person has no category for the minimum wage."
+msgstr "La personne n'a pas de catégorie pour le salaire minimum."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The person has no zone of the table of minimum wages."
+msgstr "La personne n'a pas de zone dans le tableau des salaires minimaux."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The reduction of the minimum is not confirmed."
+msgstr "La réduction du minimum n'est pas confirmée."
+
+#: hrms/hr/working_time/minimum.py
+msgid "No reduction for this year of experience."
+msgstr "Aucune réduction pour cette année d'expérience professionnelle."
+
+#: hrms/hr/working_time/minimum.py
+msgid "No salary component is ticked as counting toward the minimum: nothing is compared."
+msgstr "Aucune composante de salaire n'est cochée comme comptant pour le minimum : rien n'est comparé."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The person's professional experience has no start date."
+msgstr "L'expérience professionnelle de la personne n'a pas de date de début."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The table of minimum wages is not confirmed: it checks nothing."
+msgstr "Le tableau des salaires minimaux n'est pas confirmé : il ne contrôle rien."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The person has no canton of work: the cantonal minimum is not checked."
+msgstr "La personne n'a pas de canton de travail : le minimum cantonal n'est pas contrôlé."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The cantonal minimum is not confirmed: it checks nothing."
+msgstr "Le minimum cantonal n'est pas confirmé : il ne contrôle rien."
+
+#: hrms/hr/working_time/minimum.py
+msgid "this pay slip"
+msgstr "cette fiche de salaire"
+
+#: hrms/hr/working_time/minimum.py
+msgid "Under the minimum wage"
+msgstr "Sous le salaire minimum"
+
+#: hrms/hr/working_time/minimum.py
+msgid "The table of minimum wages has no category « {0} »."
+msgstr "Le tableau des salaires minimaux ne contient pas de catégorie « {0} »."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The table of minimum wages has no row valid on {0}."
+msgstr "Le tableau des salaires minimaux n'a pas de ligne valable au {0}."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The row of the table gives no monthly amount, nor a divisor to make one."
+msgstr "La ligne du tableau ne donne ni montant mensuel, ni diviseur permettant de le calculer."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The reduction applies only in a month whose turnover stays under {0}; the turnover of the month is not known here: the full minimum is checked."
+msgstr "La réduction ne s'applique que dans un mois dont le chiffre d'affaires reste sous {0} ; le chiffre d'affaires du mois n'est pas connu ici : le minimum plein est contrôlé."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The pay that counts toward the minimum ({0}) is under the minimum of {1} for {2}: {3} short. The pay slip is saved as it is; the agreement's minimum is a warning, never a change of the pay."
+msgstr "Le salaire qui compte pour le minimum ({0}) est inférieur au minimum de {1} pour {2} : il manque {3}. La fiche de salaire est enregistrée telle quelle ; le minimum de la convention est un avertissement, il ne modifie jamais le salaire."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The table of minimum wages ends on {0}: bring it up to date."
+msgstr "Le tableau des salaires minimaux se termine au {0} : mettez-le à jour."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The table of minimum wages has no row for {0} years of experience."
+msgstr "Le tableau des salaires minimaux n'a pas de ligne pour {0} ans d'expérience professionnelle."
+
+#: hrms/hr/working_time/minimum.py
+msgid "Whether the minimum follows the activity rate is not confirmed: a part time is not checked."
+msgstr "Le fait que le minimum suive le taux d'activité n'est pas confirmé : un temps partiel n'est pas contrôlé."
+
+#: hrms/hr/working_time/minimum.py
+msgid "The hours of the month are not known: the cantonal minimum is not checked."
+msgstr "Les heures du mois ne sont pas connues : le minimum cantonal n'est pas contrôlé."
+
+#: hrms/hr/working_time/rules.py
+msgid "Each month"
+msgstr "Chaque mois"
+
+#: hrms/hr/working_time/rules.py
+msgid "Over the year"
+msgstr "Sur l'année"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "{0}: {1} counted for a minimum of {2}, {3} short"
+msgstr "{0} : {1} comptés pour un minimum de {2}, il manque {3}"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "reached for every person checked this month ({0})."
+msgstr "atteint pour chaque personne contrôlée ce mois-ci ({0})."
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "Minimum wage not checked"
+msgstr "Salaire minimum non contrôlé"
+
+#: hrms/hr/page/working_time/working_time.js
+msgid "No pay slip yet this month"
+msgstr "Aucune fiche de salaire ce mois-ci"
+
+#: hrms/hr/working_time/setup.py
+msgid "Category for the Minimum Wage"
+msgstr "Catégorie pour le salaire minimum"
+
+#: hrms/hr/working_time/setup.py
+msgid "As the agreement's table of minimum wages names it."
+msgstr "Telle que la nomme le tableau des salaires minimaux de la convention."
+
+#: hrms/hr/working_time/setup.py
+msgid "Professional Experience Since"
+msgstr "Expérience professionnelle depuis"
+
+#: hrms/hr/working_time/setup.py
+msgid "The day the years of experience the minimum wage counts begin."
+msgstr "Le jour à partir duquel les années d'expérience comptées pour le salaire minimum commencent."
+
+#: hrms/hr/working_time/setup.py
+msgid "Zone for the Minimum Wage"
+msgstr "Zone pour le salaire minimum"
+
+#: hrms/hr/working_time/setup.py
+msgid "Only when the agreement's minimum wages differ by zone."
+msgstr "Seulement si les salaires minimaux de la convention diffèrent selon la zone."
+
+#: hrms/hr/working_time/setup.py
+msgid "Canton of Work"
+msgstr "Canton de travail"
+
+#: hrms/hr/working_time/setup.py
+msgid "The canton whose minimum wage applies to this person, when it has one."
+msgstr "Le canton dont le salaire minimum s'applique à cette personne, lorsqu'il en a un."
+
+#: hrms/hr/working_time/setup.py
+msgid "Reduction of the Minimum Agreed"
+msgstr "Réduction du minimum convenue"
+
+#: hrms/hr/working_time/setup.py
+msgid "Agreed with this person as the agreement allows it: the minimum is lowered only in a month whose turnover stays under the agreement's threshold."
+msgstr "Convenue avec cette personne dans la mesure où la convention le permet : le minimum n'est abaissé que dans un mois dont le chiffre d'affaires reste sous le seuil de la convention."
+
+#: hrms/hr/working_time/setup.py
+msgid "Counts toward the Minimum Wage"
+msgstr "Compte pour le salaire minimum"
+
+#: hrms/hr/working_time/setup.py
+msgid "Its amounts on a pay slip count when the month's pay is compared to the minimum wage of the person's agreement."
+msgstr "Ses montants sur une fiche de salaire comptent lorsque le salaire du mois est comparé au salaire minimum de la convention de la personne."

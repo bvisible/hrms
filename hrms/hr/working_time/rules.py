@@ -44,6 +44,7 @@ GROUPS = {
 	"vacation": _lt("Vacation"),
 	"vacation_pay": _lt("Vacation pay"),
 	"statement": _lt("The monthly statement"),
+	"minimum": _lt("The minimum wage"),
 }
 
 WEEK, MONTH_AVERAGE, CALENDAR_YEAR = "Week", "Month average", "Calendar year"
@@ -57,6 +58,7 @@ WEEKLY_HOURS, BY_COMPANY_STATUS, ANNUAL_CALENDAR, CONTRACT_HOURS, CONSTANT_PLANN
 EXPIRING_LOTS, SLIDING_BALANCE, ANNUAL_BALANCE = "Expiring lots", "Sliding balance", "Annual balance"
 LOST, COMPENSATED, PAID = "Lost", "Compensated", "Paid"
 WORKING_DAYS, HOURS, CALENDAR_DAYS = "Working days", "Hours", "Calendar days"
+EACH_MONTH, OVER_THE_YEAR = "Each month", "Over the year"
 
 RULES = {
 	# the time and its period
@@ -207,6 +209,49 @@ RULES = {
 	"statement_frequency": Rule("text", "statement", _lt("Statement of the hours given")),
 	"employee_countersigns": Rule("bool", "statement", _lt("The employee countersigns the statement")),
 	"retention_years": Rule("years", "statement", _lt("Years the records are kept")),
+	# the minimum wage: amounts are the agreement's, read with their validity, never a number of the code; a row is
+	# for a category of the agreement, from and until a number of completed years of experience, in a zone if the
+	# agreement has zones, valid from one day to another, monthly (at 100 %) or hourly
+	"minimum_wages": Rule(
+		"table",
+		"minimum",
+		_lt("Minimum wages"),
+		columns=(
+			"category",
+			"experience_from",
+			"experience_to",
+			"zone",
+			"valid_from",
+			"valid_to",
+			"monthly",
+			"hourly",
+			"article",
+		),
+		required=("category", "valid_from", "valid_to"),
+	),
+	"minimum_wage_pro_rata": Rule("bool", "minimum", _lt("The minimum follows the activity rate")),
+	# what counts toward the minimum, in the agreement's words: the client ticks the salary components it names
+	"minimum_wage_counts": Rule("text", "minimum", _lt("What counts toward the minimum")),
+	"minimum_wage_period": Rule(
+		"choice", "minimum", _lt("The minimum is checked"), choices=(EACH_MONTH, OVER_THE_YEAR)
+	),
+	# a canton's minimum, an hourly amount for whoever works there, kept with its validity by the client
+	"cantonal_minimum_wages": Rule(
+		"table",
+		"minimum",
+		_lt("Cantonal minimum wages"),
+		columns=("canton", "hourly", "valid_from", "valid_to", "article"),
+		required=("canton", "hourly", "valid_from", "valid_to"),
+	),
+	# a reduction of the minimum an agreement allows when a month's turnover stays under a threshold, for whoever
+	# agreed it: amounts by year of experience ({"experience_year", "amount", "max_months"})
+	"minimum_wage_reduction": Rule(
+		"object",
+		"minimum",
+		_lt("Reduction of the minimum by turnover"),
+		columns=("threshold_monthly", "threshold_pro_rata", "counts", "amounts", "training_days"),
+		required=("threshold_monthly", "amounts"),
+	),
 }
 
 _MONTH_DAY = re.compile(r"^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$")

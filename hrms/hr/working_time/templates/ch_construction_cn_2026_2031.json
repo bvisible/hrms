@@ -20,6 +20,11 @@
    "title": "Ordonnance 1 relative à la loi sur le travail (RS 822.111)",
    "version": "",
    "url": "https://www.fedlex.admin.ch/eli/cc/2000/243/fr"
+  },
+  "GE": {
+   "title": "Salaire minimum genevois (ge.ch, montant et calcul ; versement)",
+   "version": "montants 2026 et 2027, pages lues le 13-11-2026",
+   "url": "https://www.ge.ch/appliquer-salaire-minimum-genevois/montant-calcul-du-salaire-minimum"
   }
  },
  "rules": [
@@ -734,6 +739,324 @@
    "source": "OLT1",
    "article": "art. 73 al. 2",
    "note": "La convention ne fixe pas de durée ; celle de l'ordonnance s'applique."
+  },
+  {
+   "rule": "minimum_wages",
+   "value": [
+    {
+     "category": "V (contremaître)",
+     "zone": "rouge",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 6702,
+     "hourly": 38.1,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "Q (ouvrier qualifié)",
+     "zone": "rouge",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 5988,
+     "hourly": 34.0,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "A (ouvrier professionnel)",
+     "zone": "rouge",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 5776,
+     "hourly": 32.8,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "B (ouvrier avec connaissances professionnelles)",
+     "zone": "rouge",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 5458,
+     "hourly": 31.0,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "C (ouvrier sans connaissances professionnelles)",
+     "zone": "rouge",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 4885,
+     "hourly": 27.75,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "V (contremaître)",
+     "zone": "bleue",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 6442,
+     "hourly": 36.6,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "Q (ouvrier qualifié)",
+     "zone": "bleue",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 5906,
+     "hourly": 33.55,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "A (ouvrier professionnel)",
+     "zone": "bleue",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 5698,
+     "hourly": 32.4,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "B (ouvrier avec connaissances professionnelles)",
+     "zone": "bleue",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 5322,
+     "hourly": 30.25,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "C (ouvrier sans connaissances professionnelles)",
+     "zone": "bleue",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 4813,
+     "hourly": 27.35,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "V (contremaître)",
+     "zone": "verte",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 6179,
+     "hourly": 35.1,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "Q (ouvrier qualifié)",
+     "zone": "verte",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 5830,
+     "hourly": 33.1,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "A (ouvrier professionnel)",
+     "zone": "verte",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 5621,
+     "hourly": 31.95,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "B (ouvrier avec connaissances professionnelles)",
+     "zone": "verte",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 5184,
+     "hourly": 29.45,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "C (ouvrier sans connaissances professionnelles)",
+     "zone": "verte",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 4747,
+     "hourly": 26.95,
+     "article": "art. 37 al. 1, annexe 4"
+    },
+    {
+     "category": "V (contremaître)",
+     "zone": "rouge",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 6769,
+     "hourly": 38.45,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "Q (ouvrier qualifié)",
+     "zone": "rouge",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 6048,
+     "hourly": 34.35,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "A (ouvrier professionnel)",
+     "zone": "rouge",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 5834,
+     "hourly": 33.15,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "B (ouvrier avec connaissances professionnelles)",
+     "zone": "rouge",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 5513,
+     "hourly": 31.3,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "C (ouvrier sans connaissances professionnelles)",
+     "zone": "rouge",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 4934,
+     "hourly": 28.05,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "V (contremaître)",
+     "zone": "bleue",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 6506,
+     "hourly": 36.95,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "Q (ouvrier qualifié)",
+     "zone": "bleue",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 5965,
+     "hourly": 33.9,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "A (ouvrier professionnel)",
+     "zone": "bleue",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 5755,
+     "hourly": 32.7,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "B (ouvrier avec connaissances professionnelles)",
+     "zone": "bleue",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 5375,
+     "hourly": 30.55,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "C (ouvrier sans connaissances professionnelles)",
+     "zone": "bleue",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 4861,
+     "hourly": 27.6,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "V (contremaître)",
+     "zone": "verte",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 6241,
+     "hourly": 35.45,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "Q (ouvrier qualifié)",
+     "zone": "verte",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 5888,
+     "hourly": 33.45,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "A (ouvrier professionnel)",
+     "zone": "verte",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 5677,
+     "hourly": 32.25,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "B (ouvrier avec connaissances professionnelles)",
+     "zone": "verte",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 5236,
+     "hourly": 29.75,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    },
+    {
+     "category": "C (ouvrier sans connaissances professionnelles)",
+     "zone": "verte",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 4794,
+     "hourly": 27.25,
+     "article": "SVK, adaptations des salaires dès le 01-01-2027"
+    }
+   ],
+   "status": "found",
+   "source": "LMV",
+   "article": "art. 37 al. 1 et 2, annexe 4",
+   "note": "Salaires mensuels et horaires (mensuel ÷ 176) par classe et par zone (annexe 4). 2027 : publication de la SSE (+1,0 %), hors du texte de la convention. Dès 2028 : selon l'indice des prix (art. 71 al. 5), non calculé."
+  },
+  {
+   "rule": "minimum_wage_pro_rata",
+   "value": true,
+   "status": "deduced",
+   "source": "LMV",
+   "article": "art. 37 al. 2",
+   "note": "Le minimum mensuel est celui d'un plein temps ; un temps partiel au prorata est déduit."
+  },
+  {
+   "rule": "minimum_wage_counts",
+   "value": null,
+   "status": "not_found",
+   "source": "LMV",
+   "article": "art. 37",
+   "note": "Ce qui compte pour atteindre le minimum n'a pas été lu : à dire par vous."
+  },
+  {
+   "rule": "cantonal_minimum_wages",
+   "value": [
+    {
+     "canton": "GE",
+     "hourly": 24.59,
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "article": "LIRT art. 39K ; ge.ch"
+    },
+    {
+     "canton": "GE",
+     "hourly": 24.73,
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "article": "LIRT art. 39K ; communiqué du Conseil d'État du 07-10-2026"
+    }
+   ],
+   "status": "found",
+   "source": "GE",
+   "article": "LIRT art. 39K",
+   "note": "Genève seulement, lu sur ge.ch : 24,59 CHF de l'heure en 2026, 24,73 dès le 01-01-2027 ; le salaire déterminant AVS compte, un report de 8,33 % au plus est admis (non repris). Neuchâtel, Jura, Tessin, Bâle-Ville : à saisir par vous, avec la source de votre canton ; les exceptions de chaque loi cantonale sont à vérifier par vous."
   }
  ]
 }

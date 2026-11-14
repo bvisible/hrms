@@ -354,7 +354,13 @@ doc_events = {
 	# //// Neoffice — added: upstream has no Salary Slip doc_event. Ours computes the Swiss
 	# //// social contributions and the source tax at validate, before the totals are frozen.
 	"Salary Slip": {
-		"validate": "hrms.regional.switzerland.payroll_hooks.update_swiss_social_contributions",
+		"validate": [
+			"hrms.regional.switzerland.payroll_hooks.update_swiss_social_contributions",
+			# //// Neoffice — added: a message when the month's pay that counts stays under the minimum of the
+			# //// person's agreement (hr/working_time/minimum.py, lot T, neoffice-maintenance#2623): a warning,
+			# //// never a refusal nor a change of the pay.
+			"hrms.hr.working_time.minimum.warn_on_slip",
+		],
 		# //// Neoffice — added: a slip booked by the Swiss payroll accounting is corrected
 		# //// through its journal entries; cancelling it alone would leave the ledger wrong.
 		"before_cancel": "hrms.regional.switzerland.accounting.prevent_cancel_of_booked_slip",

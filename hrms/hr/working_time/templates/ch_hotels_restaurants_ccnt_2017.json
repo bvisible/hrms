@@ -15,6 +15,11 @@
    "title": "Loi sur le travail (RS 822.11)",
    "version": "",
    "url": "https://www.fedlex.admin.ch/eli/cc/1966/57_57_57/fr"
+  },
+  "GE": {
+   "title": "Salaire minimum genevois (ge.ch, montant et calcul ; versement)",
+   "version": "montants 2026 et 2027, pages lues le 13-11-2026",
+   "url": "https://www.ge.ch/appliquer-salaire-minimum-genevois/montant-calcul-du-salaire-minimum"
   }
  },
  "rules": [
@@ -298,6 +303,152 @@
    "source": "LGAV",
    "article": "art. 15 al. 8",
    "note": "Dix ans pour les fiches de salaire et les documents nécessaires."
+  },
+  {
+   "rule": "minimum_wages",
+   "value": [
+    {
+     "category": "I a) sans apprentissage",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 3713,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "I a) sans apprentissage",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 3735,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "I b) sans apprentissage, avec Progresso",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 3943,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "I b) sans apprentissage, avec Progresso",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 3967,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "II) AFP de 2 ans ou équivalent",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 4070,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "II) AFP de 2 ans ou équivalent",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 4094,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "III a) CFC ou équivalent",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 4528,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "III a) CFC ou équivalent",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 4555,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "III b) CFC et 6 jours de formation (art. 19)",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 4635,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "III b) CFC et 6 jours de formation (art. 19)",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 4663,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "IV) examen professionnel (LFPr art. 27 let. a)",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 5293,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "IV) examen professionnel (LFPr art. 27 let. a)",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 5325,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "Stagiaire (art. 11)",
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "monthly": 2390,
+     "article": "art. 10 al. 1"
+    },
+    {
+     "category": "Stagiaire (art. 11)",
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "monthly": 2404,
+     "article": "art. 10 al. 1"
+    }
+   ],
+   "status": "found",
+   "source": "LGAV",
+   "article": "art. 10 al. 1",
+   "note": "Salaires bruts mensuels des collaborateurs à plein temps dès 18 ans, dès le 1er janvier ou la saison d'été 2026 et 2027. Période d'initiation : réduction de 8 % au plus par accord écrit (non reprise). Exceptions : élèves en formation à plein temps, personnes à capacité réduite dans un programme reconnu."
+  },
+  {
+   "rule": "minimum_wage_pro_rata",
+   "value": true,
+   "status": "deduced",
+   "source": "LGAV",
+   "article": "art. 10 al. 1",
+   "note": "Les montants sont ceux d'un plein temps ; le prorata d'un temps partiel est déduit."
+  },
+  {
+   "rule": "minimum_wage_counts",
+   "value": null,
+   "status": "not_found",
+   "source": "LGAV",
+   "article": "art. 10",
+   "note": "Ce qui compte pour atteindre le minimum n'a pas été lu : à dire par vous."
+  },
+  {
+   "rule": "cantonal_minimum_wages",
+   "value": [
+    {
+     "canton": "GE",
+     "hourly": 24.59,
+     "valid_from": "2026-01-01",
+     "valid_to": "2026-12-31",
+     "article": "LIRT art. 39K ; ge.ch"
+    },
+    {
+     "canton": "GE",
+     "hourly": 24.73,
+     "valid_from": "2027-01-01",
+     "valid_to": "2027-12-31",
+     "article": "LIRT art. 39K ; communiqué du Conseil d'État du 07-10-2026"
+    }
+   ],
+   "status": "found",
+   "source": "GE",
+   "article": "LIRT art. 39K",
+   "note": "Genève seulement, lu sur ge.ch : 24,59 CHF de l'heure en 2026, 24,73 dès le 01-01-2027 ; le salaire déterminant AVS compte, un report de 8,33 % au plus est admis (non repris). Neuchâtel, Jura, Tessin, Bâle-Ville : à saisir par vous, avec la source de votre canton ; les exceptions de chaque loi cantonale sont à vérifier par vous."
   }
  ]
 }
