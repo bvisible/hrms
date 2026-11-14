@@ -753,6 +753,36 @@ def establish_month(month) -> dict:
 	return {"established": established, "countersigned": kept}
 
 
+def has_working_time(employee: str) -> bool:
+	"""Whether a person has a working time to read on /my-time: tied to a labour agreement, or a statement already
+	established for them. The mobile app shows its « My time » row on it (neoffice_theme's mobile capabilities)."""
+	if frappe.get_meta("Employee").has_field(EMPLOYEE_FIELD) and frappe.db.get_value(
+		"Employee", employee, EMPLOYEE_FIELD
+	):
+		return True
+	return bool(frappe.db.exists("Working Time Statement", {"employee": employee}))
+
+
+@frappe.whitelist()
+def my_time_summary() -> dict:  # permission-check: ok the signed-in person's own statements only
+	"""For the mobile app's « My time » row: whether the signed-in person has a working time to read, and how many of
+	their statements wait for their countersignature."""
+	from hrms.hr.working_time.statement import ESTABLISHED
+
+	employees = frappe.get_all(
+		"Employee", filters={"user_id": frappe.session.user, "status": "Active"}, pluck="name"
+	)
+	if not employees:
+		return {"available": False, "to_countersign": 0}
+	return {
+		"available": any(has_working_time(employee) for employee in employees),
+		"to_countersign": frappe.db.count(
+			"Working Time Statement",
+			{"employee": ["in", employees], "status": ESTABLISHED, "countersign_expected": 1},
+		),
+	}
+
+
 @frappe.whitelist()
 def my_statements() -> dict:  # permission-check: ok the signed-in person's own statements only
 	"""The statements of the person signed in, newest first: their own, never a colleague's."""

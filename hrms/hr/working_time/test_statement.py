@@ -280,3 +280,26 @@ class TestTheMonthlyStatement(FrappeTestCase):
 			self.assertIn("StatementAnna", self.print_html(own))
 			with self.assertRaises(frappe.PermissionError):
 				self.print_html(other)
+
+	def test_the_mobile_row_follows_the_persons_working_time_and_counts_what_waits_for_them(self):
+		from hrms.hr.working_time import views
+
+		with as_role(MANAGER):
+			self.assertEqual(
+				views.my_time_summary(), {"available": False, "to_countersign": 0}, "no employee"
+			)
+		with as_role(ANNA):
+			self.assertEqual(views.my_time_summary(), {"available": True, "to_countersign": 0})
+		name = self.establish(self.anna)
+		with as_role(ANNA):
+			self.assertEqual(
+				views.my_time_summary()["to_countersign"], 0, "the agreement asks no countersignature"
+			)
+		frappe.db.set_value(statement.STATEMENT_DOCTYPE, name, "countersign_expected", 1)
+		with as_role(ANNA):
+			self.assertEqual(views.my_time_summary()["to_countersign"], 1, "hers waits for her signature")
+			statement.countersign_statement(name)
+			self.assertEqual(views.my_time_summary()["to_countersign"], 0)
+		self.assertTrue(views.has_working_time(self.anna))
+		frappe.db.set_value("Employee", self.bruno, agreement.EMPLOYEE_FIELD, None)
+		self.assertFalse(views.has_working_time(self.bruno), "neither tied to an agreement nor a statement")
