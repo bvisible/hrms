@@ -26057,3 +26057,15 @@ msgstr "Compte pour le salaire minimum"
 #: hrms/hr/working_time/setup.py
 msgid "Its amounts on a pay slip count when the month's pay is compared to the minimum wage of the person's agreement."
 msgstr "Ses montants sur une fiche de salaire comptent lorsque le salaire du mois est comparé au salaire minimum de la convention de la personne."
+
+#: hrms/hr/working_time/views.py
+msgid "from 1 year of experience"
+msgstr "dès 1 an d'expérience professionnelle"
+
+#: hrms/hr/working_time/views.py
+msgid "under 1 year of experience"
+msgstr "moins de 1 an d'expérience professionnelle"
+
+#: hrms/hr/working_time/views.py
+msgid "{0}: {1} ({2})"
+msgstr "{0} : {1} ({2})"

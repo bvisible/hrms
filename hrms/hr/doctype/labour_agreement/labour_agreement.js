@@ -84,10 +84,10 @@ function lta_head(view) {
 					frappe.datetime.str_to_user(view.template_expires_on),
 				]),
 				"red",
-		  )
+			)
 		: view.to_confirm
-		  ? lta_pill(__("{0} lines to confirm", [view.to_confirm]), "amber")
-		  : lta_pill(__("Every line read"), "green");
+			? lta_pill(__("{0} lines to confirm", [view.to_confirm]), "amber")
+			: lta_pill(__("Every line read"), "green");
 	const facts = [
 		view.kind,
 		view.template && view.read_on
@@ -96,7 +96,7 @@ function lta_head(view) {
 		view.template_expires_on && !view.expired
 			? __("the template expires on {0}", [
 					frappe.datetime.str_to_user(view.template_expires_on),
-			  ])
+				])
 			: "",
 		__("{0} employees tied", [view.employees.length]),
 	].filter(Boolean);
@@ -116,7 +116,7 @@ function lta_head(view) {
 			view.expired
 				? `<div class="lta-note">${__(
 						"Your confirmed lines go on applying: they are yours. When the new text is out, a new template arrives and shows what changes, line by line.",
-				  )}</div>`
+					)}</div>`
 				: ""
 		}`;
 }
@@ -177,7 +177,7 @@ function lta_source(row) {
 	return row.url
 		? `<a href="${encodeURI(
 				row.url,
-		  )}" target="_blank" rel="noopener noreferrer" title="${title}">${text}</a>`
+			)}" target="_blank" rel="noopener noreferrer" title="${title}">${text}</a>`
 		: `<span title="${title}">${text}</span>`;
 }
 
@@ -196,7 +196,7 @@ function lta_lines(view) {
 					view.can_write ? "is-editable" : ""
 				}" data-lta-row="${row.name}">
 				<span class="lta-rule">${frappe.utils.escape_html(row.label)}</span>
-				<span>${row.value ? frappe.utils.escape_html(row.value) : "—"}${
+				<span class="lta-value">${row.value ? frappe.utils.escape_html(row.value) : "—"}${
 					row.note
 						? `<div class="lta-small">${frappe.utils.escape_html(row.note)}</div>`
 						: ""
@@ -459,6 +459,7 @@ function lta_style() {
 .lta-src{color:var(--text-muted)}
 .lta-src a{color:inherit;text-decoration:underline;text-decoration-color:var(--border-color)}
 .lta-small{display:block;font-size:12.5px;color:var(--text-muted);margin-top:3px}
+.lta-value{white-space:pre-line}
 .lta-muted{color:var(--text-muted)}
 .lta-state{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .lta-pill{display:inline-flex;align-items:center;gap:7px;max-width:100%;border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:500;line-height:1.35}

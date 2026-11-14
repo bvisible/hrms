@@ -89,25 +89,43 @@ def _validity(row) -> str:
 	return _("{0} to {1}").format(_day(row.get("valid_from")), _day(row.get("valid_to")))
 
 
+def _years(value, one, many) -> str:
+	return one if flt(value) == 1 else many.format(_number(value))
+
+
 def _minimum_row(row) -> str:
 	parts = [row.get("category") or ""]
 	if row.get("zone"):
 		parts.append(row["zone"])
 	if row.get("experience_from"):
-		parts.append(_("from {0} years of experience").format(_number(row["experience_from"])))
+		parts.append(
+			_years(
+				row["experience_from"],
+				_("from 1 year of experience"),
+				_("from {0} years of experience"),
+			)
+		)
 	if row.get("experience_to") is not None:
-		parts.append(_("under {0} years of experience").format(_number(row["experience_to"])))
+		parts.append(
+			_years(
+				row["experience_to"],
+				_("under 1 year of experience"),
+				_("under {0} years of experience"),
+			)
+		)
 	amounts = []
 	if row.get("monthly") is not None:
 		amounts.append(_("{0} a month").format(_number(row["monthly"])))
 	if row.get("hourly") is not None:
 		amounts.append(_("{0} an hour").format(_number(row["hourly"])))
-	return f"{', '.join(part for part in parts if part)}: {' / '.join(amounts)} ({_validity(row)})"
+	return _("{0}: {1} ({2})").format(
+		", ".join(part for part in parts if part), " / ".join(amounts), _validity(row)
+	)
 
 
 def _cantonal_row(row) -> str:
 	hourly = _("{0} an hour").format(_number(row["hourly"]))
-	return f"{row['canton']}: {hourly} ({_validity(row)})"
+	return _("{0}: {1} ({2})").format(row["canton"], hourly, _validity(row))
 
 
 def _reduction(value: dict) -> str:
@@ -182,10 +200,11 @@ def describe(key: str, value) -> str:
 		return " · ".join(_vacation_row(row) for row in value)
 	if key == "time_range_supplements":
 		return " · ".join(_time_range_row(row) for row in value)
+	# a table of amounts reads one row a line (the screen keeps the line breaks)
 	if key == "minimum_wages":
-		return " · ".join(_minimum_row(row) for row in value)
+		return "\n".join(_minimum_row(row) for row in value)
 	if key == "cantonal_minimum_wages":
-		return " · ".join(_cantonal_row(row) for row in value)
+		return "\n".join(_cantonal_row(row) for row in value)
 	if key == "company_status_hours":
 		return " · ".join(f"{row['status']}: {_amount('hours', row['hours'])}" for row in value)
 	if key == "annual_calendar":

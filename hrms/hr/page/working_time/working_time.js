@@ -320,7 +320,7 @@ class WorkingTimeScreen {
 	minimum_html(view) {
 		const rows = (view && view.employees) || [];
 		if (!rows.length) return "";
-		const money = (value) => format_currency(value, frappe.defaults.get_default("currency"));
+		const money = (value) => format_currency(value, frappe.boot.sysdefaults.currency);
 		const name = (row) => ltw_esc(row.employee_name || row.employee);
 		const under = rows
 			.filter((row) => row.state === "under")

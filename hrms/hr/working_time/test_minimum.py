@@ -170,6 +170,11 @@ class TestTheMinimumWage(FrappeTestCase):
 		self.assertIn(
 			"4160 a month", views.describe("minimum_wages", table[:1]), "the table is read in words"
 		)
+		semi = next(
+			row for row in table if row["category"] == "Semi-qualifiée" and row.get("experience_from") == 1
+		)
+		self.assertIn("from 1 year of experience", views.describe("minimum_wages", [semi]))
+		self.assertEqual(views.describe("minimum_wages", table[:3]).count("\n"), 2, "one row a line")
 
 	def test_a_table_not_confirmed_checks_nothing_and_says_it(self):
 		other = self.confirmed({"minimum_wage_pro_rata"}, name="_Test minimum not confirmed")
