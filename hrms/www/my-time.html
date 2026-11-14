@@ -7,8 +7,9 @@
 <style>
 .mt{--ink:#141414;--paper:#FFFDF8;--muted:#524B41;--line:#DCD4C7;--hero:#FCEEDB;--signal:#F55D1A;--signal-text:#AA3700;--card:#FFFFFF;
 	max-width:560px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:18px;color:var(--ink);font-family:Karla,system-ui,sans-serif}
-/* the site's own theme decides, as in the desk; the device's preference alone would put a dark card on a light site */
-[data-theme=dark] .mt{--ink:#F2EFE8;--paper:#15140F;--muted:#A39A8C;--line:rgba(220,210,190,.18);--hero:#322D1F;--signal-text:#FF8D64;--card:#2A2620}
+/* the page the card sits on decides: neither the device's preference nor a data-theme the mobile app writes into any page
+   it opens may put a dark card on a light site (the script below reads the background under the card) */
+.mt.is-dark{--ink:#F2EFE8;--paper:#15140F;--muted:#A39A8C;--line:rgba(220,210,190,.18);--hero:#322D1F;--signal-text:#FF8D64;--card:#2A2620}
 .mt-card{border-radius:18px;border:1px solid var(--line);background:var(--hero);padding:16px;display:flex;flex-direction:column;gap:10px}
 .mt-row{display:flex;align-items:center;gap:8px}
 .mt-month{flex:1;font:700 11px Karla,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -86,6 +87,27 @@
 	{% endfor %}
 </div>
 <script>
+// the card takes the tone of what lies under it, and follows it when the site or the mobile app changes the theme
+(() => {
+	const sheet = document.querySelector(".mt");
+	if (!sheet) return;
+	const underneath = () => {
+		for (let node = sheet.parentElement; node; node = node.parentElement) {
+			const rgb = (getComputedStyle(node).backgroundColor.match(/[\d.]+/g) || []).map(Number);
+			if (rgb.length >= 3 && (rgb.length < 4 || rgb[3] > 0)) return rgb;
+		}
+		return [255, 255, 255];
+	};
+	const sync = () => {
+		const [r, g, b] = underneath();
+		sheet.classList.toggle("is-dark", (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5);
+	};
+	sync();
+	const watch = { attributes: true, attributeFilter: ["class", "data-theme", "style"] };
+	new MutationObserver(sync).observe(document.documentElement, watch);
+	new MutationObserver(sync).observe(document.body, watch);
+	window.addEventListener("theme-change", sync);
+})();
 frappe.ready(() => {
 	const M = "hrms.hr.working_time.statement";
 	document.querySelectorAll("[data-mt-sign]").forEach((button) =>
