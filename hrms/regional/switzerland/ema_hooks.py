@@ -36,6 +36,12 @@ def detect_ema_changes(doc, method=None):
 	if doc.flags.get("neo_account_employee"):
 		return
 
+	# //// Neoffice — an agency temp worker on the sites (Employee.neoconstruction_staffing, a field of neoconstruction)
+	# //// works in a crew but is employed and declared by his agency: the company files no EMA for him, neither
+	# //// Eintritt, Mutation nor Austritt. A trainee is the company's own hire and keeps them. Remove with that field.
+	if doc.get("neoconstruction_staffing") == "Agency temp worker":
+		return
+
 	if not _is_swiss_company(doc.company):
 		return
 

@@ -1640,6 +1640,34 @@ class TestEmaValidation(unittest.TestCase):
 class TestEmaHookLogic(unittest.TestCase):
 	"""Test EMA change detection logic (pure function tests, no Frappe DB)."""
 
+	# //// Neoffice — added test: an agency temp worker of the site crews gets no EMA, a trainee does.
+	def test_an_agency_temp_worker_gets_no_ema_a_trainee_does(self):
+		from unittest.mock import patch
+
+		from hrms.regional.switzerland import ema_hooks
+
+		class MockDoc:
+			company = "Swiss Co"
+
+			def __init__(self, staffing):
+				self.flags = {}
+				self.neoconstruction_staffing = staffing
+
+			def get(self, field):
+				return getattr(self, field, None)
+
+			def get_doc_before_save(self):
+				return None
+
+		with (
+			patch.object(ema_hooks, "_is_swiss_company", return_value=True),
+			patch.object(ema_hooks, "_create_ema_notification") as made,
+		):
+			ema_hooks.detect_ema_changes(MockDoc("Agency temp worker"))
+			self.assertFalse(made.called)
+			ema_hooks.detect_ema_changes(MockDoc("Site trainee"))
+			self.assertEqual(made.call_args[0][1], "Eintritt")
+
 	def test_detect_field_changes(self):
 		"""Detect changes in EMA-tracked fields."""
 		from hrms.regional.switzerland.ema_hooks import _detect_field_changes
