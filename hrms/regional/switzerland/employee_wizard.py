@@ -66,7 +66,7 @@ def format_avs_number(avs):
 
 
 @frappe.whitelist()
-def validate_avs_number(avs):
+def validate_avs_number(avs):  # permission-check: ok a checksum of the number sent, nothing read or written
 	"""Whitelisted AVS checksum validation for the wizard UI."""
 	valid = is_valid_avs_number(avs)
 	return {"valid": valid, "formatted": format_avs_number(avs) if valid else None}
@@ -544,7 +544,7 @@ def _check_finishing_staff(doc):
 
 
 @frappe.whitelist()
-def employee_to_finish(employee):
+def employee_to_finish(employee: str):
 	"""What the assistant knows of a record it is asked to finish: the values to prefill, what is missing and the
 	step to start on (a step already complete is skipped)."""
 	doc = frappe.get_doc("Employee", employee)
