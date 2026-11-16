@@ -1,7 +1,7 @@
 # //// Neoffice — added file (no upstream equivalent): the Swissdec standard wage type catalog data
 # //// (~170 codes and the insurance bases each one feeds).
 # Swiss standard wage type catalog (rubriques de salaire)
-# Reference: Daniel Moret Informatique Service, 08.05.2024
+# Reference: a client's wage type table, 08.05.2024
 # Based on Swissdec standard wage type definitions
 # //// Neoffice — checked line by line against the sample wage type table of the Swissdec
 # //// guidelines 6.0 (edition 06.03.2026, 5.2.1) and their worked examples (8.7.2): the codes
