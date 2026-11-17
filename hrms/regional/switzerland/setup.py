@@ -1749,6 +1749,7 @@ def existing_leave_type(label):
 	return next((name for name in leave_type_names(label) if frappe.db.exists("Leave Type", name)), None)
 
 
+# //// Neoffice — added: the Swiss absence types the Swiss payroll setup creates, or aligns where they exist.
 def ensure_swiss_leave_types():
 	"""The Swiss absences, as leave types an application never lacks the balance for, and every
 	leave counted the Swiss way (working or calendar days).
