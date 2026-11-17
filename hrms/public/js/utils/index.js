@@ -103,7 +103,10 @@ $.extend(hrms, {
 			dynamicRowHeight: true,
 			inlineFilters: true,
 			layout: "fluid",
-			cellHeight: 35,
+			//// Neoffice — the row at the desk's token --ws-cell (neoffice_theme: 42 px in the Readable size, 35 in Compact;
+			//// design system 6.17, maintenance#2804), as frappe's report view; 35, upstream's, where no theme defines it.
+			cellHeight:
+				Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ws-cell"))) || 35,
 			noDataMessage: no_data_message,
 			disableReorderColumn: true,
 			getEditor: get_editor,
