@@ -95,6 +95,12 @@ class EmployeeCheckin(Document):
 			return
 
 		if not (self.latitude or self.longitude):
+			# //// Neoffice — a check-in clocked where the phone had neither network nor position (a basement) and
+			# sent later from its offline queue is written, marked « sans position » for HR (decision of 11.11,
+			# neoffice-maintenance#1276). Only the server code that writes it sets this flag (neoconstruction's site
+			# mode, api/site.py _clock_people); no request can. Every other check-in without a position stays refused.
+			if self.flags.get("neo_without_position"):
+				return
 			frappe.throw(_("Latitude and longitude values are required for checking in."))
 
 		assignment_locations = frappe.get_all(
