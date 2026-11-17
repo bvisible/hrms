@@ -131,7 +131,7 @@ def wizard_defaults(company: str):
 	its default holiday list and the leave type of the vacation."""
 	_check_hiring_staff()
 	check_company_access(company)
-	from hrms.regional.switzerland.setup import existing_leave_type
+	from hrms.regional.switzerland.setup import vacation_leave_type
 
 	return {
 		"canton": frappe.db.get_value(
@@ -144,7 +144,7 @@ def wizard_defaults(company: str):
 			order_by="modified desc",
 		),
 		"holiday_list": frappe.db.get_value("Company", company, "default_holiday_list"),
-		"vacation_leave_type": existing_leave_type("Privilege Leave"),
+		"vacation_leave_type": vacation_leave_type(),  # by its mark, whatever the company calls it (#2793)
 		"labour_agreement": _company_agreement(company),
 	}
 
@@ -471,9 +471,9 @@ def _allocate_vacation(employee, days_a_year):
 	no vacation to pay."""
 	if days_a_year <= 0:
 		return None
-	from hrms.regional.switzerland.setup import existing_leave_type
+	from hrms.regional.switzerland.setup import vacation_leave_type
 
-	leave_type = existing_leave_type("Privilege Leave")
+	leave_type = vacation_leave_type()  # by its mark, whatever the company calls it (#2793)
 	if not leave_type:
 		return None
 	start = getdate(employee.date_of_joining)
@@ -602,7 +602,11 @@ def next_employee_to_finish(after=None):
 		pick = later[0] if later else rest[0]
 	else:
 		pick = rest[0]
-	return {"name": pick, "employee_name": titles.get(pick), "remaining": len(names) - (1 if after in names else 0)}
+	return {
+		"name": pick,
+		"employee_name": titles.get(pick),
+		"remaining": len(names) - (1 if after in names else 0),
+	}
 
 
 def _assign_salary(doc, data):
@@ -667,7 +671,9 @@ def complete_employee(employee: str, data: str | dict):
 	if iban and not validate_iban(iban):
 		frappe.throw(_("Invalid IBAN: the check digits do not match."))
 	address = "\n".join(
-		line.strip() for line in (data.get("address_street"), data.get("address_town")) if (line or "").strip()
+		line.strip()
+		for line in (data.get("address_street"), data.get("address_town"))
+		if (line or "").strip()
 	)
 	email = (data.get("email") or "").strip()
 	designation = (data.get("designation") or "").strip()

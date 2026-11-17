@@ -44,11 +44,11 @@ DEFAULT_AVERAGE_MONTHS = 12  # Federal Court 4A_231/2018: a representative perio
 
 
 def vacation_leave_type():
-	"""The site's vacation leave type: the install's "Privilege Leave", under the name it was created
-	with, whatever the language of the one asking."""
-	from hrms.regional.switzerland.setup import existing_leave_type
+	"""The site's vacation leave type: the one HR Settings names (its mark, kept by a rename), else the install's
+	"Privilege Leave" under the name it was created with (setup.vacation_leave_type, neoffice-maintenance#2793)."""
+	from hrms.regional.switzerland.setup import vacation_leave_type as marked
 
-	return existing_leave_type("Privilege Leave")
+	return marked()
 
 
 def monthly_base(employee, on_date):

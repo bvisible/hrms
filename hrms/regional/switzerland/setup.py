@@ -1021,6 +1021,9 @@ def get_custom_fields():
 				"description": "Email address for ELM declarations.",
 			},
 		],
+		# //// Neoffice — added (neoffice-maintenance#2793): HR Settings names the vacation leave type, so the payroll
+		# //// finds it whatever it is called (vacation_field, vacation_leave_type below).
+		"HR Settings": [vacation_field()],
 	}
 
 
@@ -1749,6 +1752,72 @@ def existing_leave_type(label):
 	return next((name for name in leave_type_names(label) if frappe.db.exists("Leave Type", name)), None)
 
 
+# //// Neoffice — added (neoffice-maintenance#2793): the vacation leave type is found by a stable mark, no longer by
+# //// its name. It was found as the translation of the install's "Privilege Leave" (« Congé de privilège » on a French
+# //// site), so a company that calls it « Vacances » lost its vacation pay, its balance paid at the exit and its
+# //// vacation hours. HR Settings names it once, as a link: a rename of the leave type carries the link along. The
+# //// translated name stays the way to find it on a site not marked yet.
+VACATION_FIELD = "ch_vacation_leave_type"
+
+
+def vacation_field():
+	"""The HR Settings field that names the vacation leave type."""
+	return {
+		"fieldname": VACATION_FIELD,
+		"label": "Vacation leave type",
+		"fieldtype": "Link",
+		"options": "Leave Type",
+		"insert_after": "leave_status_notification_template",
+		"description": "The leave type the Swiss payroll counts as vacation (yearly days, vacation pay, balance paid at the exit). Renaming the leave type keeps it.",
+	}
+
+
+def _named_vacation():
+	"""The leave type HR Settings names as the vacation, when the field exists and names one that exists."""
+	if not frappe.get_meta("HR Settings").has_field(VACATION_FIELD):
+		return None
+	named = frappe.db.get_single_value("HR Settings", VACATION_FIELD)
+	return named if named and frappe.db.exists("Leave Type", named) else None
+
+
+def vacation_leave_type():
+	"""The site's vacation leave type: the one HR Settings names, else the install's "Privilege Leave" under the name it
+	was created with, whatever the language of the one asking."""
+	return _named_vacation() or existing_leave_type("Privilege Leave")
+
+
+def mark_vacation_leave_type():
+	"""Name the vacation leave type in HR Settings, once: a type already named stays named. Returns the vacation leave
+	type, or None where the site has none."""
+	named = _named_vacation()
+	if named:
+		return named
+	found = existing_leave_type("Privilege Leave")
+	if found and frappe.get_meta("HR Settings").has_field(VACATION_FIELD):
+		frappe.db.set_single_value("HR Settings", VACATION_FIELD, found)
+	return found
+
+
+def name_vacation_leave_type(target=None):
+	"""The vacation leave type takes the site's word for vacation (« Vacances » on a French site), once, and only where it
+	still carries the install's name: a name the company chose stays, and a leave type already called so is never doubled
+	(neoffice-maintenance#2793). ``target``: the new name, else "Vacation" in the site's language. Returns {"from", "to"}
+	when the type was renamed, else None."""
+	current = mark_vacation_leave_type()
+	if not current or current not in leave_type_names("Privilege Leave"):
+		return None
+	if not target:
+		site_language = frappe.db.get_single_value("System Settings", "language") or "en"
+		target = _("Vacation", lang=site_language)
+		if target == "Vacation":
+			return None  # no word of the site's language for it: the install's name stays
+	if target == current or frappe.db.exists("Leave Type", target):
+		return None
+	# the links follow the rename, HR Settings' mark among them
+	frappe.rename_doc("Leave Type", current, target, force=True)
+	return {"from": current, "to": target}
+
+
 # //// Neoffice — added: the Swiss absence types the Swiss payroll setup creates, or aligns where they exist.
 def ensure_swiss_leave_types():
 	"""The Swiss absences, as leave types an application never lacks the balance for, and every
@@ -1791,7 +1860,9 @@ def ensure_swiss_leave_types():
 	# //// working days"): an *existing* working-day leave type (created before this fix, or under its
 	# //// English name) also loses include_holiday, so past installs get aligned, not just new ones.
 	for label in WORKING_DAY_LEAVE_TYPES:
-		existing = existing_leave_type(label)
+		# //// Neoffice — was `existing_leave_type(label)` for the vacation too: a vacation type renamed by the company
+		# //// was no longer aligned. It is found by its mark now (vacation_leave_type, neoffice-maintenance#2793).
+		existing = vacation_leave_type() if label == "Privilege Leave" else existing_leave_type(label)
 		if existing and cint(frappe.db.get_value("Leave Type", existing, "include_holiday")):
 			frappe.db.set_value("Leave Type", existing, "include_holiday", 0)
 			if existing not in report["aligned"]:
@@ -1799,7 +1870,9 @@ def ensure_swiss_leave_types():
 	# //// Neoffice — 2026-09-24: the vacation days left at the exit are paid through a Leave
 	# //// Encashment on "Vacation Payout" (vacation.py values them); an earning component the company
 	# //// chose already stays.
-	vacation = existing_leave_type("Privilege Leave")
+	# //// Neoffice — was `existing_leave_type("Privilege Leave")`: found by its mark now, whatever the company calls it
+	# //// (neoffice-maintenance#2793).
+	vacation = vacation_leave_type()
 	if vacation and frappe.db.exists("Salary Component", "Vacation Payout"):
 		values = frappe.db.get_value(
 			"Leave Type", vacation, ["allow_encashment", "earning_component"], as_dict=True

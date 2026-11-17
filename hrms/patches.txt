@@ -94,3 +94,6 @@ hrms.patches.v15_0.switzerland_unprorated_variable_pay
 # //// Neoffice — 2026-11-13: the months of the vacation pay average and the yearly vacation days when none is
 # //// allocated are settings of the Swiss config now (lot T); the existing configs show the values the code applied.
 hrms.patches.v15_0.switzerland_vacation_settings_show_their_values
+# //// Neoffice — 2026-11-17: the vacation leave type is found by a mark in HR Settings, whatever it is called, and takes the
+# //// site's word for vacation where it still carries the install's name (neoffice-maintenance#2793).
+hrms.patches.v15_0.switzerland_vacation_leave_type_named

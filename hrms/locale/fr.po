@@ -26069,3 +26069,13 @@ msgstr "moins de 1 an d'expérience professionnelle"
 #: hrms/hr/working_time/views.py
 msgid "{0}: {1} ({2})"
 msgstr "{0} : {1} ({2})"
+
+#. Label of the ch_vacation_leave_type (Link) field in DocType 'HR Settings'
+#: hrms/regional/switzerland/setup.py
+msgid "Vacation leave type"
+msgstr "Type de congé vacances"
+
+#. Description of the ch_vacation_leave_type (Link) field in DocType 'HR Settings'
+#: hrms/regional/switzerland/setup.py
+msgid "The leave type the Swiss payroll counts as vacation (yearly days, vacation pay, balance paid at the exit). Renaming the leave type keeps it."
+msgstr "Le type de congé que la paie suisse traite comme vacances (jours annuels, indemnité de vacances, solde versé à la sortie). Renommer le type de congé n'y change rien."

@@ -263,10 +263,10 @@ class TestEmployeeWizardHiring(SiteSafeTestCase):
 
 	def setUp(self):
 		super().setUp()
-		from hrms.regional.switzerland.setup import existing_leave_type
+		from hrms.regional.switzerland.setup import vacation_leave_type
 
-		# The install's vacation type: a test site may have no leave type at all.
-		if not existing_leave_type("Privilege Leave"):
+		# The site's vacation type (by its mark, whatever it is called: #2793): a test site may have no leave type at all.
+		if not vacation_leave_type():
 			frappe.get_doc({"doctype": "Leave Type", "leave_type_name": "Privilege Leave"}).insert()
 
 	def test_the_boot_says_whether_the_swiss_payroll_runs(self):
@@ -415,7 +415,9 @@ class TestEmployeeWizardHiring(SiteSafeTestCase):
 				# the employee is named after the person: one name for each hire
 				result = self.hire(**hired, last_name=f"HalfDay{allocated}", vacation_days=sent)
 				self.assertEqual(
-					frappe.db.get_value("Leave Allocation", result["leave_allocation"], "new_leaves_allocated"),
+					frappe.db.get_value(
+						"Leave Allocation", result["leave_allocation"], "new_leaves_allocated"
+					),
 					allocated,
 				)
 
