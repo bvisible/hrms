@@ -1714,6 +1714,20 @@ WORKING_DAY_LEAVE_TYPES = ("Privilege Leave", "Casual Leave", "Compensatory Off"
 INSTALL_LEAVE_TYPES = ("Sick Leave", "Privilege Leave", "Casual Leave", "Compensatory Off")
 
 
+# //// Neoffice — added (neoffice-maintenance#2759): the names of our Swiss absences, written out for the extractor.
+# //// They are translated through a variable (swiss_absence_type_name), which bench generate-pot-file cannot read, so
+# //// the catalogue never had them: a French site named the types in English and did not find the « Congé Accident »
+# //// the fleet carries, so running the Swiss setup again created four doubles. Never called: it only keeps these
+# //// entries in main.pot and the language catalogues.
+def _swiss_absence_names_for_the_catalogue():
+	return (
+		_("Accident", context="leave type"),
+		_("Military or civil service", context="leave type"),
+		_("Maternity leave", context="leave type"),
+		_("Other-parent leave", context="leave type"),
+	)
+
+
 def swiss_absence_type_name(label):
 	"""The name a Swiss leave type has on this site: the install's own translation for the types
 	hrms creates, the "leave type" context for ours ("Accident" alone is a word of the whole

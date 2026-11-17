@@ -26079,3 +26079,24 @@ msgstr "Type de congé vacances"
 #: hrms/regional/switzerland/setup.py
 msgid "The leave type the Swiss payroll counts as vacation (yearly days, vacation pay, balance paid at the exit). Renaming the leave type keeps it."
 msgstr "Le type de congé que la paie suisse traite comme vacances (jours annuels, indemnité de vacances, solde versé à la sortie). Renommer le type de congé n'y change rien."
+
+#. The Swiss absences, named as the fleet's leave types are (neoffice-maintenance#2759)
+#: hrms/regional/switzerland/setup.py
+msgctxt "leave type"
+msgid "Accident"
+msgstr "Congé Accident"
+
+#: hrms/regional/switzerland/setup.py
+msgctxt "leave type"
+msgid "Military or civil service"
+msgstr "Service Militaire/Civil"
+
+#: hrms/regional/switzerland/setup.py
+msgctxt "leave type"
+msgid "Maternity leave"
+msgstr "Congé Maternité"
+
+#: hrms/regional/switzerland/setup.py
+msgctxt "leave type"
+msgid "Other-parent leave"
+msgstr "Congé de l'Autre Parent"

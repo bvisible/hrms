@@ -428,6 +428,17 @@ class TestEmployeeWizardHiring(SiteSafeTestCase):
 
 # //// Neoffice — 2026-09-24: sickness is no quota in Switzerland; an application for it was refused
 # //// for lack of an allocation (found by the HR assistant recording "sick from the 22nd to the 26th").
+# The Swiss absences as the fleet's French sites carry them (created by this setup on 24.09, then by the theme's
+# swiss_absences_added_where_missing patch, which writes these names out).
+FLEET_FRENCH_NAMES = {
+	"Sick Leave": "Congé Maladie",
+	"Accident": "Congé Accident",
+	"Military or civil service": "Service Militaire/Civil",
+	"Maternity leave": "Congé Maternité",
+	"Other-parent leave": "Congé de l'Autre Parent",
+}
+
+
 class TestSwissAbsenceTypes(SiteSafeTestCase):
 	needs_company = False  # the leave types are the site's, not a company's
 
@@ -461,6 +472,26 @@ class TestSwissAbsenceTypes(SiteSafeTestCase):
 		frappe.db.set_value("Leave Type", name, {"is_lwp": 1, "allow_negative": 0})
 		ensure_swiss_leave_types()
 		self.assertEqual(frappe.db.get_value("Leave Type", name, ["is_lwp", "allow_negative"]), (1, 1))
+
+	def test_a_french_site_finds_the_swiss_absences_under_the_names_the_fleet_gave_them(self):
+		"""#2759: the French catalogue had no « leave type » entry for these absences, so a French site named
+		them in English and did not find « Congé Accident »: running the Swiss setup again on a French site
+		made four doubles (9 leave types, then 13)."""
+		from hrms.regional.switzerland.setup import (
+			SWISS_ABSENCE_TYPES,
+			existing_leave_type,
+			swiss_absence_type_name,
+		)
+
+		lang = frappe.local.lang
+		frappe.local.lang = "fr"
+		self.addCleanup(setattr, frappe.local, "lang", lang)
+		self.assertEqual(
+			{label: swiss_absence_type_name(label) for label in SWISS_ABSENCE_TYPES}, FLEET_FRENCH_NAMES
+		)
+		for label, name in FLEET_FRENCH_NAMES.items():
+			if frappe.db.exists("Leave Type", name):  # the fleet's type is found, never doubled
+				self.assertEqual(existing_leave_type(label), name)
 
 	def test_vacation_and_the_other_parent_count_working_days(self):
 		"""A fortnight off from Monday to Friday is 10 days, not 12; sickness keeps calendar days."""
