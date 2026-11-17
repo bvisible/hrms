@@ -1749,7 +1749,10 @@ def existing_leave_type(label):
 	return next((name for name in leave_type_names(label) if frappe.db.exists("Leave Type", name)), None)
 
 
-def ensure_swiss_leave_types():
+# //// Neoffice — `align` added (the fleet's pass of the theme, 17.11): with align=False only the missing
+# //// types are created and an existing one is left exactly as the company set it (a legal value is the
+# //// client's setting, never one the fleet imposes); the Swiss payroll setup keeps align=True.
+def ensure_swiss_leave_types(align=True):
 	"""The Swiss absences, as leave types an application never lacks the balance for, and every
 	leave counted the Swiss way (working or calendar days).
 
@@ -1767,7 +1770,8 @@ def ensure_swiss_leave_types():
 		# //// language of the one asking").
 		existing = existing_leave_type(label)
 		if existing:
-			if not cint(frappe.db.get_value("Leave Type", existing, "allow_negative")):
+			# //// Neoffice — `align and` added: an existing type is left alone when align is False.
+			if align and not cint(frappe.db.get_value("Leave Type", existing, "allow_negative")):
 				frappe.db.set_value("Leave Type", existing, "allow_negative", 1)
 				report["aligned"].append(existing)
 			continue
@@ -1789,9 +1793,10 @@ def ensure_swiss_leave_types():
 	# //// Neoffice — added (b3c5d4138 "fix(payroll): Swiss vacation and the other parent's leave count
 	# //// working days"): an *existing* working-day leave type (created before this fix, or under its
 	# //// English name) also loses include_holiday, so past installs get aligned, not just new ones.
+	# //// Neoffice — `align and` added: the count of an existing leave is left alone when align is False.
 	for label in WORKING_DAY_LEAVE_TYPES:
 		existing = existing_leave_type(label)
-		if existing and cint(frappe.db.get_value("Leave Type", existing, "include_holiday")):
+		if align and existing and cint(frappe.db.get_value("Leave Type", existing, "include_holiday")):
 			frappe.db.set_value("Leave Type", existing, "include_holiday", 0)
 			if existing not in report["aligned"]:
 				report["aligned"].append(existing)
@@ -1799,7 +1804,8 @@ def ensure_swiss_leave_types():
 	# //// Encashment on "Vacation Payout" (vacation.py values them); an earning component the company
 	# //// chose already stays.
 	vacation = existing_leave_type("Privilege Leave")
-	if vacation and frappe.db.exists("Salary Component", "Vacation Payout"):
+	# //// Neoffice — `align and` added: the vacation's payout is left alone when align is False.
+	if align and vacation and frappe.db.exists("Salary Component", "Vacation Payout"):
 		values = frappe.db.get_value(
 			"Leave Type", vacation, ["allow_encashment", "earning_component"], as_dict=True
 		)
