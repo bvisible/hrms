@@ -1531,6 +1531,16 @@ def get_leave_approver_and_mandatory(employee: str) -> dict:
 
 
 def validate_leave_access(employee, leave_application=None):
+	# //// Neoffice — the planning of a salon (NeoSalon « Présences », 17.11): any person of the
+	# salon places a colleague's absence as a request, and the salon's manager approves those of
+	# her team. Upstream lets only the employee, her approver and whoever reads her Employee write
+	# it; on our sites only HR reads the Employee (the theme's own records). The planning
+	# (neoffice_activity.presence.place_absence) checks its own rules first: its door, a role of
+	# the salon, a person of the planning; the theme checks the manager's approval again on the
+	# leave. It names this one employee in a request-local flag for the insert and the approval
+	# alone, and clears it. Keep while the planning places absences.
+	if frappe.flags.get("leave_request_from_the_planning") == employee:
+		return
 	employee_user = frappe.db.get_value("Employee", employee, "user_id")
 	leave_approver = _get_leave_approver(employee)  # //// Neoffice — #742, see get_leave_approver
 
