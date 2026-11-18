@@ -349,3 +349,28 @@ those edits are recorded here (the code edits are marked in place with `//// Neo
 
 - `hrms/payroll/onboarding_step/import_swiss_source_tax_tariffs/import_swiss_source_tax_tariffs.json` — the step title lost its French word (`ESTV barèmes` → `ESTV`).
 - `hrms/locale/fr.po` — the entry of that title renamed to the new English msgid, same French. (`hrms/translations/fr.csv` still carries the old msgid; `locale/*.po` wins and the CSV row is now inert.)
+
+
+## Contracts — what upstream must not bring back (2026-11-18)
+
+A marker explains a change; it does not stop the next upstream merge from undoing it, in another file or another form, with
+no conflict. Each row below is a decision that a machine checks on every push (`scripts/fork_contracts.py` of
+bvisible/neoffice-ci, run by the fork-markers workflow): `absent` = no matching file may contain the pattern, `present` =
+every matching file must. A red run means upstream undid a decision: make the change again (marked), or, if the decision
+itself has changed, edit the row and say why. Never delete a row to get green.
+
+| Contract | Rule | Pattern | Why |
+| --- | --- | --- | --- |
+| `hrms/hr/doctype/shift_schedule_assignment/shift_schedule_assignment.py` | present | `anchor=_first_day_of_the_rotation\(doc\.name\)` | #2907: the nightly job resumes a rotation in its own rhythm; upstream counts its weeks again from the day after the last one written, so « Every 2 Weeks » worked two weeks in a row and moved by a week at each run. |
+| `hrms/hr/doctype/shift_schedule_assignment/shift_schedule_assignment.py` | present | `get_weekday\(getdate\(add_days\(anchor or start_date, -1\)\)\)` | #2907: the same, where create_shifts counts the weeks: from the rotation's first day when it is given. |
+
+## A rotation keeps its weeks when the nightly job writes the next days (2026-11-18)
+
+- `hrms/hr/doctype/shift_schedule_assignment/shift_schedule_assignment.py` (marked in place): `create_shifts` takes the
+  rotation's first day (`anchor`) and counts its weeks from it; `process_auto_shift_creation` passes it, read as the
+  earliest shift assignment the rotation wrote, cancelled ones included. Upstream (`version-15` and `develop`) counts the
+  weeks again from the day after the last one written, the end of a week of work: a rotation « Every 2 Weeks » from Tuesday
+  to Saturday then worked weeks 12 and 13 in a row, and every week off after them (neoffice-maintenance#2907). Without
+  `anchor`, as upstream. Test: `test_a_rotation_one_week_out_of_two_keeps_its_weeks_when_hr_writes_the_next_days` in
+  neoffice_activity's `test_presence.py` (a rotation of the salon's planning, then two nights of the job).
+

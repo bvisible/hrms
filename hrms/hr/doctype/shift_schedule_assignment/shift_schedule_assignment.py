@@ -61,7 +61,9 @@ class ShiftScheduleAssignment(Document):
 
 		return existing_shift_assignments, last_shift_end_date
 
-	def create_shifts(self, start_date: str, end_date: str | None = None) -> None:
+	# //// Neoffice — `anchor`: the rotation's first day, from which its weeks are counted
+	# //// (process_auto_shift_creation below).
+	def create_shifts(self, start_date: str, end_date: str | None = None, anchor=None) -> None:
 		shift_schedule = frappe.get_doc("Shift Schedule", self.shift_schedule)
 		gap = {
 			"Every Week": 0,
@@ -72,7 +74,14 @@ class ShiftScheduleAssignment(Document):
 
 		date = start_date
 		individual_assignment_start = None
-		week_end_day = get_weekday(getdate(add_days(start_date, -1)))
+		# //// Neoffice — a rotation's weeks are counted from its first day (`anchor`), not from the day the
+		# //// nightly job resumes it. Upstream counts them again from the day after the last one written, the
+		# //// end of a week of work: « Every 2 Weeks » then worked two weeks in a row and its whole rhythm
+		# //// moved by a week, at each run (neoffice-maintenance#2907). Without `anchor`, as upstream: the
+		# //// first run starts the rotation, its first day is `start_date`.
+		week_end_day = get_weekday(getdate(add_days(anchor or start_date, -1)))
+		if anchor and gap:
+			date = add_days(start_date, _days_to_its_week_of_work(getdate(anchor), getdate(start_date), gap))
 		repeat_on_days = [day.day for day in shift_schedule.repeat_on_days]
 
 		if not end_date:
@@ -131,7 +140,11 @@ def process_auto_shift_creation():
 
 			start_date = doc.create_shifts_after
 
-			doc.create_shifts(add_days(doc.create_shifts_after, 1))
+			# //// Neoffice — the weeks counted from the rotation's first day (create_shifts' `anchor`,
+			# //// neoffice-maintenance#2907).
+			doc.create_shifts(
+				add_days(doc.create_shifts_after, 1), anchor=_first_day_of_the_rotation(doc.name)
+			)
 
 			text = _(
 				"Shift Assignments created for the schedule between {0} and {1} via background job"
@@ -142,3 +155,31 @@ def process_auto_shift_creation():
 			frappe.log_error(e)
 
 			continue
+
+
+# //// Neoffice — added (neoffice-maintenance#2907): where the nightly job resumes a rotation in its own
+# //// rhythm.
+def _days_to_its_week_of_work(first_day, start, gap: int) -> int:
+	"""The days from `start` to the first day of the rotation's next week of work, 0 when `start` falls
+	in one. Its weeks run from `first_day`: a week of work, then `gap` weeks off, and again."""
+	days = (start - first_day).days
+	if days <= 0:
+		return 0
+	week, cycle = days // 7, gap + 1
+	if week % cycle == 0:
+		return 0
+	return (week - week % cycle + cycle) * 7 - days
+
+
+# //// Neoffice — added (neoffice-maintenance#2907): the first day a rotation wrote, its earliest shift
+# //// assignment, cancelled ones included (a day cut out of it is cancelled, never deleted); None without
+# //// one, and the job counts its weeks as upstream does.
+def _first_day_of_the_rotation(shift_schedule_assignment):
+	first = frappe.get_all(
+		"Shift Assignment",
+		filters={"shift_schedule_assignment": shift_schedule_assignment},
+		fields=["start_date"],
+		order_by="start_date asc",
+		limit=1,
+	)
+	return first[0].start_date if first else None
