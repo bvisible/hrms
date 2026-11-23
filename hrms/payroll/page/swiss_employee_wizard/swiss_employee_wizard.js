@@ -916,7 +916,13 @@ class SwissEmployeeWizard {
 
 	access_summary() {
 		const kind = this.access_kind();
-		if (kind === "office") return __("An account at the office, with an invitation");
+		if (kind === "office") {
+			//// Neoffice — what the person does in the trades, as the access step's controller says it (neoffice_theme
+			//// employee_access.js, neoffice-maintenance#3282): the recap said nothing of the answers given there.
+			const base = __("An account at the office, with an invitation");
+			const said = this.access && this.access.trades_said ? this.access.trades_said() : "";
+			return said ? `${base} · ${said}` : base;
+		}
 		if (kind === "field") return __("An account in the field, with an invitation");
 		return "";
 	}
