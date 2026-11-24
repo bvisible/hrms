@@ -284,7 +284,10 @@ const documents = createResource({
 
 const createPermission = createResource({
 	url: "frappe.client.has_permission",
-	params: { doctype: props.doctype, docname: null, perm_type: "create" },
+	//// Neoffice — upstream version-15 asks with `docname: null`, which frappe 15's typed
+	//// has_permission(docname: str | int) refuses (417): "New" was on no list. Same text as
+	//// upstream's 8cc9b68d9 (version-16, develop); nothing to keep once version-15 has it.
+	params: { doctype: props.doctype, docname: "", perm_type: "create" },
 	auto: true,
 })
 
@@ -395,11 +398,14 @@ watch(
 )
 
 onMounted(async () => {
+	//// Neoffice — upstream calls this last, after the await: too late for the composable to
+	//// take its listener off with the page (composables/realtime.js), so it is called first.
+	useListUpdate(socket, props.doctype, () => fetchDocumentList())
+
 	const workflow = useWorkflow(props.doctype)
 	await workflow.workflowDoc.promise
 	workflowStateField.value = workflow.getWorkflowStateField()
 	fetchDocumentList()
-
-	useListUpdate(socket, props.doctype, () => fetchDocumentList())
+	//// Neoffice — useListUpdate is called at the top of this hook, not here.
 })
 </script>

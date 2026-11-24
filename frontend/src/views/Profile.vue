@@ -138,7 +138,8 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch, onMounted, onBeforeUnmount } from "vue"
+//// Neoffice — onBeforeUnmount left upstream's import: useListUpdate does it (end of this file).
+import { computed, inject, ref, watch, onMounted } from "vue"
 import { useRouter } from "vue-router"
 import { IonPage, IonContent } from "@ionic/vue"
 import { FeatherIcon, createDocumentResource, createResource, toast } from "frappe-ui"
@@ -149,6 +150,8 @@ import { formatCurrency } from "@/utils/formatters"
 import ProfileInfoModal from "@/components/ProfileInfoModal.vue"
 
 import { arePushNotificationsEnabled } from "@/data/notifications"
+//// Neoffice — added import, see the end of this file.
+import { useListUpdate } from "@/composables/realtime"
 
 const DOCTYPE = "Employee"
 
@@ -293,16 +296,13 @@ const logout = async () => {
 
 
 onMounted(() => {
-	socket.emit("doctype_subscribe", DOCTYPE)
-	socket.on("list_update", (data) => {
-		if (data.doctype === DOCTYPE && data.name === employee.data.name) {
+	//// Neoffice — upstream left this page with `socket.off("list_update")`, which takes off every
+	//// listener of the app, not its own: the lists were live no more. This takes off its own.
+	useListUpdate(socket, DOCTYPE, (name) => {
+		if (name === employee.data.name) {
 			employeeDoc.reload()
 		}
 	})
 })
-
-onBeforeUnmount(() => {
-	socket.emit("doctype_unsubscribe", DOCTYPE)
-	socket.off("list_update")
-})
+//// Neoffice — upstream's onBeforeUnmount is gone, see above.
 </script>

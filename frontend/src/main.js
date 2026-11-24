@@ -1,4 +1,5 @@
-import { createApp } from "vue"
+//// Neoffice — `watch` added to upstream's import, for the socket of a person who signs in (below).
+import { createApp, watch } from "vue"
 import App from "./App.vue"
 import router from "./router"
 import { initSocket } from "./socket"
@@ -34,9 +35,9 @@ import "./theme/variables.css"
 import "./main.css"
 
 const app = createApp(App)
-//// Neoffice — upstream builds the socket at module scope (`const socket = initSocket()`).
-//// initSocket is async here (socket.js), so it is created once the router is ready.
-let socket = null
+//// Neoffice — upstream's line again: until 24.11.2026 ours was filled in after the router was ready,
+//// so provide("$socket") below handed null to every screen. Keep it before that provide.
+const socket = initSocket()
 
 setConfig("resourceFetcher", frappeRequest)
 app.use(resourcesPlugin)
@@ -59,6 +60,15 @@ app.provide("$user", userResource)
 app.provide("$employee", employeeResource)
 app.provide("$socket", socket)
 app.provide("$dayjs", dayjs)
+
+//// Neoffice — added: the socket is authenticated once, with the cookie of the moment it connects.
+//// Signing in from the app's own page (data/session.js) loads no page, so upstream's socket stays
+//// Guest's: every subscription is refused and nothing is live until the app is opened again.
+//// Connect again as the person who just signed in. To drop when upstream reconnects at sign-in.
+watch(
+	() => session.user,
+	(user) => user && socket.disconnect().connect()
+)
 
 const registerServiceWorker = async () => {
 	window.frappePushNotification = new FrappePushNotification("hrms")
@@ -113,10 +123,7 @@ router.isReady().then(async () => {
 	if (boot?.lang) document.documentElement.lang = boot.lang
 	document.documentElement.dir = boot?.layout_direction || "ltr"
 	registerServiceWorker()
-	//// Neoffice — added with the async initSocket above: exposed as $socket because the
-	//// module-scope const upstream relied on is gone.
-	socket = await initSocket()
-	app.config.globalProperties.$socket = socket
+	//// Neoffice — the socket is not made here any more, see `const socket` above.
 	app.mount("#app")
 })
 
