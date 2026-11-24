@@ -22,40 +22,9 @@ export default defineConfig({
 			devOptions: {
 				enabled: true,
 			},
-			manifest: {
-				display: "standalone",
-				name: "Frappe HR",
-				short_name: "Frappe HR",
-				start_url: "/hrms",
-				description: "Everyday HR & Payroll operations at your fingertips",
-				theme_color: "#ffffff",
-				icons: [
-					{
-						src: "/assets/hrms/manifest/manifest-icon-192.maskable.png",
-						sizes: "192x192",
-						type: "image/png",
-						purpose: "any",
-					},
-					{
-						src: "/assets/hrms/manifest/manifest-icon-192.maskable.png",
-						sizes: "192x192",
-						type: "image/png",
-						purpose: "maskable",
-					},
-					{
-						src: "/assets/hrms/manifest/manifest-icon-512.maskable.png",
-						sizes: "512x512",
-						type: "image/png",
-						purpose: "any",
-					},
-					{
-						src: "/assets/hrms/manifest/manifest-icon-512.maskable.png",
-						sizes: "512x512",
-						type: "image/png",
-						purpose: "maskable",
-					},
-				],
-			},
+			//// Neoffice — upstream's manifest (its brand's name and icons) is not built: the page names the one
+			//// neoffice_theme serves, with our icons and the name in the reader's language (neoffice_theme/home_screen.py).
+			manifest: false,
 		}),
 	],
 	resolve: {

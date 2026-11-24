@@ -24,7 +24,8 @@ class PWANotification(Document):
 					self.reference_document_type,
 					self.message,
 					link=self.get_notification_link(),
-					icon=f"{frappe.utils.get_url()}/assets/hrms/manifest/favicon-196.png",
+					# //// Neoffice — the icon of HR on the phone (neoffice_theme/home_screen.py), upstream: its own mark.
+					icon=f"{frappe.utils.get_url()}/assets/neoffice_theme/icons/home_screen/hrms/icon-192.png",
 				)
 		except ImportError:
 			# push notifications are not supported in the current framework version
