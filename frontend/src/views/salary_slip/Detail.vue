@@ -45,7 +45,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue"
+//// Neoffice — `inject` added to upstream's import, for __ below.
+import { inject, ref, watch } from "vue"
 import { IonPage, IonContent } from "@ionic/vue"
 
 import { createResource, ErrorMessage } from "frappe-ui"
@@ -54,6 +55,10 @@ import FormView from "@/components/FormView.vue"
 import SalaryDetailTable from "@/components/SalaryDetailTable.vue"
 
 import { getCompanyCurrency } from "@/data/currencies"
+
+//// Neoffice — added: upstream's 8ce889d99 calls __() below and injects nothing: a download that
+//// fails threw "__ is not defined" instead of saying so.
+const __ = inject("$translate")
 
 const props = defineProps({
 	id: {

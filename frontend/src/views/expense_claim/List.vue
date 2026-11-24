@@ -13,8 +13,13 @@
 
 <script setup>
 import { IonPage } from "@ionic/vue"
+//// Neoffice — added import, for the line below.
+import { inject } from "vue"
 import ListView from "@/components/ListView.vue"
 
+//// Neoffice — added: upstream's 8ce889d99 calls __() here and injects nothing: "__ is not
+//// defined", and the list of expense claims is a blank page.
+const __ = inject("$translate")
 
 const TAB_BUTTONS = ["My Claims", "Team Claims"] // __("My Claims"), __("Team Claims")
 const EXPENSE_CLAIM_FIELDS = [

@@ -22,6 +22,9 @@ import { ref, watch, inject } from "vue"
 import FormView from "@/components/FormView.vue"
 
 const employee = inject("$employee")
+//// Neoffice — added: upstream calls __() below and injects nothing: dates the wrong way round
+//// threw "__ is not defined" instead of saying so.
+const __ = inject("$translate")
 
 const props = defineProps({
 	id: {
