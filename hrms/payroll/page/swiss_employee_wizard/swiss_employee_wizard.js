@@ -607,6 +607,9 @@ class SwissEmployeeWizard {
 			get_email: () => this.data.email || "",
 			//// Neoffice — the job title of the second step: Nora's suggestion reads it (« Cheffe de chantier » → in the field).
 			job: this.data.designation || "",
+			//// Neoffice — the company of the record: the till the person takes payments at is asked among its own
+			//// (neoffice_theme employee_access.js, neoffice-maintenance#3282).
+			company: this.data.company || "",
 			initial: this.access_state,
 			on_change: (controller) => {
 				this.access = controller;
