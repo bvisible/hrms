@@ -57,9 +57,11 @@
 					v-model="activeTab"
 				/>
 
+				<!-- //// Neoffice — upstream takes the rows off the screen at each request. Now that a change made by
+				     somebody else asks again, that threw the reader back to the top: see keepsRows below. -->
 				<div
 					class="flex flex-col bg-white rounded mt-5"
-					v-if="!documents.loading && documents.data?.length"
+					v-if="keepsRows && documents.data?.length"
 				>
 					<div
 						class="p-3.5 items-center justify-between border-b cursor-pointer"
@@ -89,13 +91,15 @@
 						</router-link>
 					</div>
 				</div>
+				<!-- //// Neoffice — keepsRows here too; upstream tests documents.loading. -->
 				<EmptyState
 					:message="__('No {0} found', [props.doctype?.toLowerCase()])"
-					v-else-if="!documents.loading"
+					v-else-if="keepsRows"
 				/>
 
 				<!-- Loading Indicator -->
-				<div v-if="documents.loading" class="flex mt-2 items-center justify-center">
+				<!-- //// Neoffice — no spinner for a live change. -->
+				<div v-if="documents.loading && fetching !== 'live'" class="flex mt-2 items-center justify-center">
 					<LoadingIndicator class="w-8 h-8 text-gray-800" />
 				</div>
 			</div>
@@ -214,6 +218,11 @@ const selectedRequest = ref(null)
 // infinite scroll
 const scrollContainer = ref(null)
 const hasNextPage = ref(true)
+//// Neoffice — added: what the request under way is for. "list": a tab, a filter, the rows leave;
+//// "page": the next rows; "live": somebody changed a document. The last two leave the rows there.
+const fetching = ref("list")
+const keepsRows = computed(() => !documents.loading || fetching.value !== "list")
+let lastAsked = 0
 const listOptions = ref({
 	doctype: props.doctype,
 	fields: props.fields,
@@ -251,13 +260,15 @@ const defaultFilters = computed(() => {
 const documents = createResource({
 	url: "frappe.desk.reportview.get",
 	onSuccess: (data) => {
-		if (data.values?.length < listOptions.value.page_length) {
+		//// Neoffice — the length asked for, not upstream's constant: a live change asks for every row shown.
+		if (data.values?.length < documents.params.page_length) {
 			hasNextPage.value = false
 		}
 	},
 	transform(data) {
 		if (data.length === 0) {
-			return []
+			//// Neoffice — a next page with nothing in it: upstream's `[]` emptied a list of exactly 50 rows.
+			return documents.params.start ? documents.data : []
 		}
 
 		// convert keys and values arrays to docs object
@@ -350,7 +361,9 @@ function clearFilters() {
 	areFiltersApplied.value = false
 }
 
-function fetchDocumentList(start = 0) {
+//// Neoffice — `live` added: a change made elsewhere asks again for every row shown, by whole pages.
+function fetchDocumentList(start = 0, live = false) {
+	fetching.value = live ? "live" : start ? "page" : "list"
 	if (start === 0) {
 		hasNextPage.value = true
 	}
@@ -360,25 +373,43 @@ function fetchDocumentList(start = 0) {
 
 	if (appliedFilters.value) filters.push(...appliedFilters.value)
 
-	if (workflowStateField.value) {
+	//// Neoffice — once: upstream adds the field again at each request, and a live list asks often.
+	if (workflowStateField.value && !listOptions.value.fields.includes(workflowStateField.value)) {
 		listOptions.value.fields.push(workflowStateField.value)
 	}
 
-	documents.submit({
-		...listOptions.value,
-		start: start || 0,
-		filters: filters,
-	})
+	const pageLength = listOptions.value.page_length
+	const pages = live ? Math.max(1, Math.ceil((documents.data?.length || 0) / pageLength)) : 1
+	const mine = ++lastAsked
+	documents
+		.submit({
+			...listOptions.value,
+			page_length: pages * pageLength,
+			start: start || 0,
+			filters: filters,
+		})
+		//// Neoffice — added: an answer that came after a newer question (a tab changed meanwhile) wrote
+		//// its rows over the newer ones: ask once more.
+		.then(() => mine !== lastAsked && reloadLive())
 }
 
+//// Neoffice — added: several changes at once ask once, and never while a request is under way (the
+//// two answers would cross).
+const reloadLive = debounce(() => {
+	if (documents.loading) reloadLive()
+	else fetchDocumentList(0, true)
+}, 300)
+
 const handleScroll = debounce(() => {
-	if (!hasNextPage.value) return
+	//// Neoffice — `documents.loading` added: the rows stay on screen, so one can scroll while it loads.
+	if (!hasNextPage.value || documents.loading) return
 
 	const { scrollTop, scrollHeight, clientHeight } = scrollContainer.value
 	const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100
 
 	if (scrollPercentage >= 90) {
-		const start = documents.params.start + listOptions.value.page_length
+		//// Neoffice — after the rows there are: a live change may have brought several pages at once.
+		const start = documents.data?.length || 0
 		fetchDocumentList(start)
 	}
 }, 500)
@@ -400,7 +431,7 @@ watch(
 onMounted(async () => {
 	//// Neoffice — upstream calls this last, after the await: too late for the composable to
 	//// take its listener off with the page (composables/realtime.js), so it is called first.
-	useListUpdate(socket, props.doctype, () => fetchDocumentList())
+	useListUpdate(socket, props.doctype, reloadLive)
 
 	const workflow = useWorkflow(props.doctype)
 	await workflow.workflowDoc.promise
