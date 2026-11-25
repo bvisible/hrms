@@ -1,1 +1,0 @@
-import{$ as u}from"./frappe-ui-t3J-DXEe.js";const t=new Set;let f=!1;function c(n,e,i){r(n,e);const o=s=>{s.doctype==e&&i(s.name)};n.on("list_update",o),u(()=>n.off("list_update",o))}function r(n,e){f||(f=!0,n.on("connect",()=>{t.forEach(i=>n.emit("doctype_subscribe",i))})),!t.has(e)&&(t.add(e),n.connected&&n.emit("doctype_subscribe",e))}export{c as u};
