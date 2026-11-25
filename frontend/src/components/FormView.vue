@@ -330,6 +330,8 @@ import WorkflowActionSheet from "@/components/WorkflowActionSheet.vue"
 
 import { FileAttachment, guessStatusColor } from "@/composables"
 import useWorkflow from "@/composables/workflow"
+//// Neoffice — added import: the rights on the document, shares included (neoffice-maintenance#3348).
+import { createDocPermissions } from "@/composables/docPermissions"
 import { getCompanyCurrency } from "@/data/currencies"
 import { formatCurrency } from "@/utils/formatters"
 
@@ -587,8 +589,9 @@ const documentResource = createDocumentResource({
 	},
 })
 
-const docPermissions = createResource({
-	url: "frappe.client.get_doc_permissions",
+//// Neoffice — upstream's createResource on frappe.client.get_doc_permissions, which leaves out the share
+//// that lets an approver submit: see composables/docPermissions.js.
+const docPermissions = createDocPermissions({
 	params: { doctype: props.doctype, docname: props.id },
 })
 

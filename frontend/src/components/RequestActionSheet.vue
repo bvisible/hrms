@@ -175,6 +175,8 @@ import { settings } from "@/data/settings"
 import { formatCurrency } from "@/utils/formatters"
 
 import useWorkflow from "@/composables/workflow"
+//// Neoffice — added import: the rights on the request, shares included (neoffice-maintenance#3348).
+import { createDocPermissions } from "@/composables/docPermissions"
 
 const __ = inject("$translate")
 
@@ -220,8 +222,9 @@ const attachedFiles = createResource({
 	},
 })
 
-const docPermissions = createResource({
-	url: "frappe.client.get_doc_permissions",
+//// Neoffice — upstream's createResource on frappe.client.get_doc_permissions, which leaves out the share
+//// that lets an approver submit: see composables/docPermissions.js.
+const docPermissions = createDocPermissions({
 	params: { doctype: props.modelValue.doctype, docname: props.modelValue.name },
 	auto: true,
 })
